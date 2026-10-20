@@ -1,0 +1,16 @@
+{
+  "block.phoenix_continuum.continuum_launch_complex": "Continuum Launch Complex",
+  "block.phoenix_continuum.continuum_launch_pad": "Test Launch Pad (no power or tier)",
+  "item.phoenix_continuum.continuum_hull_refit_mk2": "Hull Refit Kit Mk II",
+  "item.phoenix_continuum.continuum_hull_refit_mk3": "Hull Refit Kit Mk III",
+  "item.phoenix_continuum.continuum_hull_refit_mk4": "Hull Refit Kit Mk IV",
+  "item.phoenix_continuum.continuum_module_hull": "Reinforced Hull Plating",
+  "item.phoenix_continuum.continuum_module_interlock": "Hull Interlock Module",
+  "item.phoenix_continuum.continuum_module_overdrive": "Overdrive Module",
+  "item.phoenix_continuum.continuum_module_singularity_shield": "Singularity Shielding Module",
+  "item.phoenix_continuum.continuum_module_stellar_shield": "Stellar Shielding Module",
+  "item.phoenix_continuum.continuum_probe": "Extraction Probe",
+  "item.phoenix_continuum.continuum_repair_kit": "Rocket Repair Kit",
+  "item.phoenix_continuum.continuum_rocket": "Continuum Rocket",
+  "itemGroup.phoenix_continuum.creative_tab": "Phoenix Continuum"
+}

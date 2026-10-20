@@ -1,0 +1,51 @@
+package net.phoenix.continuum.network;
+
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+
+public final class ContinuumNetwork {
+
+    private ContinuumNetwork() {}
+
+    public static void register(PayloadRegistrar registrar) {
+        registrar.playToClient(S2CContinuumDataPacket.TYPE, S2CContinuumDataPacket.STREAM_CODEC,
+                S2CContinuumDataPacket::handle);
+        registrar.playToClient(S2CContinuumStatePacket.TYPE, S2CContinuumStatePacket.STREAM_CODEC,
+                S2CContinuumStatePacket::handle);
+        registrar.playToClient(S2COpenMapPacket.TYPE, S2COpenMapPacket.STREAM_CODEC, S2COpenMapPacket::handle);
+        registrar.playToClient(S2CMissionLaunchedPacket.TYPE, S2CMissionLaunchedPacket.STREAM_CODEC,
+                S2CMissionLaunchedPacket::handle);
+        registrar.playToClient(S2CPadStockPacket.TYPE,
+                S2CPadStockPacket.STREAM_CODEC,
+                S2CPadStockPacket::handle);
+        registrar.playToServer(C2SRequestPadStockPacket.TYPE,
+                C2SRequestPadStockPacket.STREAM_CODEC,
+                C2SRequestPadStockPacket::handle);
+        registrar.playToClient(S2CPdimStatePacket.TYPE,
+                S2CPdimStatePacket.STREAM_CODEC,
+                S2CPdimStatePacket::handle);
+        registrar.playToServer(C2SPdimPacket.TYPE,
+                C2SPdimPacket.STREAM_CODEC,
+                C2SPdimPacket::handle);
+        registrar.playToServer(C2SConfluxTravelPacket.TYPE,
+                C2SConfluxTravelPacket.STREAM_CODEC,
+                C2SConfluxTravelPacket::handle);
+        registrar.playToServer(C2SCollectAllPacket.TYPE,
+                C2SCollectAllPacket.STREAM_CODEC,
+                C2SCollectAllPacket::handle);
+        registrar.playToServer(C2SRequestHistoryPacket.TYPE,
+                C2SRequestHistoryPacket.STREAM_CODEC,
+                C2SRequestHistoryPacket::handle);
+        registrar.playToClient(S2CHistoryPacket.TYPE,
+                S2CHistoryPacket.STREAM_CODEC,
+                S2CHistoryPacket::handle);
+        registrar.playToServer(C2SRefitPacket.TYPE,
+                C2SRefitPacket.STREAM_CODEC,
+                C2SRefitPacket::handle);
+        registrar.playToServer(C2SRequestStatePacket.TYPE, C2SRequestStatePacket.STREAM_CODEC,
+                C2SRequestStatePacket::handle);
+        registrar.playToServer(C2SLaunchMissionPacket.TYPE, C2SLaunchMissionPacket.STREAM_CODEC,
+                C2SLaunchMissionPacket::handle);
+        registrar.playToServer(C2SCollectMissionPacket.TYPE, C2SCollectMissionPacket.STREAM_CODEC,
+                C2SCollectMissionPacket::handle);
+    }
+}
