@@ -41,5 +41,14 @@
   "lore": {
     "detected": "A grey companion, tidally locked.",
     "surveyed": "Example Moon has no air but plenty of quartz and flint."
+  },
+  "initial_stage": "unknown",
+  "gate": {
+    "detected_research": "phoenix_continuum:lunar_survey"
+  },
+  "grants_research": {
+    "surveyed": [
+      "phoenix_continuum:deep_space"
+    ]
   }
 }

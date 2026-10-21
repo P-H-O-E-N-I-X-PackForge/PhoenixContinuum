@@ -227,6 +227,13 @@ public class ContinuumConfigs {
 
         @Configurable
         @Configurable.Comment({
+                "Tell a team in chat when it earns research (from grants_research in definitions).",
+                "Default: true"
+        })
+        public boolean announceResearch = true;
+
+        @Configurable
+        @Configurable.Comment({
                 "Volume of the Continuum map's layered ambience (space bed, wind, stellar roar, black hole hum), 0 to 1.",
                 "0 turns it off. Default: 0.6"
         })

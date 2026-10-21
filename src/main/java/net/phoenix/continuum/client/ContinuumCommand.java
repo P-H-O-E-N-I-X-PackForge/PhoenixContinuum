@@ -23,6 +23,7 @@ public final class ContinuumCommand {
                 literal("continuum")
                         .then(literal("test").executes(ctx -> open(ContinuumTestScreen::new)))
                         .then(literal("map").executes(ctx -> open(ContinuumMapScreen::new)))
+                        .then(literal("goals").executes(ctx -> goals()))
                         .then(literal("tune")
                                 .executes(ctx -> tune(null))
                                 .then(argument("body", net.minecraft.commands.arguments.ResourceLocationArgument.id())
@@ -32,6 +33,15 @@ public final class ContinuumCommand {
                                                         builder))
                                         .executes(ctx -> tune(net.minecraft.commands.arguments.ResourceLocationArgument
                                                 .getId((com.mojang.brigadier.context.CommandContext) ctx, "body"))))));
+    }
+
+    private static int goals() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return 0;
+        for (net.minecraft.network.chat.Component line : net.phoenix.continuum.client.ContinuumGoals.lines()) {
+            mc.player.displayClientMessage(line, false);
+        }
+        return 1;
     }
 
     private static int tune(net.minecraft.resources.ResourceLocation body) {

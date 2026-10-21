@@ -56,5 +56,10 @@
   "lore": {
     "detected": "A blue-green world, close enough to see detail through a telescope.",
     "surveyed": "Example Rock is the easy one: mild, wet, and rich in common metals."
+  },
+  "grants_research": {
+    "surveyed": [
+      "phoenix_continuum:lunar_survey"
+    ]
   }
 }
