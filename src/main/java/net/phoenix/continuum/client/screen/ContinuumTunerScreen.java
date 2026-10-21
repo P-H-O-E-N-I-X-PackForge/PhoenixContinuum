@@ -162,6 +162,8 @@ public final class ContinuumTunerScreen extends Screen {
     private void addServerFields(JsonObject json) {
         fields.add(Field.header("Visual edits above are local. Push them to apply for everyone."));
         fields.add(Field.button("push", "Push visual edits to the server"));
+        fields.add(Field.button("newbody", "New body in this system..."));
+        fields.add(Field.button("newsystem", "New system..."));
         fields.add(Field.header("Server (applies for everyone, saved in config/phoenix_continuum/tuning)"));
         fields.add(Field.server("name", "Name", Kind.TEXT, 0, 0, 0, ""));
         fields.add(Field.server("description", "Description", Kind.TEXT, 0, 0, 0, ""));
@@ -509,6 +511,8 @@ public final class ContinuumTunerScreen extends Screen {
                 case "button" -> {
                     switch (field.path()) {
                         case "push" -> pushVisual();
+                        case "newbody" -> minecraft.setScreen(new ContinuumCreateScreen(this, false, body().system()));
+                        case "newsystem" -> minecraft.setScreen(new ContinuumCreateScreen(this, true, null));
                         case "yield+" -> editYields(true);
                         case "yield-" -> editYields(false);
                         default -> {}
