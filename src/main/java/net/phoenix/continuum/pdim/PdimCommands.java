@@ -47,21 +47,26 @@ public final class PdimCommands {
                                 FloatArgumentType.getFloat(ctx, "gravity")),
                                 e -> new PdimData.Entry(PdimDimensions.clampGravity(
                                         FloatArgumentType.getFloat(ctx, "gravity")), e.plot(), e.daySpeed(),
-                                        e.lockedTime())))))
+                                        e.lockedTime(), e.orbitView())))))
+                .then(literal("sky")
+                        .then(literal("surface").executes(ctx -> adjust(ctx.getSource(), "sky from the surface",
+                                e -> new PdimData.Entry(e.gravity(), e.plot(), e.daySpeed(), e.lockedTime(), false))))
+                        .then(literal("orbit").executes(ctx -> adjust(ctx.getSource(), "sky from orbit",
+                                e -> new PdimData.Entry(e.gravity(), e.plot(), e.daySpeed(), e.lockedTime(), true)))))
                 .then(literal("day")
                         .then(literal("speed").then(argument("speed", FloatArgumentType.floatArg(
                                 PdimDimensions.MIN_DAY_SPEED, PdimDimensions.MAX_DAY_SPEED))
                                 .executes(ctx -> adjust(ctx.getSource(), "day speed x" + String.format(Locale.ROOT,
                                         "%.2f", FloatArgumentType.getFloat(ctx, "speed")),
                                         e -> new PdimData.Entry(e.gravity(), e.plot(), PdimDimensions.clampDaySpeed(
-                                                FloatArgumentType.getFloat(ctx, "speed")), -1.0f)))))
+                                                FloatArgumentType.getFloat(ctx, "speed")), -1.0f, e.orbitView())))))
                         .then(literal("lock").then(argument("tick", FloatArgumentType.floatArg(0.0f, 24000.0f))
                                 .executes(ctx -> adjust(ctx.getSource(), "time locked at tick " + (int) FloatArgumentType
                                         .getFloat(ctx, "tick"),
                                         e -> new PdimData.Entry(e.gravity(), e.plot(), e.daySpeed(),
-                                                FloatArgumentType.getFloat(ctx, "tick"))))))
+                                                FloatArgumentType.getFloat(ctx, "tick"), e.orbitView())))))
                         .then(literal("unlock").executes(ctx -> adjust(ctx.getSource(), "time running",
-                                e -> new PdimData.Entry(e.gravity(), e.plot(), e.daySpeed(), -1.0f)))))
+                                e -> new PdimData.Entry(e.gravity(), e.plot(), e.daySpeed(), -1.0f, e.orbitView())))))
                 .then(literal("leave").executes(ctx -> leave(ctx.getSource())))
                 .then(literal("list").executes(ctx -> list(ctx.getSource())))
                 .then(literal("delete").then(argument("body", ResourceLocationArgument.id())

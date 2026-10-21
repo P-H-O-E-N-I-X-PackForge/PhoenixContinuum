@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public class ShaderBench {
 
-    static final String[] QUAD = {"wolfrayet", "pulsar", "protostar", "planetary", "megastructure", "tidal", "blackhole",
+    static final String[] QUAD = {"wolfrayet", "pulsar", "protostar", "planetary", "megastructure", "dyson", "tidal", "blackhole",
             "nebula", "galaxy", "backdrop", "sky", "starfield", "glow"};
 
     public static void main(String[] args) throws Exception {
@@ -93,12 +93,25 @@ public class ShaderBench {
             applyDefaults(program, json);
             overrides(program, name);
 
-            // look at it
+            // look at it (the star-wrapping shaders blend over a star)
+            boolean premult = name.equals("megastructure") || name.equals("dyson");
             GL33C.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             GL33C.glClear(GL33C.GL_COLOR_BUFFER_BIT);
+            if (premult) {
+                GL33C.glBlendFunc(GL33C.GL_ONE, GL33C.GL_ONE_MINUS_SRC_ALPHA);
+                int disc = build(Files.readString(dir.resolve("continuum_megastructure.vsh")),
+                        "#version 150\nuniform float Extent;\nin vec2 vLocal;\nout vec4 o;\nvoid main(){ float r = length(vLocal * Extent); o = r < 1.0 ? vec4(1.0, 0.75 - 0.2 * r, 0.35, 1.0) : vec4(0.0); }");
+                GL33C.glUseProgram(disc);
+                applyDefaults(disc, json);
+                f(disc, "Extent", name.equals("dyson") ? 7.0f : 16.0f);
+                GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, 6);
+                save(out.resolve(name + "_disc.png").toFile(), w, h);
+                GL33C.glUseProgram(program);
+            }
             GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, 6);
             save(out.resolve(name + ".png").toFile(), w, h);
 
+            GL33C.glBlendFunc(GL33C.GL_ONE, GL33C.GL_ONE);
             // time it covering the whole target
             for (int i = 0; i < 5; i++) GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, 6);
             GL33C.glFinish();
@@ -217,6 +230,64 @@ public class ShaderBench {
         GL33C.glEndQuery(GL33C.GL_TIME_ELAPSED);
         double ms = GL33C.glGetQueryObjectui64(q, GL33C.GL_QUERY_RESULT) / 1.0e6 / 20;
         System.out.printf(Locale.ROOT, "%-24s %10.3f %10.3f%n", "atmosphere shell", ms, ms / (discPx / 1e6));
+
+        // a ringed planet: the sun on the same face of the ring as the viewer, then on the other face
+        int ringProg = build(Files.readString(dir.resolve("continuum_ring.vsh")), Files.readString(dir.resolve("continuum_ring.fsh")));
+        if (ringProg == 0) return;
+        int rvao = GL33C.glGenVertexArrays();
+        GL33C.glBindVertexArray(rvao);
+        int rvbo = GL33C.glGenBuffers();
+        GL33C.glBindBuffer(GL33C.GL_ARRAY_BUFFER, rvbo);
+        FloatBuffer rq = BufferUtils.createFloatBuffer(18);
+        rq.put(new float[] {-1, 0, -1, -1, 0, 1, 1, 0, 1, -1, 0, -1, 1, 0, 1, 1, 0, -1}).flip();
+        GL33C.glBufferData(GL33C.GL_ARRAY_BUFFER, rq, GL33C.GL_STATIC_DRAW);
+        GL33C.glEnableVertexAttribArray(0);
+        GL33C.glVertexAttribPointer(0, 3, GL33C.GL_FLOAT, false, 12, 0L);
+        float[][] suns = {{0.55f, 0.55f, 0.65f}, {0.55f, -0.55f, 0.65f}, {0.9f, 0.1f, 0.3f}};
+        float[] tilts = {62f, 62f, 20f};
+        for (int k = 0; k < suns.length; k++) {
+            float[] sun = suns[k];
+            float c = (float) Math.cos(Math.toRadians(tilts[k])), sn = (float) Math.sin(Math.toRadians(tilts[k]));
+            float R = 2.4f;
+            float[] ringMv = {R, 0, 0, 0, 0, R * c, R * sn, 0, 0, -R * sn, R * c, 0, 0, 0, -4.5f, 1};
+            float[] planetMv = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, -4.5f, 1};
+            GL33C.glClearColor(0f, 0f, 0.01f, 1f);
+            GL33C.glClear(GL33C.GL_COLOR_BUFFER_BIT | GL33C.GL_DEPTH_BUFFER_BIT);
+            GL33C.glBindVertexArray(vao);
+            GL33C.glDisable(GL33C.GL_BLEND);
+            GL33C.glUseProgram(program);
+            GL33C.glUniformMatrix4fv(GL33C.glGetUniformLocation(program, "ModelViewMat"), false, planetMv);
+            GL33C.glUniformMatrix4fv(GL33C.glGetUniformLocation(program, "ProjMat"), false, proj);
+            f(program, "SunDir", sun[0], sun[1], sun[2]);
+            f(program, "Kind", 1f);
+            f(program, "Style", 0f);
+            GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, count);
+            GL33C.glBindVertexArray(rvao);
+            GL33C.glUseProgram(ringProg);
+            GL33C.glUniformMatrix4fv(GL33C.glGetUniformLocation(ringProg, "ModelViewMat"), false, ringMv);
+            GL33C.glUniformMatrix4fv(GL33C.glGetUniformLocation(ringProg, "ProjMat"), false, proj);
+            f(ringProg, "SunDir", sun[0], sun[1], sun[2]);
+            f(ringProg, "PlanetCenter", 0f, 0f, -4.5f);
+            f(ringProg, "PlanetRadius", 1f);
+            f(ringProg, "Inner", 1.4f / 2.4f);
+            f(ringProg, "Opacity", 0.9f);
+            f(ringProg, "Seed", 4.2f);
+            f(ringProg, "Color1", 0.85f, 0.78f, 0.62f);
+            f(ringProg, "Color2", 0.54f, 0.48f, 0.38f);
+            GL33C.glEnable(GL33C.GL_BLEND);
+            GL33C.glBlendFunc(GL33C.GL_SRC_ALPHA, GL33C.GL_ONE_MINUS_SRC_ALPHA);
+            GL33C.glDepthMask(false);
+            GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, 6);
+            GL33C.glDepthMask(true);
+            save(out.resolve("ring_" + k + ".png").toFile(), w, h);
+            for (int i = 0; i < 5; i++) GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, 6);
+            GL33C.glFinish();
+            int rq2 = GL33C.glGenQueries();
+            GL33C.glBeginQuery(GL33C.GL_TIME_ELAPSED, rq2);
+            for (int i = 0; i < 20; i++) GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, 6);
+            GL33C.glEndQuery(GL33C.GL_TIME_ELAPSED);
+            System.out.printf(Locale.ROOT, "%-24s %10.3f%n", "ring " + k, GL33C.glGetQueryObjectui64(rq2, GL33C.GL_QUERY_RESULT) / 1.0e6 / 20);
+        }
     }
 
     static int build(String vsh, String fsh) {
@@ -300,6 +371,11 @@ public class ShaderBench {
         switch (name) {
             case "megastructure" -> {
                 f(program, "Extent", 16.0f);
+                f(program, "Core", 1.0f);
+                f(program, "Tint", 1.0f, 0.82f, 0.45f);
+            }
+            case "dyson" -> {
+                f(program, "Extent", 7.0f);
                 f(program, "Core", 1.0f);
                 f(program, "Tint", 1.0f, 0.82f, 0.45f);
             }

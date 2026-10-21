@@ -68,6 +68,11 @@ public record ContinuumSystem(
         return "pulsar".equals(starKind);
     }
 
+    /** A star shut inside a complete shell ("dyson_sphere"). */
+    public boolean isDysonSphere() {
+        return "dyson_sphere".equals(starKind) || "dyson_shell".equals(starKind);
+    }
+
     public boolean isMegastructure() {
         return "dyson_swarm".equals(starKind) || "megastructure".equals(starKind);
     }

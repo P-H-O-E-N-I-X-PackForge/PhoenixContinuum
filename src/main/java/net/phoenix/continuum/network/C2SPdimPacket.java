@@ -25,7 +25,8 @@ public class C2SPdimPacket implements CustomPacketPayload {
     public enum Action {
         ENTER,
         LEAVE,
-        ADJUST
+        ADJUST,
+        DELETE
     }
 
     private final Action action;
@@ -74,9 +75,17 @@ public class C2SPdimPacket implements CustomPacketPayload {
 
             String error = switch (msg.action) {
                 case LEAVE -> PdimActions.leave(player);
+                case DELETE -> PdimActions.delete(player, msg.body) ? null : "You have no personal dimension there.";
                 case ADJUST -> PdimActions.adjust(player, msg.body, msg.gravity, msg.daySpeed, msg.lockedTime,
                         msg.orbitView);
-                default -> PdimActions.createAndEnter(player, msg.body, msg.gravity, msg.orbitView);
+                default -> {
+                    String made = PdimActions.createAndEnter(player, msg.body, msg.gravity, msg.orbitView);
+                    // the sky clock chosen on the create screen
+                    if (made == null && (msg.daySpeed != 1.0f || msg.lockedTime >= 0.0f)) {
+                        PdimActions.adjust(player, msg.body, msg.gravity, msg.daySpeed, msg.lockedTime, msg.orbitView);
+                    }
+                    yield made;
+                }
             };
             if (error != null) player.displayClientMessage(Component.literal(error), true);
         });

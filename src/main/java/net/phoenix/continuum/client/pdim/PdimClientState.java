@@ -16,12 +16,12 @@ public final class PdimClientState {
     private static float daySpeed = 1.0f;
     private static float lockedTime = -1.0f;
     private static boolean orbitView;
-    private static Map<ResourceLocation, Float> mine = Map.of();
+    private static Map<ResourceLocation, net.phoenix.continuum.pdim.PdimData.Entry> mine = Map.of();
     private static Map<ResourceLocation, net.phoenix.continuum.pdim.PdimCosts.Cost> costs = Map.of();
     private static boolean everyVisit = true;
 
     public static void accept(boolean insideNow, float gravityNow, float daySpeedNow, float lockedTimeNow, boolean orbitViewNow,
-                              Map<ResourceLocation, Float> dimensions,
+                              Map<ResourceLocation, net.phoenix.continuum.pdim.PdimData.Entry> dimensions,
                               Map<ResourceLocation, net.phoenix.continuum.pdim.PdimCosts.Cost> costMap,
                               boolean chargesEveryVisit) {
         inside = insideNow;
@@ -65,6 +65,12 @@ public final class PdimClientState {
     }
 
     public static @Nullable Float dimension(ResourceLocation body) {
+        var e = mine.get(body);
+        return e == null ? null : e.gravity();
+    }
+
+    /** The settings of the player's dimension on a body (gravity, sky clock, view), or null if they have none. */
+    public static @Nullable net.phoenix.continuum.pdim.PdimData.Entry entry(ResourceLocation body) {
         return mine.get(body);
     }
 }

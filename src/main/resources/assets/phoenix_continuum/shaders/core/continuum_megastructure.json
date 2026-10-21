@@ -2,9 +2,9 @@
   "blend": {
     "func": "add",
     "srcrgb": "1",
-    "dstrgb": "1",
+    "dstrgb": "1-srcalpha",
     "srcalpha": "1",
-    "dstalpha": "1"
+    "dstalpha": "1-srcalpha"
   },
   "vertex": "phoenix_continuum:continuum_megastructure",
   "fragment": "phoenix_continuum:continuum_megastructure",

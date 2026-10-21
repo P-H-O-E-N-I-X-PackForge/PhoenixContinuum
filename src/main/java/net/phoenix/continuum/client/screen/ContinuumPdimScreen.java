@@ -12,6 +12,7 @@ import net.phoenix.continuum.client.pdim.PdimClientState;
 import net.phoenix.continuum.data.ContinuumBody;
 import net.phoenix.continuum.network.C2SPdimPacket;
 import net.phoenix.continuum.pdim.PdimCosts;
+import net.phoenix.continuum.pdim.PdimData;
 import net.phoenix.continuum.pdim.PdimDimensions;
 
 import com.mojang.blaze3d.platform.InputConstants;
@@ -20,13 +21,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Makes or edits a personal dimension. Every setting is here whether the dimension exists yet or not: gravity (a preset
+ * or any value), how fast the sky clock runs, a fixed time of day, and whether the sky is the view from the surface of
+ * the world or from orbit. Before the dimension exists the choices are held on the screen and sent with "Create and
+ * enter"; afterwards each click is applied straight away.
+ */
 public class ContinuumPdimScreen extends Screen {
 
     @Override
     public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {}
 
-    private static final int W = 300;
-    private static final int H = 250;
+    private static final int W = 320;
+    private static final int H = 300;
 
     private record Preset(String label, float gravity) {}
 
@@ -34,9 +41,13 @@ public class ContinuumPdimScreen extends Screen {
     private final ContinuumBody body;
     private final List<Preset> presets = new ArrayList<>();
     private final List<Object[]> rects = new ArrayList<>();
-    private int selected;
     private float scale = 1.0f;
-    private boolean orbitChoice;
+
+    // what the player is choosing, for a dimension that does not exist yet
+    private float pendGravity;
+    private float pendSpeed = 1.0f;
+    private float pendLocked = -1.0f;
+    private boolean pendOrbit;
 
     public ContinuumPdimScreen(Screen parent, ContinuumBody body) {
         super(Component.literal("Personal dimension"));
@@ -44,6 +55,7 @@ public class ContinuumPdimScreen extends Screen {
         this.body = body;
 
         float natural = PdimDimensions.naturalGravity(body);
+        pendGravity = natural;
         presets.add(new Preset("Natural", natural));
         presets.add(new Preset("Moon", 0.16f));
         presets.add(new Preset("Low", 0.5f));
@@ -57,8 +69,39 @@ public class ContinuumPdimScreen extends Screen {
         return false;
     }
 
-    private Float existing() {
-        return PdimClientState.dimension(body.id());
+    private PdimData.Entry existing() {
+        return PdimClientState.entry(body.id());
+    }
+
+    private float gravity() {
+        var e = existing();
+        return e != null ? e.gravity() : pendGravity;
+    }
+
+    private float speed() {
+        var e = existing();
+        return e != null ? e.daySpeed() : pendSpeed;
+    }
+
+    private float locked() {
+        var e = existing();
+        return e != null ? e.lockedTime() : pendLocked;
+    }
+
+    private boolean orbit() {
+        var e = existing();
+        return e != null ? e.orbitView() : pendOrbit;
+    }
+
+    private static String clock(float tick) {
+        int t = Math.round(tick);
+        return switch (t) {
+            case 0 -> "dawn";
+            case 6000 -> "noon";
+            case 12000 -> "dusk";
+            case 18000 -> "midnight";
+            default -> "tick " + t;
+        };
     }
 
     @Override
@@ -80,60 +123,66 @@ public class ContinuumPdimScreen extends Screen {
         g.renderOutline(x, y, W, H, MapUi.PANEL_LINE);
         rects.clear();
 
+        boolean exists = existing() != null;
         g.drawString(font, "Personal dimension  -  " + body.name(), x + 10, y + 9, MapUi.TITLE);
         int ty = y + 24;
         ty = wrapped(g, "An empty void with an obsidian platform, under the sky of " + body.name() +
-                ". Falling out of the bottom puts you back at the top.", x + 10, ty, W - 20, MapUi.DIM) + 4;
+                ". Falling out of the bottom puts you back at the top." +
+                (exists ? " Changes apply at once; the sky only changes what you see." : ""), x + 10, ty, W - 20,
+                MapUi.DIM) + 4;
 
         var cost = PdimClientState.cost(body.id());
-        boolean charged = cost != null && !cost.free() && (existing() == null || PdimClientState.chargesEveryVisit());
+        boolean charged = cost != null && !cost.free() && (!exists || PdimClientState.chargesEveryVisit());
         boolean creative = Minecraft.getInstance().player != null && Minecraft.getInstance().player.isCreative();
         int have = cost == null ? 0 : PdimCosts.count(Minecraft.getInstance().player, cost);
         boolean canPay = !charged || creative || have >= cost.count();
 
-        Float gravity = existing();
-        if (gravity != null) {
-            g.drawString(font, String.format(Locale.ROOT, "Your dimension here has gravity x%.2f", gravity), x + 10, ty,
-                    MapUi.TEXT);
-            ty += 11;
-            ty = wrapped(g, "You can change these any time. The sky clock only changes what you see.", x + 10, ty,
-                    W - 20, MapUi.DIM) + 4;
-            float speed = PdimClientState.daySpeed();
-            float locked = PdimClientState.lockedTime();
-            ty = adjustRow(g, x, ty, String.format(Locale.ROOT, "Gravity  x%.2f", gravity), "g", mx, my);
-            ty = adjustRow(g, x, ty, locked >= 0 ? "Day speed  (locked)" :
-                    String.format(Locale.ROOT, "Day speed  x%.2f", speed), "s", mx, my);
-            int third = (W - 20 - 10) / 3;
-            button(g, x + 10, ty, third, "Lock noon", "lockNoon", true, locked == 6000.0f, mx, my);
-            button(g, x + 15 + third, ty, third, "Lock midnight", "lockNight", true, locked == 18000.0f, mx, my);
-            button(g, x + 20 + 2 * third, ty, third, "Run clock", "unlock", locked >= 0, false, mx, my);
-            button(g, x + 10, ty + 22, W - 20, PdimClientState.orbitView() ? "Sky: seen from orbit  (click for the surface)" :
-                    "Sky: as if you stand on it  (click for orbit)", "sky", true, false, mx, my);
-            costLine(g, x + 10, y + H - 62, charged, cost, have, canPay);
-            button(g, x + 10, y + H - 48, W - 20, "Enter", "enter", canPay, false, mx, my);
-        } else {
-            g.drawString(font, "Choose its gravity (fixed once made):", x + 10, ty, MapUi.TEXT);
-            ty += 14;
-            int bw = (W - 20 - 10) / 3;
-            for (int i = 0; i < presets.size(); i++) {
-                Preset p = presets.get(i);
-                int bx = x + 10 + (i % 3) * (bw + 5);
-                int by = ty + (i / 3) * 24;
-                String label = p.label() + String.format(Locale.ROOT, "  x%.2f", p.gravity());
-                button(g, bx, by, bw, label, "preset" + i, true, i == selected, mx, my);
-            }
-            button(g, x + 10, ty + 52, W - 20, orbitChoice ? "Sky: seen from orbit  (click for the surface)" :
-                    "Sky: as if you stand on it  (click for orbit)", "sky", true, false, mx, my);
-            costLine(g, x + 10, y + H - 62, charged, cost, have, canPay);
-            button(g, x + 10, y + H - 48, W - 20, "Create and enter", "create", canPay, false, mx, my);
+        // gravity: any value, plus presets
+        ty = adjustRow(g, x, ty, String.format(Locale.ROOT, "Gravity  x%.2f", gravity()), "g", mx, my);
+        int bw = (W - 20 - 10) / 3;
+        for (int i = 0; i < presets.size(); i++) {
+            Preset p = presets.get(i);
+            int bx = x + 10 + (i % 3) * (bw + 5);
+            int by = ty + (i / 3) * 21;
+            button(g, bx, by, bw, p.label() + String.format(Locale.ROOT, " x%.2f", p.gravity()), "preset" + i, true,
+                    Math.abs(gravity() - p.gravity()) < 0.005f, mx, my);
         }
+        ty += 44;
+
+        // day and night
+        float lockedNow = locked();
+        ty = adjustRow(g, x, ty, lockedNow >= 0 ? "Day  locked at " + clock(lockedNow) :
+                String.format(Locale.ROOT, "Day speed  x%.2f", speed()), "s", mx, my);
+        int quarter = (W - 20 - 15) / 4;
+        String[] names = {"dawn", "noon", "dusk", "midnight"};
+        float[] ticks = {0.0f, 6000.0f, 12000.0f, 18000.0f};
+        for (int i = 0; i < 4; i++) {
+            button(g, x + 10 + i * (quarter + 5), ty, quarter, names[i], "lock" + i, true,
+                    lockedNow >= 0 && Math.round(lockedNow) == (int) ticks[i], mx, my);
+        }
+        ty += 21;
+        button(g, x + 10, ty, W - 20, lockedNow >= 0 ? "Let the sky clock run again" : "Sky clock running  (lock a time above)",
+                "unlock", lockedNow >= 0, false, mx, my);
+        ty += 23;
+
+        // where the sky is seen from
+        button(g, x + 10, ty, W - 20, orbit() ? "Sky: seen from orbit  (click for the surface)" :
+                "Sky: as if you stand on it  (click for orbit)", "sky", true, false, mx, my);
+
+        costLine(g, x + 10, y + H - 80, charged, cost, have, canPay);
+        button(g, x + 10, y + H - 66, W - 20, exists ? "Enter" : "Create and enter", exists ? "enter" : "create", canPay,
+                false, mx, my);
 
         boolean inside = PdimClientState.inside();
+        int half = (W - 25) / 2;
         if (inside) {
-            button(g, x + 10, y + H - 26, (W - 25) / 2, "Leave this dimension", "leave", true, false, mx, my);
-            button(g, x + 15 + (W - 25) / 2, y + H - 26, (W - 25) / 2, "Close", "close", true, false, mx, my);
+            button(g, x + 10, y + H - 44, half, "Leave this dimension", "leave", true, false, mx, my);
+            button(g, x + 15 + half, y + H - 44, half, "Close", "close", true, false, mx, my);
         } else {
-            button(g, x + 10, y + H - 26, W - 20, "Close", "close", true, false, mx, my);
+            button(g, x + 10, y + H - 44, W - 20, "Close", "close", true, false, mx, my);
+        }
+        if (exists && !inside) {
+            button(g, x + 10, y + H - 22, W - 20, "Forget this dimension", "forget", true, false, mx, my);
         }
 
         g.pose().popPose();
@@ -144,12 +193,6 @@ public class ContinuumPdimScreen extends Screen {
         button(g, x + W - 10 - 22 * 2 - 4, y, 22, "-", id + "-", true, false, mx, my);
         button(g, x + W - 10 - 22, y, 22, "+", id + "+", true, false, mx, my);
         return y + 22;
-    }
-
-    private void sendAdjust(float gravity, float speed, float locked) {
-        PacketDistributor.sendToServer(
-                new C2SPdimPacket(C2SPdimPacket.Action.ADJUST, body.id(), gravity, speed, locked,
-                        PdimClientState.orbitView()));
     }
 
     private void costLine(GuiGraphics g, int x, int y, boolean charged, PdimCosts.Cost cost, int have, boolean canPay) {
@@ -179,6 +222,21 @@ public class ContinuumPdimScreen extends Screen {
         if (enabled) rects.add(new Object[] { id, x, y, w });
     }
 
+    /** Applies a change: held on the screen until the dimension exists, sent to the server once it does. */
+    private void apply(float gravity, float speed, float locked, boolean orbit) {
+        gravity = PdimDimensions.clampGravity(Math.round(gravity * 100f) / 100f);
+        speed = PdimDimensions.clampDaySpeed(speed);
+        if (existing() == null) {
+            pendGravity = gravity;
+            pendSpeed = speed;
+            pendLocked = locked;
+            pendOrbit = orbit;
+        } else {
+            PacketDistributor.sendToServer(
+                    new C2SPdimPacket(C2SPdimPacket.Action.ADJUST, body.id(), gravity, speed, locked, orbit));
+        }
+    }
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         double mx = mouseX / scale;
@@ -188,46 +246,43 @@ public class ContinuumPdimScreen extends Screen {
                 if (!MapUi.inside(mx, my, (int) r[1], (int) r[2], (int) r[3], 18)) continue;
                 ContinuumSounds.click();
                 String id = (String) r[0];
-                Float current = existing();
-                float gravityNow = current == null ? 1.0f : current;
-                float speedNow = PdimClientState.daySpeed();
-                float lockedNow = PdimClientState.lockedTime();
-                if (current != null && id.equals("g-")) {
-                    sendAdjust(Math.round((gravityNow - (hasShiftDown() ? 0.5f : 0.1f)) * 100f) / 100f, speedNow,
-                            lockedNow);
-                } else if (current != null && id.equals("g+")) {
-                    sendAdjust(Math.round((gravityNow + (hasShiftDown() ? 0.5f : 0.1f)) * 100f) / 100f, speedNow,
-                            lockedNow);
-                } else if (current != null && id.equals("s-")) {
-                    sendAdjust(gravityNow, speedNow / (hasShiftDown() ? 2.0f : 1.25f), -1.0f);
-                } else if (current != null && id.equals("s+")) {
-                    sendAdjust(gravityNow, speedNow * (hasShiftDown() ? 2.0f : 1.25f), -1.0f);
-                } else if (current != null && id.equals("lockNoon")) {
-                    sendAdjust(gravityNow, speedNow, 6000.0f);
-                } else if (current != null && id.equals("lockNight")) {
-                    sendAdjust(gravityNow, speedNow, 18000.0f);
-                } else if (current != null && id.equals("unlock")) {
-                    sendAdjust(gravityNow, speedNow, -1.0f);
-                } else if (id.equals("sky")) {
-                    if (current != null) {
-                        PacketDistributor.sendToServer(new C2SPdimPacket(C2SPdimPacket.Action.ADJUST, body.id(), gravityNow,
-                                speedNow, lockedNow, !PdimClientState.orbitView()));
-                    } else {
-                        orbitChoice = !orbitChoice;
+                float gravity = gravity();
+                float speed = speed();
+                float locked = locked();
+                boolean orbit = orbit();
+                float step = hasShiftDown() ? 0.5f : hasControlDown() ? 0.01f : 0.1f;
+                float factor = hasShiftDown() ? 2.0f : 1.25f;
+                switch (id) {
+                    case "g-" -> apply(gravity - step, speed, locked, orbit);
+                    case "g+" -> apply(gravity + step, speed, locked, orbit);
+                    case "s-" -> apply(gravity, speed / factor, -1.0f, orbit);
+                    case "s+" -> apply(gravity, speed * factor, -1.0f, orbit);
+                    case "lock0" -> apply(gravity, speed, 0.0f, orbit);
+                    case "lock1" -> apply(gravity, speed, 6000.0f, orbit);
+                    case "lock2" -> apply(gravity, speed, 12000.0f, orbit);
+                    case "lock3" -> apply(gravity, speed, 18000.0f, orbit);
+                    case "unlock" -> apply(gravity, speed, -1.0f, orbit);
+                    case "sky" -> apply(gravity, speed, locked, !orbit);
+                    case "create", "enter" -> {
+                        PacketDistributor.sendToServer(new C2SPdimPacket(C2SPdimPacket.Action.ENTER, body.id(), gravity,
+                                speed, locked, orbit));
+                        Minecraft.getInstance().setScreen(null);
                     }
-                } else if (id.startsWith("preset")) {
-                    selected = Integer.parseInt(id.substring(6));
-                } else if (id.equals("create") || id.equals("enter")) {
-                    float gravity = existing() != null ? existing() : presets.get(selected).gravity();
-                    PacketDistributor.sendToServer(
-                            new C2SPdimPacket(C2SPdimPacket.Action.ENTER, body.id(), gravity, orbitChoice));
-                    Minecraft.getInstance().setScreen(null);
-                } else if (id.equals("leave")) {
-                    PacketDistributor.sendToServer(
-                            new C2SPdimPacket(C2SPdimPacket.Action.LEAVE, body.id(), 1.0f, false));
-                    Minecraft.getInstance().setScreen(null);
-                } else {
-                    onClose();
+                    case "leave" -> {
+                        PacketDistributor.sendToServer(
+                                new C2SPdimPacket(C2SPdimPacket.Action.LEAVE, body.id(), 1.0f, false));
+                        Minecraft.getInstance().setScreen(null);
+                    }
+                    case "forget" -> PacketDistributor.sendToServer(
+                            new C2SPdimPacket(C2SPdimPacket.Action.DELETE, body.id(), 1.0f, false));
+                    case "close" -> onClose();
+                    default -> {
+                        if (id.startsWith("preset")) {
+                            apply(presets.get(Integer.parseInt(id.substring(6))).gravity(), speed, locked, orbit);
+                        } else {
+                            onClose();
+                        }
+                    }
                 }
                 return true;
             }

@@ -124,8 +124,7 @@ public final class PdimActions {
 
     public static void sendState(ServerPlayer player) {
         PdimData data = PdimData.get(player.server);
-        Map<ResourceLocation, Float> mine = new HashMap<>();
-        data.entries(player.getUUID()).forEach((body, entry) -> mine.put(body, entry.gravity()));
+        Map<ResourceLocation, PdimData.Entry> mine = new HashMap<>(data.entries(player.getUUID()));
 
         float gravity = 1.0f;
         float daySpeed = 1.0f;

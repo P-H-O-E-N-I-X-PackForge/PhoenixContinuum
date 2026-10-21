@@ -441,6 +441,8 @@ public final class SceneRenderer {
             drawPulsar(color, view, projection, worldPos, radius, quality, sky);
         } else if (system != null && system.isPlanetaryNebula()) {
             drawPlanetaryNebula(color, view, projection, worldPos, radius, quality, sky);
+        } else if (system != null && system.isDysonSphere()) {
+            drawDysonSphere(color, view, projection, worldPos, radius, quality, sky);
         } else if (system != null && system.isMegastructure()) {
             drawMegastructure(color, view, projection, worldPos, radius, quality, sky);
         } else if (system != null && system.isProtostar()) {
@@ -551,6 +553,18 @@ public final class SceneRenderer {
         drawHotBody(rgb, 0.15f, view, projection, worldPos, radius, quality);
         final Vector3f normal = planeNormal(view, worldPos, sky);
         drawStarFx(ContinuumShaders.MEGASTRUCTURE, rgb, 16.0f, view, projection, worldPos, radius, quality, sky,
+                s -> s.safeGetUniform("DiskNormal").set(normal.x, normal.y, normal.z));
+    }
+
+    /**
+     * A star shut inside a complete shell: dark plates with glowing seams, rifts where the star shows through, a belt of
+     * docks round the equator, and the glare of the star ringing the edge. The belt lies in the orbital plane.
+     */
+    public static void drawDysonSphere(int rgb, Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
+                                       PlanetRenderer.Quality quality, boolean sky) {
+        drawHotBody(rgb, 0.15f, view, projection, worldPos, radius, quality);
+        final Vector3f normal = planeNormal(view, worldPos, sky);
+        drawStarFx(ContinuumShaders.DYSON, rgb, 7.0f, view, projection, worldPos, radius, quality, sky,
                 s -> s.safeGetUniform("DiskNormal").set(normal.x, normal.y, normal.z));
     }
 

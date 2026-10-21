@@ -153,9 +153,13 @@ from the start. A mod that provides its own research (PhoenixCore) takes over th
 
 ## Visuals, personal dimension skies and profiling
 
-- **Megastructure:** set a system's `star_kind` to `dyson_swarm` (or `megastructure`) for a star wrapped in rings of reflective
-  panels, with a bright rim and shafts of light leaking through the gaps. The first ring lies in the orbital plane, the others
-  are tipped away from it. It also draws in a personal dimension's sky.
+- **Dyson swarm:** set a system's `star_kind` to `dyson_swarm` (or `megastructure`) for a star wrapped in nested, tilted shells
+  of reflective panels. It has real depth: far panels show their inner faces lit by the star, seen through gaps in the near
+  ones, which are dark against the glare and hide the star and its shafts of light. The first shell is a band in the orbital
+  plane, the others are tipped away from it. It also draws in a personal dimension's sky.
+- **Dyson sphere:** `star_kind` of `dyson_sphere` (or `dyson_shell`) shuts the star inside a complete shell: dark plates with
+  glowing seams, great rifts where the star shows through, a lit belt of docks in the orbital plane, and the glare ringing
+  its edge. It is opaque, so it hides the star.
 - **Tidal disruption event:** a transient body with `"style": "tidal_disruption"` is drawn as a star being torn apart by the
   system's black hole instead of as a planet: the star stretched along its path, a stream of gas spiralling in (red to
   blue-white as it falls), and the ring round the hole flaring. It appears for the body's `transient.duration_minutes`

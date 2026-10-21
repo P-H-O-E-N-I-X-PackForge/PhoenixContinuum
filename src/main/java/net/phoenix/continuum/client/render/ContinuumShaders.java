@@ -31,6 +31,7 @@ public final class ContinuumShaders {
     public static ShaderInstance PROTOSTAR;
     public static ShaderInstance GALAXY;
     public static ShaderInstance MEGASTRUCTURE;
+    public static ShaderInstance DYSON;
     public static ShaderInstance TIDAL;
 
     public static ShaderInstance STARFIELD;
@@ -51,6 +52,7 @@ public final class ContinuumShaders {
         register(event, "phoenix_continuum:continuum_galaxy", DefaultVertexFormat.POSITION, s -> GALAXY = s);
         register(event, "phoenix_continuum:continuum_megastructure", DefaultVertexFormat.POSITION,
                 s -> MEGASTRUCTURE = s);
+        register(event, "phoenix_continuum:continuum_dyson", DefaultVertexFormat.POSITION, s -> DYSON = s);
         register(event, "phoenix_continuum:continuum_tidal", DefaultVertexFormat.POSITION, s -> TIDAL = s);
         register(event, "phoenix_continuum:continuum_starfield", DefaultVertexFormat.POSITION, s -> STARFIELD = s);
     }

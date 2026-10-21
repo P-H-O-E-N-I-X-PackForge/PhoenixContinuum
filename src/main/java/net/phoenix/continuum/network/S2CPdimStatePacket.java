@@ -29,12 +29,12 @@ public class S2CPdimStatePacket implements CustomPacketPayload {
     private final float daySpeed;
     private final float lockedTime;
     private final boolean orbitView;
-    private final Map<ResourceLocation, Float> mine;
+    private final Map<ResourceLocation, net.phoenix.continuum.pdim.PdimData.Entry> mine;
     private final Map<ResourceLocation, net.phoenix.continuum.pdim.PdimCosts.Cost> costs;
     private final boolean everyVisit;
 
     public S2CPdimStatePacket(boolean inside, float gravity, float daySpeed, float lockedTime,
-                              boolean orbitView, Map<ResourceLocation, Float> mine,
+                              boolean orbitView, Map<ResourceLocation, net.phoenix.continuum.pdim.PdimData.Entry> mine,
                               Map<ResourceLocation, net.phoenix.continuum.pdim.PdimCosts.Cost> costs,
                               boolean everyVisit) {
         this.inside = inside;
@@ -55,7 +55,13 @@ public class S2CPdimStatePacket implements CustomPacketPayload {
         this.orbitView = buf.readBoolean();
         int count = buf.readVarInt();
         this.mine = new HashMap<>();
-        for (int i = 0; i < count; i++) mine.put(buf.readResourceLocation(), buf.readFloat());
+        for (int i = 0; i < count; i++) {
+            ResourceLocation body = buf.readResourceLocation();
+            float g = buf.readFloat();
+            float speed = buf.readFloat();
+            float locked = buf.readFloat();
+            mine.put(body, new net.phoenix.continuum.pdim.PdimData.Entry(g, 0, speed, locked, buf.readBoolean()));
+        }
         int costCount = buf.readVarInt();
         this.costs = new HashMap<>();
         for (int i = 0; i < costCount; i++) {
@@ -73,9 +79,12 @@ public class S2CPdimStatePacket implements CustomPacketPayload {
         buf.writeFloat(lockedTime);
         buf.writeBoolean(orbitView);
         buf.writeVarInt(mine.size());
-        mine.forEach((body, g) -> {
+        mine.forEach((body, e) -> {
             buf.writeResourceLocation(body);
-            buf.writeFloat(g);
+            buf.writeFloat(e.gravity());
+            buf.writeFloat(e.daySpeed());
+            buf.writeFloat(e.lockedTime());
+            buf.writeBoolean(e.orbitView());
         });
         buf.writeVarInt(costs.size());
         costs.forEach((body, cost) -> {
