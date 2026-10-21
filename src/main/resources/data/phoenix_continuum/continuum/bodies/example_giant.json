@@ -1,0 +1,56 @@
+{
+  "format": 1,
+  "system": "phoenix_continuum:example",
+  "type": "planet",
+  "name": "Example Giant",
+  "description": "A banded gas giant with a bright ring system.",
+  "orbit": {
+    "radius_au": 3.2,
+    "period_days": 1400,
+    "phase": 0.7
+  },
+  "radius": 5.0,
+  "gas_giant": true,
+  "axial_tilt": 9,
+  "spin_deg_per_sec": 11,
+  "surface": {
+    "seed": 301,
+    "scale": 5.0,
+    "low": "#8a5a3a",
+    "mid": "#d8a878",
+    "high": "#f6e6cc"
+  },
+  "atmosphere": {
+    "color": "#e8c090",
+    "density": 0.6
+  },
+  "trip_minutes": 14,
+  "initial_stage": "detected",
+  "style": "storm",
+  "rings": {
+    "inner": 1.5,
+    "outer": 2.5,
+    "color": "#e8d8b8",
+    "color2": "#a08868",
+    "tilt": 14,
+    "opacity": 0.8
+  },
+  "yields": [
+    {
+      "item": "minecraft:blaze_powder",
+      "min": 2,
+      "max": 6,
+      "chance": 0.7
+    },
+    {
+      "item": "minecraft:amethyst_shard",
+      "min": 1,
+      "max": 3,
+      "chance": 0.4
+    }
+  ],
+  "lore": {
+    "detected": "Its rings are visible long before the planet is.",
+    "surveyed": "Example Giant offers little to land on, but its rings are rich in crystals."
+  }
+}

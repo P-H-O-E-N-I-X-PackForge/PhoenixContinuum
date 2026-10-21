@@ -1,0 +1,14 @@
+{
+  "format": 1,
+  "name": "Example System",
+  "description": "A small starter system that ships with Continuum. Copy it, or inherit from it, to add your own.",
+  "galaxy": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "star_color": "#ffe9b0",
+  "star_radius": 1.0,
+  "star_kind": "star",
+  "initial_stage": "detected"
+}

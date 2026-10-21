@@ -1,0 +1,45 @@
+{
+  "inherits": "phoenix_continuum:example_rock",
+  "name": "Example Moon",
+  "description": "Airless, cratered, and a good first outpost.",
+  "type": "moon",
+  "parent": "phoenix_continuum:example_rock",
+  "orbit": {
+    "radius_au": 0.008,
+    "period_days": 12,
+    "phase": 0.6
+  },
+  "radius": 0.3,
+  "surface": {
+    "seed": 21,
+    "scale": 4.5,
+    "ocean_level": 0.0,
+    "polar_ice": 0.0,
+    "cloud_cover": 0.0,
+    "low": "#4a4a4a",
+    "mid": "#8a8a8a",
+    "high": "#cfcfcf"
+  },
+  "atmosphere": {
+    "density": 0.0
+  },
+  "trip_minutes": 6,
+  "yields": [
+    {
+      "item": "minecraft:flint",
+      "min": 3,
+      "max": 8,
+      "chance": 1.0
+    },
+    {
+      "item": "minecraft:quartz",
+      "min": 1,
+      "max": 4,
+      "chance": 0.5
+    }
+  ],
+  "lore": {
+    "detected": "A grey companion, tidally locked.",
+    "surveyed": "Example Moon has no air but plenty of quartz and flint."
+  }
+}
