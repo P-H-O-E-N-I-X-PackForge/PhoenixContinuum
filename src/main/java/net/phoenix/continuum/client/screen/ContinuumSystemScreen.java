@@ -66,7 +66,7 @@ public final class ContinuumSystemScreen extends Screen {
     }
 
     private static final String[] STAR_KINDS = { "star", "red_giant", "brown_dwarf", "rapid_rotator", "wolf_rayet",
-            "pulsar", "protostar", "planetary_nebula", "black_hole", "quasar", "binary_black_hole" };
+            "pulsar", "protostar", "planetary_nebula", "black_hole", "quasar", "binary_black_hole", "dyson_swarm", "dyson_sphere" };
     private static final String[] STAGES = { "unknown", "detected", "surveyed" };
 
     private static final int ROW = 15;

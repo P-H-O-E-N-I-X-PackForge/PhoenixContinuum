@@ -22,7 +22,7 @@ final class ContinuumValidator {
             "transient", "hole_tilt", "sky_hole_inclination", "sky_hole_lean", "visibility", "grants_research");
 
     private static final Set<String> SYSTEM_KEYS = Set.of("name", "description", "galaxy", "star_color", "star_radius",
-            "star_kind", "initial_stage", "gate", "hole", "visibility", "grants_research");
+            "star_kind", "initial_stage", "gate", "hole", "visibility", "grants_research", "companion");
 
     private ContinuumValidator() {}
 
