@@ -43,12 +43,13 @@ public class ContinuumConfigs {
 
         @Configurable
         @Configurable.Comment({
-                "SHOW_ALL: every system and body is on the map from the start (surveying them is still a mission), and",
-                "the research gates in definitions (detected_research / surveyed_research) are not required. Rules a pack",
-                "wrote itself (\"visibility\") still apply. RESEARCH_GATED: those research gates decide what is found.",
-                "Default: SHOW_ALL"
+                "RESEARCH_GATED: the research gates in definitions (detected_research / surveyed_research) decide what is",
+                "found. Research is Continuum's own unless another mod provides it; grant it with",
+                "/continuumadmin research, the Continuum API or KubeJS. SHOW_ALL: every system and body is on the map from",
+                "the start (surveying them is still a mission) and the gates are not required. Rules a pack wrote itself",
+                "(\"visibility\") apply either way. Default: RESEARCH_GATED"
         })
-        public ProgressionMode progressionMode = ProgressionMode.SHOW_ALL;
+        public ProgressionMode progressionMode = ProgressionMode.RESEARCH_GATED;
 
         @Configurable
         @Configurable.Comment({

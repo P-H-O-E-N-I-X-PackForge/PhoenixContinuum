@@ -149,3 +149,9 @@ patch, or "Reset server edits", puts the body back; the original definition file
 - **No PhoenixCore dependency on 1.20.1.** `ContinuumHost` holds the teams, research and discipline-travel hooks; a companion
   installs its own. Ambience sounds are looked up by id (`phoenixcore:ambient/...`) and are silent when missing. Launch
   complexes appear on the Solaris map when Solaris is installed (`TeamSiteData` lives in Solaris).
+
+- **Research is Continuum's own on 1.20.1.** `BuiltinResearch` keeps each team's unlocked ids, flags and discipline in the world,
+  and `progressionMode` now defaults to `RESEARCH_GATED`. Grant research with `/continuumadmin research grant|revoke|list|flag|discipline`,
+  `ContinuumAPI.grantResearch(...)` or the `Continuum` KubeJS binding (`Continuum.grantResearch(player, "mypack:node")`).
+  A body or system gated on `detected_research` / `surveyed_research` appears when its id is unlocked; one without gates uses
+  its `initial_stage`. Another mod can still replace all of this with `ContinuumHost.setResearch`.

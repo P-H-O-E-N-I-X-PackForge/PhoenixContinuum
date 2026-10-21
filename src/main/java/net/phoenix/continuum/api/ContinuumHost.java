@@ -15,8 +15,8 @@ import java.util.UUID;
 /**
  * What Continuum needs from the pack or mod around it, as plain interfaces. Nothing here depends on another mod: a
  * companion (PhoenixCore's Conflux research, a guild or team mod) installs its own implementations at startup, and
- * Continuum works with the defaults until then. Defaults: a team is just the player, nothing is researched, and there are
- * no discipline worlds to travel to.
+ * Continuum works with the defaults until then. Defaults: a team is just the player, research is Continuum's own (see
+ * {@link net.phoenix.continuum.common.BuiltinResearch}), and there are no discipline worlds to travel to.
  */
 public final class ContinuumHost {
 
@@ -32,7 +32,7 @@ public final class ContinuumHost {
         boolean onTeam(Player player, UUID team);
     }
 
-    /** What a team has researched. Used by research gates in definitions and by the "research" visibility rules. */
+    /** What a team has researched (Continuum keeps its own unless replaced). Used by research gates in definitions and by the "research" visibility rules. */
     public interface Research {
 
         boolean isUnlocked(UUID team, ResourceLocation node);
@@ -66,26 +66,8 @@ public final class ContinuumHost {
         }
     };
 
-    private static final Research NO_RESEARCH = new Research() {
-
-        @Override
-        public boolean isUnlocked(UUID team, ResourceLocation node) {
-            return false;
-        }
-
-        @Override
-        public boolean hasFlag(UUID team, String flag) {
-            return false;
-        }
-
-        @Override
-        public @Nullable String getDiscipline(UUID team) {
-            return null;
-        }
-    };
-
     private static volatile Teams teams = DEFAULT_TEAMS;
-    private static volatile Research research = NO_RESEARCH;
+    private static volatile Research research = net.phoenix.continuum.common.BuiltinResearch.PROVIDER;
     private static volatile @Nullable Travel travel;
 
     public static void setTeams(Teams provider) {
@@ -93,7 +75,7 @@ public final class ContinuumHost {
     }
 
     public static void setResearch(Research provider) {
-        research = provider == null ? NO_RESEARCH : provider;
+        research = provider == null ? net.phoenix.continuum.common.BuiltinResearch.PROVIDER : provider;
     }
 
     public static void setTravel(@Nullable Travel provider) {
