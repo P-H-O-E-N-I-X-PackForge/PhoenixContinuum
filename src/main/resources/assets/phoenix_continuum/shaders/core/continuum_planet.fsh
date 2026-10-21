@@ -61,6 +61,56 @@ float fbm(vec3 p, int octaves) {
     return sum;
 }
 
+// value noise with its analytic gradient (x = value, yzw = d/dp), so a relief normal costs one pass instead of four
+vec4 noised(vec3 x) {
+    vec3 i = floor(x);
+    vec3 f = fract(x);
+    vec3 u = f * f * (3.0 - 2.0 * f);
+    vec3 du = 6.0 * f * (1.0 - f);
+    float a = hash(i + vec3(0, 0, 0));
+    float b = hash(i + vec3(1, 0, 0));
+    float c = hash(i + vec3(0, 1, 0));
+    float d = hash(i + vec3(1, 1, 0));
+    float e = hash(i + vec3(0, 0, 1));
+    float ff = hash(i + vec3(1, 0, 1));
+    float g = hash(i + vec3(0, 1, 1));
+    float h = hash(i + vec3(1, 1, 1));
+    float k1 = b - a;
+    float k2 = c - a;
+    float k3 = e - a;
+    float k4 = a - b - c + d;
+    float k5 = a - c - e + g;
+    float k6 = a - b - e + ff;
+    float k7 = -a + b + c - d + e - ff - g + h;
+    float v = a + k1 * u.x + k2 * u.y + k3 * u.z + k4 * u.x * u.y + k5 * u.y * u.z + k6 * u.z * u.x + k7 * u.x * u.y * u.z;
+    vec3 dv = du * vec3(k1 + k4 * u.y + k6 * u.z + k7 * u.y * u.z,
+                        k2 + k5 * u.z + k4 * u.x + k7 * u.z * u.x,
+                        k3 + k6 * u.x + k5 * u.y + k7 * u.x * u.y);
+    return vec4(v, dv);
+}
+
+// fbm with its gradient with respect to the starting point
+vec4 fbmd(vec3 p, int octaves) {
+    float amplitude = 0.5;
+    float scale = 1.0;
+    vec4 sum = vec4(0.0);
+    for (int i = 0; i < octaves; i++) {
+        vec4 n = noised(p);
+        sum += amplitude * vec4(n.x, n.yzw * scale);
+        p = p * 2.02 + vec3(13.1, 7.7, 3.3);
+        amplitude *= 0.5;
+        scale *= 2.02;
+    }
+    return sum;
+}
+
+// how many octaves of a pattern at this base frequency are bigger than a pixel: finer ones only shimmer, so skip them
+float gPixel = 0.0;
+int lod(float freq, int maxOctaves) {
+    float o = log2(0.6 / max(gPixel * freq, 1e-5)) + 1.0;
+    return int(clamp(ceil(o), 2.0, float(maxOctaves)));
+}
+
 vec3 hash33(vec3 p) {
     p = fract(p * vec3(0.1031, 0.1030, 0.0973));
     p += dot(p, p.yxz + 33.33);
@@ -94,8 +144,16 @@ vec2 voronoi(vec3 p, out vec3 cell) {
 }
 
 float height(vec3 d) {
-    float raw = fbm(d * Scale + vec3(Seed * 17.0), int(Octaves));
+    float raw = fbm(d * Scale + vec3(Seed * 17.0), lod(Scale, int(Octaves)));
     return clamp((raw - 0.2) / 0.6, 0.0, 1.0);
+}
+
+// height and its gradient on the sphere, in one pass
+vec4 heightD(vec3 d) {
+    vec4 r = fbmd(d * Scale + vec3(Seed * 17.0), lod(Scale, int(Octaves)));
+    float t = (r.x - 0.2) / 0.6;
+    float inside = step(0.0, t) * step(t, 1.0);
+    return vec4(clamp(t, 0.0, 1.0), r.yzw * (Scale / 0.6) * inside);
 }
 
 vec3 ramp(float t) {
@@ -137,6 +195,7 @@ void main() {
     }
     vec3 viewDir = normalize(-vPosView);
     vec3 sun = normalize(SunDir);
+    gPixel = length(fwidth(vDir));
 
     // star / black hole body: self-lit granulation, darker toward the limb, no surface lighting
     if (Kind > 1.5) {
@@ -205,10 +264,7 @@ void main() {
 
     // ---- chrome: a mirror that reflects a starfield, a sunlit horizon and a hard glint ----
     if (!cube && Style > 3.5 && Style < 4.5) {
-        float h0 = height(dir);
-        float e0 = 0.012;
-        vec3 g0 = vec3(height(dir + vec3(e0, 0.0, 0.0)) - h0, height(dir + vec3(0.0, e0, 0.0)) - h0,
-                       height(dir + vec3(0.0, 0.0, e0)) - h0) / e0;
+        vec3 g0 = heightD(dir).yzw;
         vec3 t0 = g0 - dot(g0, dir) * dir;
         vec3 nView = normalize(vRot * normalize(dir - t0 * Bump * 0.12));
         vec3 r = reflect(-viewDir, nView);
@@ -269,16 +325,17 @@ void main() {
             float sn = sin(rot);
             dg = dir * cs + cross(eye, dir) * sn + eye * dot(eye, dir) * (1.0 - cs);
         }
-        float warp = fbm(dg * vec3(2.0, 5.0, 2.0) + vec3(Seed * 9.0 + Time * 0.01), 5);
+        float warp = fbm(dg * vec3(2.0, 5.0, 2.0) + vec3(Seed * 9.0 + Time * 0.01), lod(5.0, 5));
         float lat = dg.y + (warp - 0.5) * 0.35;
         float bands = 0.5 + 0.5 * sin(lat * Scale * 6.2831853);
-        float fine = fbm(dg * vec3(3.0, 24.0, 3.0) + vec3(Seed * 3.0), 4);
+        float fine = fbm(dg * vec3(3.0, 24.0, 3.0) + vec3(Seed * 3.0), lod(24.0, 4));
         albedo = ramp(clamp(bands * 0.7 + fine * 0.5 - 0.1, 0.0, 1.0));
         albedo = mix(albedo, ramp(0.95), stormMask * 0.25);
         albedo *= 1.0 - 0.45 * eyeCore;
         land = 0.0;
     } else {
-        float h = height(dir);
+        vec4 hd = heightD(dir);
+        float h = hd.x;
         if (h < OceanLevel) {
             albedo = mix(OceanDeep, OceanShallow, smoothstep(OceanLevel - 0.35, OceanLevel, h));
             water = 1.0;
@@ -287,10 +344,7 @@ void main() {
             albedo = ramp((h - OceanLevel) / max(1.0 - OceanLevel, 0.001));
 
             // relief: perturb the normal against the height gradient (tangent part only)
-            float e = 0.012;
-            vec3 grad = vec3(height(dir + vec3(e, 0.0, 0.0)) - h,
-                             height(dir + vec3(0.0, e, 0.0)) - h,
-                             height(dir + vec3(0.0, 0.0, e)) - h) / e;
+            vec3 grad = hd.yzw;
             vec3 tangent = grad - dot(grad, dir) * dir;
             normalObj = normalize(dir - tangent * Bump * 0.25);
         }
@@ -321,14 +375,14 @@ void main() {
     // veins: glowing seams that flow and pulse, visible on the night side too
     if (Style > 1.5 && Style < 2.5 && land > 0.5) {
         float flow = Time * 0.04;
-        float r1 = fbm(dir * Scale * 2.0 + vec3(Seed * 31.0, flow, 0.0), 5);
+        float r1 = fbm(dir * Scale * 2.0 + vec3(Seed * 31.0, flow, 0.0), lod(Scale * 2.0, 5));
         float veins = pow(1.0 - abs(r1 * 2.0 - 1.0), 7.0);
         float pulse = 0.55 + 0.45 * sin(Time * 1.4 + fbm(dir * 3.0 + vec3(Seed), 3) * 12.0);
         color += EmissiveColor * veins * pulse * (0.5 + EmissiveAmount) * (1.0 - water);
     }
 
     if (EmissiveAmount > 0.0 && land > 0.5 && !(Style > 1.5 && Style < 2.5)) {
-        float crack = 1.0 - smoothstep(0.0, 0.03, abs(fbm(dir * Scale * 2.3 + vec3(Seed * 31.0), 5) - 0.5));
+        float crack = 1.0 - smoothstep(0.0, 0.03, abs(fbm(dir * Scale * 2.3 + vec3(Seed * 31.0), lod(Scale * 2.3, 5)) - 0.5));
         color += EmissiveColor * crack * EmissiveAmount * (1.0 - water);
     }
 
@@ -336,7 +390,7 @@ void main() {
         float cs = cos(CloudOffset);
         float sn = sin(CloudOffset);
         vec3 cd = vec3(cs * dir.x + sn * dir.z, dir.y, -sn * dir.x + cs * dir.z);
-        float c = fbm(cd * 3.2 + vec3(Seed * 5.0), 6);
+        float c = fbm(cd * 3.2 + vec3(Seed * 5.0), lod(3.2, 6));
         float threshold = 0.78 - CloudCover * 0.4;
         float clouds = smoothstep(threshold, threshold + 0.14, c) * 0.95;
         float cloudLight = max(dot(geoNormal, sun), 0.0) * terminator;

@@ -89,8 +89,19 @@ final class PdimSkyBodies {
                 double toStar = Math.atan2(-p[1], -p[0]);
                 light = ecliptic(e1, e2, normal, thetaSun + (toStar - sunBearing), 0.0).mul(400.0f);
             }
-            double inclination = 0.05 * Math.sin(other.params().seed() * 12.9898);
-            Vector3f direction = ecliptic(e1, e2, normal, thetaSun + (bearing - sunBearing), inclination);
+            // Each world sits a little above or below the plane it orbits in, a different amount each, so they spread
+            // across the sky instead of lining up on one arc with the star.
+            double seed = other.params().seed();
+            double inclination = 0.32 * Math.sin(seed * 12.9898) + 0.12 * Math.sin(seed * 78.233 + other.orbitAu());
+            double angle = thetaSun + (bearing - sunBearing);
+            Vector3f direction = ecliptic(e1, e2, normal, angle, inclination);
+            // never sit on the star, or a ringed world reads as the star having rings: slide it off to a clear gap
+            double side = inclination >= 0.0 ? 1.0 : -1.0;
+            double gap = 0.17 + 0.012 * skyRadius;
+            for (int k = 0; k < 12 && sample.hasSun() && angleBetween(direction, sample.sunDir()) < gap; k++) {
+                inclination += side * 0.07;
+                direction = ecliptic(e1, e2, normal, angle, inclination);
+            }
             items.add(new Item(other, direction, skyRadius, light));
         }
 
@@ -124,6 +135,10 @@ final class PdimSkyBodies {
                 .add(new Vector3f(e2).mul((float) Math.sin(angle)))
                 .add(new Vector3f(normal).mul((float) inclination));
         return v.normalize();
+    }
+
+    private static double angleBetween(Vector3f a, Vector3f b) {
+        return Math.acos(Math.max(-1.0, Math.min(1.0, new Vector3f(a).normalize().dot(new Vector3f(b).normalize()))));
     }
 
     private static float clamp(float v, float lo, float hi) {

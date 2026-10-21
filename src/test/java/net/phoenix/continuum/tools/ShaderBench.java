@@ -111,7 +111,112 @@ public class ShaderBench {
             double ms = ns / 1.0e6 / frames;
             System.out.printf(Locale.ROOT, "%-16s %10.3f %10.3f%n", name, ms, ms / (w * (double) h / 1.0e6));
         }
+        if ("planet".contains(filter) || filter.isEmpty()) planets(dir, out, w, h);
         GLFW.glfwTerminate();
+    }
+
+    /** The planet shader on a sphere filling the target's height (the worst case), a few looks and octave counts. */
+    static void planets(Path dir, Path out, int w, int h) throws Exception {
+        int program = build(Files.readString(dir.resolve("continuum_planet.vsh")), Files.readString(dir.resolve("continuum_planet.fsh")));
+        int atmo = build(Files.readString(dir.resolve("continuum_planet.vsh")), Files.readString(dir.resolve("continuum_atmosphere.fsh")));
+        if (program == 0 || atmo == 0) return;
+        int stacks = 96, slices = 192;
+        FloatBuffer verts = BufferUtils.createFloatBuffer(stacks * slices * 6 * 3);
+        for (int i = 0; i < stacks; i++) {
+            for (int j = 0; j < slices; j++) {
+                float[][] c = new float[4][];
+                int[][] ij = {{i, j}, {i + 1, j}, {i + 1, j + 1}, {i, j + 1}};
+                for (int k = 0; k < 4; k++) {
+                    double th = Math.PI * ij[k][0] / stacks, ph = 2 * Math.PI * ij[k][1] / slices;
+                    c[k] = new float[] {(float) (Math.sin(th) * Math.cos(ph)), (float) Math.cos(th), (float) (Math.sin(th) * Math.sin(ph))};
+                }
+                for (int k : new int[] {0, 1, 2, 0, 2, 3}) verts.put(c[k]);
+            }
+        }
+        verts.flip();
+        int vao = GL33C.glGenVertexArrays();
+        GL33C.glBindVertexArray(vao);
+        int vbo = GL33C.glGenBuffers();
+        GL33C.glBindBuffer(GL33C.GL_ARRAY_BUFFER, vbo);
+        GL33C.glBufferData(GL33C.GL_ARRAY_BUFFER, verts, GL33C.GL_STATIC_DRAW);
+        GL33C.glEnableVertexAttribArray(0);
+        GL33C.glVertexAttribPointer(0, 3, GL33C.GL_FLOAT, false, 12, 0L);
+        int count = stacks * slices * 6;
+        GL33C.glDisable(GL33C.GL_BLEND);
+        GL33C.glEnable(GL33C.GL_DEPTH_TEST);
+        GL33C.glDisable(GL33C.GL_CULL_FACE);
+
+        // sphere of radius 1 at z=-3, 40 degree vertical fov: covers about 0.6 of the height
+        float aspect = w / (float) h;
+        float f = (float) (1.0 / Math.tan(Math.toRadians(40) / 2));
+        float near = 0.1f, far = 20f;
+        float[] proj = {f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) / (near - far), -1, 0, 0, 2 * far * near / (near - far), 0};
+        float[] mv = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, -1.9f, 1};
+        double discPx = Math.PI * Math.pow(h * f / Math.sqrt(1.9 * 1.9 - 1) / 2.0, 2);
+        System.out.println();
+        System.out.printf(Locale.ROOT, "%-24s %10s %10s   (sphere covers about %.2f Mpx)%n", "planet", "ms/frame", "ms per Mpx", discPx / 1e6);
+        Object[][] looks = {
+                {"terrain o6", 0f, 6f, 0.4f, 0.5f, 0f},
+                {"terrain o4", 0f, 4f, 0.4f, 0.5f, 0f},
+                {"terrain o3", 0f, 3f, 0.4f, 0.5f, 0f},
+                {"terrain o6 no clouds", 0f, 6f, 0.4f, 0f, 0f},
+                {"gas giant", 1f, 6f, 0f, 0f, 0f},
+                {"gas storm", 1f, 6f, 0f, 0f, 3f},
+                {"lava veins", 0f, 6f, 0.2f, 0f, 2f},
+                {"crystal", 0f, 6f, 0.2f, 0f, 1f},
+                {"chrome", 0f, 6f, 0.2f, 0f, 4f}
+        };
+        for (Object[] look : looks) {
+            GL33C.glUseProgram(program);
+            applyDefaults(program, JsonParser.parseString(Files.readString(dir.resolve("continuum_planet.json"))).getAsJsonObject());
+            int loc = GL33C.glGetUniformLocation(program, "ModelViewMat");
+            GL33C.glUniformMatrix4fv(loc, false, mv);
+            GL33C.glUniformMatrix4fv(GL33C.glGetUniformLocation(program, "ProjMat"), false, proj);
+            f(program, "Time", 3f);
+            f(program, "SunDir", 0.6f, 0.3f, 0.75f);
+            f(program, "Seed", 4.2f);
+            f(program, "Scale", 2.5f);
+            f(program, "Kind", (Float) look[1]);
+            f(program, "Octaves", (Float) look[2]);
+            f(program, "OceanLevel", (Float) look[3]);
+            f(program, "CloudCover", (Float) look[4]);
+            f(program, "Style", (Float) look[5]);
+            f(program, "PolarIce", 0.3f);
+            f(program, "PalLow", 0.2f, 0.3f, 0.15f);
+            f(program, "PalMid", 0.5f, 0.45f, 0.3f);
+            f(program, "PalHigh", 0.9f, 0.9f, 0.9f);
+            f(program, "EmissiveAmount", (Float) look[5] == 2f ? 1f : 0f);
+            GL33C.glClearColor(0f, 0f, 0f, 1f);
+            GL33C.glClear(GL33C.GL_COLOR_BUFFER_BIT | GL33C.GL_DEPTH_BUFFER_BIT);
+            GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, count);
+            save(out.resolve("planet_" + look[0].toString().replace(' ', '_') + ".png").toFile(), w, h);
+            for (int i = 0; i < 5; i++) GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, count);
+            GL33C.glFinish();
+            int frames = 20;
+            int q = GL33C.glGenQueries();
+            GL33C.glBeginQuery(GL33C.GL_TIME_ELAPSED, q);
+            for (int i = 0; i < frames; i++) GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, count);
+            GL33C.glEndQuery(GL33C.GL_TIME_ELAPSED);
+            double ms = GL33C.glGetQueryObjectui64(q, GL33C.GL_QUERY_RESULT) / 1.0e6 / frames;
+            System.out.printf(Locale.ROOT, "%-24s %10.3f %10.3f%n", look[0], ms, ms / (discPx / 1e6));
+        }
+        // atmosphere shell
+        GL33C.glUseProgram(atmo);
+        GL33C.glUniformMatrix4fv(GL33C.glGetUniformLocation(atmo, "ModelViewMat"), false, mv);
+        GL33C.glUniformMatrix4fv(GL33C.glGetUniformLocation(atmo, "ProjMat"), false, proj);
+        f(atmo, "SunDir", 0.6f, 0.3f, 0.75f);
+        f(atmo, "AtmoColor", 0.4f, 0.6f, 1f);
+        f(atmo, "AtmoDensity", 1f);
+        GL33C.glEnable(GL33C.GL_BLEND);
+        GL33C.glBlendFunc(GL33C.GL_SRC_ALPHA, GL33C.GL_ONE_MINUS_SRC_ALPHA);
+        for (int i = 0; i < 5; i++) GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, count);
+        GL33C.glFinish();
+        int q = GL33C.glGenQueries();
+        GL33C.glBeginQuery(GL33C.GL_TIME_ELAPSED, q);
+        for (int i = 0; i < 20; i++) GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, count);
+        GL33C.glEndQuery(GL33C.GL_TIME_ELAPSED);
+        double ms = GL33C.glGetQueryObjectui64(q, GL33C.GL_QUERY_RESULT) / 1.0e6 / 20;
+        System.out.printf(Locale.ROOT, "%-24s %10.3f %10.3f%n", "atmosphere shell", ms, ms / (discPx / 1e6));
     }
 
     static int build(String vsh, String fsh) {
