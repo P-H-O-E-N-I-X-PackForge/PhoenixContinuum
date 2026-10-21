@@ -93,7 +93,7 @@ public final class ContentCreator {
         }
 
         boolean needsRestart = false;
-        ResourceLocation dimension = ResourceLocation.fromNamespaceAndPath("phoenix_continuum",
+        ResourceLocation dimension = new ResourceLocation("phoenix_continuum",
                 "pdim/" + id.getPath());
         var stems = server.registryAccess().registryOrThrow(Registries.LEVEL_STEM);
         if (!stems.containsKey(dimension)) {

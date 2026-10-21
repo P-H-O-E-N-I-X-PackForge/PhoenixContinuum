@@ -1,26 +1,13 @@
 package net.phoenix.continuum.network;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.network.NetworkEvent;
 import net.phoenix.continuum.client.ContinuumClientHooks;
 import net.phoenix.continuum.common.ContinuumStateSnapshot;
 
-public class S2CContinuumStatePacket implements CustomPacketPayload {
-
-    public static final Type<S2CContinuumStatePacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath("phoenix_continuum", "s2_c_continuum_state_packet"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, S2CContinuumStatePacket> STREAM_CODEC = StreamCodec
-            .ofMember(S2CContinuumStatePacket::encode, S2CContinuumStatePacket::new);
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+public class S2CContinuumStatePacket {
 
     private final ContinuumStateSnapshot snapshot;
 
@@ -36,9 +23,10 @@ public class S2CContinuumStatePacket implements CustomPacketPayload {
         snapshot.write(buf);
     }
 
-    public static void handle(S2CContinuumStatePacket msg, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> {
+    public static void handle(S2CContinuumStatePacket msg, java.util.function.Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> {
             if (FMLEnvironment.dist.isClient()) ContinuumClientHooks.acceptState(msg.snapshot);
         });
+        ctx.get().setPacketHandled(true);
     }
 }

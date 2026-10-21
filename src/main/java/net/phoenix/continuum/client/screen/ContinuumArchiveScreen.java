@@ -22,7 +22,7 @@ import java.util.List;
 public class ContinuumArchiveScreen extends Screen {
 
     @Override
-    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {}
+    public void renderBackground(GuiGraphics g) {}
 
     private final Screen parent;
     private final List<Object[]> rows = new ArrayList<>();
@@ -162,7 +162,7 @@ public class ContinuumArchiveScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double delta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
         scroll = Math.max(0, scroll - (int) (delta * 14));
         return true;
     }

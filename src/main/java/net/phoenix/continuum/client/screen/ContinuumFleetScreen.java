@@ -6,7 +6,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.phoenix.continuum.client.ContinuumClientState;
 import net.phoenix.continuum.client.ContinuumSounds;
 import net.phoenix.continuum.common.ContinuumMissions;
@@ -30,7 +29,7 @@ import java.util.Map;
 public class ContinuumFleetScreen extends Screen {
 
     @Override
-    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {}
+    public void renderBackground(GuiGraphics g) {}
 
     private static final int ROW = 30;
 
@@ -219,7 +218,7 @@ public class ContinuumFleetScreen extends Screen {
             }
             if (MapUi.inside(mouseX, mouseY, width - 62 - 96, 8, 90, 14)) {
                 ContinuumSounds.click();
-                PacketDistributor.sendToServer(new C2SCollectAllPacket());
+                net.phoenix.continuum.network.ContinuumNetwork.sendToServer(new C2SCollectAllPacket());
                 return true;
             }
             for (Object[] row : rows) {
@@ -231,7 +230,7 @@ public class ContinuumFleetScreen extends Screen {
                     ContinuumMapScreen.requestRescue((ResourceLocation) row[7]);
                     Minecraft.getInstance().setScreen(parent);
                 } else if ((boolean) row[1]) {
-                    PacketDistributor.sendToServer(new C2SCollectMissionPacket(id));
+                    net.phoenix.continuum.network.ContinuumNetwork.sendToServer(new C2SCollectMissionPacket(id));
                 } else {
                     Minecraft.getInstance().setScreen(new ContinuumTransitScreen(id, pad));
                 }
@@ -242,7 +241,7 @@ public class ContinuumFleetScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double delta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
         scroll = Math.max(0, scroll - (int) Math.signum(delta));
         return true;
     }

@@ -6,3 +6,4 @@ run-*/
 *.iml
 out/
 libs/
+build_log.txt

@@ -6,9 +6,9 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.fml.loading.FMLPaths;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.loading.FMLPaths;
 import net.phoenix.continuum.client.render.SurfaceMap;
 import net.phoenix.continuum.data.ContinuumBody;
 import net.phoenix.continuum.data.ContinuumData;
@@ -250,7 +250,7 @@ public final class ContinuumTunerScreen extends Screen {
     }
 
     private void send(String path, JsonElement value) {
-        net.neoforged.neoforge.network.PacketDistributor.sendToServer(
+        net.phoenix.continuum.network.ContinuumNetwork.sendToServer(
                 new net.phoenix.continuum.network.C2STunePacket(body().id(), path,
                         value == null ? "" : value.toString()));
         status = "Sent to the server.";
@@ -331,11 +331,9 @@ public final class ContinuumTunerScreen extends Screen {
         addRenderableWidget(editor);
     }
 
-    @Override
-    protected void renderBlurredBackground(float partialTick) {}
 
     @Override
-    public void renderBackground(GuiGraphics g, int mx, int my, float partialTick) {}
+    public void renderBackground(GuiGraphics g) {}
 
     @Override
     public void render(GuiGraphics g, int mx, int my, float partialTick) {
@@ -543,7 +541,7 @@ public final class ContinuumTunerScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mx, double my, double scrollX, double scrollY) {
+    public boolean mouseScrolled(double mx, double my, double scrollY) {
         scroll -= (int) Math.signum(scrollY) * 2;
         return true;
     }
@@ -611,7 +609,7 @@ public final class ContinuumTunerScreen extends Screen {
             }
             case "export" -> export();
             case "resetServer" -> {
-                net.neoforged.neoforge.network.PacketDistributor.sendToServer(
+                net.phoenix.continuum.network.ContinuumNetwork.sendToServer(
                         net.phoenix.continuum.network.C2STunePacket.reset(body().id()));
                 status = "Asked the server to remove its edits.";
             }

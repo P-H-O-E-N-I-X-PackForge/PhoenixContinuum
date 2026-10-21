@@ -1,29 +1,16 @@
 package net.phoenix.continuum.network;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.network.NetworkEvent;
 import net.phoenix.continuum.client.ContinuumClientHooks;
 import net.phoenix.continuum.data.ContinuumData;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class S2CContinuumDataPacket implements CustomPacketPayload {
-
-    public static final Type<S2CContinuumDataPacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath("phoenix_continuum", "s2_c_continuum_data_packet"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, S2CContinuumDataPacket> STREAM_CODEC = StreamCodec
-            .ofMember(S2CContinuumDataPacket::encode, S2CContinuumDataPacket::new);
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+public class S2CContinuumDataPacket {
 
     private static final int MAX_JSON = 32767;
 
@@ -59,9 +46,10 @@ public class S2CContinuumDataPacket implements CustomPacketPayload {
         return map;
     }
 
-    public static void handle(S2CContinuumDataPacket msg, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> {
+    public static void handle(S2CContinuumDataPacket msg, java.util.function.Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> {
             if (FMLEnvironment.dist.isClient()) ContinuumClientHooks.acceptData(msg.snapshot);
         });
+        ctx.get().setPacketHandled(true);
     }
 }

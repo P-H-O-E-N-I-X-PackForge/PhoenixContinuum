@@ -4,9 +4,11 @@ import com.gregtechceu.gtceu.api.addon.GTAddon;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 
-import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.FinishedRecipe;
 
-@GTAddon(PhoenixContinuum.MOD_ID)
+import java.util.function.Consumer;
+
+@GTAddon
 public class ContinuumGTAddon implements IGTAddon {
 
     @Override
@@ -15,7 +17,15 @@ public class ContinuumGTAddon implements IGTAddon {
     }
 
     @Override
-    public void addRecipes(RecipeOutput provider) {
+    public void initializeAddon() {}
+
+    @Override
+    public String addonModId() {
+        return PhoenixContinuum.MOD_ID;
+    }
+
+    @Override
+    public void addRecipes(Consumer<FinishedRecipe> provider) {
         ContinuumRecipes.init(provider);
     }
 }

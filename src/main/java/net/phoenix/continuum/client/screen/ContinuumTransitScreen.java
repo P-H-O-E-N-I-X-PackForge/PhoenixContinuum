@@ -6,7 +6,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.phoenix.continuum.client.ContinuumClientState;
 import net.phoenix.continuum.client.ContinuumSounds;
 import net.phoenix.continuum.client.render.ContinuumShaders;
@@ -33,7 +32,7 @@ import java.util.UUID;
 public class ContinuumTransitScreen extends Screen {
 
     @Override
-    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {}
+    public void renderBackground(GuiGraphics g) {}
 
     private static final float START_DISTANCE = 70.0f;
     private static final float END_DISTANCE = 3.9f;
@@ -296,7 +295,7 @@ public class ContinuumTransitScreen extends Screen {
             if (mission != null && mission.state().finished() && !mission.stranded() &&
                     MapUi.inside(mouseX, mouseY, collectX(), collectY(), 124, 18)) {
                 ContinuumSounds.click();
-                PacketDistributor.sendToServer(new C2SCollectMissionPacket(missionId));
+                net.phoenix.continuum.network.ContinuumNetwork.sendToServer(new C2SCollectMissionPacket(missionId));
                 leave();
                 return true;
             }

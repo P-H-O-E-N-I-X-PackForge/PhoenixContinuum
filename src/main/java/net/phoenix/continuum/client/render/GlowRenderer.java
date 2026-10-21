@@ -23,15 +23,15 @@ public final class GlowRenderer {
 
         private Batch(Matrix4f pose) {
             this.pose = pose;
-            this.builder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS,
+            this.builder = net.phoenix.continuum.client.render.Vtx.begin(VertexFormat.Mode.QUADS,
                     DefaultVertexFormat.POSITION_TEX_COLOR);
         }
 
         public Batch glow(float x, float y, float radius, float r, float g, float b, float a) {
-            builder.addVertex(pose, x - radius, y + radius, 0).setUv(0, 1).setColor(r, g, b, a);
-            builder.addVertex(pose, x + radius, y + radius, 0).setUv(1, 1).setColor(r, g, b, a);
-            builder.addVertex(pose, x + radius, y - radius, 0).setUv(1, 0).setColor(r, g, b, a);
-            builder.addVertex(pose, x - radius, y - radius, 0).setUv(0, 0).setColor(r, g, b, a);
+            builder.vertex(pose, x - radius, y + radius, 0).uv(0, 1).color(r, g, b, a).endVertex();
+            builder.vertex(pose, x + radius, y + radius, 0).uv(1, 1).color(r, g, b, a).endVertex();
+            builder.vertex(pose, x + radius, y - radius, 0).uv(1, 0).color(r, g, b, a).endVertex();
+            builder.vertex(pose, x - radius, y - radius, 0).uv(0, 0).color(r, g, b, a).endVertex();
             empty = false;
             return this;
         }
@@ -43,7 +43,7 @@ public final class GlowRenderer {
 
         public void draw() {
             if (empty || ContinuumShaders.GLOW == null) {
-                builder.build();
+                builder.end().release();
                 return;
             }
 
@@ -54,7 +54,7 @@ public final class GlowRenderer {
                     com.mojang.blaze3d.platform.GlStateManager.DestFactor.ZERO);
             RenderSystem.disableDepthTest();
             RenderSystem.setShader(() -> ContinuumShaders.GLOW);
-            BufferUploader.drawWithShader(builder.buildOrThrow());
+            BufferUploader.drawWithShader(builder.end());
             RenderSystem.defaultBlendFunc();
         }
     }
@@ -71,13 +71,13 @@ public final class GlowRenderer {
 
         private Lines(Matrix4f pose) {
             this.pose = pose;
-            this.builder = Tesselator.getInstance().begin(VertexFormat.Mode.DEBUG_LINES,
+            this.builder = net.phoenix.continuum.client.render.Vtx.begin(VertexFormat.Mode.DEBUG_LINES,
                     DefaultVertexFormat.POSITION_COLOR);
         }
 
         public Lines line(float x1, float y1, float x2, float y2, float r, float g, float b, float a) {
-            builder.addVertex(pose, x1, y1, 0).setColor(r, g, b, a);
-            builder.addVertex(pose, x2, y2, 0).setColor(r, g, b, a);
+            builder.vertex(pose, x1, y1, 0).color(r, g, b, a).endVertex();
+            builder.vertex(pose, x2, y2, 0).color(r, g, b, a).endVertex();
             empty = false;
             return this;
         }
@@ -98,7 +98,7 @@ public final class GlowRenderer {
 
         public void draw(float width) {
             if (empty) {
-                builder.build();
+                builder.end().release();
                 return;
             }
             RenderSystem.enableBlend();
@@ -106,7 +106,7 @@ public final class GlowRenderer {
             RenderSystem.disableDepthTest();
             RenderSystem.lineWidth(width);
             RenderSystem.setShader(GameRenderer::getPositionColorShader);
-            BufferUploader.drawWithShader(builder.buildOrThrow());
+            BufferUploader.drawWithShader(builder.end());
             RenderSystem.lineWidth(1.0f);
         }
     }

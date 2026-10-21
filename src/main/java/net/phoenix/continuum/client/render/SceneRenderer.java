@@ -689,15 +689,15 @@ public final class SceneRenderer {
 
     private static VertexBuffer ringQuad() {
         if (ringQuad == null) {
-            BufferBuilder builder = new BufferBuilder(new com.mojang.blaze3d.vertex.ByteBufferBuilder(128),
-                    VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-            builder.addVertex(-1, 0, -1);
-            builder.addVertex(-1, 0, 1);
-            builder.addVertex(1, 0, 1);
-            builder.addVertex(1, 0, -1);
+            BufferBuilder builder = new BufferBuilder(128);
+            builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+            builder.vertex(-1, 0, -1).endVertex();
+            builder.vertex(-1, 0, 1).endVertex();
+            builder.vertex(1, 0, 1).endVertex();
+            builder.vertex(1, 0, -1).endVertex();
             ringQuad = new VertexBuffer(VertexBuffer.Usage.STATIC);
             ringQuad.bind();
-            ringQuad.upload(builder.buildOrThrow());
+            ringQuad.upload(builder.end());
             unbindBuffers();
         }
         return ringQuad;
@@ -707,15 +707,15 @@ public final class SceneRenderer {
 
     private static VertexBuffer holeQuad() {
         if (holeQuad == null) {
-            BufferBuilder builder = new BufferBuilder(new com.mojang.blaze3d.vertex.ByteBufferBuilder(128),
-                    VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-            builder.addVertex(-1, -1, 0);
-            builder.addVertex(1, -1, 0);
-            builder.addVertex(1, 1, 0);
-            builder.addVertex(-1, 1, 0);
+            BufferBuilder builder = new BufferBuilder(128);
+            builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+            builder.vertex(-1, -1, 0).endVertex();
+            builder.vertex(1, -1, 0).endVertex();
+            builder.vertex(1, 1, 0).endVertex();
+            builder.vertex(-1, 1, 0).endVertex();
             holeQuad = new VertexBuffer(VertexBuffer.Usage.STATIC);
             holeQuad.bind();
-            holeQuad.upload(builder.buildOrThrow());
+            holeQuad.upload(builder.end());
             unbindBuffers();
         }
         return holeQuad;
@@ -918,13 +918,13 @@ public final class SceneRenderer {
                 com.mojang.blaze3d.platform.GlStateManager.SourceFactor.ONE,
                 com.mojang.blaze3d.platform.GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
 
-        BufferBuilder bb = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS,
+        BufferBuilder bb = net.phoenix.continuum.client.render.Vtx.begin(VertexFormat.Mode.QUADS,
                 DefaultVertexFormat.POSITION_TEX_COLOR);
-        bb.addVertex(0, 1, 0).setUv(0, 0).setColor(255, 255, 255, 255);
-        bb.addVertex(1, 1, 0).setUv(1, 0).setColor(255, 255, 255, 255);
-        bb.addVertex(1, 0, 0).setUv(1, 1).setColor(255, 255, 255, 255);
-        bb.addVertex(0, 0, 0).setUv(0, 1).setColor(255, 255, 255, 255);
-        com.mojang.blaze3d.vertex.BufferUploader.draw(bb.buildOrThrow());
+        bb.vertex(0, 1, 0).uv(0, 0).color(255, 255, 255, 255).endVertex();
+        bb.vertex(1, 1, 0).uv(1, 0).color(255, 255, 255, 255).endVertex();
+        bb.vertex(1, 0, 0).uv(1, 1).color(255, 255, 255, 255).endVertex();
+        bb.vertex(0, 0, 0).uv(0, 1).color(255, 255, 255, 255).endVertex();
+        com.mojang.blaze3d.vertex.BufferUploader.draw(bb.end());
         blit.clear();
 
         RenderSystem.setProjectionMatrix(savedProjection, savedSorting);

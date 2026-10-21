@@ -3,12 +3,12 @@ package net.phoenix.continuum.client;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.client.event.RegisterClientCommandsEvent;
 import net.phoenix.continuum.PhoenixContinuum;
 import net.phoenix.continuum.client.render.ContinuumShaders;
 import net.phoenix.continuum.client.screen.ContinuumMapScreen;
@@ -31,7 +31,7 @@ public final class ContinuumClientSetup {
             SuiteHudBar.register(
                     PhoenixContinuum.MOD_ID,
                     90,
-                    ResourceLocation.fromNamespaceAndPath(PhoenixContinuum.MOD_ID, "textures/gui/suite_continuum.png"),
+                    new ResourceLocation(PhoenixContinuum.MOD_ID, "textures/gui/suite_continuum.png"),
                     () -> Component.literal("\u00a7dContinuum Map \u00a77(view)"),
                     () -> 1,
                     () -> mc.setScreen(new ContinuumMapScreen()),
@@ -39,7 +39,7 @@ public final class ContinuumClientSetup {
         });
     }
 
-    @EventBusSubscriber(modid = PhoenixContinuum.MOD_ID, value = Dist.CLIENT)
+    @Mod.EventBusSubscriber(modid = PhoenixContinuum.MOD_ID, value = Dist.CLIENT)
     public static final class ForgeEvents {
 
         @SubscribeEvent

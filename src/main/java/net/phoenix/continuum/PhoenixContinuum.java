@@ -2,14 +2,12 @@ package net.phoenix.continuum;
 
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLLoader;
 import net.phoenix.continuum.client.ContinuumClientSetup;
 import net.phoenix.continuum.config.ContinuumConfigs;
 import net.phoenix.continuum.machine.ContinuumMachines;
@@ -26,7 +24,7 @@ public class PhoenixContinuum {
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
     public static final GTRegistrate REGISTRATE = GTRegistrate.create(MOD_ID);
 
-    public static RegistryEntry<CreativeModeTab, CreativeModeTab> CREATIVE_TAB = REGISTRATE
+    public static RegistryEntry<CreativeModeTab> CREATIVE_TAB = REGISTRATE
             .defaultCreativeTab(MOD_ID,
                     builder -> builder
                             .title(REGISTRATE.addLang("itemGroup", id("creative_tab"), "Phoenix Continuum"))
@@ -34,23 +32,20 @@ public class PhoenixContinuum {
                             .build())
             .register();
 
-    public PhoenixContinuum(IEventBus modEventBus, ModContainer container) {
+    public PhoenixContinuum() {
+        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         ContinuumConfigs.init();
         REGISTRATE.registerEventListeners(modEventBus);
 
         ContinuumRegistry.init();
         ContinuumMachines.init();
 
-        modEventBus.addListener(this::registerPayloads);
+        ContinuumNetwork.register();
         modEventBus.addListener(net.phoenix.continuum.data.ContinuumPackFolder::register);
-        if (FMLEnvironment.dist.isClient()) ContinuumClientSetup.init(modEventBus);
-    }
-
-    private void registerPayloads(RegisterPayloadHandlersEvent event) {
-        ContinuumNetwork.register(event.registrar("1"));
+        if (FMLLoader.getDist().isClient()) ContinuumClientSetup.init(modEventBus);
     }
 
     public static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
+        return new ResourceLocation(MOD_ID, path);
     }
 }

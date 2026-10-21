@@ -8,10 +8,9 @@ import com.gregtechceu.gtceu.api.multiblock.Predicates;
 import com.gregtechceu.gtceu.api.multiblock.pattern.IBlockPattern;
 import com.gregtechceu.gtceu.api.multiblock.pattern.MultiblockPatternBuilder;
 import com.gregtechceu.gtceu.api.multiblock.util.RelativeDirection;
-import com.gregtechceu.gtceu.api.registry.registrate.entry.MachineEntry;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
@@ -23,7 +22,7 @@ public final class ContinuumMachines {
 
     private static final String[][] SLICES = buildSlices();
 
-    public static final MachineEntry<MultiblockMachineDefinition> LAUNCH_COMPLEX = REGISTRATE
+    public static final MultiblockMachineDefinition LAUNCH_COMPLEX = REGISTRATE
             .multiblock("continuum_launch_complex", LaunchPadMachine::new)
             .langValue("Continuum Launch Complex")
             .rotationState(RotationState.NON_Y_AXIS)
@@ -49,8 +48,8 @@ public final class ContinuumMachines {
         for (String[] slice : SLICES) builder = builder.slice(slice);
 
         var casing = Predicates.blocks(GTBlocks.CASING_STEEL_SOLID.get());
-        var frame = Predicates.blocks(BuiltInRegistries.BLOCK.get(
-                ResourceLocation.fromNamespaceAndPath("gtceu", "steel_frame")));
+        var frame = Predicates.blocks(ForgeRegistries.BLOCKS.getValue(
+                new ResourceLocation("gtceu", "steel_frame")));
 
         return builder
                 .where('S', Predicates.controller(definition))

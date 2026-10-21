@@ -6,9 +6,8 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.phoenix.continuum.data.ContinuumBody;
 import net.phoenix.continuum.data.ContinuumData;
 import net.phoenix.continuum.data.ContinuumSystem;
@@ -235,11 +234,11 @@ public final class ContinuumCreateScreen extends Screen {
         if (slug.isEmpty()) slug = system ? "new_system" : "new_body";
         String candidate = slug;
         int n = 2;
-        while ((system ? ContinuumData.system(ResourceLocation.fromNamespaceAndPath("phoenix_continuum", candidate)) :
-                ContinuumData.body(ResourceLocation.fromNamespaceAndPath("phoenix_continuum", candidate))) != null) {
+        while ((system ? ContinuumData.system(new ResourceLocation("phoenix_continuum", candidate)) :
+                ContinuumData.body(new ResourceLocation("phoenix_continuum", candidate))) != null) {
             candidate = slug + "_" + n++;
         }
-        return ResourceLocation.fromNamespaceAndPath("phoenix_continuum", candidate);
+        return new ResourceLocation("phoenix_continuum", candidate);
     }
 
     private void submit() {
@@ -319,17 +318,15 @@ public final class ContinuumCreateScreen extends Screen {
             }
         }
 
-        PacketDistributor.sendToServer(new C2SCreatePacket(system, id, def.toString()));
+        net.phoenix.continuum.network.ContinuumNetwork.sendToServer(new C2SCreatePacket(system, id, def.toString()));
         minecraft.setScreen(parent);
     }
 
     // ------------------------------------------------------------------ drawing
 
-    @Override
-    protected void renderBlurredBackground(float partialTick) {}
 
     @Override
-    public void renderBackground(GuiGraphics g, int mx, int my, float partialTick) {}
+    public void renderBackground(GuiGraphics g) {}
 
     @Override
     public void render(GuiGraphics g, int mx, int my, float partialTick) {

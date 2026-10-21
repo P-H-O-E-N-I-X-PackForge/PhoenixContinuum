@@ -5,7 +5,6 @@ import net.minecraft.world.item.ItemStack;
 import net.phoenix.continuum.config.ContinuumConfigs;
 import net.phoenix.continuum.data.ContinuumBody;
 import net.phoenix.continuum.data.DiscoveryStage;
-import net.phoenix.core.util.StackNbt;
 
 public final class RocketStats {
 
@@ -38,25 +37,25 @@ public final class RocketStats {
                                    double wearMultiplier) {}
 
     public static float wear(ItemStack rocket) {
-        CompoundTag tag = StackNbt.getTag(rocket);
+        CompoundTag tag = (rocket.hasTag() ? rocket.getTag() : new CompoundTag());
         return tag == null ? 0.0f : Math.max(0.0f, Math.min(1.0f, tag.getFloat(TAG_WEAR)));
     }
 
     public static void setWear(ItemStack rocket, float wear) {
-        StackNbt.getOrCreateTag(rocket).putFloat(TAG_WEAR, Math.max(0.0f, Math.min(1.0f, wear)));
+        rocket.getOrCreateTag().putFloat(TAG_WEAR, Math.max(0.0f, Math.min(1.0f, wear)));
     }
 
     public static int level(ItemStack rocket, String upgrade) {
-        CompoundTag tag = StackNbt.getTag(rocket);
+        CompoundTag tag = (rocket.hasTag() ? rocket.getTag() : new CompoundTag());
         if (tag == null || !tag.contains(TAG_UPGRADES)) return 0;
         return tag.getCompound(TAG_UPGRADES).getInt(upgrade);
     }
 
     public static void setLevel(ItemStack rocket, String upgrade, int level) {
-        CompoundTag upgrades = StackNbt.getOrCreateTag(rocket).getCompound(TAG_UPGRADES);
+        CompoundTag upgrades = rocket.getOrCreateTag().getCompound(TAG_UPGRADES);
         if (level <= 0) upgrades.remove(upgrade);
         else upgrades.putInt(upgrade, level);
-        StackNbt.getOrCreateTag(rocket).put(TAG_UPGRADES, upgrades);
+        rocket.getOrCreateTag().put(TAG_UPGRADES, upgrades);
     }
 
     public static long outpostCycleMillis() {
@@ -73,13 +72,13 @@ public final class RocketStats {
     private static final String[] TIER_NAMES = { "Mk I", "Mk II", "Mk III", "Mk IV" };
 
     public static int tier(ItemStack rocket) {
-        CompoundTag tag = StackNbt.getTag(rocket);
+        CompoundTag tag = (rocket.hasTag() ? rocket.getTag() : new CompoundTag());
         int tier = tag == null ? 0 : tag.getInt(TAG_TIER);
         return Math.max(1, Math.min(MAX_TIER, tier == 0 ? 1 : tier));
     }
 
     public static void setTier(ItemStack rocket, int tier) {
-        StackNbt.getOrCreateTag(rocket).putInt(TAG_TIER, Math.max(1, Math.min(MAX_TIER, tier)));
+        rocket.getOrCreateTag().putInt(TAG_TIER, Math.max(1, Math.min(MAX_TIER, tier)));
     }
 
     public static String tierName(int tier) {

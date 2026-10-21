@@ -1,26 +1,14 @@
 package net.phoenix.continuum.network;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.network.NetworkEvent;
 import net.phoenix.continuum.client.ContinuumClientState;
 
-public class S2CPadStockPacket implements CustomPacketPayload {
-
-    public static final Type<S2CPadStockPacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath("phoenix_continuum", "s2_c_pad_stock_packet"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, S2CPadStockPacket> STREAM_CODEC = StreamCodec
-            .ofMember(S2CPadStockPacket::encode, S2CPadStockPacket::new);
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+public class S2CPadStockPacket {
 
     private final BlockPos pad;
     private final boolean buses;
@@ -38,30 +26,31 @@ public class S2CPadStockPacket implements CustomPacketPayload {
         this.kits = kits;
     }
 
-    public S2CPadStockPacket(RegistryFriendlyByteBuf buf) {
+    public S2CPadStockPacket(FriendlyByteBuf buf) {
         this.pad = buf.readBlockPos();
         this.buses = buf.readBoolean();
-        this.rocket = ItemStack.OPTIONAL_STREAM_CODEC.decode(buf);
+        this.rocket = buf.readItem();
         this.probes = buf.readVarInt();
         this.kits = buf.readVarInt();
         this.rockets = buf.readVarInt();
     }
 
-    public void encode(RegistryFriendlyByteBuf buf) {
+    public void encode(FriendlyByteBuf buf) {
         buf.writeBlockPos(pad);
         buf.writeBoolean(buses);
-        ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, rocket);
+        buf.writeItem(rocket);
         buf.writeVarInt(probes);
         buf.writeVarInt(kits);
         buf.writeVarInt(rockets);
     }
 
-    public static void handle(S2CPadStockPacket msg, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> {
+    public static void handle(S2CPadStockPacket msg, java.util.function.Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> {
             if (FMLEnvironment.dist.isClient()) {
                 ContinuumClientState.acceptPadStock(msg.pad, msg.buses, msg.rocket, msg.probes, msg.kits,
                         msg.rockets);
             }
         });
+        ctx.get().setPacketHandled(true);
     }
 }

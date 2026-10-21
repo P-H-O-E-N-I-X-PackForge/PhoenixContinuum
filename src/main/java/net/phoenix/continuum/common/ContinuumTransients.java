@@ -33,8 +33,7 @@ public final class ContinuumTransients extends SavedData {
     public static ContinuumTransients get(MinecraftServer server) {
         return server.overworld().getDataStorage()
                 .computeIfAbsent(
-                        new net.minecraft.world.level.saveddata.SavedData.Factory<>(ContinuumTransients::new,
-                                (tag, provider) -> ContinuumTransients.load(tag), null),
+                        ContinuumTransients::load, ContinuumTransients::new,
                         "phoenix_continuum_transients");
     }
 
@@ -127,7 +126,7 @@ public final class ContinuumTransients extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+    public CompoundTag save(CompoundTag tag) {
         ListTag list = new ListTag();
         windows.forEach((id, w) -> {
             CompoundTag e = new CompoundTag();
@@ -146,7 +145,7 @@ public final class ContinuumTransients extends SavedData {
         ContinuumTransients transients = new ContinuumTransients();
         for (Tag t : tag.getList("Windows", Tag.TAG_COMPOUND)) {
             CompoundTag e = (CompoundTag) t;
-            transients.windows.put(ResourceLocation.parse(e.getString("Body")),
+            transients.windows.put(new ResourceLocation(e.getString("Body")),
                     new Window(e.getLong("Start"), e.getLong("End"), e.getLong("Next"), e.getBoolean("Ended")));
         }
         return transients;

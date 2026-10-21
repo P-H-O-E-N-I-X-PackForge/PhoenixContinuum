@@ -13,7 +13,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.phoenix.continuum.network.S2COpenMapPacket;
 
 import java.util.ArrayList;
@@ -209,7 +208,7 @@ public class LaunchPadMachine extends MultiblockControllerMachine {
         Level level = context.getLevel();
         if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
             net.phoenix.continuum.common.ContinuumServerEvents.engageAndSend(serverPlayer);
-            PacketDistributor.sendToPlayer(serverPlayer, new S2COpenMapPacket(getBlockPos()));
+            net.phoenix.continuum.network.ContinuumNetwork.sendToPlayer(serverPlayer, new S2COpenMapPacket(getBlockPos()));
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }

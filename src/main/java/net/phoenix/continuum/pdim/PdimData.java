@@ -36,8 +36,7 @@ public class PdimData extends SavedData {
 
     public static PdimData get(MinecraftServer server) {
         return server.overworld().getDataStorage()
-                .computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(PdimData::new,
-                        (tag, provider) -> PdimData.load(tag), null), ID);
+                .computeIfAbsent(PdimData::load, PdimData::new, ID);
     }
 
     public @Nullable Entry entry(UUID player, ResourceLocation body) {
@@ -89,7 +88,7 @@ public class PdimData extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+    public CompoundTag save(CompoundTag tag) {
         ListTag players = new ListTag();
         for (var player : entries.entrySet()) {
             CompoundTag playerTag = new CompoundTag();
@@ -137,7 +136,7 @@ public class PdimData extends SavedData {
             Map<ResourceLocation, Entry> map = new HashMap<>();
             for (Tag e : playerTag.getList("Entries", Tag.TAG_COMPOUND)) {
                 CompoundTag entry = (CompoundTag) e;
-                map.put(ResourceLocation.parse(entry.getString("Body")),
+                map.put(new ResourceLocation(entry.getString("Body")),
                         new Entry(entry.getFloat("Gravity"), entry.getInt("Plot"),
                                 entry.contains("DaySpeed") ? entry.getFloat("DaySpeed") : 1.0f,
                                 entry.contains("LockedTime") ? entry.getFloat("LockedTime") : -1.0f));
@@ -145,10 +144,10 @@ public class PdimData extends SavedData {
             data.entries.put(playerTag.getUUID("Player"), map);
         }
         CompoundTag plots = tag.getCompound("NextPlot");
-        for (String key : plots.getAllKeys()) data.nextPlot.put(ResourceLocation.parse(key), plots.getInt(key));
+        for (String key : plots.getAllKeys()) data.nextPlot.put(new ResourceLocation(key), plots.getInt(key));
         for (Tag t : tag.getList("Returns", Tag.TAG_COMPOUND)) {
             CompoundTag e = (CompoundTag) t;
-            data.returns.put(e.getUUID("Player"), new Return(ResourceLocation.parse(e.getString("Dimension")),
+            data.returns.put(e.getUUID("Player"), new Return(new ResourceLocation(e.getString("Dimension")),
                     e.getDouble("X"), e.getDouble("Y"), e.getDouble("Z"), e.getFloat("Yaw"), e.getFloat("Pitch")));
         }
         return data;

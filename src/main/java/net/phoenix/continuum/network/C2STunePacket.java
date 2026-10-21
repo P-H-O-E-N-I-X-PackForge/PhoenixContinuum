@@ -1,12 +1,10 @@
 package net.phoenix.continuum.network;
 
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 import net.phoenix.continuum.data.ContinuumData;
 import net.phoenix.continuum.data.TuningPatches;
 
@@ -14,12 +12,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
 /** An operator edit from the tuner: set one value in a body's server-side patch, or reset the body. */
-public class C2STunePacket implements CustomPacketPayload {
-
-    public static final Type<C2STunePacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath("phoenix_continuum", "c2s_tune"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, C2STunePacket> STREAM_CODEC = StreamCodec
-            .ofMember(C2STunePacket::encode, C2STunePacket::new);
+public class C2STunePacket {
 
     private static final int MAX_VALUE = 8192;
 
@@ -47,28 +40,24 @@ public class C2STunePacket implements CustomPacketPayload {
         this.valueJson = "";
     }
 
-    public C2STunePacket(RegistryFriendlyByteBuf buf) {
+    public C2STunePacket(FriendlyByteBuf buf) {
         this.reset = buf.readBoolean();
         this.body = buf.readResourceLocation();
         this.path = buf.readUtf(128);
         this.valueJson = buf.readUtf(MAX_VALUE);
     }
 
-    public void encode(RegistryFriendlyByteBuf buf) {
+    public void encode(FriendlyByteBuf buf) {
         buf.writeBoolean(reset);
         buf.writeResourceLocation(body);
         buf.writeUtf(path, 128);
         buf.writeUtf(valueJson, MAX_VALUE);
     }
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void handle(C2STunePacket msg, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> {
-            if (!(ctx.player() instanceof ServerPlayer player)) return;
+    public static void handle(C2STunePacket msg, java.util.function.Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> {
+            ServerPlayer player = ctx.get().getSender();
+            if (player == null) return;
             boolean allowed = player.hasPermissions(2) || player.server.isSingleplayerOwner(player.getGameProfile());
             if (!allowed) {
                 player.displayClientMessage(Component.literal("Only operators can tune Continuum."), true);
@@ -95,5 +84,6 @@ public class C2STunePacket implements CustomPacketPayload {
             }
             ContinuumData.reloadNow(player.server);
         });
+        ctx.get().setPacketHandled(true);
     }
 }

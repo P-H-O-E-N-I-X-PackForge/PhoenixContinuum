@@ -9,7 +9,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.phoenix.continuum.config.ContinuumConfigs;
 import net.phoenix.continuum.client.ContinuumClientState;
 import net.phoenix.continuum.client.ContinuumSounds;
@@ -58,7 +57,7 @@ import java.util.UUID;
 public class ContinuumMapScreen extends Screen {
 
     @Override
-    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {}
+    public void renderBackground(GuiGraphics g) {}
 
     private enum Level {
         GALAXY,
@@ -147,7 +146,7 @@ public class ContinuumMapScreen extends Screen {
     protected void init() {
         super.init();
 
-        PacketDistributor.sendToServer(new C2SRequestStatePacket());
+        net.phoenix.continuum.network.ContinuumNetwork.sendToServer(new C2SRequestStatePacket());
         requestPadStock();
     }
 
@@ -155,7 +154,7 @@ public class ContinuumMapScreen extends Screen {
 
     private void requestPadStock() {
         if (pad != null) {
-            PacketDistributor.sendToServer(
+            net.phoenix.continuum.network.ContinuumNetwork.sendToServer(
                     new net.phoenix.continuum.network.C2SRequestPadStockPacket(pad));
         }
     }
@@ -404,13 +403,13 @@ public class ContinuumMapScreen extends Screen {
         RenderSystem.setShaderTexture(0, scene.getColorTextureId());
 
         Matrix4f pose = graphics.pose().last().pose();
-        BufferBuilder bb = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        BufferBuilder bb = net.phoenix.continuum.client.render.Vtx.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
 
-        bb.addVertex(pose, -1, height + 1, 0).setUv(0, 0);
-        bb.addVertex(pose, width + 1, height + 1, 0).setUv(1, 0);
-        bb.addVertex(pose, width + 1, -1, 0).setUv(1, 1);
-        bb.addVertex(pose, -1, -1, 0).setUv(0, 1);
-        BufferUploader.drawWithShader(bb.buildOrThrow());
+        bb.vertex(pose, -1, height + 1, 0).uv(0, 0).endVertex();
+        bb.vertex(pose, width + 1, height + 1, 0).uv(1, 0).endVertex();
+        bb.vertex(pose, width + 1, -1, 0).uv(1, 1).endVertex();
+        bb.vertex(pose, -1, -1, 0).uv(0, 1).endVertex();
+        BufferUploader.drawWithShader(bb.end());
         RenderSystem.enableBlend();
     }
 
@@ -1064,8 +1063,8 @@ public class ContinuumMapScreen extends Screen {
         return ItemStack.EMPTY;
     }
 
-    private static final ResourceLocation HOME_SYSTEM = ResourceLocation.fromNamespaceAndPath("phoenix_continuum", "home");
-    private static final ResourceLocation HOME_BODY = ResourceLocation.fromNamespaceAndPath("phoenix_continuum", "anvil");
+    private static final ResourceLocation HOME_SYSTEM = new ResourceLocation("phoenix_continuum", "home");
+    private static final ResourceLocation HOME_BODY = new ResourceLocation("phoenix_continuum", "anvil");
 
     private void drawTrails(GuiGraphics graphics) {
         if (level == Level.BODY || phase != Phase.NONE) return;
@@ -1501,7 +1500,7 @@ public class ContinuumMapScreen extends Screen {
                 MissionPlannerPanel.Result result = planner.click(mouseX, mouseY);
                 if (result.consumed()) ContinuumSounds.click();
                 if (result.launchType() != null && body != null && pad != null) {
-                    PacketDistributor.sendToServer(
+                    net.phoenix.continuum.network.ContinuumNetwork.sendToServer(
                             new C2SLaunchMissionPacket(body.id(), pad, result.launchType(), result.probes(),
                                     result.count()));
                 }
@@ -1556,7 +1555,7 @@ public class ContinuumMapScreen extends Screen {
             boolean inConflux = Minecraft.getInstance().level != null &&
                     net.phoenix.continuum.common.ConfluxTravel
                             .isConfluxDimension(Minecraft.getInstance().level.dimension());
-            net.neoforged.neoforge.network.PacketDistributor.sendToServer(
+            net.phoenix.continuum.network.ContinuumNetwork.sendToServer(
                     new net.phoenix.continuum.network.C2SConfluxTravelPacket(inConflux, body.id()));
             Minecraft.getInstance().setScreen(null);
             return true;
@@ -1591,7 +1590,7 @@ public class ContinuumMapScreen extends Screen {
 
                     jumpToRescue((ResourceLocation) row[7]);
                 } else if ((boolean) row[1]) {
-                    PacketDistributor.sendToServer(new C2SCollectMissionPacket(id));
+                    net.phoenix.continuum.network.ContinuumNetwork.sendToServer(new C2SCollectMissionPacket(id));
                 } else {
                     Minecraft.getInstance().setScreen(new ContinuumTransitScreen(id, pad));
                 }
@@ -1612,7 +1611,7 @@ public class ContinuumMapScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double delta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
         if (phase == Phase.NONE && !planner.isOpen()) cam().zoom((float) delta);
         return true;
     }

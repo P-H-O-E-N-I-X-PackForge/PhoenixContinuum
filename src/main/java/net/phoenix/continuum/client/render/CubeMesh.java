@@ -27,19 +27,19 @@ public final class CubeMesh {
 
     private static VertexBuffer buffer() {
         if (buffer == null) {
-            BufferBuilder builder = new BufferBuilder(new com.mojang.blaze3d.vertex.ByteBufferBuilder(512),
-                    VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION);
+            BufferBuilder builder = new BufferBuilder(512);
+            builder.begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION);
             for (float[] f : FACES) {
                 int[][] order = { { 0, 1, 2 }, { 0, 2, 3 } };
                 for (int[] tri : order) {
                     for (int corner : tri) {
-                        builder.addVertex(f[corner * 3], f[corner * 3 + 1], f[corner * 3 + 2]);
+                        builder.vertex(f[corner * 3], f[corner * 3 + 1], f[corner * 3 + 2]).endVertex();
                     }
                 }
             }
             buffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
             buffer.bind();
-            buffer.upload(builder.buildOrThrow());
+            buffer.upload(builder.end());
             VertexBuffer.unbind();
         }
         return buffer;

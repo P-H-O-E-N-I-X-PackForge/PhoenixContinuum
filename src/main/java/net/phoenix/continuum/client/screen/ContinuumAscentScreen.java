@@ -30,9 +30,9 @@ import java.util.Locale;
 public class ContinuumAscentScreen extends Screen {
 
     @Override
-    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {}
+    public void renderBackground(GuiGraphics g) {}
 
-    private static final ResourceLocation HOME_WORLD = ResourceLocation.fromNamespaceAndPath("phoenix_continuum", "anvil");
+    private static final ResourceLocation HOME_WORLD = new ResourceLocation("phoenix_continuum", "anvil");
 
     private final ResourceLocation destination;
     private final @Nullable BlockPos pad;

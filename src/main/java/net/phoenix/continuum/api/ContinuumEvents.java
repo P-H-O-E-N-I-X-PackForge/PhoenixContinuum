@@ -2,9 +2,9 @@ package net.phoenix.continuum.api;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.neoforged.bus.api.Event;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import net.phoenix.continuum.common.Mission;
 import net.phoenix.continuum.data.DiscoveryStage;
 
@@ -96,12 +96,12 @@ public final class ContinuumEvents {
     public static void postDiscovery(UUID team, ResourceLocation subject, DiscoveryStage stage) {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server == null) return;
-        NeoForge.EVENT_BUS.post(new Discovery(server, team, subject, stage));
+        MinecraftForge.EVENT_BUS.post(new Discovery(server, team, subject, stage));
     }
 
     public static void postMission(MissionChanged.Kind kind, Mission mission) {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server == null) return;
-        NeoForge.EVENT_BUS.post(new MissionChanged(server, kind, mission));
+        MinecraftForge.EVENT_BUS.post(new MissionChanged(server, kind, mission));
     }
 }

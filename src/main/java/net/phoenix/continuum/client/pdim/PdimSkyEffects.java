@@ -45,10 +45,8 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
     }
 
     @Override
-    public boolean renderSky(ClientLevel level, int ticks, float partialTick, Matrix4f modelViewMatrix, Camera camera,
+    public boolean renderSky(ClientLevel level, int ticks, float partialTick, PoseStack poseStack, Camera camera,
                              Matrix4f projectionMatrix, boolean isFoggy, Runnable setupFog) {
-        PoseStack poseStack = new PoseStack();
-        poseStack.mulPose(modelViewMatrix);
         ResourceLocation id = PdimDimensions.bodyOf(level.dimension());
         ContinuumBody body = id == null ? null : ContinuumData.body(id);
         ContinuumSystem system = body == null ? null : ContinuumData.system(body.system());
@@ -151,12 +149,12 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
         sky.safeGetUniform("SunColor").set(sample.sunColor()[0], sample.sunColor()[1], sample.sunColor()[2]);
 
         sky.apply();
-        BufferBuilder bb = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-        bb.addVertex(-1, -1, 0);
-        bb.addVertex(1, -1, 0);
-        bb.addVertex(1, 1, 0);
-        bb.addVertex(-1, 1, 0);
-        BufferUploader.drawWithShader(bb.buildOrThrow());
+        BufferBuilder bb = net.phoenix.continuum.client.render.Vtx.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+        bb.vertex(-1, -1, 0).endVertex();
+        bb.vertex(1, -1, 0).endVertex();
+        bb.vertex(1, 1, 0).endVertex();
+        bb.vertex(-1, 1, 0).endVertex();
+        BufferUploader.drawWithShader(bb.end());
         sky.clear();
     }
 }

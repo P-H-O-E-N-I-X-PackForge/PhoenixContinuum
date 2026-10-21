@@ -6,7 +6,7 @@ import net.phoenix.continuum.common.visibility.ContinuumVisibilityEvent;
 
 import dev.latvian.mods.kubejs.event.EventGroup;
 import dev.latvian.mods.kubejs.event.EventHandler;
-import dev.latvian.mods.kubejs.event.KubeEvent;
+import dev.latvian.mods.kubejs.event.EventJS;
 
 import java.util.UUID;
 
@@ -26,7 +26,7 @@ public final class ContinuumKubeEvents {
 
     private ContinuumKubeEvents() {}
 
-    public static class VisibilityEvent implements KubeEvent {
+    public static class VisibilityEvent extends EventJS {
 
         private final ContinuumVisibilityEvent event;
 
@@ -54,7 +54,7 @@ public final class ContinuumKubeEvents {
 
         /** What the rules and overrides decided so far. */
         public boolean getResult() {
-            return event.getResult();
+            return event.getVisible();
         }
 
         public void setResult(boolean result) {
@@ -70,7 +70,7 @@ public final class ContinuumKubeEvents {
         }
     }
 
-    public static class DiscoveryEvent implements KubeEvent {
+    public static class DiscoveryEvent extends EventJS {
 
         private final ContinuumEvents.Discovery event;
 
@@ -96,7 +96,7 @@ public final class ContinuumKubeEvents {
         }
     }
 
-    public static class MissionEvent implements KubeEvent {
+    public static class MissionEvent extends EventJS {
 
         private final ContinuumEvents.MissionChanged event;
 

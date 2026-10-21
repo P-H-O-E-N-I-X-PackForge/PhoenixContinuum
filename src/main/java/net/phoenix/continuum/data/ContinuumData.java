@@ -6,7 +6,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.minecraftforge.event.AddReloadListenerEvent;
 import net.phoenix.continuum.client.render.PlanetParams;
 import net.phoenix.continuum.common.ContinuumServerEvents;
 
@@ -196,7 +196,7 @@ public final class ContinuumData {
         JsonObject lore = GsonHelper.getAsJsonObject(json, "lore", new JsonObject());
         return new ContinuumBody(
                 id,
-                ResourceLocation.parse(GsonHelper.getAsString(json, "system")),
+                new ResourceLocation(GsonHelper.getAsString(json, "system")),
                 optionalId(json, "parent"),
                 type, name, description,
                 GsonHelper.getAsFloat(orbit, "radius_au", 1.0f),
@@ -238,7 +238,7 @@ public final class ContinuumData {
         JsonObject cost = GsonHelper.getAsJsonObject(json, "pdim_cost");
         ResourceLocation item = optionalId(cost, "item");
         return new ContinuumBody.PdimCost(
-                item != null ? item : ResourceLocation.fromNamespaceAndPath("minecraft", "air"),
+                item != null ? item : new ResourceLocation("minecraft", "air"),
                 Math.max(0, GsonHelper.getAsInt(cost, "count", 0)));
     }
 
@@ -251,7 +251,7 @@ public final class ContinuumData {
             JsonObject entry = element.getAsJsonObject();
             int min = Math.max(1, GsonHelper.getAsInt(entry, "min", 1));
             int max = Math.max(min, GsonHelper.getAsInt(entry, "max", min));
-            yields.add(new ContinuumBody.Yield(ResourceLocation.parse(GsonHelper.getAsString(entry, "item")), min, max,
+            yields.add(new ContinuumBody.Yield(new ResourceLocation(GsonHelper.getAsString(entry, "item")), min, max,
                     Math.max(0.0f, Math.min(1.0f, GsonHelper.getAsFloat(entry, "chance", 1.0f)))));
         }
         return yields;
@@ -259,7 +259,7 @@ public final class ContinuumData {
 
     private static @Nullable ResourceLocation optionalId(JsonObject json, String key) {
         if (!json.has(key) || json.get(key).isJsonNull()) return null;
-        return ResourceLocation.parse(GsonHelper.getAsString(json, key));
+        return new ResourceLocation(GsonHelper.getAsString(json, key));
     }
 
     private static int color(JsonObject json, String key, int fallback) {
@@ -353,7 +353,7 @@ public final class ContinuumData {
                     .listResources(dir, path -> path.getPath().endsWith(".json")).entrySet()) {
                 ResourceLocation file = entry.getKey();
                 String path = file.getPath();
-                ResourceLocation id = ResourceLocation.fromNamespaceAndPath(file.getNamespace(),
+                ResourceLocation id = new ResourceLocation(file.getNamespace(),
                         path.substring(dir.length() + 1, path.length() - ".json".length()));
                 try (Reader reader = entry.getValue().openAsReader()) {
                     JsonElement element = JsonParser.parseReader(reader);

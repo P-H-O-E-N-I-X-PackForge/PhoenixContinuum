@@ -6,9 +6,9 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.event.AddReloadListenerEvent;
 import net.phoenix.continuum.PhoenixContinuum;
 import net.phoenix.core.integration.conflux.research.WorldResearchData;
 import net.phoenix.continuum.data.ContinuumBody;
@@ -25,7 +25,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
-@EventBusSubscriber(modid = PhoenixContinuum.MOD_ID)
+@Mod.EventBusSubscriber(modid = PhoenixContinuum.MOD_ID)
 public final class Affinities extends SimpleJsonResourceReloadListener {
 
     public static final Affinities INSTANCE = new Affinities();
@@ -70,9 +70,9 @@ public final class Affinities extends SimpleJsonResourceReloadListener {
                 for (JsonElement item : GsonHelper.getAsJsonArray(json, "affinities")) {
                     JsonObject e = GsonHelper.convertToJsonObject(item, "affinity");
                     loaded.computeIfAbsent(discipline, d -> new ArrayList<>()).add(new Entry(
-                            e.has("system") ? ResourceLocation.parse(GsonHelper.getAsString(e, "system")) : null,
+                            e.has("system") ? new ResourceLocation(GsonHelper.getAsString(e, "system")) : null,
                             e.has("type") ? GsonHelper.getAsString(e, "type").toLowerCase(Locale.ROOT) : null,
-                            e.has("body") ? ResourceLocation.parse(GsonHelper.getAsString(e, "body")) : null,
+                            e.has("body") ? new ResourceLocation(GsonHelper.getAsString(e, "body")) : null,
                             GsonHelper.getAsFloat(e, "trip", 1.0f), GsonHelper.getAsFloat(e, "wear", 1.0f),
                             GsonHelper.getAsFloat(e, "yield", 1.0f), GsonHelper.getAsString(e, "label", "")));
                 }

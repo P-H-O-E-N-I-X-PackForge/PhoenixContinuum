@@ -1,8 +1,8 @@
 package net.phoenix.continuum.common;
 
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import net.phoenix.continuum.PhoenixContinuum;
 import net.phoenix.core.api.event.ConfluxResearchEvent;
 import net.phoenix.core.api.event.ConfluxTeamChangedEvent;
@@ -14,7 +14,7 @@ import java.util.Map;
  * Everything Continuum does in answer to Conflux, through PhoenixCore's public events only. When Continuum becomes its own
  * mod this class moves with it unchanged.
  */
-@EventBusSubscriber(modid = PhoenixContinuum.MOD_ID)
+@Mod.EventBusSubscriber(modid = PhoenixContinuum.MOD_ID)
 public final class ContinuumConfluxHooks {
 
     private ContinuumConfluxHooks() {}

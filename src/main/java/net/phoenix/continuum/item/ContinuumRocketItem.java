@@ -24,7 +24,7 @@ public class ContinuumRocketItem extends Item {
         ItemStack stack = player.getItemInHand(hand);
         if (player.isShiftKeyDown()) {
             if (level.isClientSide) {
-                if (net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT) {
+                if (net.minecraftforge.fml.loading.FMLEnvironment.dist == net.minecraftforge.api.distmarker.Dist.CLIENT) {
                     net.phoenix.continuum.client.ContinuumClientHooks.openRefit();
                 }
             }
@@ -56,9 +56,8 @@ public class ContinuumRocketItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip,
+    public void appendHoverText(ItemStack stack, @org.jetbrains.annotations.Nullable Level level, List<Component> tooltip,
                                 TooltipFlag flag) {
-        Level level = context.level();
         tooltip.add(Component.literal("Hull: " + RocketStats.tierName(RocketStats.tier(stack)))
                 .withStyle(ChatFormatting.GOLD));
         tooltip.add(Component.literal("Sneak + use to refit").withStyle(ChatFormatting.DARK_GRAY));

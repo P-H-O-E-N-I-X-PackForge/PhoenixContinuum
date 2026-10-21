@@ -2,14 +2,13 @@ package net.phoenix.continuum.common;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
-import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.event.AddReloadListenerEvent;
+import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import net.phoenix.continuum.PhoenixContinuum;
 import net.phoenix.continuum.data.ContinuumData;
 import net.phoenix.continuum.network.S2CContinuumDataPacket;
@@ -18,7 +17,7 @@ import net.phoenix.core.utils.TeamUtils;
 
 import java.util.UUID;
 
-@EventBusSubscriber(modid = PhoenixContinuum.MOD_ID)
+@Mod.EventBusSubscriber(modid = PhoenixContinuum.MOD_ID)
 public final class ContinuumServerEvents {
 
     private ContinuumServerEvents() {}
@@ -45,7 +44,8 @@ public final class ContinuumServerEvents {
     }
 
     @SubscribeEvent
-    public static void onServerTick(ServerTickEvent.Post event) {
+    public static void onServerTick(TickEvent.ServerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
         if (++tickCounter < 20) return;
         tickCounter = 0;
 
@@ -72,7 +72,7 @@ public final class ContinuumServerEvents {
     }
 
     public static void sendData(ServerPlayer player) {
-        PacketDistributor.sendToPlayer(player, new S2CContinuumDataPacket(ContinuumData.snapshot()));
+        net.phoenix.continuum.network.ContinuumNetwork.sendToPlayer(player, new S2CContinuumDataPacket(ContinuumData.snapshot()));
     }
 
     public static void sendState(ServerPlayer player) {
@@ -88,7 +88,7 @@ public final class ContinuumServerEvents {
 
     private static void sendStateAlways(ServerPlayer player) {
         UUID team = TeamUtils.getTeamIdOrPlayerFallback(player.getUUID());
-        PacketDistributor.sendToPlayer(player,
+        net.phoenix.continuum.network.ContinuumNetwork.sendToPlayer(player,
                 new S2CContinuumStatePacket(ContinuumStateSnapshot.build(player.server, team)));
     }
 

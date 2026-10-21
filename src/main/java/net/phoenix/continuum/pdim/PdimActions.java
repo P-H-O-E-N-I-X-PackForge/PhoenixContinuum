@@ -7,7 +7,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.phoenix.continuum.common.ContinuumTeamData;
 import net.phoenix.continuum.data.ContinuumBody;
 import net.phoenix.continuum.data.ContinuumData;
@@ -142,7 +141,7 @@ public final class PdimActions {
         for (ContinuumBody body : ContinuumData.allBodies()) costs.put(body.id(), PdimCosts.costFor(body));
         boolean everyVisit = PdimCosts.charges(true);
 
-        PacketDistributor.sendToPlayer(player, new S2CPdimStatePacket(here != null, gravity, daySpeed, lockedTime, mine, costs, everyVisit));
+        net.phoenix.continuum.network.ContinuumNetwork.sendToPlayer(player, new S2CPdimStatePacket(here != null, gravity, daySpeed, lockedTime, mine, costs, everyVisit));
     }
 
     public static boolean isIn(Level level) {

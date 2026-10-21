@@ -1,53 +1,69 @@
 package net.phoenix.continuum.network;
 
-import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.network.simple.SimpleChannel;
 
+import java.util.Optional;
+
+@SuppressWarnings("removal")
 public final class ContinuumNetwork {
+
+    private static final String PROTOCOL = "1";
+    public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
+            new ResourceLocation("phoenix_continuum", "main"), () -> PROTOCOL, PROTOCOL::equals, PROTOCOL::equals);
+
+    private static int id = 0;
 
     private ContinuumNetwork() {}
 
-    public static void register(PayloadRegistrar registrar) {
-        registrar.playToClient(S2CContinuumDataPacket.TYPE, S2CContinuumDataPacket.STREAM_CODEC,
-                S2CContinuumDataPacket::handle);
-        registrar.playToClient(S2CContinuumStatePacket.TYPE, S2CContinuumStatePacket.STREAM_CODEC,
-                S2CContinuumStatePacket::handle);
-        registrar.playToClient(S2COpenMapPacket.TYPE, S2COpenMapPacket.STREAM_CODEC, S2COpenMapPacket::handle);
-        registrar.playToClient(S2CMissionLaunchedPacket.TYPE, S2CMissionLaunchedPacket.STREAM_CODEC,
-                S2CMissionLaunchedPacket::handle);
-        registrar.playToClient(S2CPadStockPacket.TYPE,
-                S2CPadStockPacket.STREAM_CODEC,
-                S2CPadStockPacket::handle);
-        registrar.playToServer(C2SRequestPadStockPacket.TYPE,
-                C2SRequestPadStockPacket.STREAM_CODEC,
-                C2SRequestPadStockPacket::handle);
-        registrar.playToClient(S2CPdimStatePacket.TYPE,
-                S2CPdimStatePacket.STREAM_CODEC,
-                S2CPdimStatePacket::handle);
-        registrar.playToServer(C2SPdimPacket.TYPE,
-                C2SPdimPacket.STREAM_CODEC,
-                C2SPdimPacket::handle);
-        registrar.playToServer(C2SConfluxTravelPacket.TYPE,
-                C2SConfluxTravelPacket.STREAM_CODEC,
-                C2SConfluxTravelPacket::handle);
-        registrar.playToServer(C2SCollectAllPacket.TYPE,
-                C2SCollectAllPacket.STREAM_CODEC,
-                C2SCollectAllPacket::handle);
-        registrar.playToServer(C2SRequestHistoryPacket.TYPE,
-                C2SRequestHistoryPacket.STREAM_CODEC,
-                C2SRequestHistoryPacket::handle);
-        registrar.playToClient(S2CHistoryPacket.TYPE,
-                S2CHistoryPacket.STREAM_CODEC,
-                S2CHistoryPacket::handle);
-        registrar.playToServer(C2SRefitPacket.TYPE,
-                C2SRefitPacket.STREAM_CODEC,
-                C2SRefitPacket::handle);
-        registrar.playToServer(C2SRequestStatePacket.TYPE, C2SRequestStatePacket.STREAM_CODEC,
-                C2SRequestStatePacket::handle);
-        registrar.playToServer(C2SLaunchMissionPacket.TYPE, C2SLaunchMissionPacket.STREAM_CODEC,
-                C2SLaunchMissionPacket::handle);
-        registrar.playToServer(C2SCollectMissionPacket.TYPE, C2SCollectMissionPacket.STREAM_CODEC,
-                C2SCollectMissionPacket::handle);
-        registrar.playToServer(C2STunePacket.TYPE, C2STunePacket.STREAM_CODEC, C2STunePacket::handle);
-        registrar.playToServer(C2SCreatePacket.TYPE, C2SCreatePacket.STREAM_CODEC, C2SCreatePacket::handle);
+    public static void sendToServer(Object message) {
+        CHANNEL.sendToServer(message);
+    }
+
+    public static void sendToPlayer(ServerPlayer player, Object message) {
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), message);
+    }
+
+    public static void register() {
+        CHANNEL.registerMessage(id++, S2CContinuumDataPacket.class, S2CContinuumDataPacket::encode, S2CContinuumDataPacket::new, S2CContinuumDataPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(id++, S2CContinuumStatePacket.class, S2CContinuumStatePacket::encode, S2CContinuumStatePacket::new, S2CContinuumStatePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(id++, S2COpenMapPacket.class, S2COpenMapPacket::encode, S2COpenMapPacket::new, S2COpenMapPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(id++, S2CMissionLaunchedPacket.class, S2CMissionLaunchedPacket::encode, S2CMissionLaunchedPacket::new, S2CMissionLaunchedPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(id++, S2CPadStockPacket.class, S2CPadStockPacket::encode, S2CPadStockPacket::new, S2CPadStockPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(id++, C2SRequestPadStockPacket.class, C2SRequestPadStockPacket::encode, C2SRequestPadStockPacket::new, C2SRequestPadStockPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(id++, S2CPdimStatePacket.class, S2CPdimStatePacket::encode, S2CPdimStatePacket::new, S2CPdimStatePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(id++, C2SPdimPacket.class, C2SPdimPacket::encode, C2SPdimPacket::new, C2SPdimPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(id++, C2SConfluxTravelPacket.class, C2SConfluxTravelPacket::encode, C2SConfluxTravelPacket::new, C2SConfluxTravelPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(id++, C2SCollectAllPacket.class, C2SCollectAllPacket::encode, C2SCollectAllPacket::new, C2SCollectAllPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(id++, C2SRequestHistoryPacket.class, C2SRequestHistoryPacket::encode, C2SRequestHistoryPacket::new, C2SRequestHistoryPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(id++, S2CHistoryPacket.class, S2CHistoryPacket::encode, S2CHistoryPacket::new, S2CHistoryPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(id++, C2SRefitPacket.class, C2SRefitPacket::encode, C2SRefitPacket::new, C2SRefitPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(id++, C2SRequestStatePacket.class, C2SRequestStatePacket::encode, C2SRequestStatePacket::new, C2SRequestStatePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(id++, C2SLaunchMissionPacket.class, C2SLaunchMissionPacket::encode, C2SLaunchMissionPacket::new, C2SLaunchMissionPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(id++, C2SCollectMissionPacket.class, C2SCollectMissionPacket::encode, C2SCollectMissionPacket::new, C2SCollectMissionPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(id++, C2STunePacket.class, C2STunePacket::encode, C2STunePacket::new, C2STunePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(id++, C2SCreatePacket.class, C2SCreatePacket::encode, C2SCreatePacket::new, C2SCreatePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
     }
 }

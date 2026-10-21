@@ -26,7 +26,7 @@ import java.util.List;
 public class ContinuumTestScreen extends Screen {
 
     @Override
-    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {}
+    public void renderBackground(GuiGraphics g) {}
 
     private static final int FRAME = 0xFF7a5cff;
 
@@ -62,7 +62,7 @@ public class ContinuumTestScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         MapUi.refreshTheme();
-        renderBackground(graphics, 0, 0, 0f);
+        renderBackground(graphics);
 
         long now = Util.getMillis();
         float dt = Math.min((now - lastFrameMillis) / 1000.0f, 0.1f);
@@ -120,13 +120,13 @@ public class ContinuumTestScreen extends Screen {
         RenderSystem.setShaderTexture(0, target.getColorTextureId());
 
         Matrix4f pose = graphics.pose().last().pose();
-        BufferBuilder bb = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        BufferBuilder bb = net.phoenix.continuum.client.render.Vtx.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
 
-        bb.addVertex(pose, 0, height, 0).setUv(0, 0);
-        bb.addVertex(pose, width, height, 0).setUv(1, 0);
-        bb.addVertex(pose, width, 0, 0).setUv(1, 1);
-        bb.addVertex(pose, 0, 0, 0).setUv(0, 1);
-        BufferUploader.drawWithShader(bb.buildOrThrow());
+        bb.vertex(pose, 0, height, 0).uv(0, 0).endVertex();
+        bb.vertex(pose, width, height, 0).uv(1, 0).endVertex();
+        bb.vertex(pose, width, 0, 0).uv(1, 1).endVertex();
+        bb.vertex(pose, 0, 0, 0).uv(0, 1).endVertex();
+        BufferUploader.drawWithShader(bb.end());
         RenderSystem.enableBlend();
     }
 
@@ -141,7 +141,7 @@ public class ContinuumTestScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double delta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
         distance = Math.max(2.4f, Math.min(9.0f, distance - (float) delta * 0.3f));
         return true;
     }

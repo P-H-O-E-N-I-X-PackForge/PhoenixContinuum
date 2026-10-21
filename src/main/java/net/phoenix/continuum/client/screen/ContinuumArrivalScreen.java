@@ -6,7 +6,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.phoenix.continuum.client.ContinuumClientState;
 import net.phoenix.continuum.client.ContinuumSounds;
 import net.phoenix.continuum.client.FlightProfiles;
@@ -35,7 +34,7 @@ import java.util.UUID;
 public class ContinuumArrivalScreen extends Screen {
 
     @Override
-    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {}
+    public void renderBackground(GuiGraphics g) {}
 
     private static final float SECONDS = 9.0f;
     private static final float CARD_AT = 0.78f;
@@ -428,7 +427,7 @@ public class ContinuumArrivalScreen extends Screen {
             if (MapUi.inside(mouseX, mouseY, x + 12, collectY(), bw, 18)) {
                 ContinuumSounds.click();
                 if (!ContinuumClientState.isPreview(missionId)) {
-                    PacketDistributor.sendToServer(new C2SCollectMissionPacket(missionId));
+                    net.phoenix.continuum.network.ContinuumNetwork.sendToServer(new C2SCollectMissionPacket(missionId));
                 }
                 leave();
                 return true;

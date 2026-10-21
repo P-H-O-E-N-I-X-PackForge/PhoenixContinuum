@@ -6,7 +6,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.util.FormattedCharSequence;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.phoenix.continuum.client.ContinuumSounds;
 import net.phoenix.continuum.client.pdim.PdimClientState;
 import net.phoenix.continuum.data.ContinuumBody;
@@ -23,7 +22,7 @@ import java.util.Locale;
 public class ContinuumPdimScreen extends Screen {
 
     @Override
-    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {}
+    public void renderBackground(GuiGraphics g) {}
 
     private static final int W = 300;
     private static final int H = 250;
@@ -142,7 +141,7 @@ public class ContinuumPdimScreen extends Screen {
     }
 
     private void sendAdjust(float gravity, float speed, float locked) {
-        PacketDistributor.sendToServer(
+        net.phoenix.continuum.network.ContinuumNetwork.sendToServer(
                 new C2SPdimPacket(C2SPdimPacket.Action.ADJUST, body.id(), gravity, speed, locked));
     }
 
@@ -206,11 +205,11 @@ public class ContinuumPdimScreen extends Screen {
                     selected = Integer.parseInt(id.substring(6));
                 } else if (id.equals("create") || id.equals("enter")) {
                     float gravity = existing() != null ? existing() : presets.get(selected).gravity();
-                    PacketDistributor.sendToServer(
+                    net.phoenix.continuum.network.ContinuumNetwork.sendToServer(
                             new C2SPdimPacket(C2SPdimPacket.Action.ENTER, body.id(), gravity));
                     Minecraft.getInstance().setScreen(null);
                 } else if (id.equals("leave")) {
-                    PacketDistributor.sendToServer(
+                    net.phoenix.continuum.network.ContinuumNetwork.sendToServer(
                             new C2SPdimPacket(C2SPdimPacket.Action.LEAVE, body.id(), 1.0f));
                     Minecraft.getInstance().setScreen(null);
                 } else {

@@ -5,10 +5,10 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.client.event.RegisterClientCommandsEvent;
 import net.phoenix.continuum.PhoenixContinuum;
 import net.phoenix.continuum.client.screen.ContinuumArrivalScreen;
 import net.phoenix.continuum.client.screen.ContinuumAscentScreen;
@@ -25,7 +25,7 @@ import java.util.UUID;
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
-@EventBusSubscriber(modid = PhoenixContinuum.MOD_ID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = PhoenixContinuum.MOD_ID, value = Dist.CLIENT)
 public final class ContinuumPreviewCommands {
 
     private ContinuumPreviewCommands() {}

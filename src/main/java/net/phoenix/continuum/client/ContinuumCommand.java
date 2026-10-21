@@ -2,9 +2,9 @@ package net.phoenix.continuum.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.RegisterClientCommandsEvent;
 import net.phoenix.continuum.client.screen.ContinuumMapScreen;
 import net.phoenix.continuum.client.screen.ContinuumTestScreen;
 

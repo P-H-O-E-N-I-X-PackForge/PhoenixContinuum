@@ -4,7 +4,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.phoenix.continuum.client.ContinuumClientState;
 import net.phoenix.continuum.client.ContinuumSounds;
 import net.phoenix.continuum.common.MissionLog;
@@ -20,7 +19,7 @@ import java.util.List;
 public class ContinuumHistoryScreen extends Screen {
 
     @Override
-    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {}
+    public void renderBackground(GuiGraphics g) {}
 
     private static final int ROW = 14;
 
@@ -50,7 +49,7 @@ public class ContinuumHistoryScreen extends Screen {
     @Override
     protected void init() {
         super.init();
-        PacketDistributor.sendToServer(new C2SRequestHistoryPacket());
+        net.phoenix.continuum.network.ContinuumNetwork.sendToServer(new C2SRequestHistoryPacket());
     }
 
     @Override
@@ -59,7 +58,7 @@ public class ContinuumHistoryScreen extends Screen {
 
         if (++refresh >= 100) {
             refresh = 0;
-            PacketDistributor.sendToServer(new C2SRequestHistoryPacket());
+            net.phoenix.continuum.network.ContinuumNetwork.sendToServer(new C2SRequestHistoryPacket());
         }
     }
 
@@ -208,7 +207,7 @@ public class ContinuumHistoryScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double delta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
         scroll = Math.max(0, scroll - (int) Math.signum(delta) * 3);
         return true;
     }

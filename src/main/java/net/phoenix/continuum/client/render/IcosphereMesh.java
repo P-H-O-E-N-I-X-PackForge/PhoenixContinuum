@@ -70,18 +70,17 @@ public final class IcosphereMesh implements AutoCloseable {
             triangles = next;
         }
 
-        BufferBuilder builder = new BufferBuilder(
-                new com.mojang.blaze3d.vertex.ByteBufferBuilder(triangles.size() * 3 * 12 + 64),
-                VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION);
+        BufferBuilder builder = new BufferBuilder(triangles.size() * 3 * 12 + 64);
+            builder.begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION);
         for (Vector3f[] tri : triangles) {
             for (Vector3f v : tri) {
-                builder.addVertex(v.x, v.y, v.z);
+                builder.vertex(v.x, v.y, v.z).endVertex();
             }
         }
 
         VertexBuffer buffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
         buffer.bind();
-        buffer.upload(builder.buildOrThrow());
+        buffer.upload(builder.end());
         VertexBuffer.unbind();
         return new IcosphereMesh(buffer, triangles.size());
     }

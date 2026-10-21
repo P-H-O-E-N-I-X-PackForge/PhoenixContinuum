@@ -7,7 +7,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 final class RocketSprite {
 
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("phoenix_continuum",
+    private static final ResourceLocation TEXTURE = new ResourceLocation("phoenix_continuum",
             "textures/item/continuum_rocket.png");
     private static final int TEXEL = 16;
 

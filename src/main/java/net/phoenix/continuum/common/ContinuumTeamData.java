@@ -51,8 +51,7 @@ public class ContinuumTeamData extends SavedData {
 
     public static ContinuumTeamData get(MinecraftServer server) {
         return server.overworld().getDataStorage()
-                .computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(ContinuumTeamData::new,
-                        (tag, provider) -> ContinuumTeamData.load(tag), null), ID);
+                .computeIfAbsent(ContinuumTeamData::load, ContinuumTeamData::new, ID);
     }
 
     public boolean isEngaged(UUID team) {
@@ -287,7 +286,7 @@ public class ContinuumTeamData extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+    public CompoundTag save(CompoundTag tag) {
         ListTag engagedTeams = new ListTag();
         for (UUID team : engaged) {
             CompoundTag e = new CompoundTag();
@@ -404,7 +403,7 @@ public class ContinuumTeamData extends SavedData {
             for (Tag s : teamTag.getList("Stages", Tag.TAG_COMPOUND)) {
                 CompoundTag e = (CompoundTag) s;
                 int ordinal = Math.max(0, Math.min(e.getByte("Stage"), DiscoveryStage.values().length - 1));
-                map.put(ResourceLocation.parse(e.getString("Id")), DiscoveryStage.values()[ordinal]);
+                map.put(new ResourceLocation(e.getString("Id")), DiscoveryStage.values()[ordinal]);
             }
             data.stages.put(teamTag.getUUID("Team"), map);
         }
@@ -419,7 +418,7 @@ public class ContinuumTeamData extends SavedData {
             Map<ResourceLocation, Outpost> map = new HashMap<>();
             for (Tag o : teamTag.getList("Outposts", Tag.TAG_COMPOUND)) {
                 CompoundTag e = (CompoundTag) o;
-                map.put(ResourceLocation.parse(e.getString("Body")), Outpost.load(e));
+                map.put(new ResourceLocation(e.getString("Body")), Outpost.load(e));
             }
             data.outposts.put(teamTag.getUUID("Team"), map);
         }
@@ -429,7 +428,7 @@ public class ContinuumTeamData extends SavedData {
             Map<ResourceLocation, Integer> map = new HashMap<>();
             for (Tag d : teamTag.getList("Depths", Tag.TAG_COMPOUND)) {
                 CompoundTag e = (CompoundTag) d;
-                map.put(ResourceLocation.parse(e.getString("Body")), e.getInt("Depth"));
+                map.put(new ResourceLocation(e.getString("Body")), e.getInt("Depth"));
             }
             data.depths.put(teamTag.getUUID("Team"), map);
         }
@@ -439,7 +438,7 @@ public class ContinuumTeamData extends SavedData {
             Map<ResourceLocation, Integer> map = new HashMap<>();
             for (Tag s : teamTag.getList("Stations", Tag.TAG_COMPOUND)) {
                 CompoundTag e = (CompoundTag) s;
-                map.put(ResourceLocation.parse(e.getString("Body")), e.getInt("Level"));
+                map.put(new ResourceLocation(e.getString("Body")), e.getInt("Level"));
             }
             data.stations.put(teamTag.getUUID("Team"), map);
         }
@@ -455,7 +454,7 @@ public class ContinuumTeamData extends SavedData {
             Map<ResourceLocation, Boolean> map = new HashMap<>();
             for (Tag e : teamTag.getList("Entries", Tag.TAG_COMPOUND)) {
                 CompoundTag entry = (CompoundTag) e;
-                map.put(ResourceLocation.parse(entry.getString("Id")), entry.getBoolean("Visible"));
+                map.put(new ResourceLocation(entry.getString("Id")), entry.getBoolean("Visible"));
             }
             data.visibilityOverrides.put(teamTag.getUUID("Team"), map);
         }

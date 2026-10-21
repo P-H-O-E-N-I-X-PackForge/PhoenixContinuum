@@ -1,26 +1,13 @@
 package net.phoenix.continuum.network;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 import net.phoenix.continuum.common.RocketRefit;
 
-public class C2SRefitPacket implements CustomPacketPayload {
-
-    public static final Type<C2SRefitPacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath("phoenix_continuum", "c2_s_refit_packet"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, C2SRefitPacket> STREAM_CODEC = StreamCodec
-            .ofMember(C2SRefitPacket::encode, C2SRefitPacket::new);
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+public class C2SRefitPacket {
 
     private final RocketRefit.Action action;
     private final String key;
@@ -41,12 +28,13 @@ public class C2SRefitPacket implements CustomPacketPayload {
         buf.writeUtf(key, 64);
     }
 
-    public static void handle(C2SRefitPacket msg, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> {
-            ServerPlayer player = ((net.minecraft.server.level.ServerPlayer) ctx.player());
+    public static void handle(C2SRefitPacket msg, java.util.function.Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> {
+            ServerPlayer player = ctx.get().getSender();
             if (player == null) return;
             String error = RocketRefit.apply(player, msg.action, msg.key);
             if (error != null) player.displayClientMessage(Component.literal(error), true);
         });
+        ctx.get().setPacketHandled(true);
     }
 }

@@ -2,25 +2,12 @@ package net.phoenix.continuum.network;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.network.NetworkEvent;
 import net.phoenix.continuum.client.ContinuumClientHooks;
 
-public class S2COpenMapPacket implements CustomPacketPayload {
-
-    public static final Type<S2COpenMapPacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath("phoenix_continuum", "s2_c_open_map_packet"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, S2COpenMapPacket> STREAM_CODEC = StreamCodec
-            .ofMember(S2COpenMapPacket::encode, S2COpenMapPacket::new);
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+public class S2COpenMapPacket {
 
     private final BlockPos pad;
 
@@ -36,9 +23,10 @@ public class S2COpenMapPacket implements CustomPacketPayload {
         buf.writeBlockPos(pad);
     }
 
-    public static void handle(S2COpenMapPacket msg, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> {
+    public static void handle(S2COpenMapPacket msg, java.util.function.Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> {
             if (FMLEnvironment.dist.isClient()) ContinuumClientHooks.openMap(msg.pad);
         });
+        ctx.get().setPacketHandled(true);
     }
 }

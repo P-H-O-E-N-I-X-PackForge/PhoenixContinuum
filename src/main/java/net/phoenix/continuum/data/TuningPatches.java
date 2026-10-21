@@ -1,7 +1,7 @@
 package net.phoenix.continuum.data;
 
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.fml.loading.FMLPaths;
+import net.minecraftforge.fml.loading.FMLPaths;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;

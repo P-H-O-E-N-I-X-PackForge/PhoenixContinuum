@@ -1,6 +1,6 @@
 package net.phoenix.continuum.common.visibility;
 
-import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.phoenix.continuum.common.ContinuumTeamData;
@@ -76,7 +76,7 @@ public final class ContinuumConditions {
             return c -> {
                 for (ServerPlayer player : c.server().getPlayerList().getPlayers()) {
                     if (!c.team().equals(TeamUtils.getTeamIdOrPlayerFallback(player.getUUID()))) continue;
-                    AdvancementHolder holder = c.server().getAdvancements().get(advancement);
+                    Advancement holder = c.server().getAdvancements().getAdvancement(advancement);
                     if (holder != null && player.getAdvancements().getOrStartProgress(holder).isDone()) return true;
                 }
                 return false;
@@ -97,7 +97,7 @@ public final class ContinuumConditions {
     }
 
     private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath("phoenix_continuum", path);
+        return new ResourceLocation("phoenix_continuum", path);
     }
 
     private static ContinuumCondition all(List<ContinuumCondition> list) {

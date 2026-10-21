@@ -6,7 +6,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.phoenix.continuum.config.ContinuumConfigs;
 import net.phoenix.continuum.ContinuumRegistry;
 import net.phoenix.continuum.client.ContinuumSounds;
@@ -22,7 +21,7 @@ import java.util.List;
 public class ContinuumRefitScreen extends Screen {
 
     @Override
-    public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {}
+    public void renderBackground(GuiGraphics g) {}
 
     private static final int W = 448;
     private static final int H = 260;
@@ -212,11 +211,11 @@ public class ContinuumRefitScreen extends Screen {
                 if (id.equals("close")) {
                     onClose();
                 } else if (id.equals("tier")) {
-                    PacketDistributor.sendToServer(new C2SRefitPacket(RocketRefit.Action.TIER_UP, ""));
+                    net.phoenix.continuum.network.ContinuumNetwork.sendToServer(new C2SRefitPacket(RocketRefit.Action.TIER_UP, ""));
                 } else if (id.equals("repair")) {
-                    PacketDistributor.sendToServer(new C2SRefitPacket(RocketRefit.Action.REPAIR, ""));
+                    net.phoenix.continuum.network.ContinuumNetwork.sendToServer(new C2SRefitPacket(RocketRefit.Action.REPAIR, ""));
                 } else if (id.startsWith("fit:")) {
-                    PacketDistributor.sendToServer(new C2SRefitPacket(RocketRefit.Action.FIT, id.substring(4)));
+                    net.phoenix.continuum.network.ContinuumNetwork.sendToServer(new C2SRefitPacket(RocketRefit.Action.FIT, id.substring(4)));
                 }
                 return true;
             }

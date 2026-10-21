@@ -1,14 +1,12 @@
 package net.phoenix.continuum.data;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.packs.PackLocationInfo;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.PathPackResources;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
-import net.minecraft.server.packs.PackSelectionConfig;
-import net.neoforged.fml.loading.FMLPaths;
-import net.neoforged.neoforge.event.AddPackFindersEvent;
+import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.event.AddPackFindersEvent;
 import net.phoenix.continuum.PhoenixContinuum;
 
 import java.io.IOException;
@@ -61,10 +59,9 @@ public final class ContinuumPackFolder {
         }
 
         event.addRepositorySource(consumer -> {
-            PackLocationInfo info = new PackLocationInfo(ID, Component.literal("Continuum pack folder"),
-                    PackSource.BUILT_IN, Optional.empty());
-            Pack pack = Pack.readMetaAndCreate(info, new PathPackResources.PathResourcesSupplier(root),
-                    PackType.SERVER_DATA, new PackSelectionConfig(true, Pack.Position.TOP, false));
+            Pack pack = Pack.readMetaAndCreate(ID, Component.literal("Continuum pack folder"), true,
+                    name -> new PathPackResources(name, root, false), PackType.SERVER_DATA, Pack.Position.TOP,
+                    PackSource.BUILT_IN);
             if (pack != null) consumer.accept(pack);
         });
     }

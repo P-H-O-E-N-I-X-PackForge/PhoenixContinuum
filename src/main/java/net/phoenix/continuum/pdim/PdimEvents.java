@@ -3,21 +3,21 @@ package net.phoenix.continuum.pdim;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.event.entity.living.LivingFallEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.TickEvent;
 import net.phoenix.continuum.PhoenixContinuum;
 
-@EventBusSubscriber(modid = PhoenixContinuum.MOD_ID)
+@Mod.EventBusSubscriber(modid = PhoenixContinuum.MOD_ID)
 public final class PdimEvents {
 
     private PdimEvents() {}
 
     @SubscribeEvent
-    public static void onPlayerTick(PlayerTickEvent.Post event) {
-        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END || !(event.player instanceof ServerPlayer player)) return;
         if (!(player.level() instanceof ServerLevel level) || !PdimDimensions.isPersonal(level.dimension())) return;
 
         if (player.getY() < level.getMinBuildHeight() - 16) {

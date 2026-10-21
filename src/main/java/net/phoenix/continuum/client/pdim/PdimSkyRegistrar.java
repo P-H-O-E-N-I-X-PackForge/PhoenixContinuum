@@ -1,12 +1,12 @@
 package net.phoenix.continuum.client.pdim;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RegisterDimensionSpecialEffectsEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.client.event.RegisterDimensionSpecialEffectsEvent;
 import net.phoenix.continuum.PhoenixContinuum;
 
-@EventBusSubscriber(modid = PhoenixContinuum.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = PhoenixContinuum.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class PdimSkyRegistrar {
 
     private PdimSkyRegistrar() {}

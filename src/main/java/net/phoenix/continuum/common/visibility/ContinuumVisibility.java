@@ -2,7 +2,7 @@ package net.phoenix.continuum.common.visibility;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.neoforged.neoforge.common.NeoForge;
+import net.minecraftforge.common.MinecraftForge;
 import net.phoenix.continuum.PhoenixContinuum;
 import net.phoenix.continuum.common.ContinuumTeamData;
 import net.phoenix.continuum.data.ContinuumBody;
@@ -81,7 +81,7 @@ public final class ContinuumVisibility {
                                     ContinuumVisibilityEvent.Kind kind) {
         Set<ResourceLocation> active = EVALUATING.get();
         // rules can refer to other bodies; a reference loop counts as "visible" rather than hanging the server
-        ResourceLocation guard = ResourceLocation.fromNamespaceAndPath(kind.name().toLowerCase(), body.id().toString()
+        ResourceLocation guard = new ResourceLocation(kind.name().toLowerCase(), body.id().toString()
                 .replace(':', '/'));
         if (!active.add(guard)) return true;
         try {
@@ -106,8 +106,8 @@ public final class ContinuumVisibility {
             }
 
             ContinuumVisibilityEvent event = new ContinuumVisibilityEvent(server, team, body.id(), kind, result);
-            NeoForge.EVENT_BUS.post(event);
-            return event.getResult();
+            MinecraftForge.EVENT_BUS.post(event);
+            return event.getVisible();
         } finally {
             active.remove(guard);
         }

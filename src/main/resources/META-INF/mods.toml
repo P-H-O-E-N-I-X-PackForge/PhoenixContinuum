@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "${loader_version_range}"
+loaderVersion = "[47,)"
 license = "${mod_license}"
 
 [[mods]]
@@ -11,36 +11,36 @@ authors = "${mod_author}"
 description = '''Continuum: the galaxy map, rockets, missions, outposts and personal dimensions of the Phoenix suite. Reads and writes Conflux research through PhoenixCore.'''
 
 [[dependencies.${mod_id}]]
-modId = "neoforge"
-type = "required"
-versionRange = "[${neo_version},)"
+modId = "forge"
+mandatory = true
+versionRange = "[${forge_major},)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
 modId = "minecraft"
-type = "required"
-versionRange = "${minecraft_version_range}"
+mandatory = true
+versionRange = "[${minecraft_version},)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
 modId = "gtceu"
-type = "required"
-versionRange = "[${gtm_version_min},)"
+mandatory = true
+versionRange = "[${gtceu_version_min},)"
 ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
 modId = "phoenixcore"
-type = "required"
-versionRange = "[0.3.0,)"
+mandatory = true
+versionRange = "[0.2.1,)"
 ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
 modId = "emi"
-type = "optional"
+mandatory = false
 versionRange = "[1.1.0,)"
 ordering = "AFTER"
 side = "BOTH"

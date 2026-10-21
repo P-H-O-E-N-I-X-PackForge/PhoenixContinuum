@@ -1,16 +1,11 @@
 plugins {
-    id 'java-library'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.143'
+    id 'net.neoforged.moddev.legacyforge' version '2.0.91'
 }
 
 version = mod_version
 group = mod_group_id
-
-tasks.named('wrapper', Wrapper).configure {
-    distributionType = Wrapper.DistributionType.BIN
-}
 
 sourceSets.main.resources {
     srcDir 'src/generated/resources'
@@ -21,105 +16,35 @@ repositories {
     mavenCentral()
     maven {
         name = 'GTCEu Maven'
-        url = 'https://maven.gtceu.com/'
+        url = 'https://maven.gtceu.com'
         content {
             includeGroup 'com.gregtechceu.gtceu'
             includeGroup 'brachy.modularui'
         }
     }
+    maven { url = 'https://maven.parchmentmc.org' }
+    maven { url = 'https://maven.blamejared.com/' }
     maven {
-        name = 'ParchmentMC'
-        url = 'https://maven.parchmentmc.org'
-    }
-    maven {
-        name = 'BlameJared Maven'
-        url = 'https://maven.blamejared.com/'
+        url = 'https://maven.tterrag.com/'
+        content { includeGroup 'com.tterrag.registrate' }
     }
     maven {
-        name = 'Devos Snapshot Maven'
-        url = 'https://mvn.devos.one/snapshots/'
-        content {
-            includeGroup 'com.tterrag.registrate'
-        }
-    }
-    maven {
-        name = 'LatvianDev Maven'
-        url = 'https://maven.latvian.dev/releases/'
-        content {
-            includeGroup 'dev.latvian.mods'
-            includeGroup 'dev.latvian.apps'
-        }
-    }
-    maven {
-        name = 'Sleeping Town'
-        url = 'https://repo.sleeping.town/'
-        content {
-            includeGroup 'dev.emi'
-        }
-    }
-    maven {
-        name = 'TheIllusiveC4 Maven'
-        url = 'https://maven.theillusivec4.top/'
-    }
-    maven {
-        name = 'Architectury Maven'
-        url = 'https://maven.architectury.dev/'
-        content {
-            includeGroup 'dev.architectury'
-        }
-    }
-    maven {
-        name = 'FTB Maven'
-        url = 'https://maven.ftb.dev/releases'
-    }
-    maven {
-        name = 'ModMaven'
-        url = 'https://maven.modmaven.dev/'
-        content {
-            includeGroup 'org.appliedenergistics'
-        }
-    }
-    maven {
-        name = 'CurseMaven'
-        url = 'https://cursemaven.com/'
-        content {
-            includeGroup 'curse.maven'
-        }
-    }
-    maven {
-        name = 'Modrinth'
-        url = 'https://api.modrinth.com/maven'
-        content {
-            includeGroup 'maven.modrinth'
-        }
-    }
-    maven {
-        name = 'Sleeping Town'
-        url = 'https://repo.sleeping.town/'
-        content {
-            includeGroup 'dev.emi'
-        }
-    }
-    maven {
-        name = 'Repsy'
-        url = uri('https://repo.repsy.io/mvn/user75142941/phoenixsuite')
-    }
-    exclusiveContent { // Configuration
-        forRepositories(
-                maven { url = 'https://repo.repsy.io/mvn/toma/public/' },
-                maven { url = 'https://api.repsy.io/mvn/toma/public' }
-        )
-        filter { includeGroup('dev.toma.configuration') }
-    }
-    maven { // KubeJS (optional scripting bindings, compile-only)
         url = 'https://maven.latvian.dev/releases'
         content {
             includeGroup 'dev.latvian.mods'
             includeGroup 'dev.latvian.apps'
         }
     }
-    maven { // Geckolib
-        url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+    maven { url = 'https://maven.terraformersmc.com/' }
+    maven {
+        url = 'https://cursemaven.com/'
+        content { includeGroup 'curse.maven' }
+    }
+    maven { url = 'https://maven.architectury.dev' }
+    maven { url = 'https://maven.firstdarkdev.xyz/snapshots/' }
+    maven {
+        name = 'Repsy'
+        url = uri('https://repo.repsy.io/mvn/user75142941/phoenixsuite')
     }
     flatDir {
         dir 'libs'
@@ -130,54 +55,31 @@ base {
     archivesName = archives_base_name
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java {
+    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_17
+}
 
-neoForge {
-    version = project.neo_version
+legacyForge {
+    version = project.minecraft_version + '-' + project.forge_version
 
     parchment {
-        mappingsVersion = project.parchment_mappings_version
-        minecraftVersion = project.parchment_minecraft_version
+        mappingsVersion = project.mapping_version
+        minecraftVersion = project.minecraft_version
     }
-
 
     runs {
         configureEach {
-            // the 1.20.1 run folder holds old worlds and configs, so 1.21.1 gets its own
-            gameDirectory = file('run-1211')
-            systemProperty 'neoforge.logging.markers', 'REGISTRIES'
+            gameDirectory = file('run')
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
             logLevel = org.slf4j.event.Level.DEBUG
+            sourceSet = sourceSets.main
         }
-
         client {
             client()
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
-
-        client1 {
-            client()
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-            programArgument '--username'
-            programArgument 'Player1'
-        }
-
-        client2 {
-            client()
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-            programArgument '--username'
-            programArgument 'Player2'
-        }
-
         server {
             server()
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-            programArguments.addAll('--nogui', '--world', 'world-extra')
-        }
-
-        data {
-            data()
-            programArguments.addAll('--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath())
-            programArguments.addAll('--existing-mod', 'gtceu')
+            programArguments.addAll('--nogui')
         }
     }
 
@@ -188,60 +90,41 @@ neoForge {
     }
 }
 
-configurations {
-    runtimeClasspath.extendsFrom localRuntime
-}
-
-
 dependencies {
-    compileOnly 'org.jetbrains:annotations:26.0.2'
+    compileOnly 'org.jetbrains:annotations:26.0.1'
 
     // GregTech and what it is built on
-    implementation("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtm_version}") { transitive = false }
-    implementation("brachy.modularui:modularui-mc${minecraft_version}:${mui_version}") { transitive = false }
-    implementation "com.tterrag.registrate:Registrate:${registrate_version}"
-    implementation "dev.toma.configuration:configuration-${minecraft_version}:${configuration_version}"
+    modImplementation("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtceu_version}:slim")
+    modImplementation("com.lowdragmc.ldlib:ldlib-forge-${minecraft_version}:${ldlib_version}") { transitive = false }
+    modImplementation("brachy.modularui:modularui-mc${minecraft_version}:${mui_version}") { transitive = false }
+    modImplementation("com.tterrag.registrate:Registrate:${registrate_version}")
+    modImplementation "curse.maven:configuration-444699:5840405"
+    modImplementation "net.phoenixvine.wiki:phoenix_wiki:0.5.5"
 
-    // Phoenix suite. PhoenixCore (Conflux research, teams, sounds) is a hard dependency; the wiki library comes with it.
-    implementation "net.phoenix.core:PhoenixCore:${phoenix_core_version}"
-    implementation "net.phoenixvine.wiki:neoforge:${phoenix_wiki_version}"
+    // PhoenixCore (Conflux research, teams, sounds): the 1.20.1 build, a plain jar in libs/
+    compileOnly files('libs/PhoenixCore-1.20.1.jar')
+    runtimeOnly files('libs/PhoenixCore-1.20.1.jar')
 
-    compileOnly "dev.emi:emi-neoforge:${emi_version}+${minecraft_version}"
-    compileOnly("dev.latvian.mods:kubejs-neoforge:${kubejs_version}") { transitive = false }
-    compileOnly("dev.latvian.mods:rhino:${rhino_version}") { transitive = false }
-    runtimeOnly "dev.emi:emi-neoforge:${emi_version}+${minecraft_version}"
-
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-sourceSets {
-    test {
-        compileClasspath += sourceSets.main.compileClasspath
-        runtimeClasspath += sourceSets.main.runtimeClasspath
-    }
-}
-
-tasks.named('test', Test).configure {
-    useJUnitPlatform()
+    modCompileOnly("dev.emi:emi-forge:${emi_version}+${minecraft_version}")
+    modRuntimeOnly("dev.emi:emi-forge:${emi_version}+${minecraft_version}")
+    modCompileOnly("dev.latvian.mods:kubejs-forge:${kubejs_version}") { transitive = false }
+    modCompileOnly("dev.latvian.mods:rhino-forge:${rhino_version}") { transitive = false }
 }
 
 tasks.named('processResources', ProcessResources).configure {
     var replaceProperties = [
-            minecraft_version      : minecraft_version,
-            minecraft_version_range: minecraft_version_range,
-            neo_version            : neo_version,
-            loader_version_range   : loader_version_range,
-            mod_id                 : mod_id,
-            mod_name               : mod_name,
-            mod_license            : mod_license,
-            mod_version            : mod_version,
-            mod_author             : mod_author,
-            mod_url                : mod_url,
-            gtm_version_min        : gtm_version_min,
+            minecraft_version: minecraft_version,
+            forge_major      : forge_version.split("[.]")[0],
+            mod_id           : mod_id,
+            mod_name         : mod_name,
+            mod_license      : mod_license,
+            mod_version      : mod_version,
+            mod_author       : mod_author,
+            mod_url          : mod_url,
+            gtceu_version_min: gtceu_version_min,
     ]
     inputs.properties replaceProperties
-    filesMatching('META-INF/neoforge.mods.toml') {
+    filesMatching('META-INF/mods.toml') {
         expand replaceProperties
     }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -252,6 +135,11 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << '-Xmaxerrs' << '10000' << '-Xlint:-deprecation'
 }
 
+tasks.named('jar', Jar).configure {
+    archiveClassifier.set('slim')
+    finalizedBy 'reobfJar'
+}
+
 publishing {
     publications {
         register('mavenJava', MavenPublication) {
@@ -259,26 +147,6 @@ publishing {
             from components.java
         }
     }
-    repositories {
-        maven {
-            name = 'Repsy'
-            url = uri('https://repo.repsy.io/mvn/user75142941/phoenixsuite')
-            credentials {
-                username = project.findProperty('repsyUsername') ?: System.getenv('REPSY_USERNAME')
-                password = project.findProperty('repsyPassword') ?: System.getenv('REPSY_PASSWORD')
-            }
-        }
-    }
-}
-
-// Axiom sprite baker
-tasks.register('exportAxiomSprites', JavaExec) {
-    group = 'phoenixcore'
-    description = 'Pre-bake Axiom Research Terminal background sprites to textures/gui/axiom/'
-    dependsOn compileJava
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'net.phoenix.core.integration.conflux.tools.AxiomSpriteExporter'
-    args = ["${projectDir}/src/main/resources/assets/phoenixcore/textures/gui/axiom"]
 }
 
 idea {

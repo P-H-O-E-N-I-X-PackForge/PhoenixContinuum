@@ -1,28 +1,15 @@
 package net.phoenix.continuum.network;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.network.NetworkEvent;
 import net.phoenix.continuum.client.pdim.PdimClientState;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class S2CPdimStatePacket implements CustomPacketPayload {
-
-    public static final Type<S2CPdimStatePacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath("phoenix_continuum", "s2_c_pdim_state_packet"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, S2CPdimStatePacket> STREAM_CODEC = StreamCodec
-            .ofMember(S2CPdimStatePacket::encode, S2CPdimStatePacket::new);
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+public class S2CPdimStatePacket {
 
     private final boolean inside;
     private final float gravity;
@@ -82,10 +69,11 @@ public class S2CPdimStatePacket implements CustomPacketPayload {
         buf.writeBoolean(everyVisit);
     }
 
-    public static void handle(S2CPdimStatePacket msg, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> {
+    public static void handle(S2CPdimStatePacket msg, java.util.function.Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> {
             if (FMLEnvironment.dist.isClient())
                 PdimClientState.accept(msg.inside, msg.gravity, msg.daySpeed, msg.lockedTime, msg.mine, msg.costs, msg.everyVisit);
         });
+        ctx.get().setPacketHandled(true);
     }
 }

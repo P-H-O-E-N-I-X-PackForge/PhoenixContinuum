@@ -2,27 +2,13 @@ package net.phoenix.continuum.network;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
 import net.phoenix.continuum.config.ContinuumConfigs;
 import net.phoenix.continuum.common.ContinuumMissions;
 
-public class C2SRequestPadStockPacket implements CustomPacketPayload {
-
-    public static final Type<C2SRequestPadStockPacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath("phoenix_continuum", "c2_s_request_pad_stock_packet"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, C2SRequestPadStockPacket> STREAM_CODEC = StreamCodec
-            .ofMember(C2SRequestPadStockPacket::encode, C2SRequestPadStockPacket::new);
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+public class C2SRequestPadStockPacket {
 
     private final BlockPos pad;
 
@@ -38,9 +24,9 @@ public class C2SRequestPadStockPacket implements CustomPacketPayload {
         buf.writeBlockPos(pad);
     }
 
-    public static void handle(C2SRequestPadStockPacket msg, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> {
-            ServerPlayer player = ((net.minecraft.server.level.ServerPlayer) ctx.player());
+    public static void handle(C2SRequestPadStockPacket msg, java.util.function.Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> {
+            ServerPlayer player = ctx.get().getSender();
             if (player == null || !player.level().isLoaded(msg.pad)) return;
 
             double range = ContinuumConfigs.INSTANCE.launchRangeBlocks + 8.0;
@@ -50,9 +36,10 @@ public class C2SRequestPadStockPacket implements CustomPacketPayload {
             }
 
             var stock = ContinuumMissions.padStock(player, msg.pad);
-            PacketDistributor.sendToPlayer(player,
+            net.phoenix.continuum.network.ContinuumNetwork.sendToPlayer(player,
                     new S2CPadStockPacket(msg.pad, stock.buses(), stock.rocket(), stock.probes(), stock.kits(),
                             stock.rockets()));
         });
+        ctx.get().setPacketHandled(true);
     }
 }

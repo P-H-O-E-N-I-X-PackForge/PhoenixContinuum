@@ -30,11 +30,11 @@ public final class ContinuumEmi {
     private ContinuumEmi() {}
 
     public static final EmiRecipeCategory BODIES = new EmiRecipeCategory(
-            ResourceLocation.fromNamespaceAndPath(PhoenixContinuum.MOD_ID, "continuum_bodies"),
+            new ResourceLocation(PhoenixContinuum.MOD_ID, "continuum_bodies"),
             EmiStack.of(ContinuumRegistry.ROCKET.get()));
 
     public static final EmiRecipeCategory REFIT = new EmiRecipeCategory(
-            ResourceLocation.fromNamespaceAndPath(PhoenixContinuum.MOD_ID, "continuum_refit"),
+            new ResourceLocation(PhoenixContinuum.MOD_ID, "continuum_refit"),
             EmiStack.of(ContinuumRegistry.REFIT_MK2.get()));
 
     static void register(EmiRegistry registry) {
@@ -150,7 +150,7 @@ public final class ContinuumEmi {
 
         private BodyRecipe(ContinuumBody body, List<Line> head) {
             super(BODIES,
-                    ResourceLocation.fromNamespaceAndPath(PhoenixContinuum.MOD_ID, "/continuum_body/" + body.id().getPath()),
+                    new ResourceLocation(PhoenixContinuum.MOD_ID, "/continuum_body/" + body.id().getPath()),
                     PANEL_WIDTH, 8 + measure(head) + 6 + (((body.yields().size() + COLUMNS - 1) / COLUMNS) * 18) + 6);
             this.body = body;
             this.head = head;
@@ -213,7 +213,7 @@ public final class ContinuumEmi {
         }
 
         private HullRecipe(int tier, List<Line> head, List<Line> tail) {
-            super(REFIT, ResourceLocation.fromNamespaceAndPath(PhoenixContinuum.MOD_ID, "/continuum_refit/hull_mk" + tier),
+            super(REFIT, new ResourceLocation(PhoenixContinuum.MOD_ID, "/continuum_refit/hull_mk" + tier),
                     PANEL_WIDTH,
                     5 + measure(head) + 4 + 18 + 6 + measure(tail) + 6);
             this.tier = tier;
@@ -250,7 +250,7 @@ public final class ContinuumEmi {
 
         private ModuleRecipe(String upgrade, List<Line> head, List<Line> tail) {
             super(REFIT,
-                    ResourceLocation.fromNamespaceAndPath(PhoenixContinuum.MOD_ID, "/continuum_refit/module_" + upgrade),
+                    new ResourceLocation(PhoenixContinuum.MOD_ID, "/continuum_refit/module_" + upgrade),
                     PANEL_WIDTH,
                     5 + measure(head) + 4 + 18 + 6 + measure(tail) + 6);
             this.upgrade = upgrade;

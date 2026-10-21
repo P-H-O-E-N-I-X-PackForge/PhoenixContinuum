@@ -3,7 +3,7 @@ package net.phoenix.continuum;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 
-import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.FinishedRecipe;
 import net.phoenix.continuum.machine.ContinuumMachines;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
@@ -17,7 +17,7 @@ public final class ContinuumRecipes {
 
     private ContinuumRecipes() {}
 
-    public static void init(RecipeOutput provider) {
+    public static void init(java.util.function.Consumer<FinishedRecipe> provider) {
         ASSEMBLER_RECIPES.recipeBuilder("continuum_probe")
                 .inputItems(plate, Steel, 2)
                 .inputItems(rod, Steel, 2)

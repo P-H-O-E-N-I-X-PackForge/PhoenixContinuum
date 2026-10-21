@@ -2,7 +2,7 @@ package net.phoenix.continuum.common.visibility;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.neoforged.bus.api.Event;
+import net.minecraftforge.eventbus.api.Event;
 
 import java.util.UUID;
 
@@ -51,7 +51,7 @@ public class ContinuumVisibilityEvent extends Event {
         return kind;
     }
 
-    public boolean getResult() {
+    public boolean getVisible() {
         return result;
     }
 
