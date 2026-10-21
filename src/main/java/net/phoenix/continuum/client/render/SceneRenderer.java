@@ -178,6 +178,71 @@ public final class SceneRenderer {
         }
     }
 
+    /**
+     * The ring of the world you stand on, seen from its surface: an arc across the sky. The ring is drawn where it really
+     * is: in the planet's equatorial plane (tipped by the ring's own tilt), around a planet whose centre is one planet
+     * radius below you. Because the ring turns with the planet it stays put in your sky; the planet's shadow falls across it
+     * on the side away from the sun.
+     *
+     * @param center        the planet's centre, relative to the camera (straight down by {@code planetRadius})
+     * @param equatorNormal the planet's spin axis in the sky
+     */
+    public static void drawSkyRing(PlanetParams params, Matrix4f view, Matrix4f projection, Vector3f center,
+                                   float planetRadius, Vector3f sunDirWorld, Vector3f equatorNormal) {
+        PlanetParams.Ring ring = params.ring();
+        if (ring == null || ContinuumShaders.RING == null) return;
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("pdim.ring")) {
+            ShaderInstance rs = ContinuumShaders.RING;
+            Vector3f centerView = view.transformPosition(new Vector3f(center));
+            Vector3f sunView = view.transformDirection(new Vector3f(sunDirWorld)).normalize();
+            rs.safeGetUniform("Time").set(time());
+            rs.safeGetUniform("SunDir").set(sunView.x, sunView.y, sunView.z);
+            rs.safeGetUniform("PlanetCenter").set(centerView.x, centerView.y, centerView.z);
+            rs.safeGetUniform("PlanetRadius").set(planetRadius);
+            rs.safeGetUniform("Inner").set(ring.inner() / ring.outer());
+            rs.safeGetUniform("Opacity").set(ring.opacity());
+            rs.safeGetUniform("Seed").set(params.seed());
+            setColor(rs, "Color1", ring.color());
+            setColor(rs, "Color2", ring.color2());
+
+            Matrix4f model = new Matrix4f(view)
+                    .translate(center)
+                    .rotate(new org.joml.Quaternionf().rotationTo(new Vector3f(0.0f, 1.0f, 0.0f), equatorNormal))
+                    .rotateX((float) Math.toRadians(ring.tiltDeg()))
+                    .scale(planetRadius * ring.outer());
+            RenderSystem.enableBlend();
+            RenderSystem.defaultBlendFunc();
+            RenderSystem.enableDepthTest();
+            RenderSystem.depthMask(false);
+            RenderSystem.disableCull();
+            VertexBuffer quad = ringQuad();
+            quad.bind();
+            quad.drawWithShader(model, projection, rs);
+            unbindBuffers();
+            RenderSystem.enableCull();
+            RenderSystem.depthMask(true);
+            RenderSystem.disableBlend();
+        }
+    }
+
+    /**
+     * Hides whatever lies behind the world you are standing on, without drawing the world: a sphere that writes depth and
+     * no colour, so a ring or planet that has gone below the horizon disappears behind it. Uses the plain position shader,
+     * so it costs next to nothing. The caller must clear depth afterwards.
+     */
+    public static void drawHorizonOccluder(Matrix4f view, Matrix4f projection, Vector3f center, float radius) {
+        ShaderInstance flat = net.minecraft.client.renderer.GameRenderer.getPositionShader();
+        if (flat == null) return;
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("pdim.horizon")) {
+            RenderSystem.enableDepthTest();
+            RenderSystem.depthMask(true);
+            RenderSystem.colorMask(false, false, false, false);
+            PlanetRenderer.mesh(PlanetRenderer.Quality.LOW).draw(flat,
+                    new Matrix4f(view).translate(center).scale(radius), projection);
+            RenderSystem.colorMask(true, true, true, true);
+        }
+    }
+
     /** Star look: 0 ordinary, 1 red giant, 2 brown dwarf, 3 rapid rotator (see ContinuumSystem#starStyle). */
     public static final int STYLE_RED_GIANT = 1;
     public static final int STYLE_BROWN_DWARF = 2;

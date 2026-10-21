@@ -170,3 +170,6 @@ from the start. A mod that provides its own research (PhoenixCore) takes over th
 - **Shader tools:** `./gradlew checkShaders` compiles every shader with your graphics driver; `./gradlew benchShaders` draws
   each full-quad shader offscreen, writes a picture of each to `build/shader-bench`, and times it covering a whole
   1280x720 target (the worst case). Add `-PbenchW=1920 -PbenchH=1080` for another size.
+- **Rings overhead:** standing on a planet that has `rings`, the ring is drawn as an arc across the sky, in the planet's equatorial
+  plane tipped by the ring's own `tilt`, with the planet's shadow falling across it away from the sun. It turns with the planet,
+  so it stays put in your sky. The world under your feet hides what has gone below the horizon (a ring, another planet).

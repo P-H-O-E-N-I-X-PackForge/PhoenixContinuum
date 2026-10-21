@@ -53,6 +53,14 @@ final class PdimSkyBodies {
         double[] homePos = positionAu(home, days);
         double sunBearing = Math.atan2(-homePos[1], -homePos[0]);   // the way to the star, in the ecliptic
 
+        // The world under your feet blocks what is below the horizon, and if it has rings they arc across the sky.
+        float unit = 40.0f;
+        Vector3f center = new Vector3f(0.0f, -unit, 0.0f);
+        SceneRenderer.drawHorizonOccluder(view, projection, center, unit * 0.985f);
+        if (!self.isMoon() && self.params().ring() != null) {
+            SceneRenderer.drawSkyRing(self.params(), view, projection, center, unit, sample.sunDir(), normal);
+        }
+
         List<Item> items = new ArrayList<>();
         for (ContinuumBody other : ContinuumData.bodiesOf(self.system())) {
             if (other.id().equals(self.id()) || other.id().equals(home.id()) || other.isCentral()) continue;
@@ -99,6 +107,9 @@ final class PdimSkyBodies {
                     time * params.spinDegPerSec() * 0.5f, time * params.cloudSpinDegPerSec() * 0.5f, q,
                     item.skyRadius() >= 4.0f);
         }
+
+        // the horizon sphere only wrote depth to hide things behind it; the world is drawn after the sky, so remove it
+        com.mojang.blaze3d.systems.RenderSystem.clear(256, net.minecraft.client.Minecraft.ON_OSX);
     }
 
     /** A body's place in the system plane, in AU, at the given game day. */
