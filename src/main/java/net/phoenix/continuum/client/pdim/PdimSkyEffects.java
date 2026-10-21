@@ -141,10 +141,20 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
                 body.params().high() : 0x5a3aa8;
         int secondary = system != null ? system.starColor() : 0x2a5ad0;
 
+        float[] primaryRgb = {((primary >> 16) & 0xFF) / 255.0f * 0.9f, ((primary >> 8) & 0xFF) / 255.0f * 0.9f,
+                (primary & 0xFF) / 255.0f * 0.9f};
+        float[] secondaryRgb = {((secondary >> 16) & 0xFF) / 255.0f * 0.7f, ((secondary >> 8) & 0xFF) / 255.0f * 0.7f,
+                (secondary & 0xFF) / 255.0f * 0.7f};
+        // the nebula is drawn once into a picture and looked up (see NebulaBake); this may run a strip of that work
+        var baked = net.phoenix.continuum.client.render.NebulaBake.get(primaryRgb, secondaryRgb,
+                ContinuumVisuals.backdropOctaves());
+
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
         RenderSystem.disableBlend();
         RenderSystem.setShader(() -> sky);
+        sky.safeGetUniform("UseBake").set(baked != null ? 1.0f : 0.0f);
+        if (baked != null) sky.setSampler("NebulaTex", baked);
 
         sky.safeGetUniform("InvViewMat").set(new Matrix4f(view).invert());
         sky.safeGetUniform("InvProjMat").set(new Matrix4f(projection).invert());

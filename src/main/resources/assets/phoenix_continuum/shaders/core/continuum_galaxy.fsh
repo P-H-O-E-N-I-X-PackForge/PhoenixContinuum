@@ -25,6 +25,16 @@ uniform float Octaves;
 uniform vec3 PrimaryColor;
 uniform vec3 SecondaryColor;
 
+// the nebula comes from the baked picture (see continuum_nebula_bake) when it is there, else it is worked out here
+uniform sampler2D NebulaTex;
+uniform float UseBake;
+
+vec3 bakedNebula(vec3 dir) {
+    float u = atan(dir.z, dir.x) / 6.2831853 + 0.5 + Time * 0.00002;
+    float v = asin(clamp(dir.y, -1.0, 1.0)) / 3.14159265 + 0.5;
+    return textureLod(NebulaTex, vec2(u, v), 0.0).rgb * 0.5;
+}
+
 in vec2 vLocal;
 out vec4 fragColor;
 
@@ -99,17 +109,22 @@ vec3 backdrop(vec2 uv) {
     float c = cos(Yaw), s = sin(Yaw);
     dir = vec3(c * dir.x + s * dir.z, dir.y, -s * dir.x + c * dir.z);
 
-    float drift = Time * 0.0004;
-    vec3 q = dir * 1.6 + drift;
-    float warp = bfbm(q + 1.4 * vec3(bfbm(q + 3.1, 3.0), bfbm(q + 7.7, 3.0), bfbm(q + 1.3, 3.0)));
-
-    float haze = 0.30 + 0.70 * smoothstep(0.15, 0.85, warp);
-    float filament = pow(smoothstep(0.42, 0.78, warp), 2.0);
-    vec3 nebula = mix(SecondaryColor, PrimaryColor, smoothstep(0.25, 0.8, warp));
+    vec3 nebulaLight;
+    if (UseBake > 0.5) {
+        nebulaLight = bakedNebula(dir);
+    } else {
+        float drift = Time * 0.0004;
+        vec3 q = dir * 1.6 + drift;
+        float warp = bfbm(q + 1.4 * vec3(bfbm(q + 3.1, 3.0), bfbm(q + 7.7, 3.0), bfbm(q + 1.3, 3.0)));
+        float haze = 0.30 + 0.70 * smoothstep(0.15, 0.85, warp);
+        float filament = pow(smoothstep(0.42, 0.78, warp), 2.0);
+        vec3 nebula = mix(SecondaryColor, PrimaryColor, smoothstep(0.25, 0.8, warp));
+        nebulaLight = nebula * (0.11 * haze + 0.42 * filament);
+    }
 
     float vignette = 1.0 - 0.45 * pow(abs(uv.y - 0.5) * 2.0, 2.0) - 0.20 * pow(abs(uv.x - 0.5) * 2.0, 3.0);
     vec3 base = vec3(0.012, 0.014, 0.034);
-    vec3 col = base + nebula * (0.11 * haze + 0.42 * filament);
+    vec3 col = base + nebulaLight;
     col *= vignette;
 
     vec3 sp = dir * 90.0;

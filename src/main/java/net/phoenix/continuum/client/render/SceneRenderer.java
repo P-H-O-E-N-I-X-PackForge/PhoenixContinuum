@@ -1318,7 +1318,18 @@ public final class SceneRenderer {
         }
     }
 
+    /** Draws a shader over the whole of the current target with the shared quad and identity matrices. */
+    static void drawFullQuad(ShaderInstance shader) {
+        VertexBuffer quad = holeQuad();
+        quad.bind();
+        quad.drawWithShader(new Matrix4f(), new Matrix4f(), shader);
+        unbindBuffers();
+    }
+
     private static void drawBuiltinBackdrop$timed(ShaderInstance g, float width, float height, float yawDeg){
+        // the nebula is drawn once into a picture (this may run a strip of that work), so do it before the state below
+        var baked = NebulaBake.get(new float[] {0.42f, 0.2f, 0.85f}, new float[] {0.1f, 0.35f, 0.9f},
+                net.phoenix.continuum.client.ContinuumVisuals.backdropOctaves());
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
         RenderSystem.disableCull();
@@ -1327,6 +1338,8 @@ public final class SceneRenderer {
                 com.mojang.blaze3d.platform.GlStateManager.DestFactor.ONE);
 
         g.safeGetUniform("Mode").set(1.0f);
+        g.safeGetUniform("UseBake").set(baked != null ? 1.0f : 0.0f);
+        if (baked != null) g.setSampler("NebulaTex", baked);
         g.safeGetUniform("Aspect").set(width / height);
         g.safeGetUniform("Yaw").set((float) Math.toRadians(yawDeg * 0.15f));
         g.safeGetUniform("Time").set(time());
@@ -1341,6 +1354,7 @@ public final class SceneRenderer {
         unbindBuffers();
 
         g.safeGetUniform("Mode").set(0.0f);   // the galaxies that follow share this shader
+        g.safeGetUniform("UseBake").set(0.0f);
 
         RenderSystem.enableCull();
         RenderSystem.disableBlend();

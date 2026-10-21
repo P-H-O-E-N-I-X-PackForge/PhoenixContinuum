@@ -113,7 +113,7 @@ public class ShaderBench {
 
             GL33C.glBlendFunc(GL33C.GL_ONE, GL33C.GL_ONE);
             // time it covering the whole target
-            for (int i = 0; i < 5; i++) GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, 6);
+            for (int i = 0; i < 40; i++) GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, 6);
             GL33C.glFinish();
             int frames = 30;
             int q = GL33C.glGenQueries();
@@ -124,8 +124,79 @@ public class ShaderBench {
             double ms = ns / 1.0e6 / frames;
             System.out.printf(Locale.ROOT, "%-16s %10.3f %10.3f%n", name, ms, ms / (w * (double) h / 1.0e6));
         }
+        if (filter.isEmpty() || "backdrop".contains(filter)) backdrops(dir, out, w, h, fbo, vao);
         if ("planet".contains(filter) || filter.isEmpty()) planets(dir, out, w, h);
         GLFW.glfwTerminate();
+    }
+
+    /** The nebula backdrops with and without the baked picture: the same frame both ways, and what each costs. */
+    static void backdrops(Path dir, Path out, int w, int h, int mainFbo, int quadVao) throws Exception {
+        int bake = build(Files.readString(dir.resolve("continuum_nebula_bake.vsh")), Files.readString(dir.resolve("continuum_nebula_bake.fsh")));
+        if (bake == 0) return;
+        int bw = 2048, bh = 1024;
+        int bakeTex = GL33C.glGenTextures();
+        GL33C.glBindTexture(GL33C.GL_TEXTURE_2D, bakeTex);
+        GL33C.glTexImage2D(GL33C.GL_TEXTURE_2D, 0, GL33C.GL_RGBA8, bw, bh, 0, GL33C.GL_RGBA, GL33C.GL_UNSIGNED_BYTE, 0L);
+        GL33C.glTexParameteri(GL33C.GL_TEXTURE_2D, GL33C.GL_TEXTURE_MIN_FILTER, GL33C.GL_LINEAR);
+        GL33C.glTexParameteri(GL33C.GL_TEXTURE_2D, GL33C.GL_TEXTURE_MAG_FILTER, GL33C.GL_LINEAR);
+        GL33C.glTexParameteri(GL33C.GL_TEXTURE_2D, GL33C.GL_TEXTURE_WRAP_S, GL33C.GL_REPEAT);
+        GL33C.glTexParameteri(GL33C.GL_TEXTURE_2D, GL33C.GL_TEXTURE_WRAP_T, GL33C.GL_CLAMP_TO_EDGE);
+        int bakeFbo = GL33C.glGenFramebuffers();
+        GL33C.glBindFramebuffer(GL33C.GL_FRAMEBUFFER, bakeFbo);
+        GL33C.glFramebufferTexture2D(GL33C.GL_FRAMEBUFFER, GL33C.GL_COLOR_ATTACHMENT0, GL33C.GL_TEXTURE_2D, bakeTex, 0);
+        GL33C.glViewport(0, 0, bw, bh);
+        GL33C.glDisable(GL33C.GL_BLEND);
+        JsonObject bj = JsonParser.parseString(Files.readString(dir.resolve("continuum_nebula_bake.json"))).getAsJsonObject();
+        GL33C.glUseProgram(bake);
+        applyDefaults(bake, bj);
+        f(bake, "Octaves", 5.0f);
+        f(bake, "PrimaryColor", 0.42f, 0.2f, 0.85f);
+        f(bake, "SecondaryColor", 0.1f, 0.35f, 0.9f);
+        GL33C.glFinish();
+        int q = GL33C.glGenQueries();
+        GL33C.glBeginQuery(GL33C.GL_TIME_ELAPSED, q);
+        GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, 6);
+        GL33C.glEndQuery(GL33C.GL_TIME_ELAPSED);
+        System.out.printf(Locale.ROOT, "%n%-24s %10.3f   (one-off, %dx%d)%n", "nebula bake", GL33C.glGetQueryObjectui64(q, GL33C.GL_QUERY_RESULT) / 1.0e6, bw, bh);
+        GL33C.glBindFramebuffer(GL33C.GL_FRAMEBUFFER, mainFbo);
+        GL33C.glViewport(0, 0, w, h);
+
+        String[][] variants = {{"sky", "0"}, {"sky", "1"}, {"galaxy", "0"}, {"galaxy", "1"}};
+        for (String[] v : variants) {
+            String name = v[0];
+            boolean baked = v[1].equals("1");
+            String base = "continuum_" + name;
+            JsonObject json = JsonParser.parseString(Files.readString(dir.resolve(base + ".json"))).getAsJsonObject();
+            int program = build(Files.readString(dir.resolve(base + ".vsh")), Files.readString(dir.resolve(base + ".fsh")));
+            if (program == 0) continue;
+            GL33C.glUseProgram(program);
+            applyDefaults(program, json);
+            f(program, "Time", 3.0f);
+            f(program, "Octaves", 5.0f);
+            f(program, "PrimaryColor", 0.42f, 0.2f, 0.85f);
+            f(program, "SecondaryColor", 0.1f, 0.35f, 0.9f);
+            f(program, "Aspect", w / (float) h);
+            f(program, "Mode", name.equals("galaxy") ? 1.0f : 0.0f);
+            f(program, "UseBake", baked ? 1.0f : 0.0f);
+            GL33C.glActiveTexture(GL33C.GL_TEXTURE0);
+            GL33C.glBindTexture(GL33C.GL_TEXTURE_2D, bakeTex);
+            GL33C.glBindVertexArray(quadVao);
+            GL33C.glDisable(GL33C.GL_BLEND);
+            GL33C.glClear(GL33C.GL_COLOR_BUFFER_BIT);
+            GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, 6);
+            String label = (name.equals("galaxy") ? "map_backdrop" : "sky") + (baked ? "_baked" : "_live");
+            save(out.resolve(label + ".png").toFile(), w, h);
+            for (int i = 0; i < 40; i++) GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, 6);
+            GL33C.glFinish();
+            int tq = GL33C.glGenQueries();
+            GL33C.glBeginQuery(GL33C.GL_TIME_ELAPSED, tq);
+            for (int i = 0; i < 30; i++) GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, 6);
+            GL33C.glEndQuery(GL33C.GL_TIME_ELAPSED);
+            double ms = GL33C.glGetQueryObjectui64(tq, GL33C.GL_QUERY_RESULT) / 1.0e6 / 30;
+            System.out.printf(Locale.ROOT, "%-24s %10.3f %10.3f%n", label, ms, ms / (w * (double) h / 1.0e6));
+        }
+        GL33C.glEnable(GL33C.GL_BLEND);
+        GL33C.glBlendFunc(GL33C.GL_ONE, GL33C.GL_ONE);
     }
 
     /** The planet shader on a sphere filling the target's height (the worst case), a few looks and octave counts. */
@@ -203,7 +274,7 @@ public class ShaderBench {
             GL33C.glClear(GL33C.GL_COLOR_BUFFER_BIT | GL33C.GL_DEPTH_BUFFER_BIT);
             GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, count);
             save(out.resolve("planet_" + look[0].toString().replace(' ', '_') + ".png").toFile(), w, h);
-            for (int i = 0; i < 5; i++) GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, count);
+            for (int i = 0; i < 40; i++) GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, count);
             GL33C.glFinish();
             int frames = 20;
             int q = GL33C.glGenQueries();
@@ -222,7 +293,7 @@ public class ShaderBench {
         f(atmo, "AtmoDensity", 1f);
         GL33C.glEnable(GL33C.GL_BLEND);
         GL33C.glBlendFunc(GL33C.GL_SRC_ALPHA, GL33C.GL_ONE_MINUS_SRC_ALPHA);
-        for (int i = 0; i < 5; i++) GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, count);
+        for (int i = 0; i < 40; i++) GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, count);
         GL33C.glFinish();
         int q = GL33C.glGenQueries();
         GL33C.glBeginQuery(GL33C.GL_TIME_ELAPSED, q);
@@ -280,7 +351,7 @@ public class ShaderBench {
             GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, 6);
             GL33C.glDepthMask(true);
             save(out.resolve("ring_" + k + ".png").toFile(), w, h);
-            for (int i = 0; i < 5; i++) GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, 6);
+            for (int i = 0; i < 40; i++) GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, 6);
             GL33C.glFinish();
             int rq2 = GL33C.glGenQueries();
             GL33C.glBeginQuery(GL33C.GL_TIME_ELAPSED, rq2);

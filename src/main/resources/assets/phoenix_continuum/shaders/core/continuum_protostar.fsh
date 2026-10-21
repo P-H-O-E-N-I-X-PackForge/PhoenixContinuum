@@ -111,10 +111,13 @@ void main() {
     }
 
     // clumps and vortices drift round at Keplerian speed; the spiral is a faint standing pattern
-    float a = ang - Time * 0.3 * pow(max(re, 1.0), -1.5);
-    float clump = pfbm(a, re * 0.55, 8.0, layers);
-    float spiral = 0.78 + 0.22 * cos(2.0 * (ang - 1.1 * log(max(re, 1.0))));
-    float dust = (0.5 + 0.9 * clump) * spiral;
+    float dust = 0.0;
+    if (body > 0.0005) {   // nothing of the disk is here otherwise, so skip its noise
+        float a = ang - Time * 0.3 * pow(max(re, 1.0), -1.5);
+        float clump = pfbm(a, re * 0.55, 8.0, layers);
+        float spiral = 0.78 + 0.22 * cos(2.0 * (ang - 1.1 * log(max(re, 1.0))));
+        dust = (0.5 + 0.9 * clump) * spiral;
+    }
 
     vec3 diskCol = mix(hot, vec3(0.85, 0.45, 0.22), smoothstep(inner, outer * 0.6, re));
     float diskI = body * falloff * gapMask * dust * (1.0 + 0.5 * min(rim, 1.0));

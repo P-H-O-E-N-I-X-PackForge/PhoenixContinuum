@@ -18,6 +18,16 @@ uniform vec3 HorizonColor;  // daytime sky at the horizon
 uniform vec3 DuskColor;     // twilight glow
 uniform vec3 SunColor;      // the star's colour
 
+// the nebula comes from the baked picture (see continuum_nebula_bake) when it is there, else it is worked out here
+uniform sampler2D NebulaTex;
+uniform float UseBake;
+
+vec3 bakedNebula(vec3 dir) {
+    float u = atan(dir.z, dir.x) / 6.2831853 + 0.5 + Time * 0.00002;
+    float v = asin(clamp(dir.y, -1.0, 1.0)) / 3.14159265 + 0.5;
+    return textureLod(NebulaTex, vec2(u, v), 0.0).rgb * 0.5;
+}
+
 in vec2 ndc;
 out vec4 fragColor;
 
@@ -57,13 +67,19 @@ void main() {
     viewPos /= viewPos.w;
     vec3 dir = normalize((InvViewMat * vec4(viewPos.xyz, 0.0)).xyz);
 
-    vec3 q = dir * 1.6 + Time * 0.0004;
-    float warp = fbm(q + 1.4 * vec3(fbm(q + 3.1, 3.0), fbm(q + 7.7, 3.0), fbm(q + 1.3, 3.0)));
-    float haze = 0.30 + 0.70 * smoothstep(0.15, 0.85, warp);
-    float filament = pow(smoothstep(0.42, 0.78, warp), 2.0);
-    vec3 nebula = mix(SecondaryColor, PrimaryColor, smoothstep(0.25, 0.8, warp));
+    vec3 nebulaLight;
+    if (UseBake > 0.5) {
+        nebulaLight = bakedNebula(dir);
+    } else {
+        vec3 q = dir * 1.6 + Time * 0.0004;
+        float warp = fbm(q + 1.4 * vec3(fbm(q + 3.1, 3.0), fbm(q + 7.7, 3.0), fbm(q + 1.3, 3.0)));
+        float haze = 0.30 + 0.70 * smoothstep(0.15, 0.85, warp);
+        float filament = pow(smoothstep(0.42, 0.78, warp), 2.0);
+        vec3 nebula = mix(SecondaryColor, PrimaryColor, smoothstep(0.25, 0.8, warp));
+        nebulaLight = nebula * (0.11 * haze + 0.42 * filament);
+    }
 
-    vec3 col = vec3(0.012, 0.014, 0.034) + nebula * (0.11 * haze + 0.42 * filament);
+    vec3 col = vec3(0.012, 0.014, 0.034) + nebulaLight;
 
     vec3 sp = dir * 90.0;
     vec3 cell = floor(sp);
