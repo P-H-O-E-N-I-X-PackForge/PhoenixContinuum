@@ -31,7 +31,12 @@ public final class SurfaceMap {
         if (existing != null) return existing;
 
         NativeImage image = new NativeImage(WIDTH, HEIGHT, false);
-        paint(image, body.params());
+        var system = net.phoenix.continuum.data.ContinuumData.system(body.system());
+        switch (body.type()) {
+            case STAR -> paintStar(image, body, system);
+            case BLACK_HOLE -> paintHole(image, system);
+            default -> paint(image, body.params());
+        }
         DynamicTexture texture = new DynamicTexture(image);
         texture.setFilter(true, false);
         ResourceLocation id = PhoenixContinuum.id("surface/" + body.id().getNamespace() + "/" +
@@ -70,6 +75,69 @@ public final class SurfaceMap {
                 image.setPixelRGBA(x, y, 0xFF000000 | (b << 16) | (g << 8) | r);
             }
         }
+    }
+
+    /** A star seen from above: boiling granulation, darker spots, a bright limb at the edge of the disc. */
+    private static void paintStar(NativeImage image, ContinuumBody body,
+                                  net.phoenix.continuum.data.@org.jetbrains.annotations.Nullable ContinuumSystem system) {
+        int base = system != null ? system.starColor() : 0xfff1cf;
+        int dark = mix(base, 0x200800, 0.72f);
+        float seed = body.params().seed() * 3.7f;
+        for (int y = 0; y < HEIGHT; y++) {
+            double lat = (0.5 - (y + 0.5) / HEIGHT) * Math.PI;
+            for (int x = 0; x < WIDTH; x++) {
+                double lon = (x + 0.5) / WIDTH * Math.PI * 2.0;
+                float px = (float) (Math.cos(lat) * Math.cos(lon)) * 3.0f + seed;
+                float py = (float) Math.sin(lat) * 3.0f;
+                float pz = (float) (Math.cos(lat) * Math.sin(lon)) * 3.0f - seed;
+                float cells = fbm(px, py, pz, 5);
+                float spots = smooth(0.62f, 0.72f, fbm(px * 0.5f + 40.0f, py * 0.5f, pz * 0.5f, 3));
+                float t = clamp(0.35f + cells * 0.85f, 0.0f, 1.0f);
+                int color = mix(dark, mix(base, 0xFFFFFF, 0.35f), t);
+                color = mix(color, dark, spots * 0.7f);
+                put(image, x, y, color);
+            }
+        }
+    }
+
+    /** A black hole face-on: horizon, photon ring, and a spiralling accretion disk in the system's hole colours. */
+    private static void paintHole(NativeImage image,
+                                  net.phoenix.continuum.data.@org.jetbrains.annotations.Nullable ContinuumSystem system) {
+        var style = system != null ? system.hole() : net.phoenix.continuum.data.ContinuumSystem.HoleStyle.DEFAULT;
+        int hot = style.hotColor() >= 0 ? style.hotColor() : 0xFFE2A0;
+        int cool = style.coolColor() >= 0 ? style.coolColor() : 0xF25214;
+        float size = Math.max(0.5f, style.diskSize());
+        for (int y = 0; y < HEIGHT; y++) {
+            for (int x = 0; x < WIDTH; x++) {
+                float u = (x + 0.5f - WIDTH / 2.0f) / (HEIGHT / 2.0f);
+                float v = (y + 0.5f - HEIGHT / 2.0f) / (HEIGHT / 2.0f);
+                float r = (float) Math.sqrt(u * u + v * v);
+                float angle = (float) Math.atan2(v, u);
+
+                int color = hash((int) (x * 0.7f), y, 5) > 0.9985f ? 0xBBC8FF : 0x02030A;
+                float inner = 0.30f;
+                float outer = 0.95f * size;
+                if (r < inner * 0.86f) {
+                    color = 0x000000;
+                } else if (r < inner) {
+                    color = mix(0x000000, hot, (r - inner * 0.86f) / (inner * 0.14f));
+                } else if (r < outer) {
+                    float t = (r - inner) / (outer - inner);
+                    float swirl = fbm((float) Math.cos(angle + t * 5.0f) * 2.0f, (float) Math.sin(angle + t * 5.0f) * 2.0f,
+                            t * 6.0f, 4);
+                    float glow = clamp((1.0f - t) * (0.55f + swirl * 0.9f), 0.0f, 1.0f);
+                    color = mix(0x02030A, mix(cool, hot, 1.0f - t), glow);
+                }
+                put(image, x, y, color);
+            }
+        }
+    }
+
+    private static void put(NativeImage image, int x, int y, int rgb) {
+        int r = (rgb >> 16) & 0xFF;
+        int g = (rgb >> 8) & 0xFF;
+        int b = rgb & 0xFF;
+        image.setPixelRGBA(x, y, 0xFF000000 | (b << 16) | (g << 8) | r);
     }
 
     private static int rocky(PlanetParams p, float x, float y, float z, float lat, float freq) {
