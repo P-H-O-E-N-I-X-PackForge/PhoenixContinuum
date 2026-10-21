@@ -32,6 +32,44 @@ final class ContinuumAdminCommands {
 
     private ContinuumAdminCommands() {}
 
+    private static java.util.concurrent.CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> suggestTargets(
+            com.mojang.brigadier.suggestion.SuggestionsBuilder builder) {
+        java.util.List<ResourceLocation> ids = new java.util.ArrayList<>();
+        ContinuumData.systems().forEach(system -> ids.add(system.id()));
+        ContinuumData.allBodies().forEach(body -> ids.add(body.id()));
+        return net.minecraft.commands.SharedSuggestionProvider.suggestResource(ids, builder);
+    }
+
+    /** Shows, hides or (null) clears the override for the sender's team on a body or a whole system. */
+    private static int setVisibility(CommandSourceStack source, ResourceLocation id, Boolean visible)
+                                                                                                      throws CommandSyntaxException {
+        if (ContinuumData.body(id) == null && ContinuumData.system(id) == null) {
+            source.sendFailure(Component.literal("No body or system " + id + "."));
+            return 0;
+        }
+        ServerPlayer player = source.getPlayerOrException();
+        UUID team = TeamUtils.getTeamIdOrPlayerFallback(player.getUUID());
+        ContinuumTeamData.get(source.getServer()).setVisibilityOverride(team, id, visible);
+        ContinuumServerEvents.onDataReloaded();
+        source.sendSuccess(() -> Component.literal(visible == null ? "Cleared the override on " + id :
+                (visible ? "Showing " : "Hiding ") + id + " for your team."), true);
+        return 1;
+    }
+
+    private static int explain(CommandSourceStack source, ResourceLocation id) throws CommandSyntaxException {
+        var body = ContinuumData.body(id);
+        if (body == null) {
+            source.sendFailure(Component.literal("No body " + id + "."));
+            return 0;
+        }
+        UUID team = TeamUtils.getTeamIdOrPlayerFallback(source.getPlayerOrException().getUUID());
+        for (String line : net.phoenix.continuum.common.visibility.ContinuumVisibility.explain(source.getServer(),
+                team, body)) {
+            source.sendSuccess(() -> Component.literal(line), false);
+        }
+        return 1;
+    }
+
     private static final int SHOWN_ISSUES = 12;
 
     private static int validate(CommandSourceStack source, boolean all) {
@@ -150,6 +188,23 @@ final class ContinuumAdminCommands {
                                 .then(argument("body", ResourceLocationArgument.id())
                                         .executes(ctx -> cometClear(ctx.getSource(),
                                                 ResourceLocationArgument.getId(ctx, "body"))))))
+                .then(literal("show").then(argument("target", ResourceLocationArgument.id())
+                        .suggests((ctx, builder) -> suggestTargets(builder))
+                        .executes(ctx -> setVisibility(ctx.getSource(),
+                                ResourceLocationArgument.getId(ctx, "target"), Boolean.TRUE))))
+                .then(literal("hide").then(argument("target", ResourceLocationArgument.id())
+                        .suggests((ctx, builder) -> suggestTargets(builder))
+                        .executes(ctx -> setVisibility(ctx.getSource(),
+                                ResourceLocationArgument.getId(ctx, "target"), Boolean.FALSE))))
+                .then(literal("unset").then(argument("target", ResourceLocationArgument.id())
+                        .suggests((ctx, builder) -> suggestTargets(builder))
+                        .executes(ctx -> setVisibility(ctx.getSource(),
+                                ResourceLocationArgument.getId(ctx, "target"), null))))
+                .then(literal("explain").then(argument("body", ResourceLocationArgument.id())
+                        .suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider
+                                .suggestResource(ContinuumData.allBodies().stream()
+                                        .map(net.phoenix.continuum.data.ContinuumBody::id), builder))
+                        .executes(ctx -> explain(ctx.getSource(), ResourceLocationArgument.getId(ctx, "body")))))
                 .then(literal("validate").executes(ctx -> validate(ctx.getSource(), false))
                         .then(literal("all").executes(ctx -> validate(ctx.getSource(), true))))
                 .then(literal("reload").executes(ctx -> reloadData(ctx.getSource())))

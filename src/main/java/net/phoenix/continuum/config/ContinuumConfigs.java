@@ -31,10 +31,24 @@ public class ContinuumConfigs {
             CUBE
         }
 
+        public enum ProgressionMode {
+            SHOW_ALL,
+            RESEARCH_GATED
+        }
+
         public enum PdimChargeMode {
             EVERY_VISIT,
             FIRST_VISIT
         }
+
+        @Configurable
+        @Configurable.Comment({
+                "SHOW_ALL: every system and body is on the map from the start (surveying them is still a mission), and",
+                "the research gates in definitions (detected_research / surveyed_research) are not required. Rules a pack",
+                "wrote itself (\"visibility\") still apply. RESEARCH_GATED: those research gates decide what is found.",
+                "Default: SHOW_ALL"
+        })
+        public ProgressionMode progressionMode = ProgressionMode.SHOW_ALL;
 
         @Configurable
         @Configurable.Comment({

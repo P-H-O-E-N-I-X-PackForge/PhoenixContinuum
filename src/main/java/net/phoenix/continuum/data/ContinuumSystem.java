@@ -15,7 +15,8 @@ public record ContinuumSystem(
                               DiscoveryStage initialStage,
                               @Nullable ResourceLocation detectedResearch,
                               @Nullable ResourceLocation surveyedResearch,
-                              HoleStyle hole) {
+                              HoleStyle hole,
+                              @Nullable com.google.gson.JsonObject visibility) {
 
     public record HoleStyle(float diskSize, float diskIntensity, float feeding, float tilt, int hotColor, int coolColor,
                             float separation, float massRatio, float periodSeconds, float skyInclination,

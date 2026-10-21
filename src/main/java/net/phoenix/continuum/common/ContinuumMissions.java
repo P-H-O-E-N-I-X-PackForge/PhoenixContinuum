@@ -243,6 +243,9 @@ public final class ContinuumMissions {
 
         DiscoveryStage stage = data.effectiveStage(server, team, destinationId);
         if (stage == DiscoveryStage.UNKNOWN) return "That signal has not been resolved yet.";
+        if (!net.phoenix.continuum.common.visibility.ContinuumVisibility.accessible(server, team, body)) {
+            return body.name() + " cannot be reached yet.";
+        }
 
         if (data.missions(team).size() >= cfg.maxMissionsPerTeam + data.stationCount(team)) {
             return "Your team has too many missions out. Collect some first (each orbital station adds a slot).";

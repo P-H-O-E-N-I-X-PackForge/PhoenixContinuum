@@ -30,6 +30,25 @@ public class ContinuumTeamData extends SavedData {
 
     private final java.util.Set<UUID> engaged = new java.util.HashSet<>();
 
+    /** Per-team show/hide set with /continuumadmin show|hide, by body or system id. */
+    private final Map<UUID, Map<ResourceLocation, Boolean>> visibilityOverrides = new HashMap<>();
+
+    public @org.jetbrains.annotations.Nullable Boolean visibilityOverride(UUID team, ResourceLocation id) {
+        return visibilityOverrides.getOrDefault(team, Map.of()).get(id);
+    }
+
+    /** Null clears the override. */
+    public void setVisibilityOverride(UUID team, ResourceLocation id,
+                                      @org.jetbrains.annotations.Nullable Boolean visible) {
+        if (visible == null) {
+            Map<ResourceLocation, Boolean> mine = visibilityOverrides.get(team);
+            if (mine != null) mine.remove(id);
+        } else {
+            visibilityOverrides.computeIfAbsent(team, t -> new HashMap<>()).put(id, visible);
+        }
+        setDirty();
+    }
+
     public static ContinuumTeamData get(MinecraftServer server) {
         return server.overworld().getDataStorage()
                 .computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(ContinuumTeamData::new,
@@ -65,14 +84,21 @@ public class ContinuumTeamData extends SavedData {
                 !ContinuumTransients.get(server).active(body.id(), System.currentTimeMillis())) {
             return true;
         }
-        if (body.discipline() == null) return false;
-        String chosen = WorldResearchData.get(server.overworld()).getDiscipline(team);
-        return !body.discipline().equals(chosen == null ? "none" : chosen);
+        if (body.discipline() != null) {
+            String chosen = WorldResearchData.get(server.overworld()).getDiscipline(team);
+            if (!body.discipline().equals(chosen == null ? "none" : chosen)) return true;
+        }
+        return !net.phoenix.continuum.common.visibility.ContinuumVisibility.visible(server, team, body);
     }
 
     public DiscoveryStage effectiveStage(MinecraftServer server, UUID team, ResourceLocation id) {
         DiscoveryStage stage = max(stages.getOrDefault(team, Map.of()).getOrDefault(id, DiscoveryStage.UNKNOWN),
                 initial(id));
+        // with the default progression mode everything is on the map from the start; surveying is still a mission
+        if (net.phoenix.continuum.config.ContinuumConfigs.INSTANCE.progressionMode ==
+                net.phoenix.continuum.config.ContinuumConfigs.ProgressionMode.SHOW_ALL) {
+            stage = max(stage, DiscoveryStage.DETECTED);
+        }
 
         ContinuumBody body = ContinuumData.body(id);
         if (body != null && isHidden(server, team, body)) return DiscoveryStage.UNKNOWN;
@@ -348,6 +374,22 @@ public class ContinuumTeamData extends SavedData {
             historyTeams.add(teamTag);
         }
         tag.put("HistoryTeams", historyTeams);
+
+        ListTag overrideTeams = new ListTag();
+        for (var team : visibilityOverrides.entrySet()) {
+            CompoundTag teamTag = new CompoundTag();
+            teamTag.putUUID("Team", team.getKey());
+            ListTag list = new ListTag();
+            for (var entry : team.getValue().entrySet()) {
+                CompoundTag e = new CompoundTag();
+                e.putString("Id", entry.getKey().toString());
+                e.putBoolean("Visible", entry.getValue());
+                list.add(e);
+            }
+            teamTag.put("Entries", list);
+            overrideTeams.add(teamTag);
+        }
+        tag.put("VisibilityOverrides", overrideTeams);
         return tag;
     }
 
@@ -406,6 +448,15 @@ public class ContinuumTeamData extends SavedData {
             java.util.List<MissionLog.Entry> list = new java.util.ArrayList<>();
             for (Tag e : teamTag.getList("Entries", Tag.TAG_COMPOUND)) list.add(MissionLog.Entry.load((CompoundTag) e));
             data.history.put(teamTag.getUUID("Team"), list);
+        }
+        for (Tag t : tag.getList("VisibilityOverrides", Tag.TAG_COMPOUND)) {
+            CompoundTag teamTag = (CompoundTag) t;
+            Map<ResourceLocation, Boolean> map = new HashMap<>();
+            for (Tag e : teamTag.getList("Entries", Tag.TAG_COMPOUND)) {
+                CompoundTag entry = (CompoundTag) e;
+                map.put(ResourceLocation.parse(entry.getString("Id")), entry.getBoolean("Visible"));
+            }
+            data.visibilityOverrides.put(teamTag.getUUID("Team"), map);
         }
         return data;
     }

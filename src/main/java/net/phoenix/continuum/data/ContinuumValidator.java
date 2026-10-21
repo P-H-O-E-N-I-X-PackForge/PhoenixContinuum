@@ -19,10 +19,10 @@ final class ContinuumValidator {
     private static final Set<String> BODY_KEYS = Set.of("system", "type", "name", "description", "orbit", "radius",
             "gas_giant", "axial_tilt", "spin_deg_per_sec", "cloud_spin_deg_per_sec", "surface", "atmosphere", "gate",
             "trip_minutes", "initial_stage", "yields", "lore", "parent", "rings", "style", "discipline", "pdim_cost",
-            "transient", "hole_tilt", "sky_hole_inclination", "sky_hole_lean");
+            "transient", "hole_tilt", "sky_hole_inclination", "sky_hole_lean", "visibility");
 
     private static final Set<String> SYSTEM_KEYS = Set.of("name", "description", "galaxy", "star_color", "star_radius",
-            "star_kind", "initial_stage", "gate", "hole");
+            "star_kind", "initial_stage", "gate", "hole", "visibility");
 
     private ContinuumValidator() {}
 
@@ -36,6 +36,25 @@ final class ContinuumValidator {
             } else if (format.getAsInt() > ContentResolver.SUPPORTED_FORMAT) {
                 report.error(where, "written for format " + format.getAsInt() + " but this Continuum reads format " +
                         ContentResolver.SUPPORTED_FORMAT + "; update Continuum or lower the format");
+            }
+        }
+
+        if (json.has("visibility")) {
+            if (!json.get("visibility").isJsonObject()) {
+                report.error(where, "\"visibility\" must be an object with visible_if / accessible_if");
+            } else {
+                JsonObject visibility = json.getAsJsonObject("visibility");
+                for (String key : visibility.keySet()) {
+                    if (!key.equals("visible_if") && !key.equals("accessible_if")) {
+                        report.warn(where, "unknown visibility key \"" + key + "\" (ignored)");
+                        continue;
+                    }
+                    try {
+                        net.phoenix.continuum.common.visibility.ContinuumConditions.parse(visibility.get(key));
+                    } catch (RuntimeException e) {
+                        report.error(where, "visibility." + key + ": " + e.getMessage());
+                    }
+                }
             }
         }
 

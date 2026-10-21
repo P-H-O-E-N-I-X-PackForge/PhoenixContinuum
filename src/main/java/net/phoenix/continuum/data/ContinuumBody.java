@@ -32,7 +32,8 @@ public record ContinuumBody(
                             @Nullable Transient transientInfo,
                             @Nullable Float holeTilt,
                             @Nullable Float skyHoleInclination,
-                            @Nullable Float skyHoleLean) {
+                            @Nullable Float skyHoleLean,
+                            @Nullable com.google.gson.JsonObject visibility) {
 
     public record Transient(int durationMinutes, int cooldownMinutes, float chance, float innerAu, float outerAu) {}
 

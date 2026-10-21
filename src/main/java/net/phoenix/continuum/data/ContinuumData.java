@@ -118,7 +118,9 @@ public final class ContinuumData {
                         DiscoveryStage.UNKNOWN),
                 optionalId(gate, "detected_research"),
                 optionalId(gate, "surveyed_research"),
-                parseHole(GsonHelper.getAsJsonObject(json, "hole", new JsonObject())));
+                parseHole(GsonHelper.getAsJsonObject(json, "hole", new JsonObject())),
+                json.has("visibility") && json.get("visibility").isJsonObject() ?
+                        json.getAsJsonObject("visibility") : null);
     }
 
     private static ContinuumSystem.HoleStyle parseHole(JsonObject hole) {
@@ -203,7 +205,9 @@ public final class ContinuumData {
                 json.has("hole_tilt") ? Math.max(0.0f, Math.min(1.0f, GsonHelper.getAsFloat(json, "hole_tilt"))) :
                         null,
                 json.has("sky_hole_inclination") ? GsonHelper.getAsFloat(json, "sky_hole_inclination") : null,
-                json.has("sky_hole_lean") ? GsonHelper.getAsFloat(json, "sky_hole_lean") : null);
+                json.has("sky_hole_lean") ? GsonHelper.getAsFloat(json, "sky_hole_lean") : null,
+                json.has("visibility") && json.get("visibility").isJsonObject() ?
+                        json.getAsJsonObject("visibility") : null);
     }
 
     private static @Nullable ContinuumBody.Transient parseTransient(JsonObject json) {
@@ -317,6 +321,7 @@ public final class ContinuumData {
             rawSystems = parsed.rawSystems();
             rawBodies = parsed.rawBodies();
             ContinuumReport report = ContinuumReport.last();
+            net.phoenix.continuum.common.visibility.ContinuumVisibility.clearCache();
             LOGGER.info("[PhoenixCore/Continuum] Loaded {} systems and {} bodies ({} errors, {} warnings)",
                     systems.size(), bodies.size(), report.errors(), report.warnings());
             for (ContinuumReport.Issue issue : report.issues()) {
