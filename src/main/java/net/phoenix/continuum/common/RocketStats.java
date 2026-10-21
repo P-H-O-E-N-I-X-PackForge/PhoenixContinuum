@@ -5,7 +5,6 @@ import net.minecraft.world.item.ItemStack;
 import net.phoenix.continuum.config.ContinuumConfigs;
 import net.phoenix.continuum.data.ContinuumBody;
 import net.phoenix.continuum.data.DiscoveryStage;
-import net.phoenix.core.util.StackNbt;
 
 public final class RocketStats {
 

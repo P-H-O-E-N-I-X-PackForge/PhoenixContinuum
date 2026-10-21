@@ -13,7 +13,6 @@ import net.phoenix.continuum.ContinuumRegistry;
 import net.phoenix.continuum.data.ContinuumData;
 import net.phoenix.continuum.data.DiscoveryStage;
 import net.phoenix.continuum.item.ContinuumRocketItem;
-import net.phoenix.core.utils.TeamUtils;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.FloatArgumentType;
@@ -48,7 +47,7 @@ final class ContinuumAdminCommands {
             return 0;
         }
         ServerPlayer player = source.getPlayerOrException();
-        UUID team = TeamUtils.getTeamIdOrPlayerFallback(player.getUUID());
+        UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         ContinuumTeamData.get(source.getServer()).setVisibilityOverride(team, id, visible);
         ContinuumServerEvents.onDataReloaded();
         source.sendSuccess(() -> Component.literal(visible == null ? "Cleared the override on " + id :
@@ -62,7 +61,7 @@ final class ContinuumAdminCommands {
             source.sendFailure(Component.literal("No body " + id + "."));
             return 0;
         }
-        UUID team = TeamUtils.getTeamIdOrPlayerFallback(source.getPlayerOrException().getUUID());
+        UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(source.getPlayerOrException().getUUID());
         for (String line : net.phoenix.continuum.common.visibility.ContinuumVisibility.explain(source.getServer(),
                 team, body)) {
             source.sendSuccess(() -> Component.literal(line), false);
@@ -197,6 +196,26 @@ final class ContinuumAdminCommands {
                                                 .executes(ctx -> upgrade(ctx.getSource(),
                                                         StringArgumentType.getString(ctx, "upgrade"),
                                                         IntegerArgumentType.getInteger(ctx, "level")))))))
+                .then(literal("research")
+                        .then(literal("grant")
+                                .then(argument("node", ResourceLocationArgument.id())
+                                        .executes(ctx -> research(ctx.getSource(),
+                                                ResourceLocationArgument.getId(ctx, "node"), true))))
+                        .then(literal("revoke")
+                                .then(argument("node", ResourceLocationArgument.id())
+                                        .executes(ctx -> research(ctx.getSource(),
+                                                ResourceLocationArgument.getId(ctx, "node"), false))))
+                        .then(literal("list").executes(ctx -> listResearch(ctx.getSource())))
+                        .then(literal("flag")
+                                .then(argument("name", StringArgumentType.word())
+                                        .then(literal("on").executes(ctx -> flag(ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "name"), true)))
+                                        .then(literal("off").executes(ctx -> flag(ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "name"), false)))))
+                        .then(literal("discipline")
+                                .then(argument("name", StringArgumentType.word())
+                                        .executes(ctx -> discipline(ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "name"))))))
                 .then(literal("discover")
                         .then(argument("target", ResourceLocationArgument.id())
                                 .suggests((ctx, builder) -> {
@@ -337,7 +356,7 @@ final class ContinuumAdminCommands {
     }
 
     private static UUID team(CommandSourceStack source) throws CommandSyntaxException {
-        return TeamUtils.getTeamIdOrPlayerFallback(source.getPlayerOrException().getUUID());
+        return net.phoenix.continuum.api.ContinuumHost.teamOf(source.getPlayerOrException().getUUID());
     }
 
     private static int giveRocket(CommandSourceStack source) throws CommandSyntaxException {
@@ -405,6 +424,36 @@ final class ContinuumAdminCommands {
         }
         RocketStats.setLevel(rocket, id, level);
         source.sendSuccess(() -> Component.literal("Set " + id + " to level " + level + "."), false);
+        return 1;
+    }
+
+    private static int research(CommandSourceStack source, ResourceLocation node, boolean grant)
+                                                                                                 throws CommandSyntaxException {
+        UUID team = team(source);
+        boolean changed = grant ? net.phoenix.continuum.api.ContinuumAPI.grantResearch(team, node.toString()) :
+                net.phoenix.continuum.api.ContinuumAPI.revokeResearch(team, node.toString());
+        source.sendSuccess(() -> Component.literal(changed ? (grant ? "Unlocked " : "Removed ") + node :
+                "Nothing changed for " + node), false);
+        return changed ? 1 : 0;
+    }
+
+    private static int listResearch(CommandSourceStack source) throws CommandSyntaxException {
+        var nodes = net.phoenix.continuum.common.BuiltinResearch.get(source.getServer()).unlockedOf(team(source));
+        source.sendSuccess(() -> Component.literal(nodes.isEmpty() ? "No research unlocked." :
+                "Unlocked: " + nodes.stream().map(ResourceLocation::toString).collect(
+                        java.util.stream.Collectors.joining(", "))), false);
+        return nodes.size();
+    }
+
+    private static int flag(CommandSourceStack source, String name, boolean on) throws CommandSyntaxException {
+        net.phoenix.continuum.api.ContinuumAPI.setResearchFlag(team(source), name, on);
+        source.sendSuccess(() -> Component.literal("Flag " + name + " is " + (on ? "on" : "off") + "."), false);
+        return 1;
+    }
+
+    private static int discipline(CommandSourceStack source, String name) throws CommandSyntaxException {
+        net.phoenix.continuum.api.ContinuumAPI.setDiscipline(team(source), name.equals("none") ? "" : name);
+        source.sendSuccess(() -> Component.literal("Discipline is now " + name + "."), false);
         return 1;
     }
 

@@ -13,7 +13,7 @@ import net.phoenix.continuum.data.TuningPatches;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
-/** An operator edit from the tuner: set one value in a body's server-side patch, or reset the body. */
+/** An operator edit from the tuner: set one value in a body's (or a system's) server-side patch, or reset it. */
 public class C2STunePacket implements CustomPacketPayload {
 
     public static final Type<C2STunePacket> TYPE = new Type<>(
@@ -24,39 +24,50 @@ public class C2STunePacket implements CustomPacketPayload {
     private static final int MAX_VALUE = 8192;
 
     private final boolean reset;
-    private final ResourceLocation body;
+    private final boolean system;
+    private final ResourceLocation subject;
     private final String path;
     private final String valueJson;
 
     public C2STunePacket(ResourceLocation body, String path, String valueJson) {
-        this.reset = false;
-        this.body = body;
+        this(false, false, body, path, valueJson);
+    }
+
+    private C2STunePacket(boolean reset, boolean system, ResourceLocation subject, String path, String valueJson) {
+        this.reset = reset;
+        this.system = system;
+        this.subject = subject;
         this.path = path;
         this.valueJson = valueJson;
     }
 
     /** Removes every server-side edit of the body. */
     public static C2STunePacket reset(ResourceLocation body) {
-        return new C2STunePacket(true, body);
+        return new C2STunePacket(true, false, body, "", "");
     }
 
-    private C2STunePacket(boolean reset, ResourceLocation body) {
-        this.reset = reset;
-        this.body = body;
-        this.path = "";
-        this.valueJson = "";
+    /** Sets one value in a system's patch. */
+    public static C2STunePacket forSystem(ResourceLocation system, String path, String valueJson) {
+        return new C2STunePacket(false, true, system, path, valueJson);
+    }
+
+    /** Removes every server-side edit of the system. */
+    public static C2STunePacket resetSystem(ResourceLocation system) {
+        return new C2STunePacket(true, true, system, "", "");
     }
 
     public C2STunePacket(RegistryFriendlyByteBuf buf) {
         this.reset = buf.readBoolean();
-        this.body = buf.readResourceLocation();
+        this.system = buf.readBoolean();
+        this.subject = buf.readResourceLocation();
         this.path = buf.readUtf(128);
         this.valueJson = buf.readUtf(MAX_VALUE);
     }
 
     public void encode(RegistryFriendlyByteBuf buf) {
         buf.writeBoolean(reset);
-        buf.writeResourceLocation(body);
+        buf.writeBoolean(system);
+        buf.writeResourceLocation(subject);
         buf.writeUtf(path, 128);
         buf.writeUtf(valueJson, MAX_VALUE);
     }
@@ -74,11 +85,13 @@ public class C2STunePacket implements CustomPacketPayload {
                 player.displayClientMessage(Component.literal("Only operators can tune Continuum."), true);
                 return;
             }
-            if (ContinuumData.body(msg.body) == null) return;
+            boolean exists = msg.system ? ContinuumData.system(msg.subject) != null :
+                    ContinuumData.body(msg.subject) != null;
+            if (!exists) return;
 
             String error;
             if (msg.reset) {
-                error = TuningPatches.reset(msg.body);
+                error = TuningPatches.reset(msg.subject, msg.system);
             } else {
                 JsonElement value;
                 try {
@@ -87,7 +100,7 @@ public class C2STunePacket implements CustomPacketPayload {
                     player.displayClientMessage(Component.literal("That value is not valid JSON."), true);
                     return;
                 }
-                error = TuningPatches.set(msg.body, msg.path, value);
+                error = TuningPatches.set(msg.subject, msg.path, value, msg.system);
             }
             if (error != null) {
                 player.displayClientMessage(Component.literal("Tuner: " + error), true);

@@ -8,7 +8,7 @@ version = "${mod_version}"
 displayName = "${mod_name}"
 displayURL = "${mod_url}"
 authors = "${mod_author}"
-description = '''Continuum: the galaxy map, rockets, missions, outposts and personal dimensions of the Phoenix suite. Reads and writes Conflux research through PhoenixCore.'''
+description = '''Continuum: the galaxy map, rockets, missions, outposts and personal dimensions of the Phoenix suite. Works on its own; PhoenixCore connects it to Conflux research.'''
 
 [[dependencies.${mod_id}]]
 modId = "neoforge"
@@ -32,9 +32,9 @@ ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
-modId = "phoenixcore"
-type = "required"
-versionRange = "[0.3.0,)"
+modId = "solaris"
+type = "optional"
+versionRange = "[1.6.5,)"
 ordering = "AFTER"
 side = "BOTH"
 

@@ -14,7 +14,6 @@ import net.phoenix.continuum.data.ContinuumData;
 import net.phoenix.continuum.data.ContinuumReport;
 import net.phoenix.continuum.data.ContinuumSystem;
 import net.phoenix.continuum.data.DiscoveryStage;
-import net.phoenix.core.utils.TeamUtils;
 
 import com.google.gson.JsonObject;
 import org.jetbrains.annotations.Nullable;
@@ -52,7 +51,7 @@ public final class ContinuumAPI {
 
     /** A team from a player, a UUID or a UUID string. */
     public static UUID team(Object who) {
-        if (who instanceof ServerPlayer player) return TeamUtils.getTeamIdOrPlayerFallback(player.getUUID());
+        if (who instanceof ServerPlayer player) return net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         if (who instanceof UUID uuid) return uuid;
         return UUID.fromString(String.valueOf(who));
     }
@@ -98,6 +97,49 @@ public final class ContinuumAPI {
         boolean changed = ContinuumTeamData.get(server()).raise(team(who), id(id), target);
         if (changed) ContinuumServerEvents.onDataReloaded();
         return changed;
+    }
+
+    /** Unlocks a research id for a team, which may open the bodies and systems gated on it. Returns true if it was new. */
+    public static boolean grantResearch(Object who, String node) {
+        return changeResearch(who, node, true);
+    }
+
+    /** Takes a research id away from a team. Returns true if the team had it. */
+    public static boolean revokeResearch(Object who, String node) {
+        return changeResearch(who, node, false);
+    }
+
+    private static boolean changeResearch(Object who, String node, boolean grant) {
+        var server = server();
+        UUID team = team(who);
+        Object token = ContinuumHost.beforeResearch(server, team);
+        var research = net.phoenix.continuum.common.BuiltinResearch.get(server);
+        boolean changed = grant ? research.grant(team, id(node)) : research.revoke(team, id(node));
+        ContinuumHost.afterResearch(server, team, token);
+        return changed;
+    }
+
+    /** Whether the team has the research id. */
+    public static boolean hasResearch(Object who, String node) {
+        return ContinuumHost.research().isUnlocked(team(who), id(node));
+    }
+
+    /** Sets or clears one of the team's research flags (used by the "research flag" visibility rule). */
+    public static void setResearchFlag(Object who, String flag, boolean on) {
+        var server = server();
+        UUID team = team(who);
+        Object token = ContinuumHost.beforeResearch(server, team);
+        net.phoenix.continuum.common.BuiltinResearch.get(server).setFlag(team, flag, on);
+        ContinuumHost.afterResearch(server, team, token);
+    }
+
+    /** Sets the team's discipline (empty clears it). */
+    public static void setDiscipline(Object who, String discipline) {
+        var server = server();
+        UUID team = team(who);
+        Object token = ContinuumHost.beforeResearch(server, team);
+        net.phoenix.continuum.common.BuiltinResearch.get(server).setDiscipline(team, discipline);
+        ContinuumHost.afterResearch(server, team, token);
     }
 
     /** Forces the per-team override (true = show, false = hide). Use {@link #clearOverride} to remove it. */

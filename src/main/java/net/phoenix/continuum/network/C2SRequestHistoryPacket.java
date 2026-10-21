@@ -9,7 +9,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.phoenix.continuum.common.ContinuumTeamData;
-import net.phoenix.core.utils.TeamUtils;
 
 public class C2SRequestHistoryPacket implements CustomPacketPayload {
 
@@ -33,7 +32,7 @@ public class C2SRequestHistoryPacket implements CustomPacketPayload {
         ctx.enqueueWork(() -> {
             ServerPlayer player = ((net.minecraft.server.level.ServerPlayer) ctx.player());
             if (player == null) return;
-            var team = TeamUtils.getTeamIdOrPlayerFallback(player.getUUID());
+            var team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
             PacketDistributor.sendToPlayer(player,
                     new S2CHistoryPacket(ContinuumTeamData.get(player.server).history(team)));
         });

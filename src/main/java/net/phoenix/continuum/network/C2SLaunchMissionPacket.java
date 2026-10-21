@@ -12,7 +12,6 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.phoenix.continuum.common.ContinuumMissions;
 import net.phoenix.continuum.common.ContinuumServerEvents;
 import net.phoenix.continuum.common.Mission;
-import net.phoenix.core.utils.TeamUtils;
 
 public class C2SLaunchMissionPacket implements CustomPacketPayload {
 
@@ -68,7 +67,7 @@ public class C2SLaunchMissionPacket implements CustomPacketPayload {
                     new S2CMissionLaunchedPacket(error == null, msg.destination, msg.pad, error == null ? "" : error));
             if (error == null) {
                 ContinuumServerEvents.sendStateToTeam(player.server,
-                        TeamUtils.getTeamIdOrPlayerFallback(player.getUUID()));
+                        net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID()));
             }
         });
     }

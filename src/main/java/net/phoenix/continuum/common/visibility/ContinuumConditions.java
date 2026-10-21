@@ -6,8 +6,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.phoenix.continuum.common.ContinuumTeamData;
 import net.phoenix.continuum.data.ContinuumData;
 import net.phoenix.continuum.data.DiscoveryStage;
-import net.phoenix.core.integration.conflux.research.WorldResearchData;
-import net.phoenix.core.utils.TeamUtils;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -44,16 +42,16 @@ public final class ContinuumConditions {
         register(id("never"), json -> context -> false);
         register(id("research"), json -> {
             ResourceLocation node = required(json, "node");
-            return c -> WorldResearchData.get(c.server().overworld()).isUnlocked(c.team(), node);
+            return c -> net.phoenix.continuum.api.ContinuumHost.research(c.server().overworld()).isUnlocked(c.team(), node);
         });
         register(id("flag"), json -> {
             String name = string(json, "name");
-            return c -> WorldResearchData.get(c.server().overworld()).hasFlag(c.team(), name);
+            return c -> net.phoenix.continuum.api.ContinuumHost.research(c.server().overworld()).hasFlag(c.team(), name);
         });
         register(id("discipline"), json -> {
             String is = string(json, "is");
             return c -> {
-                String chosen = WorldResearchData.get(c.server().overworld()).getDiscipline(c.team());
+                String chosen = net.phoenix.continuum.api.ContinuumHost.research(c.server().overworld()).getDiscipline(c.team());
                 return is.equals(chosen == null ? "none" : chosen);
             };
         });
@@ -75,7 +73,7 @@ public final class ContinuumConditions {
             ResourceLocation advancement = required(json, "id");
             return c -> {
                 for (ServerPlayer player : c.server().getPlayerList().getPlayers()) {
-                    if (!c.team().equals(TeamUtils.getTeamIdOrPlayerFallback(player.getUUID()))) continue;
+                    if (!c.team().equals(net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID()))) continue;
                     AdvancementHolder holder = c.server().getAdvancements().get(advancement);
                     if (holder != null && player.getAdvancements().getOrStartProgress(holder).isDone()) return true;
                 }

@@ -11,7 +11,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.phoenix.continuum.data.ContinuumBody;
 import net.phoenix.continuum.data.ContinuumData;
-import net.phoenix.core.utils.TeamUtils;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -117,7 +116,7 @@ public final class ContinuumTransients extends SavedData {
         ContinuumTeamData teams = ContinuumTeamData.get(server);
         Set<UUID> logged = new HashSet<>();
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            UUID team = TeamUtils.getTeamIdOrPlayerFallback(player.getUUID());
+            UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
 
             if (!teams.isEngaged(team)) continue;
             player.sendSystemMessage(Component.literal(text).withStyle(colour));

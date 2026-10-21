@@ -87,6 +87,7 @@ public final class ContinuumTunerScreen extends Screen {
     private Field editing;
     private String status = "";
     private long previewDueAt = -1;
+    private final ScenePreview preview = new ScenePreview();
     private final List<Object[]> hits = new ArrayList<>();
 
     public ContinuumTunerScreen(Screen parent, ResourceLocation start) {
@@ -163,6 +164,7 @@ public final class ContinuumTunerScreen extends Screen {
         fields.add(Field.header("Visual edits above are local. Push them to apply for everyone."));
         fields.add(Field.button("push", "Push visual edits to the server"));
         fields.add(Field.button("newbody", "New body in this system..."));
+        fields.add(Field.button("tunesystem", "Tune this system..."));
         fields.add(Field.button("newsystem", "New system..."));
         fields.add(Field.header("Server (applies for everyone, saved in config/phoenix_continuum/tuning)"));
         fields.add(Field.server("name", "Name", Kind.TEXT, 0, 0, 0, ""));
@@ -429,19 +431,22 @@ public final class ContinuumTunerScreen extends Screen {
         int px = x + LIST_W + 12;
         g.drawString(font, "Preview", px, top() - 12, 0xFFAEBBCF, false);
         if (body.type() != ContinuumBody.Type.BLACK_HOLE) {
-            g.blit(SurfaceMap.texture(body), px, top(), 0, 0, 200, 100, 200, 100);
+            preview.drawPlanet(g, body.params(), px, top(), 200);
+            g.drawString(font, "drag to turn, scroll to zoom", px, top() + 204, 0xFF7F8A99, false);
         } else {
-            g.fill(px, top(), px + 200, top() + 100, 0xFF05070C);
-            g.drawCenteredString(font, "see the Continuum map", px + 100, top() + 46, 0xFF7F8A99);
+            g.fill(px, top(), px + 200, top() + 200, 0xFF05070C);
+            g.drawCenteredString(font, "tune black holes in the", px + 100, top() + 92, 0xFF7F8A99);
+            g.drawCenteredString(font, "system screen", px + 100, top() + 104, 0xFF7F8A99);
         }
-        action(g, mx, my, px, top() + 112, 200, "Export definition", "export");
-        action(g, mx, my, px, top() + 132, 200, "Reset local edits", "reset");
-        action(g, mx, my, px, top() + 152, 200, "Reset server edits", "resetServer");
-        action(g, mx, my, px, top() + 172, 200, "Close", "close");
-        g.drawString(font, "Visual edits: this client only", px, top() + 196, 0xFF7F8A99, false);
-        g.drawString(font, "until pushed. Gold rows go to the", px, top() + 206, 0xFF7F8A99, false);
-        g.drawString(font, "server and are saved as patches.", px, top() + 216, 0xFF7F8A99, false);
-        if (!status.isEmpty()) g.drawString(font, font.plainSubstrByWidth(status, 200), px, top() + 232, 0xFF66DDFF, false);
+        int ay = top() + 218;
+        action(g, mx, my, px, ay, 200, "Export definition", "export");
+        action(g, mx, my, px, ay + 20, 200, "Reset local edits", "reset");
+        action(g, mx, my, px, ay + 40, 200, "Reset server edits", "resetServer");
+        action(g, mx, my, px, ay + 60, 200, "Close", "close");
+        g.drawString(font, "Visual edits: this client only", px, ay + 84, 0xFF7F8A99, false);
+        g.drawString(font, "until pushed. Gold rows go to the", px, ay + 94, 0xFF7F8A99, false);
+        g.drawString(font, "server and are saved as patches.", px, ay + 104, 0xFF7F8A99, false);
+        if (!status.isEmpty()) g.drawString(font, font.plainSubstrByWidth(status, 200), px, ay + 120, 0xFF66DDFF, false);
 
         super.render(g, mx, my, partialTick);
     }
@@ -478,6 +483,7 @@ public final class ContinuumTunerScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
+        if (preview.mouseClicked(mx, my)) return true;
         if (editor.isVisible() && editor.mouseClicked(mx, my, button)) return true;
         commitEdit();
 
@@ -511,8 +517,9 @@ public final class ContinuumTunerScreen extends Screen {
                 case "button" -> {
                     switch (field.path()) {
                         case "push" -> pushVisual();
-                        case "newbody" -> minecraft.setScreen(new ContinuumCreateScreen(this, false, body().system()));
-                        case "newsystem" -> minecraft.setScreen(new ContinuumCreateScreen(this, true, null));
+                        case "newbody" -> minecraft.setScreen(new ContinuumCreateScreen(this, body().system()));
+                        case "newsystem" -> minecraft.setScreen(new ContinuumSystemScreen(this, null));
+                        case "tunesystem" -> minecraft.setScreen(new ContinuumSystemScreen(this, body().system()));
                         case "yield+" -> editYields(true);
                         case "yield-" -> editYields(false);
                         default -> {}
@@ -528,6 +535,7 @@ public final class ContinuumTunerScreen extends Screen {
 
     @Override
     public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
+        if (preview.mouseDragged(dx, dy)) return true;
         // dragging along a bar scrubs the value
         for (Object[] h : hits) {
             if (!"bar".equals(h[1])) continue;
@@ -543,7 +551,20 @@ public final class ContinuumTunerScreen extends Screen {
     }
 
     @Override
+    public boolean mouseReleased(double mx, double my, int button) {
+        preview.mouseReleased();
+        return super.mouseReleased(mx, my, button);
+    }
+
+    @Override
+    public void removed() {
+        preview.close();
+        super.removed();
+    }
+
+    @Override
     public boolean mouseScrolled(double mx, double my, double scrollX, double scrollY) {
+        if (preview.mouseScrolled(mx, my, scrollY)) return true;
         scroll -= (int) Math.signum(scrollY) * 2;
         return true;
     }

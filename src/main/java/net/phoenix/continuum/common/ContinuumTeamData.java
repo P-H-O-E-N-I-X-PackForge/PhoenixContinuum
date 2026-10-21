@@ -6,7 +6,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.phoenix.core.integration.conflux.research.WorldResearchData;
 import net.phoenix.continuum.data.ContinuumBody;
 import net.phoenix.continuum.data.ContinuumData;
 import net.phoenix.continuum.data.ContinuumSystem;
@@ -85,7 +84,7 @@ public class ContinuumTeamData extends SavedData {
             return true;
         }
         if (body.discipline() != null) {
-            String chosen = WorldResearchData.get(server.overworld()).getDiscipline(team);
+            String chosen = net.phoenix.continuum.api.ContinuumHost.research(server.overworld()).getDiscipline(team);
             if (!body.discipline().equals(chosen == null ? "none" : chosen)) return true;
         }
         return !net.phoenix.continuum.common.visibility.ContinuumVisibility.visible(server, team, body);
@@ -108,9 +107,9 @@ public class ContinuumTeamData extends SavedData {
                     DiscoveryStage.SURVEYED : DiscoveryStage.UNKNOWN;
         }
         if (body != null) {
-            WorldResearchData research = null;
+            net.phoenix.continuum.api.ContinuumHost.Research research = null;
             if (body.surveyedResearch() != null || body.detectedResearch() != null) {
-                research = WorldResearchData.get(server.overworld());
+                research = net.phoenix.continuum.api.ContinuumHost.research(server.overworld());
             }
             if (research != null) {
                 if (body.surveyedResearch() != null && research.isUnlocked(team, body.surveyedResearch())) {
@@ -125,7 +124,7 @@ public class ContinuumTeamData extends SavedData {
         ContinuumSystem system = ContinuumData.system(id);
         if (system != null) {
             if (system.surveyedResearch() != null || system.detectedResearch() != null) {
-                WorldResearchData research = WorldResearchData.get(server.overworld());
+                net.phoenix.continuum.api.ContinuumHost.Research research = net.phoenix.continuum.api.ContinuumHost.research(server.overworld());
                 if (system.surveyedResearch() != null && research.isUnlocked(team, system.surveyedResearch())) {
                     stage = max(stage, DiscoveryStage.SURVEYED);
                 } else if (system.detectedResearch() != null &&

@@ -202,9 +202,10 @@ dependencies {
     implementation "com.tterrag.registrate:Registrate:${registrate_version}"
     implementation "dev.toma.configuration:configuration-${minecraft_version}:${configuration_version}"
 
-    // Phoenix suite. PhoenixCore (Conflux research, teams, sounds) is a hard dependency; the wiki library comes with it.
-    implementation "net.phoenix.core:PhoenixCore:${phoenix_core_version}"
     implementation "net.phoenixvine.wiki:neoforge:${phoenix_wiki_version}"
+
+    // Solaris (map markers for launch complexes), optional: a plain jar in libs/
+    compileOnly files('libs/solaris-neoforge-1.6.5.jar')
 
     compileOnly "dev.emi:emi-neoforge:${emi_version}+${minecraft_version}"
     compileOnly("dev.latvian.mods:kubejs-neoforge:${kubejs_version}") { transitive = false }

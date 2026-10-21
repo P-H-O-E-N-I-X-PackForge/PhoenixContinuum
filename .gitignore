@@ -6,3 +6,4 @@ run-*/
 *.iml
 out/
 libs/
+server_log8.txt

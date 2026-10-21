@@ -8,12 +8,9 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
-import net.phoenix.core.integration.conflux.dimension.ConfluxDimensionFactory;
-import net.phoenix.core.integration.conflux.research.WorldResearchData;
 import net.phoenix.continuum.data.ContinuumBody;
 import net.phoenix.continuum.data.ContinuumData;
 import net.phoenix.continuum.data.DiscoveryStage;
-import net.phoenix.core.utils.TeamUtils;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -40,15 +37,17 @@ public final class ConfluxTravel {
         String discipline = body == null ? null : disciplineOf(body);
         if (discipline == null) return "That world is not a Conflux dimension.";
 
-        var team = TeamUtils.getTeamIdOrPlayerFallback(player.getUUID());
-        String chosen = WorldResearchData.get(server.overworld()).getDiscipline(team);
+        var team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
+        String chosen = net.phoenix.continuum.api.ContinuumHost.research(server.overworld()).getDiscipline(team);
         if (chosen == null || !chosen.equalsIgnoreCase(discipline)) return "That is not your discipline's world.";
 
         DiscoveryStage stage = ContinuumTeamData.get(server).effectiveStage(server, team, bodyId);
         if (!stage.atLeast(DiscoveryStage.SURVEYED)) return "Survey " + body.name() + " before travelling there.";
 
-        ResourceKey<Level> target = ConfluxDimensionFactory.getDimensionKey(discipline);
-        if (server.getLevel(target) == null) return body.name() + " is not available in this world.";
+        net.phoenix.continuum.api.ContinuumHost.Travel travel = net.phoenix.continuum.api.ContinuumHost.travel();
+        if (travel == null) return "Discipline worlds are not available here.";
+        ResourceKey<Level> target = travel.dimensionOf(discipline);
+        if (target == null || server.getLevel(target) == null) return body.name() + " is not available in this world.";
         if (player.level().dimension().equals(target)) return "You are already on " + body.name() + ".";
 
         if (!isConfluxDimension(player.level().dimension())) {
@@ -61,7 +60,7 @@ public final class ConfluxTravel {
             back.putFloat("Pitch", player.getXRot());
             player.getPersistentData().put(RETURN_KEY, back);
         }
-        return ConfluxDimensionFactory.visitDisciplineDimension(player, discipline) ? null :
+        return travel.visit(player, discipline) ? null :
                 body.name() + " is not available in this world.";
     }
 

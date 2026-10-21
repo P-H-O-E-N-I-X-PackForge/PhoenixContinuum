@@ -8,7 +8,6 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
-import net.phoenix.core.api.PhoenixSounds;
 
 public final class ContinuumSounds {
 
@@ -98,11 +97,11 @@ public final class ContinuumSounds {
     }
 
     public static Loop engineLoop() {
-        return startLoop(PhoenixSounds.PHOENIX_VOLCANIC_RUMBLE.get().getMainEvent(), 0.0f);
+        return startLoop(HostSounds.phoenix_volcanic_rumble(), 0.0f);
     }
 
     public static Loop humLoop() {
-        return startLoop(PhoenixSounds.VOID_COSMIC_DRONE.get().getMainEvent(), 0.0f);
+        return startLoop(HostSounds.void_cosmic_drone(), 0.0f);
     }
 
     private static Loop startLoop(SoundEvent event, float volume) {

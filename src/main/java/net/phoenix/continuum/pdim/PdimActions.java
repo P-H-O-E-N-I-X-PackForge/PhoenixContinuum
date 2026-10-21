@@ -13,7 +13,6 @@ import net.phoenix.continuum.data.ContinuumBody;
 import net.phoenix.continuum.data.ContinuumData;
 import net.phoenix.continuum.data.DiscoveryStage;
 import net.phoenix.continuum.network.S2CPdimStatePacket;
-import net.phoenix.core.utils.TeamUtils;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +31,7 @@ public final class PdimActions {
         ServerLevel target = server.getLevel(PdimDimensions.keyFor(bodyId));
         if (target == null) return "There is no personal dimension for " + body.name() + " in this world.";
 
-        var team = TeamUtils.getTeamIdOrPlayerFallback(player.getUUID());
+        var team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         DiscoveryStage stage = ContinuumTeamData.get(server).effectiveStage(server, team, bodyId);
         if (!stage.atLeast(DiscoveryStage.SURVEYED))
             return "Survey " + body.name() + " before making a dimension of it.";

@@ -186,14 +186,13 @@ public class LaunchPadMachine extends MultiblockControllerMachine {
         if (owner == null) return;
         var server = getLevel().getServer();
         var teams = net.phoenix.continuum.common.ContinuumTeamData.get(server);
-        java.util.UUID team = net.phoenix.core.utils.TeamUtils.getTeamIdOrPlayerFallback(owner);
+        java.util.UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(owner);
         teams.markEngaged(team);
         unregisterComplex();
         registeredTeam = team;
         TEAM_COMPLEXES.computeIfAbsent(team, k -> java.util.concurrent.ConcurrentHashMap.newKeySet()).add(this);
         if (getLevel() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-            net.phoenix.core.integration.solaris.TeamSiteData.registerSite(serverLevel, team, "launch_complex",
-                    getBlockPos());
+            net.phoenix.continuum.integration.solaris.SolarisSites.register(serverLevel, team, getBlockPos());
         }
         ServerPlayer builder = server.getPlayerList().getPlayer(owner);
         if (builder != null) {

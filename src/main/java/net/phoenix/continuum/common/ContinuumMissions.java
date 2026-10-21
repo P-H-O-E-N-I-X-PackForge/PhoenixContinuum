@@ -25,7 +25,6 @@ import net.phoenix.continuum.item.ContinuumProbeItem;
 import net.phoenix.continuum.item.ContinuumRepairKitItem;
 import net.phoenix.continuum.item.ContinuumRocketItem;
 import net.phoenix.continuum.machine.LaunchPadMachine;
-import net.phoenix.core.utils.TeamUtils;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -238,7 +237,7 @@ public final class ContinuumMissions {
             return "There is no launch pad there.";
         }
 
-        UUID team = TeamUtils.getTeamIdOrPlayerFallback(player.getUUID());
+        UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         ContinuumTeamData data = ContinuumTeamData.get(server);
 
         DiscoveryStage stage = data.effectiveStage(server, team, destinationId);
@@ -579,7 +578,7 @@ public final class ContinuumMissions {
     }
 
     public static int collectAll(ServerPlayer player) {
-        UUID team = TeamUtils.getTeamIdOrPlayerFallback(player.getUUID());
+        UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         ContinuumTeamData data = ContinuumTeamData.get(player.server);
         int collected = 0;
         for (Mission mission : List.copyOf(data.missions(team))) {
@@ -778,7 +777,7 @@ public final class ContinuumMissions {
 
     public static @Nullable String collect(ServerPlayer player, UUID missionId) {
         MinecraftServer server = player.server;
-        UUID team = TeamUtils.getTeamIdOrPlayerFallback(player.getUUID());
+        UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         ContinuumTeamData data = ContinuumTeamData.get(server);
 
         Mission mission = data.mission(team, missionId).orElse(null);
@@ -845,7 +844,7 @@ public final class ContinuumMissions {
     static void notifyTeam(MinecraftServer server, UUID team, Component message) {
         if (!ContinuumTeamData.get(server).isEngaged(team)) return;
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            if (TeamUtils.isPlayerOnTeam(player, team)) player.sendSystemMessage(message);
+            if (net.phoenix.continuum.api.ContinuumHost.teams().onTeam(player, team)) player.sendSystemMessage(message);
         }
     }
 }

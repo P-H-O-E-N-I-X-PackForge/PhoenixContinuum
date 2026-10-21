@@ -62,6 +62,12 @@ public final class ContinuumData {
         return json == null ? null : JsonParser.parseString(json).getAsJsonObject();
     }
 
+    /** The system definition as the server sent it (resolved JSON), or null. */
+    public static @Nullable JsonObject rawSystem(ResourceLocation id) {
+        String json = rawSystems.get(id);
+        return json == null ? null : JsonParser.parseString(json).getAsJsonObject();
+    }
+
     /** Client side only: swaps a parsed body in place, for live tuning. */
     static void replaceBody(ResourceLocation id, ContinuumBody body) {
         Map<ResourceLocation, ContinuumBody> copy = new LinkedHashMap<>(bodies);
@@ -298,6 +304,7 @@ public final class ContinuumData {
             Map<ResourceLocation, JsonObject> systemJson = ContentResolver.resolve("system", rawSystems, report);
             Map<ResourceLocation, JsonObject> bodyJson = ContentResolver.resolve("body", rawBodies, report);
             TuningPatches.applyAll(bodyJson, report);
+            TuningPatches.applySystems(systemJson, report);
 
             Map<ResourceLocation, ContinuumSystem> loadedSystems = new LinkedHashMap<>();
             Map<ResourceLocation, ContinuumBody> loadedBodies = new LinkedHashMap<>();
