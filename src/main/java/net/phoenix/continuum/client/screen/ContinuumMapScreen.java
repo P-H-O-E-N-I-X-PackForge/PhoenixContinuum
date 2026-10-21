@@ -74,8 +74,8 @@ public class ContinuumMapScreen extends Screen {
 
     private record Pick(ContinuumSystem system, ContinuumBody body, float x, float y, float radius) {}
 
-    private static final float GALAXY_SCALE = 2.4f;
-    private static final float GALAXY_DISTANCE = 32.0f;
+    private static final float GALAXY_SCALE = 1.6f;
+    private static final float GALAXY_DISTANCE = 28.0f;
     private static final float SYSTEM_DISTANCE = 15.0f;
     private static final float BODY_DISTANCE = 4.3f;
     private static final float FOV = 40.0f;

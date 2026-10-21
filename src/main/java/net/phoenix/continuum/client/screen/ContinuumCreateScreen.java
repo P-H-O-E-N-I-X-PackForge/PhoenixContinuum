@@ -211,13 +211,13 @@ public final class ContinuumCreateScreen extends Screen {
         double bestX = 0;
         double bestZ = 0;
         double bestScore = -1;
-        for (double x = -16; x <= 16; x += 1.0) {
-            for (double z = -16; z <= 16; z += 1.0) {
+        for (double x = -30; x <= 30; x += 1.0) {
+            for (double z = -30; z <= 30; z += 1.0) {
                 double nearest = Double.MAX_VALUE;
                 for (ContinuumSystem s : ContinuumData.systems()) {
                     nearest = Math.min(nearest, Math.hypot(x - s.galaxyX(), z - s.galaxyZ()));
                 }
-                double score = Math.min(nearest, 6.0) - Math.hypot(x, z) * 0.02;
+                double score = Math.min(nearest, 9.0) - Math.hypot(x, z) * 0.02;
                 if (score > bestScore) {
                     bestScore = score;
                     bestX = x;
