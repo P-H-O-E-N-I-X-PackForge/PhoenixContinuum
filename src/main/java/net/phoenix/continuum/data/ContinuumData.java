@@ -297,6 +297,7 @@ public final class ContinuumData {
 
             Map<ResourceLocation, JsonObject> systemJson = ContentResolver.resolve("system", rawSystems, report);
             Map<ResourceLocation, JsonObject> bodyJson = ContentResolver.resolve("body", rawBodies, report);
+            TuningPatches.applyAll(bodyJson, report);
 
             Map<ResourceLocation, ContinuumSystem> loadedSystems = new LinkedHashMap<>();
             Map<ResourceLocation, ContinuumBody> loadedBodies = new LinkedHashMap<>();

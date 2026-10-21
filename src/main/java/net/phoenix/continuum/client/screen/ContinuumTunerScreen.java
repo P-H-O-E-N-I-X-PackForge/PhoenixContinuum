@@ -39,10 +39,41 @@ public final class ContinuumTunerScreen extends Screen {
     private enum Kind {
         NUMBER,
         COLOR,
-        BOOL
+        BOOL,
+        TEXT,
+        CHOICE,
+        HEADER,
+        BUTTON
     }
 
-    private record Field(String path, String label, Kind kind, double min, double max, double step, Object fallback) {}
+    /**
+     * @param server  whether an edit goes to the server (for everyone, saved) instead of staying on this client
+     * @param choices the options of a CHOICE, in cycle order
+     */
+    private record Field(String path, String label, Kind kind, double min, double max, double step, Object fallback,
+                         boolean server, List<String> choices) {
+
+        Field(String path, String label, Kind kind, double min, double max, double step, Object fallback) {
+            this(path, label, kind, min, max, step, fallback, false, List.of());
+        }
+
+        static Field server(String path, String label, Kind kind, double min, double max, double step,
+                            Object fallback) {
+            return new Field(path, label, kind, min, max, step, fallback, true, List.of());
+        }
+
+        static Field choice(String path, String label, String fallback, String... options) {
+            return new Field(path, label, Kind.CHOICE, 0, 0, 0, fallback, true, List.of(options));
+        }
+
+        static Field header(String label) {
+            return new Field("", label, Kind.HEADER, 0, 0, 0, "", false, List.of());
+        }
+
+        static Field button(String id, String label) {
+            return new Field(id, label, Kind.BUTTON, 0, 0, 0, "", false, List.of());
+        }
+    }
 
     private static final int ROW = 15;
     private static final int LIST_W = 330;
@@ -78,7 +109,10 @@ public final class ContinuumTunerScreen extends Screen {
     }
 
     private ContinuumBody body() {
-        return bodies.get(Math.floorMod(bodyIndex, bodies.size()));
+        ContinuumBody listed = bodies.get(Math.floorMod(bodyIndex, bodies.size()));
+        // the data is replaced when the server reloads, so look the current definition up again
+        ContinuumBody current = ContinuumData.body(listed.id());
+        return current != null ? current : listed;
     }
 
     private void rebuildFields() {
@@ -122,6 +156,38 @@ public final class ContinuumTunerScreen extends Screen {
             fields.add(new Field("rings.color", "Ring colour", Kind.COLOR, 0, 0, 0, "#d8c8a0"));
             fields.add(new Field("rings.color2", "Ring colour 2", Kind.COLOR, 0, 0, 0, "#8a7a60"));
         }
+        addServerFields(json);
+    }
+
+    private void addServerFields(JsonObject json) {
+        fields.add(Field.header("Visual edits above are local. Push them to apply for everyone."));
+        fields.add(Field.button("push", "Push visual edits to the server"));
+        fields.add(Field.header("Server (applies for everyone, saved in config/phoenix_continuum/tuning)"));
+        fields.add(Field.server("name", "Name", Kind.TEXT, 0, 0, 0, ""));
+        fields.add(Field.server("description", "Description", Kind.TEXT, 0, 0, 0, ""));
+        fields.add(Field.server("trip_minutes", "Trip minutes", Kind.NUMBER, 1, 600, 1, 10.0));
+        fields.add(Field.choice("initial_stage", "Starting stage", "unknown", "unknown", "detected", "surveyed"));
+        fields.add(Field.choice("gate.min_tier", "Rocket tier needed", "start", "start", "mid", "late", "endgame"));
+        fields.add(Field.server("orbit.radius_au", "Orbit radius (AU)", Kind.NUMBER, 0, 60, 0.05, 1.0));
+        fields.add(Field.server("orbit.period_days", "Orbit period (days)", Kind.NUMBER, 0.05, 6000, 1, 100.0));
+        fields.add(Field.server("orbit.phase", "Orbit phase", Kind.NUMBER, 0, 1, 0.02, 0.0));
+        if (json.has("pdim_cost")) {
+            fields.add(Field.server("pdim_cost.item", "Personal dimension cost item", Kind.TEXT, 0, 0, 0,
+                    "minecraft:ender_pearl"));
+            fields.add(Field.server("pdim_cost.count", "Personal dimension cost count", Kind.NUMBER, 0, 64, 1, 2.0));
+        }
+        fields.add(Field.header("Yields"));
+        int count = json.has("yields") && json.get("yields").isJsonArray() ? json.getAsJsonArray("yields").size() : 0;
+        for (int i = 0; i < count; i++) {
+            fields.add(Field.server("yields." + i + ".item", "  #" + (i + 1) + " item", Kind.TEXT, 0, 0, 0,
+                    "minecraft:stone"));
+            fields.add(Field.server("yields." + i + ".min", "  #" + (i + 1) + " min", Kind.NUMBER, 1, 256, 1, 1.0));
+            fields.add(Field.server("yields." + i + ".max", "  #" + (i + 1) + " max", Kind.NUMBER, 1, 256, 1, 1.0));
+            fields.add(Field.server("yields." + i + ".chance", "  #" + (i + 1) + " chance", Kind.NUMBER, 0, 1, 0.05,
+                    1.0));
+        }
+        fields.add(Field.button("yield+", "Add a yield"));
+        if (count > 0) fields.add(Field.button("yield-", "Remove the last yield"));
     }
 
     // ------------------------------------------------------------------ values
@@ -129,10 +195,27 @@ public final class ContinuumTunerScreen extends Screen {
     private JsonElement read(Field field) {
         JsonElement cursor = ContinuumTuner.merged(body().id());
         for (String part : field.path().split("[.]")) {
-            if (cursor == null || !cursor.isJsonObject()) return null;
-            cursor = cursor.getAsJsonObject().get(part);
+            if (cursor == null) return null;
+            if (cursor.isJsonObject()) {
+                cursor = cursor.getAsJsonObject().get(part);
+            } else if (cursor.isJsonArray()) {
+                try {
+                    int index = Integer.parseInt(part);
+                    cursor = index >= 0 && index < cursor.getAsJsonArray().size() ?
+                            cursor.getAsJsonArray().get(index) : null;
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+            } else {
+                return null;
+            }
         }
         return cursor;
+    }
+
+    private String text(Field field) {
+        JsonElement value = read(field);
+        return value != null && value.isJsonPrimitive() ? value.getAsString() : String.valueOf(field.fallback());
     }
 
     private double number(Field field) {
@@ -156,8 +239,65 @@ public final class ContinuumTunerScreen extends Screen {
     }
 
     private void set(Field field, JsonElement value) {
+        if (field.server()) {
+            sendServer(field, value);
+            return;
+        }
         ContinuumTuner.set(body().id(), field.path(), value);
         previewDueAt = System.currentTimeMillis() + 120;
+    }
+
+    private void send(String path, JsonElement value) {
+        net.neoforged.neoforge.network.PacketDistributor.sendToServer(
+                new net.phoenix.continuum.network.C2STunePacket(body().id(), path,
+                        value == null ? "" : value.toString()));
+        status = "Sent to the server.";
+    }
+
+    /** Server edits: an array element is sent as the whole updated array, anything else by its path. */
+    private void sendServer(Field field, JsonElement value) {
+        String[] parts = field.path().split("[.]");
+        if (parts[0].equals("yields") && parts.length == 3) {
+            JsonObject json = ContinuumTuner.merged(body().id());
+            com.google.gson.JsonArray array = json.has("yields") && json.get("yields").isJsonArray() ?
+                    json.getAsJsonArray("yields").deepCopy() : new com.google.gson.JsonArray();
+            int index = Integer.parseInt(parts[1]);
+            if (index < array.size() && array.get(index).isJsonObject()) {
+                array.get(index).getAsJsonObject().add(parts[2], value);
+                send("yields", array);
+            }
+            return;
+        }
+        send(field.path(), value);
+    }
+
+    private void editYields(boolean add) {
+        JsonObject json = ContinuumTuner.merged(body().id());
+        com.google.gson.JsonArray array = json.has("yields") && json.get("yields").isJsonArray() ?
+                json.getAsJsonArray("yields").deepCopy() : new com.google.gson.JsonArray();
+        if (add) {
+            JsonObject entry = new JsonObject();
+            entry.addProperty("item", "minecraft:iron_ingot");
+            entry.addProperty("min", 1);
+            entry.addProperty("max", 4);
+            entry.addProperty("chance", 1.0);
+            array.add(entry);
+        } else if (array.size() > 0) {
+            array.remove(array.size() - 1);
+        }
+        send("yields", array);
+    }
+
+    private void pushVisual() {
+        var leaves = ContinuumTuner.leaves(body().id());
+        if (leaves.isEmpty()) {
+            status = "No visual edits to push.";
+            return;
+        }
+        leaves.forEach(this::send);
+        ContinuumTuner.reset(body().id());
+        SurfaceMap.invalidate(body().id());
+        status = "Pushed " + leaves.size() + " edit(s).";
     }
 
     private void setNumber(Field field, double value) {
@@ -224,9 +364,32 @@ public final class ContinuumTunerScreen extends Screen {
             int y = top() + i * ROW;
             boolean hover = mx >= x && mx < x + LIST_W && my >= y && my < y + ROW;
             if (hover) g.fill(x, y, x + LIST_W, y + ROW, 0x20FFFFFF);
-            g.drawString(font, font.plainSubstrByWidth(field.label(), 150), x + 4, y + 4, 0xFFAEBBCF, false);
+            if (field.kind() == Kind.HEADER) {
+                g.fill(x, y, x + LIST_W, y + ROW, 0x30406080);
+                g.drawString(font, font.plainSubstrByWidth(field.label(), LIST_W - 8), x + 4, y + 4, 0xFFFFD080, false);
+                continue;
+            }
+            if (field.kind() == Kind.BUTTON) {
+                button(g, mx, my, x + 4, y + 1, LIST_W - 8, field.label(), field, "button");
+                continue;
+            }
+            g.drawString(font, font.plainSubstrByWidth(field.label(), 150), x + 4, y + 4,
+                    field.server() ? 0xFFD8C890 : 0xFFAEBBCF, false);
 
             int vx = x + 160;
+            switch (field.kind()) {
+                case TEXT -> {
+                    String value = text(field);
+                    g.drawString(font, font.plainSubstrByWidth(value, LIST_W - 170), vx, y + 4, 0xFFFFFFFF, false);
+                    hit(g, mx, my, vx, y + 1, LIST_W - 164, 13, field, "edit");
+                }
+                case CHOICE -> {
+                    g.fill(vx, y + 2, vx + 90, y + 13, 0xFF263040);
+                    g.drawCenteredString(font, text(field), vx + 45, y + 4, 0xFFFFFFFF);
+                    hit(g, mx, my, vx, y + 1, 90, 13, field, "cycle");
+                }
+                default -> {}
+            }
             switch (field.kind()) {
                 case NUMBER -> {
                     double value = number(field);
@@ -270,12 +433,13 @@ public final class ContinuumTunerScreen extends Screen {
             g.drawCenteredString(font, "see the Continuum map", px + 100, top() + 46, 0xFF7F8A99);
         }
         action(g, mx, my, px, top() + 112, 200, "Export definition", "export");
-        action(g, mx, my, px, top() + 132, 200, "Reset this body", "reset");
-        action(g, mx, my, px, top() + 152, 200, "Close", "close");
-        g.drawString(font, "Only this client changes.", px, top() + 176, 0xFF7F8A99, false);
-        g.drawString(font, "Export, then put the file in", px, top() + 188, 0xFF7F8A99, false);
-        g.drawString(font, "config/phoenix_continuum/pack/", px, top() + 198, 0xFF7F8A99, false);
-        if (!status.isEmpty()) g.drawString(font, font.plainSubstrByWidth(status, 200), px, top() + 214, 0xFF66DDFF, false);
+        action(g, mx, my, px, top() + 132, 200, "Reset local edits", "reset");
+        action(g, mx, my, px, top() + 152, 200, "Reset server edits", "resetServer");
+        action(g, mx, my, px, top() + 172, 200, "Close", "close");
+        g.drawString(font, "Visual edits: this client only", px, top() + 196, 0xFF7F8A99, false);
+        g.drawString(font, "until pushed. Gold rows go to the", px, top() + 206, 0xFF7F8A99, false);
+        g.drawString(font, "server and are saved as patches.", px, top() + 216, 0xFF7F8A99, false);
+        if (!status.isEmpty()) g.drawString(font, font.plainSubstrByWidth(status, 200), px, top() + 232, 0xFF66DDFF, false);
 
         super.render(g, mx, my, partialTick);
     }
@@ -338,6 +502,18 @@ public final class ContinuumTunerScreen extends Screen {
                 case "inc" -> setNumber(field, number(field) + field.step() * (hasShiftDown() ? 10 : 1));
                 case "bar" -> setNumber(field, field.min() + (mx - x) / (double) (int) h[4] * (field.max() - field.min()));
                 case "toggle" -> set(field, new JsonPrimitive(!bool(field)));
+                case "cycle" -> {
+                    int next = (field.choices().indexOf(text(field)) + 1) % field.choices().size();
+                    set(field, new JsonPrimitive(field.choices().get(next)));
+                }
+                case "button" -> {
+                    switch (field.path()) {
+                        case "push" -> pushVisual();
+                        case "yield+" -> editYields(true);
+                        case "yield-" -> editYields(false);
+                        default -> {}
+                    }
+                }
                 case "edit" -> beginEdit(field, x, y);
                 default -> {}
             }
@@ -372,7 +548,10 @@ public final class ContinuumTunerScreen extends Screen {
         editing = field;
         editor.setX(x);
         editor.setY(y);
-        editor.setValue(field.kind() == Kind.COLOR ? color(field) : String.valueOf(number(field)));
+        editor.setMaxLength(field.kind() == Kind.TEXT ? 120 : 12);
+        editor.setWidth(field.kind() == Kind.TEXT ? LIST_W - 164 : 90);
+        editor.setValue(field.kind() == Kind.COLOR ? color(field) : field.kind() == Kind.TEXT ? text(field) :
+                String.valueOf(number(field)));
         editor.setVisible(true);
         setFocused(editor);
         editor.setFocused(true);
@@ -382,7 +561,9 @@ public final class ContinuumTunerScreen extends Screen {
         if (editing == null || !editor.isVisible()) return;
         String text = editor.getValue().trim();
         try {
-            if (editing.kind() == Kind.COLOR) {
+            if (editing.kind() == Kind.TEXT) {
+                set(editing, new JsonPrimitive(text));
+            } else if (editing.kind() == Kind.COLOR) {
                 String clean = text.startsWith("#") ? text.substring(1) : text;
                 if (clean.length() == 6) {
                     Integer.parseInt(clean, 16);
@@ -425,6 +606,11 @@ public final class ContinuumTunerScreen extends Screen {
                 status = "Reset.";
             }
             case "export" -> export();
+            case "resetServer" -> {
+                net.neoforged.neoforge.network.PacketDistributor.sendToServer(
+                        net.phoenix.continuum.network.C2STunePacket.reset(body().id()));
+                status = "Asked the server to remove its edits.";
+            }
             default -> {}
         }
     }

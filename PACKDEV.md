@@ -130,3 +130,9 @@ Built: a KubeJS plugin (compile-only dependency; loaded only when KubeJS is inst
 Built: the live tuner, `/continuum tune [body]` (client command; operators or the single-player owner). It edits a
 body's visual parameters on this client only, shows a surface preview, and exports the merged definition to
 `config/phoenix_continuum/tuner_export/` and the clipboard, ready to drop into the pack folder.
+
+The tuner now also edits server-side fields for operators (name, description, trip minutes, starting stage, rocket tier
+needed, orbit, personal dimension cost, and the yield list), plus a "push visual edits" button that sends the local
+visual edits to the server. Server edits are saved as small patch files in `config/phoenix_continuum/tuning/<ns>/`
+(only the changed keys), merged over the resolved definition on every load and re-synced to everyone at once. Deleting a
+patch, or "Reset server edits", puts the body back; the original definition files are never modified.

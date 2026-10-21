@@ -47,6 +47,22 @@ public final class ContinuumTuner {
         apply(id);
     }
 
+    /** Every tweaked leaf as a dotted path and value, for sending to the server. */
+    public static Map<String, JsonElement> leaves(ResourceLocation id) {
+        Map<String, JsonElement> out = new java.util.LinkedHashMap<>();
+        JsonObject tweaks = TWEAKS.get(id);
+        if (tweaks != null) collect("", tweaks, out);
+        return out;
+    }
+
+    private static void collect(String prefix, JsonObject json, Map<String, JsonElement> out) {
+        for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
+            String path = prefix.isEmpty() ? entry.getKey() : prefix + "." + entry.getKey();
+            if (entry.getValue().isJsonObject()) collect(path, entry.getValue().getAsJsonObject(), out);
+            else out.put(path, entry.getValue());
+        }
+    }
+
     public static void reset(ResourceLocation id) {
         TWEAKS.remove(id);
         apply(id);
