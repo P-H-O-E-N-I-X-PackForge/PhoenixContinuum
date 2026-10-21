@@ -112,11 +112,11 @@ public final class PdimActions {
 
     /** Changes the gravity and sky clock of a dimension the player already has. */
     public static @Nullable String adjust(ServerPlayer player, ResourceLocation bodyId, float gravity, float daySpeed,
-                                          float lockedTime, boolean orbitView) {
+                                          float lockedTime, boolean orbitView, boolean fixedSky) {
         var changed = PdimData.get(player.server).update(player.getUUID(), bodyId,
                 e -> new PdimData.Entry(PdimDimensions.clampGravity(gravity), e.plot(),
                         PdimDimensions.clampDaySpeed(daySpeed), lockedTime < 0 ? -1.0f : lockedTime % 24000.0f,
-                        orbitView));
+                        orbitView, fixedSky));
         if (changed == null) return "You have no personal dimension there.";
         sendState(player);
         return null;
@@ -130,6 +130,7 @@ public final class PdimActions {
         float daySpeed = 1.0f;
         float lockedTime = -1.0f;
         boolean orbitView = false;
+        boolean fixedSky = false;
         ResourceLocation here = PdimDimensions.bodyOf(player.level().dimension());
         if (here != null) {
             PdimData.Entry entry = data.entry(player.getUUID(), here);
@@ -138,13 +139,14 @@ public final class PdimActions {
                 daySpeed = entry.daySpeed();
                 lockedTime = entry.lockedTime();
                 orbitView = entry.orbitView();
+                fixedSky = entry.fixedSky();
             }
         }
         Map<ResourceLocation, PdimCosts.Cost> costs = new HashMap<>();
         for (ContinuumBody body : ContinuumData.allBodies()) costs.put(body.id(), PdimCosts.costFor(body));
         boolean everyVisit = PdimCosts.charges(true);
 
-        PacketDistributor.sendToPlayer(player, new S2CPdimStatePacket(here != null, gravity, daySpeed, lockedTime, orbitView, mine, costs, everyVisit));
+        PacketDistributor.sendToPlayer(player, new S2CPdimStatePacket(here != null, gravity, daySpeed, lockedTime, orbitView, fixedSky, mine, costs, everyVisit));
     }
 
     public static boolean isIn(Level level) {

@@ -140,7 +140,18 @@ public final class ContinuumData {
                 optionalId(gate, "surveyed_research"),
                 parseHole(GsonHelper.getAsJsonObject(json, "hole", new JsonObject())),
                 json.has("visibility") && json.get("visibility").isJsonObject() ?
-                        json.getAsJsonObject("visibility") : null);
+                        json.getAsJsonObject("visibility") : null,
+                parseCompanion(json));
+    }
+
+    private static ContinuumSystem.Companion parseCompanion(JsonObject json) {
+        if (!json.has("companion") || !json.get("companion").isJsonObject()) return null;
+        JsonObject c = json.getAsJsonObject("companion");
+        return new ContinuumSystem.Companion(GsonHelper.getAsString(c, "kind", "star"), color(c, "color", 0xffd9a0),
+                Math.max(0.1f, GsonHelper.getAsFloat(c, "radius", 0.8f)),
+                Math.max(1.5f, GsonHelper.getAsFloat(c, "separation", 8.0f)),
+                Math.max(0.1f, Math.min(1.0f, GsonHelper.getAsFloat(c, "mass_ratio", 0.8f))),
+                Math.max(2.0f, GsonHelper.getAsFloat(c, "period_seconds", 40.0f)));
     }
 
     private static ContinuumSystem.HoleStyle parseHole(JsonObject hole) {

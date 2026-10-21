@@ -435,6 +435,10 @@ public final class SceneRenderer {
     public static void drawSystemStar(net.phoenix.continuum.data.ContinuumSystem system, int color,
                                       Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
                                       PlanetRenderer.Quality quality, boolean sky) {
+        if (system != null && system.companion() != null) {
+            drawDualStar(system, color, view, projection, worldPos, radius, quality, sky);
+            return;
+        }
         if (system != null && system.isWolfRayet()) {
             drawWolfRayet(color, view, projection, worldPos, radius, quality, sky);
         } else if (system != null && system.isPulsar()) {
@@ -451,6 +455,35 @@ public final class SceneRenderer {
         } else {
             drawStar(color, false, view, projection, worldPos, radius, quality,
                     system != null ? system.starStyle() : 0);
+        }
+    }
+
+    /**
+     * Two stars orbiting their common centre, each drawn as its own kind (so one can be swarmed and the other shut in a
+     * sphere). The lighter star orbits further out, and they pass in front of each other as they go round. The pair
+     * orbits in the XZ plane like everything else in a system; in a skybox they are pulled closer together so the pair
+     * stays a pair.
+     */
+    private static void drawDualStar(net.phoenix.continuum.data.ContinuumSystem system, int color, Matrix4f view,
+                                     Matrix4f projection, Vector3f worldPos, float radius,
+                                     PlanetRenderer.Quality quality, boolean sky) {
+        var c = system.companion();
+        float q = c.massRatio();
+        float sep = (sky ? Math.min(c.separation(), 3.0f) : c.separation()) * radius;
+        double phase = 2.0 * Math.PI * (time() / Math.max(c.periodSeconds(), 1.0f));
+        Vector3f u = new Vector3f((float) Math.cos(phase), 0.0f, (float) Math.sin(phase));
+        Vector3f p1 = new Vector3f(worldPos).fma(-q / (1.0f + q) * sep, u);
+        Vector3f p2 = new Vector3f(worldPos).fma(1.0f / (1.0f + q) * sep, u);
+        float r1 = radius;
+        float r2 = radius * c.radius();
+        var first = system.withStar(system.starKind(), color);
+        var second = system.withStar(c.kind(), c.color());
+
+        boolean firstIsFarther = view.transformPosition(new Vector3f(p1)).z < view.transformPosition(new Vector3f(p2)).z;
+        for (int pass = 0; pass < 2; pass++) {
+            boolean one = (pass == 0) == firstIsFarther;
+            drawSystemStar(one ? first : second, one ? color : c.color(), view, projection, one ? p1 : p2,
+                    one ? r1 : r2, quality, sky);
         }
     }
 

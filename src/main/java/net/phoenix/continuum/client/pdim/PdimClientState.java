@@ -16,11 +16,12 @@ public final class PdimClientState {
     private static float daySpeed = 1.0f;
     private static float lockedTime = -1.0f;
     private static boolean orbitView;
+    private static boolean fixedSky;
     private static Map<ResourceLocation, net.phoenix.continuum.pdim.PdimData.Entry> mine = Map.of();
     private static Map<ResourceLocation, net.phoenix.continuum.pdim.PdimCosts.Cost> costs = Map.of();
     private static boolean everyVisit = true;
 
-    public static void accept(boolean insideNow, float gravityNow, float daySpeedNow, float lockedTimeNow, boolean orbitViewNow,
+    public static void accept(boolean insideNow, float gravityNow, float daySpeedNow, float lockedTimeNow, boolean orbitViewNow, boolean fixedSkyNow,
                               Map<ResourceLocation, net.phoenix.continuum.pdim.PdimData.Entry> dimensions,
                               Map<ResourceLocation, net.phoenix.continuum.pdim.PdimCosts.Cost> costMap,
                               boolean chargesEveryVisit) {
@@ -29,6 +30,7 @@ public final class PdimClientState {
         daySpeed = daySpeedNow;
         lockedTime = lockedTimeNow;
         orbitView = orbitViewNow;
+        fixedSky = fixedSkyNow;
         mine = new HashMap<>(dimensions);
         costs = new HashMap<>(costMap);
         everyVisit = chargesEveryVisit;
@@ -58,6 +60,11 @@ public final class PdimClientState {
     /** True when the sky shows the world from orbit (the planet itself in the sky) instead of from its surface. */
     public static boolean orbitView() {
         return orbitView;
+    }
+
+    /** True when the other worlds of the system stay put in the sky and are always shown, instead of turning with the day. */
+    public static boolean fixedSky() {
+        return fixedSky;
     }
 
     public static float gravity() {

@@ -21,7 +21,13 @@ public class PdimData extends SavedData {
      * @param daySpeed   how fast the sky clock runs in this dimension (1 = normal)
      * @param lockedTime a fixed time of day in ticks (0..24000), or a negative number for none
      */
-    public record Entry(float gravity, int plot, float daySpeed, float lockedTime, boolean orbitView) {
+    public record Entry(float gravity, int plot, float daySpeed, float lockedTime, boolean orbitView,
+                         boolean fixedSky) {
+
+        public Entry(float gravity, int plot, float daySpeed, float lockedTime, boolean orbitView) {
+            this(gravity, plot, daySpeed, lockedTime, orbitView, false);
+        }
+
 
         public Entry(float gravity, int plot) {
             this(gravity, plot, 1.0f, -1.0f, false);
@@ -107,6 +113,7 @@ public class PdimData extends SavedData {
                 e.putFloat("DaySpeed", entry.getValue().daySpeed());
                 e.putFloat("LockedTime", entry.getValue().lockedTime());
                 e.putBoolean("OrbitView", entry.getValue().orbitView());
+                e.putBoolean("FixedSky", entry.getValue().fixedSky());
                 list.add(e);
             }
             playerTag.put("Entries", list);
@@ -146,7 +153,7 @@ public class PdimData extends SavedData {
                         new Entry(entry.getFloat("Gravity"), entry.getInt("Plot"),
                                 entry.contains("DaySpeed") ? entry.getFloat("DaySpeed") : 1.0f,
                                 entry.contains("LockedTime") ? entry.getFloat("LockedTime") : -1.0f,
-                                entry.getBoolean("OrbitView")));
+                                entry.getBoolean("OrbitView"), entry.getBoolean("FixedSky")));
             }
             data.entries.put(playerTag.getUUID("Player"), map);
         }

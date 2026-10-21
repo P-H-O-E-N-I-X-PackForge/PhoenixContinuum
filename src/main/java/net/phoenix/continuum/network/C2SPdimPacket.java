@@ -35,6 +35,7 @@ public class C2SPdimPacket implements CustomPacketPayload {
     private final float daySpeed;
     private final float lockedTime;
     private final boolean orbitView;
+    private final boolean fixedSky;
 
     public C2SPdimPacket(Action action, ResourceLocation body, float gravity, boolean orbitView) {
         this(action, body, gravity, 1.0f, -1.0f, orbitView);
@@ -42,7 +43,13 @@ public class C2SPdimPacket implements CustomPacketPayload {
 
     public C2SPdimPacket(Action action, ResourceLocation body, float gravity, float daySpeed, float lockedTime,
                          boolean orbitView) {
+        this(action, body, gravity, daySpeed, lockedTime, orbitView, false);
+    }
+
+    public C2SPdimPacket(Action action, ResourceLocation body, float gravity, float daySpeed, float lockedTime,
+                         boolean orbitView, boolean fixedSky) {
         this.orbitView = orbitView;
+        this.fixedSky = fixedSky;
         this.action = action;
         this.body = body;
         this.gravity = gravity;
@@ -57,6 +64,7 @@ public class C2SPdimPacket implements CustomPacketPayload {
         this.daySpeed = buf.readFloat();
         this.lockedTime = buf.readFloat();
         this.orbitView = buf.readBoolean();
+        this.fixedSky = buf.readBoolean();
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -66,6 +74,7 @@ public class C2SPdimPacket implements CustomPacketPayload {
         buf.writeFloat(daySpeed);
         buf.writeFloat(lockedTime);
         buf.writeBoolean(orbitView);
+        buf.writeBoolean(fixedSky);
     }
 
     public static void handle(C2SPdimPacket msg, IPayloadContext ctx) {
@@ -77,12 +86,13 @@ public class C2SPdimPacket implements CustomPacketPayload {
                 case LEAVE -> PdimActions.leave(player);
                 case DELETE -> PdimActions.delete(player, msg.body) ? null : "You have no personal dimension there.";
                 case ADJUST -> PdimActions.adjust(player, msg.body, msg.gravity, msg.daySpeed, msg.lockedTime,
-                        msg.orbitView);
+                        msg.orbitView, msg.fixedSky);
                 default -> {
                     String made = PdimActions.createAndEnter(player, msg.body, msg.gravity, msg.orbitView);
                     // the sky clock chosen on the create screen
-                    if (made == null && (msg.daySpeed != 1.0f || msg.lockedTime >= 0.0f)) {
-                        PdimActions.adjust(player, msg.body, msg.gravity, msg.daySpeed, msg.lockedTime, msg.orbitView);
+                    if (made == null && (msg.daySpeed != 1.0f || msg.lockedTime >= 0.0f || msg.fixedSky)) {
+                        PdimActions.adjust(player, msg.body, msg.gravity, msg.daySpeed, msg.lockedTime, msg.orbitView,
+                                msg.fixedSky);
                     }
                     yield made;
                 }

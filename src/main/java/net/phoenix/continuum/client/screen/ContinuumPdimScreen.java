@@ -48,6 +48,7 @@ public class ContinuumPdimScreen extends Screen {
     private float pendSpeed = 1.0f;
     private float pendLocked = -1.0f;
     private boolean pendOrbit;
+    private boolean pendFixed;
 
     public ContinuumPdimScreen(Screen parent, ContinuumBody body) {
         super(Component.literal("Personal dimension"));
@@ -91,6 +92,11 @@ public class ContinuumPdimScreen extends Screen {
     private boolean orbit() {
         var e = existing();
         return e != null ? e.orbitView() : pendOrbit;
+    }
+
+    private boolean fixed() {
+        var e = existing();
+        return e != null ? e.fixedSky() : pendFixed;
     }
 
     private static String clock(float tick) {
@@ -169,6 +175,11 @@ public class ContinuumPdimScreen extends Screen {
         button(g, x + 10, ty, W - 20, orbit() ? "Sky: seen from orbit  (click for the surface)" :
                 "Sky: as if you stand on it  (click for orbit)", "sky", true, false, mx, my);
 
+        ty += 22;
+        button(g, x + 10, ty, W - 20, orbit() ? "Orbiting worlds: not shown (the sky is the view from orbit)" :
+                fixed() ? "Orbiting worlds: always in the sky, fixed  (click: follow the day)" :
+                        "Orbiting worlds: follow the day  (click: always in the sky)", "fixed", !orbit(), fixed(), mx, my);
+
         costLine(g, x + 10, y + H - 80, charged, cost, have, canPay);
         button(g, x + 10, y + H - 66, W - 20, exists ? "Enter" : "Create and enter", exists ? "enter" : "create", canPay,
                 false, mx, my);
@@ -223,7 +234,7 @@ public class ContinuumPdimScreen extends Screen {
     }
 
     /** Applies a change: held on the screen until the dimension exists, sent to the server once it does. */
-    private void apply(float gravity, float speed, float locked, boolean orbit) {
+    private void apply(float gravity, float speed, float locked, boolean orbit, boolean fixed) {
         gravity = PdimDimensions.clampGravity(Math.round(gravity * 100f) / 100f);
         speed = PdimDimensions.clampDaySpeed(speed);
         if (existing() == null) {
@@ -231,9 +242,10 @@ public class ContinuumPdimScreen extends Screen {
             pendSpeed = speed;
             pendLocked = locked;
             pendOrbit = orbit;
+            pendFixed = fixed;
         } else {
             PacketDistributor.sendToServer(
-                    new C2SPdimPacket(C2SPdimPacket.Action.ADJUST, body.id(), gravity, speed, locked, orbit));
+                    new C2SPdimPacket(C2SPdimPacket.Action.ADJUST, body.id(), gravity, speed, locked, orbit, fixed));
         }
     }
 
@@ -250,22 +262,24 @@ public class ContinuumPdimScreen extends Screen {
                 float speed = speed();
                 float locked = locked();
                 boolean orbit = orbit();
+                boolean fixed = fixed();
                 float step = hasShiftDown() ? 0.5f : hasControlDown() ? 0.01f : 0.1f;
                 float factor = hasShiftDown() ? 2.0f : 1.25f;
                 switch (id) {
-                    case "g-" -> apply(gravity - step, speed, locked, orbit);
-                    case "g+" -> apply(gravity + step, speed, locked, orbit);
-                    case "s-" -> apply(gravity, speed / factor, -1.0f, orbit);
-                    case "s+" -> apply(gravity, speed * factor, -1.0f, orbit);
-                    case "lock0" -> apply(gravity, speed, 0.0f, orbit);
-                    case "lock1" -> apply(gravity, speed, 6000.0f, orbit);
-                    case "lock2" -> apply(gravity, speed, 12000.0f, orbit);
-                    case "lock3" -> apply(gravity, speed, 18000.0f, orbit);
-                    case "unlock" -> apply(gravity, speed, -1.0f, orbit);
-                    case "sky" -> apply(gravity, speed, locked, !orbit);
+                    case "g-" -> apply(gravity - step, speed, locked, orbit, fixed);
+                    case "g+" -> apply(gravity + step, speed, locked, orbit, fixed);
+                    case "s-" -> apply(gravity, speed / factor, -1.0f, orbit, fixed);
+                    case "s+" -> apply(gravity, speed * factor, -1.0f, orbit, fixed);
+                    case "lock0" -> apply(gravity, speed, 0.0f, orbit, fixed);
+                    case "lock1" -> apply(gravity, speed, 6000.0f, orbit, fixed);
+                    case "lock2" -> apply(gravity, speed, 12000.0f, orbit, fixed);
+                    case "lock3" -> apply(gravity, speed, 18000.0f, orbit, fixed);
+                    case "unlock" -> apply(gravity, speed, -1.0f, orbit, fixed);
+                    case "sky" -> apply(gravity, speed, locked, !orbit, fixed);
+                    case "fixed" -> apply(gravity, speed, locked, orbit, !fixed);
                     case "create", "enter" -> {
                         PacketDistributor.sendToServer(new C2SPdimPacket(C2SPdimPacket.Action.ENTER, body.id(), gravity,
-                                speed, locked, orbit));
+                                speed, locked, orbit, fixed));
                         Minecraft.getInstance().setScreen(null);
                     }
                     case "leave" -> {
@@ -278,7 +292,7 @@ public class ContinuumPdimScreen extends Screen {
                     case "close" -> onClose();
                     default -> {
                         if (id.startsWith("preset")) {
-                            apply(presets.get(Integer.parseInt(id.substring(6))).gravity(), speed, locked, orbit);
+                            apply(presets.get(Integer.parseInt(id.substring(6))).gravity(), speed, locked, orbit, fixed);
                         } else {
                             onClose();
                         }

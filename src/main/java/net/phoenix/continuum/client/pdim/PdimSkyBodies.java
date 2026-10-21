@@ -45,6 +45,7 @@ final class PdimSkyBodies {
         Vector3f normal = new Vector3f(0.0f, (float) Math.sin(lat), (float) Math.cos(lat));
 
         // where the sun is on its daily circle: the angle every other body is measured from
+        boolean fixed = PdimClientState.fixedSky();
         double thetaSun = Math.atan2(sample.sunDir().dot(e2), sample.sunDir().dot(e1));
         double days = (level.getGameTime() + (double) partialTick) / 24000.0;
 
@@ -56,7 +57,8 @@ final class PdimSkyBodies {
         // The world under your feet blocks what is below the horizon, and if it has rings they arc across the sky.
         float unit = 40.0f;
         Vector3f center = new Vector3f(0.0f, -unit, 0.0f);
-        SceneRenderer.drawHorizonOccluder(view, projection, center, unit * 0.985f);
+        // (the planet under your feet is not drawn, so nothing is hidden below the horizon: a ring or a world that dips
+        // under it keeps going instead of being cut off)
         if (!self.isMoon() && self.params().ring() != null) {
             SceneRenderer.drawSkyRing(self.params(), view, projection, center, unit, sample.sunDir(), normal);
         }
@@ -94,6 +96,12 @@ final class PdimSkyBodies {
             double seed = other.params().seed();
             double inclination = 0.32 * Math.sin(seed * 12.9898) + 0.12 * Math.sin(seed * 78.233 + other.orbitAu());
             double angle = thetaSun + (bearing - sunBearing);
+            if (fixed) {
+                // pinned to the sky and always shown: spread along the upper arc in the order they orbit the star
+                double frac = ((bearing - sunBearing) / (2.0 * Math.PI)) % 1.0;
+                if (frac < 0.0) frac += 1.0;
+                angle = Math.PI * (0.10 + 0.80 * frac);
+            }
             Vector3f direction = ecliptic(e1, e2, normal, angle, inclination);
             // never sit on the star, or a ringed world reads as the star having rings: slide it off to a clear gap
             double side = inclination >= 0.0 ? 1.0 : -1.0;

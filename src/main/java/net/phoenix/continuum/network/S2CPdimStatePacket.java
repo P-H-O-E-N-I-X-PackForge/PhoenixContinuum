@@ -29,12 +29,13 @@ public class S2CPdimStatePacket implements CustomPacketPayload {
     private final float daySpeed;
     private final float lockedTime;
     private final boolean orbitView;
+    private final boolean fixedSky;
     private final Map<ResourceLocation, net.phoenix.continuum.pdim.PdimData.Entry> mine;
     private final Map<ResourceLocation, net.phoenix.continuum.pdim.PdimCosts.Cost> costs;
     private final boolean everyVisit;
 
     public S2CPdimStatePacket(boolean inside, float gravity, float daySpeed, float lockedTime,
-                              boolean orbitView, Map<ResourceLocation, net.phoenix.continuum.pdim.PdimData.Entry> mine,
+                              boolean orbitView, boolean fixedSky, Map<ResourceLocation, net.phoenix.continuum.pdim.PdimData.Entry> mine,
                               Map<ResourceLocation, net.phoenix.continuum.pdim.PdimCosts.Cost> costs,
                               boolean everyVisit) {
         this.inside = inside;
@@ -42,6 +43,7 @@ public class S2CPdimStatePacket implements CustomPacketPayload {
         this.daySpeed = daySpeed;
         this.lockedTime = lockedTime;
         this.orbitView = orbitView;
+        this.fixedSky = fixedSky;
         this.mine = mine;
         this.costs = costs;
         this.everyVisit = everyVisit;
@@ -53,6 +55,7 @@ public class S2CPdimStatePacket implements CustomPacketPayload {
         this.daySpeed = buf.readFloat();
         this.lockedTime = buf.readFloat();
         this.orbitView = buf.readBoolean();
+        this.fixedSky = buf.readBoolean();
         int count = buf.readVarInt();
         this.mine = new HashMap<>();
         for (int i = 0; i < count; i++) {
@@ -60,7 +63,8 @@ public class S2CPdimStatePacket implements CustomPacketPayload {
             float g = buf.readFloat();
             float speed = buf.readFloat();
             float locked = buf.readFloat();
-            mine.put(body, new net.phoenix.continuum.pdim.PdimData.Entry(g, 0, speed, locked, buf.readBoolean()));
+            boolean orbit = buf.readBoolean();
+            mine.put(body, new net.phoenix.continuum.pdim.PdimData.Entry(g, 0, speed, locked, orbit, buf.readBoolean()));
         }
         int costCount = buf.readVarInt();
         this.costs = new HashMap<>();
@@ -78,6 +82,7 @@ public class S2CPdimStatePacket implements CustomPacketPayload {
         buf.writeFloat(daySpeed);
         buf.writeFloat(lockedTime);
         buf.writeBoolean(orbitView);
+        buf.writeBoolean(fixedSky);
         buf.writeVarInt(mine.size());
         mine.forEach((body, e) -> {
             buf.writeResourceLocation(body);
@@ -85,6 +90,7 @@ public class S2CPdimStatePacket implements CustomPacketPayload {
             buf.writeFloat(e.daySpeed());
             buf.writeFloat(e.lockedTime());
             buf.writeBoolean(e.orbitView());
+            buf.writeBoolean(e.fixedSky());
         });
         buf.writeVarInt(costs.size());
         costs.forEach((body, cost) -> {
@@ -98,7 +104,7 @@ public class S2CPdimStatePacket implements CustomPacketPayload {
     public static void handle(S2CPdimStatePacket msg, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             if (FMLEnvironment.dist.isClient())
-                PdimClientState.accept(msg.inside, msg.gravity, msg.daySpeed, msg.lockedTime, msg.orbitView, msg.mine, msg.costs, msg.everyVisit);
+                PdimClientState.accept(msg.inside, msg.gravity, msg.daySpeed, msg.lockedTime, msg.orbitView, msg.fixedSky, msg.mine, msg.costs, msg.everyVisit);
         });
     }
 }
