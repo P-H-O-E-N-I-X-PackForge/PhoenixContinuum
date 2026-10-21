@@ -376,6 +376,8 @@ public final class SceneRenderer {
             drawPulsar(color, view, projection, worldPos, radius, quality, sky);
         } else if (system != null && system.isPlanetaryNebula()) {
             drawPlanetaryNebula(color, view, projection, worldPos, radius, quality, sky);
+        } else if (system != null && system.isMegastructure()) {
+            drawMegastructure(color, view, projection, worldPos, radius, quality, sky);
         } else if (system != null && system.isProtostar()) {
             drawProtostar(color, view, projection, worldPos, radius, quality, sky,
                     sky ? null : orbitGaps(system, radius));
@@ -459,6 +461,54 @@ public final class SceneRenderer {
         RenderSystem.enableDepthTest();
         RenderSystem.disableBlend();
         RenderSystem.defaultBlendFunc();
+    }
+
+    /** The plane of the system as a normal in view space, or the sky's own disk plane in a skybox. */
+    private static Vector3f planeNormal(Matrix4f view, Vector3f worldPos, boolean sky) {
+        Vector3f normal = view.transformDirection(new Vector3f(0.0f, 1.0f, 0.0f));
+        if (sky) {
+            Vector3f nW = skyDiskWorldNormal(worldPos);
+            if (nW != null) {
+                org.joml.Matrix3f axes = skyAxes(worldPos);
+                normal = new Vector3f(nW.dot(axes.getColumn(0, new Vector3f())),
+                        nW.dot(axes.getColumn(1, new Vector3f())), nW.dot(axes.getColumn(2, new Vector3f())));
+            }
+        }
+        return normal;
+    }
+
+    /**
+     * A star wrapped in a megastructure: tilted rings of reflective panels, a bright rim where they face the star, and
+     * shafts of its light leaking out through the gaps. The first ring lies in the system's orbital plane.
+     */
+    public static void drawMegastructure(int rgb, Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
+                                         PlanetRenderer.Quality quality, boolean sky) {
+        drawHotBody(rgb, 0.15f, view, projection, worldPos, radius, quality);
+        final Vector3f normal = planeNormal(view, worldPos, sky);
+        drawStarFx(ContinuumShaders.MEGASTRUCTURE, rgb, 16.0f, view, projection, worldPos, radius, quality, sky,
+                s -> s.safeGetUniform("DiskNormal").set(normal.x, normal.y, normal.z));
+    }
+
+    /**
+     * A star being shredded by the black hole at {@code holePos}: the star at {@code starWorld} (and where it will be a
+     * moment later, so the stream winds the way it is moving), a spiral of gas falling in, and the ring round the hole
+     * flaring as the debris arrives. Drawn in the system's orbital plane; {@code progress} runs 0..1 over the event.
+     */
+    public static void drawTidalDisruption(int rgb, float progress, Vector3f starWorld, Vector3f starNextWorld,
+                                           Matrix4f view, Matrix4f projection, Vector3f holePos, float radius,
+                                           PlanetRenderer.Quality quality) {
+        float unit = Math.max(radius, 1.0e-3f);
+        Vector3f hole = view.transformPosition(new Vector3f(holePos));
+        Vector3f a = view.transformPosition(new Vector3f(starWorld)).sub(hole).div(unit);
+        Vector3f b = view.transformPosition(new Vector3f(starNextWorld)).sub(hole).div(unit);
+        float reach = Math.max(8.0f, Math.max(a.length(), b.length()) * 1.5f + 4.0f);
+        final Vector3f normal = planeNormal(view, holePos, false);
+        drawStarFx(ContinuumShaders.TIDAL, rgb, reach, view, projection, holePos, radius, quality, false, s -> {
+            s.safeGetUniform("DiskNormal").set(normal.x, normal.y, normal.z);
+            s.safeGetUniform("Progress").set(progress);
+            s.safeGetUniform("StarPos").set(a.x, a.y);
+            s.safeGetUniform("StarNext").set(b.x, b.y);
+        });
     }
 
     /**

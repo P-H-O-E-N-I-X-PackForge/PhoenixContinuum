@@ -31,6 +31,8 @@ public record PlanetParams(
     public static final int STYLE_CHROME = 4;
     public static final int STYLE_SHATTER = 5;
     public static final int STYLE_AURORA = 6;
+    /** Not a planet: a star being torn apart by a black hole. Drawn by the tidal disruption effect, never as a sphere. */
+    public static final int STYLE_TIDAL = 7;
 
     public record Ring(float inner, float outer, int color, int color2, float tiltDeg, float opacity) {}
 
@@ -51,6 +53,7 @@ public record PlanetParams(
             case "chrome" -> STYLE_CHROME;
             case "shatter" -> STYLE_SHATTER;
             case "aurora" -> STYLE_AURORA;
+            case "tidal_disruption", "tidal" -> STYLE_TIDAL;
             default -> STYLE_NONE;
         };
     }

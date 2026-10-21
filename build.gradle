@@ -291,3 +291,25 @@ idea {
         downloadJavadoc = true
     }
 }
+
+// Shader tools: they open a hidden window and talk to the real GPU driver, so they work on a machine with a graphics card.
+tasks.register('checkShaders', JavaExec) {
+    group = 'continuum'
+    description = 'Compiles and links every Continuum shader with the real GPU driver and reports any error.'
+    classpath = sourceSets.test.runtimeClasspath
+    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
+    mainClass = 'net.phoenix.continuum.tools.GlslCheck'
+    args = ["${projectDir}/src/main/resources/assets/phoenix_continuum/shaders/core"]
+    dependsOn 'testClasses'
+}
+
+tasks.register('benchShaders', JavaExec) {
+    group = 'continuum'
+    description = 'Draws each full-quad shader offscreen: writes a PNG of each to build/shader-bench and times it (ms to cover the whole target).'
+    classpath = sourceSets.test.runtimeClasspath
+    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
+    mainClass = 'net.phoenix.continuum.tools.ShaderBench'
+    args = ["${projectDir}/src/main/resources/assets/phoenix_continuum/shaders/core", "${buildDir}/shader-bench",
+            project.findProperty('benchW') ?: '1280', project.findProperty('benchH') ?: '720']
+    dependsOn 'testClasses'
+}

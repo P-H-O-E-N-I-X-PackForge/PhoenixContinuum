@@ -80,16 +80,18 @@ float bnoise(vec3 p) {
         f.z);
 }
 
-float bfbm(vec3 p) {
+float bfbm(vec3 p, float limit) {
     float v = 0.0, a = 0.5;
     for (int i = 0; i < 5; i++) {
-        if (float(i) >= Octaves) break;
+        if (float(i) >= min(Octaves, limit)) break;
         v += a * bnoise(p);
         p = p * 2.03 + vec3(7.3, 5.9, 11.1);
         a *= 0.5;
     }
     return v;
 }
+
+float bfbm(vec3 p) { return bfbm(p, 6.0); }
 
 vec3 backdrop(vec2 uv) {
     vec2 p = (uv * 2.0 - 1.0) * vec2(Aspect, 1.0);
@@ -99,7 +101,7 @@ vec3 backdrop(vec2 uv) {
 
     float drift = Time * 0.0004;
     vec3 q = dir * 1.6 + drift;
-    float warp = bfbm(q + 1.4 * vec3(bfbm(q + 3.1), bfbm(q + 7.7), bfbm(q + 1.3)));
+    float warp = bfbm(q + 1.4 * vec3(bfbm(q + 3.1, 3.0), bfbm(q + 7.7, 3.0), bfbm(q + 1.3, 3.0)));
 
     float haze = 0.30 + 0.70 * smoothstep(0.15, 0.85, warp);
     float filament = pow(smoothstep(0.42, 0.78, warp), 2.0);

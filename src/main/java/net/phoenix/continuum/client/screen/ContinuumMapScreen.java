@@ -353,6 +353,10 @@ public class ContinuumMapScreen extends Screen {
             DiscoveryStage stage = ContinuumClientState.stage(b.id());
             Vector3f pos = bodyPositions.get(b.id());
             if (stage == DiscoveryStage.UNKNOWN || pos == null) continue;
+            if (b.params().style() == PlanetParams.STYLE_TIDAL) {
+                drawTidalEvent(sys, b, view, projection);
+                continue;
+            }
 
             PlanetParams params = stage == DiscoveryStage.SURVEYED ? b.params() : b.params().ghost();
             PlanetRenderer.Quality q = b.isMoon() ? PlanetRenderer.Quality.LOW : quality();
@@ -447,11 +451,9 @@ public class ContinuumMapScreen extends Screen {
 
             var window = b.transientInfo() == null ? null : ContinuumClientState.transientWindow(b.id());
             if (window != null) {
-                float progress = Math.max(0.0f, Math.min(1.0f, (ContinuumClientState.now() - window[0]) /
-                        (float) Math.max(1L, window[1] - window[0])));
-                radius = orbitWorldRadius(b.transientInfo().outerAu() +
-                        (b.transientInfo().innerAu() - b.transientInfo().outerAu()) * progress);
-                angle = (float) (2.0 * Math.PI * (b.phase() + 0.55 * progress));
+                float progress = transientProgress(window);
+                bodyPositions.put(b.id(), transientWorld(b, progress));
+                continue;
             }
             bodyPositions.put(b.id(), new Vector3f((float) Math.cos(angle) * radius, 0.0f,
                     (float) Math.sin(angle) * radius));
@@ -467,6 +469,30 @@ public class ContinuumMapScreen extends Screen {
             bodyPositions.put(b.id(), new Vector3f(parent).add((float) Math.cos(angle) * radius, 0.0f,
                     (float) Math.sin(angle) * radius));
         }
+    }
+
+    private static float transientProgress(long[] window) {
+        return Math.max(0.0f, Math.min(1.0f, (ContinuumClientState.now() - window[0]) /
+                (float) Math.max(1L, window[1] - window[0])));
+    }
+
+    /** Where a passing body is at a point of its visit: it falls from its outer orbit in towards its inner one. */
+    private static Vector3f transientWorld(ContinuumBody b, float progress) {
+        float radius = orbitWorldRadius(b.transientInfo().outerAu() +
+                (b.transientInfo().innerAu() - b.transientInfo().outerAu()) * progress);
+        float angle = (float) (2.0 * Math.PI * (b.phase() + 0.55 * progress));
+        return new Vector3f((float) Math.cos(angle) * radius, 0.0f, (float) Math.sin(angle) * radius);
+    }
+
+    private void drawTidalEvent(ContinuumSystem sys, ContinuumBody b, Matrix4f view, Matrix4f projection) {
+        var window = ContinuumClientState.transientWindow(b.id());
+        if (window == null) return;
+        float progress = transientProgress(window);
+        Vector3f star = transientWorld(b, progress);
+        Vector3f next = transientWorld(b, Math.min(1.0f, progress + 0.03f));
+        int gas = sys.hasHole() && sys.hole().hotColor() >= 0 ? sys.hole().hotColor() : 0xffa860;
+        SceneRenderer.drawTidalDisruption(gas, progress, star, next, view, projection, new Vector3f(),
+                sys.starRadius(), quality());
     }
 
     private float focalPixels() {

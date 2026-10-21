@@ -68,6 +68,10 @@ public record ContinuumSystem(
         return "pulsar".equals(starKind);
     }
 
+    public boolean isMegastructure() {
+        return "dyson_swarm".equals(starKind) || "megastructure".equals(starKind);
+    }
+
     public boolean isProtostar() {
         return "protostar".equals(starKind);
     }

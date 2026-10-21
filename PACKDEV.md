@@ -150,3 +150,23 @@ Continuum ships a small progression as ordinary data, so a player with no comman
 Everything here is data you can replace: edit or disable the example definitions, write your own `grants_research` and
 `gate` entries, set `announceResearch` off in the config, or set `progressionMode` to `SHOW_ALL` to put everything on the map
 from the start. A mod that provides its own research (PhoenixCore) takes over the research side and these grants do nothing.
+
+## Visuals, personal dimension skies and profiling
+
+- **Megastructure:** set a system's `star_kind` to `dyson_swarm` (or `megastructure`) for a star wrapped in rings of reflective
+  panels, with a bright rim and shafts of light leaking through the gaps. The first ring lies in the orbital plane, the others
+  are tipped away from it. It also draws in a personal dimension's sky.
+- **Tidal disruption event:** a transient body with `"style": "tidal_disruption"` is drawn as a star being torn apart by the
+  system's black hole instead of as a planet: the star stretched along its path, a stream of gas spiralling in (red to
+  blue-white as it falls), and the ring round the hole flaring. It appears for the body's `transient.duration_minutes`
+  and fades. It uses the ordinary transient mechanism, so duration, cooldown, chance and the infall range are the usual
+  `transient` keys. Observation only, like a comet.
+- **Personal dimensions** now show the sky as if you stand on that world: the rest of the system with phases (other planets
+  with their rings, and the world's own moons), placed from their orbits and the game clock, and only the ones the team has
+  found. The old view of the planet itself in the sky is still there as a choice ("Sky" button when you create a
+  dimension, changeable any time). A moon still shows its host planet.
+- **Profiling:** `/continuum profile start` shows the GPU and CPU time of each draw pass on screen (planet, atmosphere, ring,
+  each star effect, backdrop, pdim sky...). `report` prints it, `stop` ends it and logs it.
+- **Shader tools:** `./gradlew checkShaders` compiles every shader with your graphics driver; `./gradlew benchShaders` draws
+  each full-quad shader offscreen, writes a picture of each to `build/shader-bench`, and times it covering a whole
+  1280x720 target (the worst case). Add `-PbenchW=1920 -PbenchH=1080` for another size.
