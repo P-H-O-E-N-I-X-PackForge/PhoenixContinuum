@@ -84,6 +84,14 @@ public final class SceneRenderer {
     public static void drawPlanet(PlanetParams params, Matrix4f view, Matrix4f projection, Vector3f worldPos,
                                   float radius, Vector3f sunWorld, float spinDeg, float cloudSpinDeg,
                                   PlanetRenderer.Quality quality, boolean atmosphere) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("planet")) {
+            drawPlanet$timed(params, view, projection, worldPos, radius, sunWorld, spinDeg, cloudSpinDeg, quality, atmosphere);
+        }
+    }
+
+    private static void drawPlanet$timed(PlanetParams params, Matrix4f view, Matrix4f projection, Vector3f worldPos,
+                                  float radius, Vector3f sunWorld, float spinDeg, float cloudSpinDeg,
+                                  PlanetRenderer.Quality quality, boolean atmosphere){
         if (!ContinuumShaders.ready()) return;
 
         boolean cube = net.phoenix.continuum.client.ContinuumVisuals.cube();
@@ -124,7 +132,7 @@ public final class SceneRenderer {
         if (cube) CubeMesh.draw(planet, modelView, projection);
         else mesh.draw(planet, modelView, projection);
 
-        if (!cube && atmosphere && params.atmoDensity() > 0.0f) {
+        if (!cube && atmosphere && params.atmoDensity() > 0.0f) try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("planet.atmosphere")) {
             ShaderInstance shell = ContinuumShaders.ATMOSPHERE;
             shell.safeGetUniform("SunDir").set(sunView.x, sunView.y, sunView.z);
             setColor(shell, "AtmoColor", params.atmoColor());
@@ -138,7 +146,7 @@ public final class SceneRenderer {
             RenderSystem.defaultBlendFunc();
         }
 
-        if (!cube && params.ring() != null && ContinuumShaders.RING != null) {
+        if (!cube && params.ring() != null && ContinuumShaders.RING != null) try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("planet.ring")) {
             PlanetParams.Ring ring = params.ring();
             ShaderInstance rs = ContinuumShaders.RING;
             rs.safeGetUniform("Time").set(time());
@@ -177,11 +185,25 @@ public final class SceneRenderer {
 
     public static void drawStar(int rgb, boolean blackHole, Matrix4f view, Matrix4f projection, Vector3f worldPos,
                                 float radius, PlanetRenderer.Quality quality) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("star")) {
+            drawStar$timed(rgb, blackHole, view, projection, worldPos, radius, quality);
+        }
+    }
+
+    private static void drawStar$timed(int rgb, boolean blackHole, Matrix4f view, Matrix4f projection, Vector3f worldPos,
+                                float radius, PlanetRenderer.Quality quality){
         drawStar(rgb, blackHole, view, projection, worldPos, radius, quality, 0);
     }
 
     public static void drawStar(int rgb, boolean blackHole, Matrix4f view, Matrix4f projection, Vector3f worldPos,
                                 float radius, PlanetRenderer.Quality quality, int style) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("star")) {
+            drawStar$timed(rgb, blackHole, view, projection, worldPos, radius, quality, style);
+        }
+    }
+
+    private static void drawStar$timed(int rgb, boolean blackHole, Matrix4f view, Matrix4f projection, Vector3f worldPos,
+                                float radius, PlanetRenderer.Quality quality, int style){
         if (!ContinuumShaders.ready()) return;
 
         boolean cube = net.phoenix.continuum.client.ContinuumVisuals.cube();
@@ -225,6 +247,14 @@ public final class SceneRenderer {
     public static void drawHole(net.phoenix.continuum.data.ContinuumSystem system, Matrix4f view,
                                 Matrix4f projection, Vector3f worldPos, float radius, PlanetRenderer.Quality quality,
                                 boolean sky) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("hole")) {
+            drawHole$timed(system, view, projection, worldPos, radius, quality, sky);
+        }
+    }
+
+    private static void drawHole$timed(net.phoenix.continuum.data.ContinuumSystem system, Matrix4f view,
+                                Matrix4f projection, Vector3f worldPos, float radius, PlanetRenderer.Quality quality,
+                                boolean sky){
         drawHole(system, (net.phoenix.continuum.data.ContinuumBody) null, view, projection, worldPos, radius, quality,
                 sky);
     }
@@ -234,6 +264,15 @@ public final class SceneRenderer {
                                 net.phoenix.continuum.data.ContinuumBody body, Matrix4f view,
                                 Matrix4f projection, Vector3f worldPos, float radius, PlanetRenderer.Quality quality,
                                 boolean sky) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("hole")) {
+            drawHole$timed(system, body, view, projection, worldPos, radius, quality, sky);
+        }
+    }
+
+    private static void drawHole$timed(net.phoenix.continuum.data.ContinuumSystem system,
+                                net.phoenix.continuum.data.ContinuumBody body, Matrix4f view,
+                                Matrix4f projection, Vector3f worldPos, float radius, PlanetRenderer.Quality quality,
+                                boolean sky){
         var style = system != null ? system.hole() :
                 net.phoenix.continuum.data.ContinuumSystem.HoleStyle.DEFAULT;
         if (body != null) {
@@ -258,6 +297,14 @@ public final class SceneRenderer {
     private static void drawBinaryHole(net.phoenix.continuum.data.ContinuumSystem.HoleStyle style,
                                        Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
                                        PlanetRenderer.Quality quality, boolean sky) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("binary_hole")) {
+            drawBinaryHole$timed(style, view, projection, worldPos, radius, quality, sky);
+        }
+    }
+
+    private static void drawBinaryHole$timed(net.phoenix.continuum.data.ContinuumSystem.HoleStyle style,
+                                       Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
+                                       PlanetRenderer.Quality quality, boolean sky){
         float q = style.massRatio();
         float sep = style.separation() * radius;
         double phase = 2.0 * Math.PI * (time() / Math.max(style.periodSeconds(), 1.0f));
@@ -363,6 +410,14 @@ public final class SceneRenderer {
     private static void drawStarFx(ShaderInstance shader, int rgb, float extent, Matrix4f view, Matrix4f projection,
                                    Vector3f worldPos, float radius, PlanetRenderer.Quality quality, boolean sky,
                                    java.util.function.Consumer<ShaderInstance> extra) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("fx." + shortName(shader))) {
+            drawStarFx$timed(shader, rgb, extent, view, projection, worldPos, radius, quality, sky, extra);
+        }
+    }
+
+    private static void drawStarFx$timed(ShaderInstance shader, int rgb, float extent, Matrix4f view, Matrix4f projection,
+                                   Vector3f worldPos, float radius, PlanetRenderer.Quality quality, boolean sky,
+                                   java.util.function.Consumer<ShaderInstance> extra){
         if (shader == null) return;
 
         boolean cube = net.phoenix.continuum.client.ContinuumVisuals.cube();
@@ -412,6 +467,13 @@ public final class SceneRenderer {
      */
     public static void drawWolfRayet(int rgb, Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
                                      PlanetRenderer.Quality quality, boolean sky) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("wolfrayet")) {
+            drawWolfRayet$timed(rgb, view, projection, worldPos, radius, quality, sky);
+        }
+    }
+
+    private static void drawWolfRayet$timed(int rgb, Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
+                                     PlanetRenderer.Quality quality, boolean sky){
         drawHotBody(rgb, 0.4f, view, projection, worldPos, radius, quality);
         drawStarFx(ContinuumShaders.WOLFRAYET, rgb, 14.0f, view, projection, worldPos, radius, quality, sky);
     }
@@ -422,6 +484,13 @@ public final class SceneRenderer {
      */
     public static void drawPulsar(int rgb, Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
                                   PlanetRenderer.Quality quality, boolean sky) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("pulsar")) {
+            drawPulsar$timed(rgb, view, projection, worldPos, radius, quality, sky);
+        }
+    }
+
+    private static void drawPulsar$timed(int rgb, Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
+                                  PlanetRenderer.Quality quality, boolean sky){
         drawHotBody(rgb, 0.55f, view, projection, worldPos, radius, quality);
         drawStarFx(ContinuumShaders.PULSAR, rgb, 12.0f, view, projection, worldPos, radius, quality, sky);
     }
@@ -459,6 +528,13 @@ public final class SceneRenderer {
      */
     public static void drawProtostar(int rgb, Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
                                      PlanetRenderer.Quality quality, boolean sky, float[] gaps) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("protostar")) {
+            drawProtostar$timed(rgb, view, projection, worldPos, radius, quality, sky, gaps);
+        }
+    }
+
+    private static void drawProtostar$timed(int rgb, Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
+                                     PlanetRenderer.Quality quality, boolean sky, float[] gaps){
         drawHotBody(rgb, 0.25f, view, projection, worldPos, radius, quality);
         drawDiskFx(rgb, 18.0f, 0.0f, 0.0f, gaps, view, projection, worldPos, radius, quality, sky);
     }
@@ -469,6 +545,13 @@ public final class SceneRenderer {
      */
     public static void drawPlanetaryNebula(int rgb, Matrix4f view, Matrix4f projection, Vector3f worldPos,
                                            float radius, PlanetRenderer.Quality quality, boolean sky) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("planetary_nebula")) {
+            drawPlanetaryNebula$timed(rgb, view, projection, worldPos, radius, quality, sky);
+        }
+    }
+
+    private static void drawPlanetaryNebula$timed(int rgb, Matrix4f view, Matrix4f projection, Vector3f worldPos,
+                                           float radius, PlanetRenderer.Quality quality, boolean sky){
         drawHotBody(rgb, 0.3f, view, projection, worldPos, radius, quality);
         drawStarFx(ContinuumShaders.PLANETARY, rgb, 16.0f, view, projection, worldPos, radius, quality, sky);
     }
@@ -478,6 +561,12 @@ public final class SceneRenderer {
      * has its own sky; each is a small additive billboard, so the cost is a few hundred pixels of arithmetic apiece.
      */
     public static void drawGalaxies(Matrix4f view, Matrix4f projection, long seed, PlanetRenderer.Quality quality) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("galaxies")) {
+            drawGalaxies$timed(view, projection, seed, quality);
+        }
+    }
+
+    private static void drawGalaxies$timed(Matrix4f view, Matrix4f projection, long seed, PlanetRenderer.Quality quality){
         ShaderInstance shader = ContinuumShaders.GALAXY;
         if (shader == null) return;
 
@@ -551,6 +640,14 @@ public final class SceneRenderer {
     public static boolean drawCentralBody(net.phoenix.continuum.data.ContinuumBody body, Matrix4f view,
                                           Matrix4f projection, Vector3f worldPos, float radius,
                                           PlanetRenderer.Quality quality) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("central_body")) {
+            return drawCentralBody$timed(body, view, projection, worldPos, radius, quality);
+        }
+    }
+
+    private static boolean drawCentralBody$timed(net.phoenix.continuum.data.ContinuumBody body, Matrix4f view,
+                                          Matrix4f projection, Vector3f worldPos, float radius,
+                                          PlanetRenderer.Quality quality){
         return drawCentralBody(body, view, projection, worldPos, radius, quality, false);
     }
 
@@ -558,6 +655,14 @@ public final class SceneRenderer {
     public static boolean drawCentralBody(net.phoenix.continuum.data.ContinuumBody body, Matrix4f view,
                                           Matrix4f projection, Vector3f worldPos, float radius,
                                           PlanetRenderer.Quality quality, boolean sky) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("central_body")) {
+            return drawCentralBody$timed(body, view, projection, worldPos, radius, quality, sky);
+        }
+    }
+
+    private static boolean drawCentralBody$timed(net.phoenix.continuum.data.ContinuumBody body, Matrix4f view,
+                                          Matrix4f projection, Vector3f worldPos, float radius,
+                                          PlanetRenderer.Quality quality, boolean sky){
         var owner = net.phoenix.continuum.data.ContinuumData.system(body.system());
         switch (body.type()) {
             case BLACK_HOLE -> {
@@ -578,6 +683,12 @@ public final class SceneRenderer {
     private static @Nullable com.mojang.blaze3d.pipeline.TextureTarget nebulaTarget;
 
     public static void drawNebulas(java.util.List<Nebula> nebulas, Matrix4f view, Matrix4f projection, float scale) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("nebulas")) {
+            drawNebulas$timed(nebulas, view, projection, scale);
+        }
+    }
+
+    private static void drawNebulas$timed(java.util.List<Nebula> nebulas, Matrix4f view, Matrix4f projection, float scale){
         ShaderInstance shader = ContinuumShaders.NEBULA;
         if (shader == null || nebulas.isEmpty()) return;
 
@@ -640,6 +751,13 @@ public final class SceneRenderer {
 
     public static void drawNebulaWash(Nebula nebula, float strength, Matrix4f projection, float yawDeg,
                                       float pitchDeg) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("nebula_wash")) {
+            drawNebulaWash$timed(nebula, strength, projection, yawDeg, pitchDeg);
+        }
+    }
+
+    private static void drawNebulaWash$timed(Nebula nebula, float strength, Matrix4f projection, float yawDeg,
+                                      float pitchDeg){
         ShaderInstance shader = ContinuumShaders.NEBULA;
         if (shader == null) return;
 
@@ -795,11 +913,25 @@ public final class SceneRenderer {
 
     public static void drawBlackHole(Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
                                      boolean quasar) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("blackhole")) {
+            drawBlackHole$timed(view, projection, worldPos, radius, quasar);
+        }
+    }
+
+    private static void drawBlackHole$timed(Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
+                                     boolean quasar){
         drawBlackHole(view, projection, worldPos, radius, quasar, false);
     }
 
     public static void drawBlackHole(Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
                                      boolean quasar, boolean sky) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("blackhole")) {
+            drawBlackHole$timed(view, projection, worldPos, radius, quasar, sky);
+        }
+    }
+
+    private static void drawBlackHole$timed(Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
+                                     boolean quasar, boolean sky){
         drawBlackHole(view, projection, worldPos, radius, quasar, sky,
                 net.phoenix.continuum.data.ContinuumSystem.HoleStyle.DEFAULT);
     }
@@ -811,6 +943,14 @@ public final class SceneRenderer {
     public static void drawBlackHole(Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
                                      boolean quasar, boolean sky,
                                      net.phoenix.continuum.data.ContinuumSystem.HoleStyle style) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("blackhole")) {
+            drawBlackHole$timed(view, projection, worldPos, radius, quasar, sky, style);
+        }
+    }
+
+    private static void drawBlackHole$timed(Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
+                                     boolean quasar, boolean sky,
+                                     net.phoenix.continuum.data.ContinuumSystem.HoleStyle style){
         ShaderInstance shader = ContinuumShaders.BLACKHOLE;
         if (shader == null) return;
 
@@ -936,6 +1076,12 @@ public final class SceneRenderer {
      * out there. Additive; skipped if the galaxy shader did not load.
      */
     private static void drawBackdropGalaxies(float width, float height, float yawDeg) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("backdrop.galaxies")) {
+            drawBackdropGalaxies$timed(width, height, yawDeg);
+        }
+    }
+
+    private static void drawBackdropGalaxies$timed(float width, float height, float yawDeg){
         ShaderInstance g = ContinuumShaders.GALAXY;
         if (g == null) return;
         var quality = net.phoenix.continuum.client.ContinuumVisuals.quality();
@@ -1005,6 +1151,12 @@ public final class SceneRenderer {
     public static boolean BUILTIN_BACKDROP = true;
 
     private static void drawBuiltinBackdrop(ShaderInstance g, float width, float height, float yawDeg) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("backdrop.builtin")) {
+            drawBuiltinBackdrop$timed(g, width, height, yawDeg);
+        }
+    }
+
+    private static void drawBuiltinBackdrop$timed(ShaderInstance g, float width, float height, float yawDeg){
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
         RenderSystem.disableCull();
@@ -1044,6 +1196,12 @@ public final class SceneRenderer {
     }
 
     private static void drawBackdrop(float width, float height, float yawDeg) {
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("backdrop")) {
+            drawBackdrop$timed(width, height, yawDeg);
+        }
+    }
+
+    private static void drawBackdrop$timed(float width, float height, float yawDeg){
         ShaderInstance builtin = ContinuumShaders.GALAXY;
         if (builtin != null && (BUILTIN_BACKDROP || ContinuumShaders.BACKDROP == null)) {
             drawBuiltinBackdrop(builtin, width, height, yawDeg);
@@ -1082,5 +1240,12 @@ public final class SceneRenderer {
         unbindBuffers();
 
         RenderSystem.enableCull();
+    }
+
+    private static String shortName(net.minecraft.client.renderer.ShaderInstance shader) {
+        String name = shader.getName();
+        int colon = name.indexOf(':');
+        name = colon >= 0 ? name.substring(colon + 1) : name;
+        return name.startsWith("continuum_") ? name.substring("continuum_".length()) : name;
     }
 }

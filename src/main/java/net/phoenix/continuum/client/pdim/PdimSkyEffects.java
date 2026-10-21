@@ -59,7 +59,9 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
         float[] fog = sample.horizonNow();
         horizonFog = new Vec3(fog[0], fog[1], fog[2]);
 
-        drawNebula(view, projectionMatrix, time, body, system, sample);
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("pdim.sky")) {
+            drawNebula(view, projectionMatrix, time, body, system, sample);
+        }
 
         if (body != null && ContinuumShaders.ready()) {
             RenderSystem.enableCull();
