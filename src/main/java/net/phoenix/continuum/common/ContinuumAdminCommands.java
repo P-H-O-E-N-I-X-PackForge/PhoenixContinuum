@@ -70,11 +70,67 @@ final class ContinuumAdminCommands {
         return 1;
     }
 
+    private static boolean hasPersonalDimension(CommandSourceStack source, ResourceLocation body) {
+        var stems = source.getServer().registryAccess().registryOrThrow(net.minecraft.core.registries.Registries.LEVEL_STEM);
+        return stems.containsKey(net.phoenix.continuum.pdim.PdimDimensions.keyFor(body).location());
+    }
+
+    /**
+     * Personal dimensions are ordinary data pack dimensions, one per body, and a dimension can only be added by a
+     * restart. This writes the missing files (the usual void world) into the pack folder so one restart enables them.
+     */
+    private static int writePdimFiles(CommandSourceStack source) {
+        java.nio.file.Path root = net.phoenix.continuum.data.ContinuumPackFolder.folder().resolve("data")
+                .resolve("phoenix_continuum").resolve("dimension").resolve("pdim");
+        String template = """
+                {
+                  "type": "phoenix_continuum:pdim",
+                  "generator": {
+                    "type": "minecraft:flat",
+                    "settings": {
+                      "biome": "minecraft:the_void",
+                      "features": false,
+                      "lakes": false,
+                      "layers": [],
+                      "structure_overrides": []
+                    }
+                  }
+                }
+                """;
+        int written = 0;
+        try {
+            java.nio.file.Files.createDirectories(root);
+            for (var body : ContinuumData.allBodies()) {
+                if (hasPersonalDimension(source, body.id())) continue;
+                // the dimension id is phoenix_continuum:pdim/<path of the body id>
+                java.nio.file.Path file = root.resolve(body.id().getPath() + ".json");
+                java.nio.file.Files.createDirectories(file.getParent());
+                java.nio.file.Files.writeString(file, template);
+                written++;
+            }
+        } catch (java.io.IOException e) {
+            source.sendFailure(Component.literal("Could not write the files: " + e.getMessage()));
+            return 0;
+        }
+        int count = written;
+        source.sendSuccess(() -> Component.literal(count == 0 ? "Every body already has a personal dimension." :
+                "Wrote " + count + " personal dimension file(s) to " + root + ". Restart the server to enable them."),
+                false);
+        return written;
+    }
+
     private static final int SHOWN_ISSUES = 12;
 
     private static int validate(CommandSourceStack source, boolean all) {
         var report = net.phoenix.continuum.data.ContinuumReport.last();
-        var issues = report.issues();
+        var issues = new java.util.ArrayList<>(report.issues());
+        for (var body : ContinuumData.allBodies()) {
+            if (!hasPersonalDimension(source, body.id())) {
+                issues.add(new net.phoenix.continuum.data.ContinuumReport.Issue(
+                        net.phoenix.continuum.data.ContinuumReport.Level.WARNING, "body " + body.id(),
+                        "has no personal dimension (run /continuumadmin pdimfiles, then restart)"));
+            }
+        }
         if (issues.isEmpty()) {
             source.sendSuccess(() -> Component.literal("Continuum data: no problems found.")
                     .withStyle(ChatFormatting.GREEN), false);
@@ -208,6 +264,7 @@ final class ContinuumAdminCommands {
                 .then(literal("validate").executes(ctx -> validate(ctx.getSource(), false))
                         .then(literal("all").executes(ctx -> validate(ctx.getSource(), true))))
                 .then(literal("reload").executes(ctx -> reloadData(ctx.getSource())))
+                .then(literal("pdimfiles").executes(ctx -> writePdimFiles(ctx.getSource())))
                 .then(literal("dump")
                         .then(argument("body", ResourceLocationArgument.id())
                                 .suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider

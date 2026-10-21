@@ -103,3 +103,19 @@ research gates only in `RESEARCH_GATED`? That is how this plan reads "default of
   flag, command or reload.
 - Changing the default from gated to show-all changes existing worlds; `RESEARCH_GATED` must be easy to set and the
   Phoenix pack should set it explicitly.
+
+## Status (2026-10-21)
+
+Built: validator and `/continuumadmin validate|reload|dump`, inheritance (`inherits`, `abstract`, `disabled`), format
+check, the pack folder, the visibility layer (condition registry, `visibility.visible_if` / `accessible_if`, per-team
+`/continuumadmin show|hide|unset|explain`, `ContinuumVisibilityEvent`, `progressionMode`), and
+`/continuumadmin pdimfiles` (writes the personal-dimension files a new body needs; a restart enables them).
+
+Content: Continuum now ships one example system (`phoenix_continuum:example`: a rocky planet, a moon that inherits it,
+and a ringed gas giant). Everything PFT-specific (the other systems and bodies, disciplines, personal dimension files,
+research and gated recipes, nebulas) ships from PhoenixCore under the same ids, so existing saves are unaffected.
+
+The PFT modpack should set `progressionMode = RESEARCH_GATED` so its research gates keep deciding what is found.
+
+Still to do: docs pages and the example pack walkthrough, nested-key validation, removing bodies that have reference
+errors from the registry, KubeJS bindings, the live-tuning panel.
