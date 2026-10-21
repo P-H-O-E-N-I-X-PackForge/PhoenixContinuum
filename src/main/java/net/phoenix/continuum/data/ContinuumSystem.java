@@ -18,18 +18,27 @@ public record ContinuumSystem(
                               HoleStyle hole) {
 
     public record HoleStyle(float diskSize, float diskIntensity, float feeding, float tilt, int hotColor, int coolColor,
-                            float separation, float massRatio, float periodSeconds) {
+                            float separation, float massRatio, float periodSeconds, float skyInclination,
+                            float skyLean) {
 
-        public static final HoleStyle DEFAULT = new HoleStyle(1.0f, 1.0f, 0.0f, 0.075f, -1, -1, 3.2f, 0.6f, 24.0f);
+        public static final HoleStyle DEFAULT = new HoleStyle(1.0f, 1.0f, 0.0f, 0.075f, -1, -1, 3.2f, 0.6f, 24.0f,
+                Float.NaN, Float.NaN);
 
         public HoleStyle withTilt(float newTilt) {
             return new HoleStyle(diskSize, diskIntensity, feeding, newTilt, hotColor, coolColor, separation,
-                    massRatio, periodSeconds);
+                    massRatio, periodSeconds, skyInclination, skyLean);
+        }
+
+        /** Overrides how the disk is tipped when it is drawn in a skybox (NaN keeps the default for that value). */
+        public HoleStyle withSky(float inclination, float lean) {
+            return new HoleStyle(diskSize, diskIntensity, feeding, tilt, hotColor, coolColor, separation, massRatio,
+                    periodSeconds, Float.isNaN(inclination) ? skyInclination : inclination,
+                    Float.isNaN(lean) ? skyLean : lean);
         }
 
         public HoleStyle withDisk(float size, float intensity) {
             return new HoleStyle(size, intensity, feeding, tilt, hotColor, coolColor, separation, massRatio,
-                    periodSeconds);
+                    periodSeconds, skyInclination, skyLean);
         }
     }
 

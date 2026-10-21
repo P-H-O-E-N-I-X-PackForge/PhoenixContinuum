@@ -30,7 +30,9 @@ public record ContinuumBody(
                             @Nullable String discipline,
                             @Nullable PdimCost pdimCost,
                             @Nullable Transient transientInfo,
-                            @Nullable Float holeTilt) {
+                            @Nullable Float holeTilt,
+                            @Nullable Float skyHoleInclination,
+                            @Nullable Float skyHoleLean) {
 
     public record Transient(int durationMinutes, int cooldownMinutes, float chance, float innerAu, float outerAu) {}
 

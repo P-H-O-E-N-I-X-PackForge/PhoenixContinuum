@@ -10,6 +10,8 @@
   },
   "radius": 1.5,
   "hole_tilt": 0.4,
+  "sky_hole_inclination": 28,
+  "sky_hole_lean": 15,
   "gas_giant": false,
   "axial_tilt": 0,
   "spin_deg_per_sec": 0,

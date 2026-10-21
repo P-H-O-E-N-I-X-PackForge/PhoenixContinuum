@@ -225,16 +225,22 @@ public final class SceneRenderer {
     public static void drawHole(net.phoenix.continuum.data.ContinuumSystem system, Matrix4f view,
                                 Matrix4f projection, Vector3f worldPos, float radius, PlanetRenderer.Quality quality,
                                 boolean sky) {
-        drawHole(system, null, view, projection, worldPos, radius, quality, sky);
+        drawHole(system, (net.phoenix.continuum.data.ContinuumBody) null, view, projection, worldPos, radius, quality,
+                sky);
     }
 
-    /** @param tiltOverride a per-body disk tilt (0 = edge-on, 1 = face-on) replacing the system's, or null */
-    public static void drawHole(net.phoenix.continuum.data.ContinuumSystem system, Float tiltOverride, Matrix4f view,
+    /** @param body the body being drawn, whose own tilt values replace the system's, or null */
+    public static void drawHole(net.phoenix.continuum.data.ContinuumSystem system,
+                                net.phoenix.continuum.data.ContinuumBody body, Matrix4f view,
                                 Matrix4f projection, Vector3f worldPos, float radius, PlanetRenderer.Quality quality,
                                 boolean sky) {
         var style = system != null ? system.hole() :
                 net.phoenix.continuum.data.ContinuumSystem.HoleStyle.DEFAULT;
-        if (tiltOverride != null) style = style.withTilt(tiltOverride);
+        if (body != null) {
+            if (body.holeTilt() != null) style = style.withTilt(body.holeTilt());
+            style = style.withSky(body.skyHoleInclination() != null ? body.skyHoleInclination() : Float.NaN,
+                    body.skyHoleLean() != null ? body.skyHoleLean() : Float.NaN);
+        }
         if (system != null && system.isBinaryHole()) {
             drawBinaryHole(style, view, projection, worldPos, radius, quality, sky);
             return;
@@ -555,7 +561,7 @@ public final class SceneRenderer {
         var owner = net.phoenix.continuum.data.ContinuumData.system(body.system());
         switch (body.type()) {
             case BLACK_HOLE -> {
-                drawHole(owner, body.holeTilt(), view, projection, worldPos, radius, quality, sky);
+                drawHole(owner, body, view, projection, worldPos, radius, quality, sky);
                 return true;
             }
             case STAR -> {
@@ -740,6 +746,11 @@ public final class SceneRenderer {
      * Null if the object is straight above or below the viewer, where the tilt direction is undefined.
      */
     private static Vector3f skyDiskWorldNormal(Vector3f worldPos) {
+        return skyDiskWorldNormal(worldPos, Float.NaN, Float.NaN);
+    }
+
+    /** @param inclinationDeg degrees from face-on, or NaN for the default; @param leanDeg likewise */
+    private static Vector3f skyDiskWorldNormal(Vector3f worldPos, float inclinationDeg, float leanDeg) {
         Vector3f losW = new Vector3f(worldPos).negate();
         if (losW.lengthSquared() <= 1.0e-6f) return null;
         losW.normalize();
@@ -747,9 +758,9 @@ public final class SceneRenderer {
         if (up.lengthSquared() <= 1.0e-6f) return null;
         up.normalize();
         Vector3f right = new Vector3f(up).cross(losW).normalize();
-        float lean = (float) Math.toRadians(SKY_LEAN_DEG);
+        float lean = (float) Math.toRadians(Float.isNaN(leanDeg) ? SKY_LEAN_DEG : leanDeg);
         Vector3f tilt = up.mul((float) Math.cos(lean)).add(right.mul((float) Math.sin(lean)));
-        float inc = (float) Math.toRadians(SKY_INCLINATION_DEG);
+        float inc = (float) Math.toRadians(Float.isNaN(inclinationDeg) ? SKY_INCLINATION_DEG : inclinationDeg);
         return losW.mul((float) Math.cos(inc)).add(tilt.mul((float) Math.sin(inc))).normalize();
     }
 
@@ -758,9 +769,10 @@ public final class SceneRenderer {
      * the viewer, built from the world-space line of sight so it never depends on where the camera is looking, then
      * expressed against the actual line of sight to the object. {@code fallback} is returned if that is degenerate.
      */
-    private static Vector3f skyDiskNormal(Matrix4f view, Vector3f worldPos, Vector3f fallback) {
+    private static Vector3f skyDiskNormal(Matrix4f view, Vector3f worldPos, Vector3f fallback, float inclinationDeg,
+                                          float leanDeg) {
         Vector3f normal = new Vector3f(fallback);
-        Vector3f nW = skyDiskWorldNormal(worldPos);
+        Vector3f nW = skyDiskWorldNormal(worldPos, inclinationDeg, leanDeg);
         if (nW != null) normal = view.transformDirection(nW);
         // the billboard faces the camera's axis, but what matters is the line of sight to the object
         Vector3f los = view.transformPosition(new Vector3f(worldPos)).negate();
@@ -811,7 +823,7 @@ public final class SceneRenderer {
         double tiltRad = Math.toRadians(90.0 * Math.max(0.0f, Math.min(1.0f, style.tilt())));
         Vector3f normal = view.transformDirection(
                 new Vector3f(0.10f, (float) Math.cos(tiltRad), (float) Math.sin(tiltRad)).normalize());
-        if (sky) normal = skyDiskNormal(view, worldPos, normal);
+        if (sky) normal = skyDiskNormal(view, worldPos, normal, style.skyInclination(), style.skyLean());
 
         shader.safeGetUniform("Time").set(time());
         shader.safeGetUniform("Extent").set(extent);

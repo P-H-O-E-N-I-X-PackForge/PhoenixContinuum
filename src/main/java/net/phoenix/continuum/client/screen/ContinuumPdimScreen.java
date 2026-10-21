@@ -26,7 +26,7 @@ public class ContinuumPdimScreen extends Screen {
     public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {}
 
     private static final int W = 300;
-    private static final int H = 206;
+    private static final int H = 250;
 
     private record Preset(String label, float gravity) {}
 
@@ -95,9 +95,17 @@ public class ContinuumPdimScreen extends Screen {
             g.drawString(font, String.format(Locale.ROOT, "Your dimension here has gravity x%.2f", gravity), x + 10, ty,
                     MapUi.TEXT);
             ty += 11;
-            ty = wrapped(g,
-                    "Change it any time with /pdim gravity <x>; /pdim day speed|lock|unlock sets the sky clock. /pdim delete forgets it.",
-                    x + 10, ty, W - 20, MapUi.DIM);
+            ty = wrapped(g, "You can change these any time. The sky clock only changes what you see.", x + 10, ty,
+                    W - 20, MapUi.DIM) + 4;
+            float speed = PdimClientState.daySpeed();
+            float locked = PdimClientState.lockedTime();
+            ty = adjustRow(g, x, ty, String.format(Locale.ROOT, "Gravity  x%.2f", gravity), "g", mx, my);
+            ty = adjustRow(g, x, ty, locked >= 0 ? "Day speed  (locked)" :
+                    String.format(Locale.ROOT, "Day speed  x%.2f", speed), "s", mx, my);
+            int third = (W - 20 - 10) / 3;
+            button(g, x + 10, ty, third, "Lock noon", "lockNoon", true, locked == 6000.0f, mx, my);
+            button(g, x + 15 + third, ty, third, "Lock midnight", "lockNight", true, locked == 18000.0f, mx, my);
+            button(g, x + 20 + 2 * third, ty, third, "Run clock", "unlock", locked >= 0, false, mx, my);
             costLine(g, x + 10, y + H - 62, charged, cost, have, canPay);
             button(g, x + 10, y + H - 48, W - 20, "Enter", "enter", canPay, false, mx, my);
         } else {
@@ -124,6 +132,18 @@ public class ContinuumPdimScreen extends Screen {
         }
 
         g.pose().popPose();
+    }
+
+    private int adjustRow(GuiGraphics g, int x, int y, String label, String id, int mx, int my) {
+        g.drawString(font, label, x + 10, y + 5, MapUi.TEXT);
+        button(g, x + W - 10 - 22 * 2 - 4, y, 22, "-", id + "-", true, false, mx, my);
+        button(g, x + W - 10 - 22, y, 22, "+", id + "+", true, false, mx, my);
+        return y + 22;
+    }
+
+    private void sendAdjust(float gravity, float speed, float locked) {
+        PacketDistributor.sendToServer(
+                new C2SPdimPacket(C2SPdimPacket.Action.ADJUST, body.id(), gravity, speed, locked));
     }
 
     private void costLine(GuiGraphics g, int x, int y, boolean charged, PdimCosts.Cost cost, int have, boolean canPay) {
@@ -162,7 +182,27 @@ public class ContinuumPdimScreen extends Screen {
                 if (!MapUi.inside(mx, my, (int) r[1], (int) r[2], (int) r[3], 18)) continue;
                 ContinuumSounds.click();
                 String id = (String) r[0];
-                if (id.startsWith("preset")) {
+                Float current = existing();
+                float gravityNow = current == null ? 1.0f : current;
+                float speedNow = PdimClientState.daySpeed();
+                float lockedNow = PdimClientState.lockedTime();
+                if (current != null && id.equals("g-")) {
+                    sendAdjust(Math.round((gravityNow - (hasShiftDown() ? 0.5f : 0.1f)) * 100f) / 100f, speedNow,
+                            lockedNow);
+                } else if (current != null && id.equals("g+")) {
+                    sendAdjust(Math.round((gravityNow + (hasShiftDown() ? 0.5f : 0.1f)) * 100f) / 100f, speedNow,
+                            lockedNow);
+                } else if (current != null && id.equals("s-")) {
+                    sendAdjust(gravityNow, speedNow / (hasShiftDown() ? 2.0f : 1.25f), -1.0f);
+                } else if (current != null && id.equals("s+")) {
+                    sendAdjust(gravityNow, speedNow * (hasShiftDown() ? 2.0f : 1.25f), -1.0f);
+                } else if (current != null && id.equals("lockNoon")) {
+                    sendAdjust(gravityNow, speedNow, 6000.0f);
+                } else if (current != null && id.equals("lockNight")) {
+                    sendAdjust(gravityNow, speedNow, 18000.0f);
+                } else if (current != null && id.equals("unlock")) {
+                    sendAdjust(gravityNow, speedNow, -1.0f);
+                } else if (id.startsWith("preset")) {
                     selected = Integer.parseInt(id.substring(6));
                 } else if (id.equals("create") || id.equals("enter")) {
                     float gravity = existing() != null ? existing() : presets.get(selected).gravity();

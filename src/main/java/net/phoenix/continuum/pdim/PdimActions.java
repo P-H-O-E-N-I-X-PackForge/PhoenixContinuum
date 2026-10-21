@@ -110,6 +110,17 @@ public final class PdimActions {
         }
     }
 
+    /** Changes the gravity and sky clock of a dimension the player already has. */
+    public static @Nullable String adjust(ServerPlayer player, ResourceLocation bodyId, float gravity, float daySpeed,
+                                          float lockedTime) {
+        var changed = PdimData.get(player.server).update(player.getUUID(), bodyId,
+                e -> new PdimData.Entry(PdimDimensions.clampGravity(gravity), e.plot(),
+                        PdimDimensions.clampDaySpeed(daySpeed), lockedTime < 0 ? -1.0f : lockedTime % 24000.0f));
+        if (changed == null) return "You have no personal dimension there.";
+        sendState(player);
+        return null;
+    }
+
     public static void sendState(ServerPlayer player) {
         PdimData data = PdimData.get(player.server);
         Map<ResourceLocation, Float> mine = new HashMap<>();

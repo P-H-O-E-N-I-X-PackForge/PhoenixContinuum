@@ -71,7 +71,7 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
             if (sample.hasSun() && system != null && sample.sunDir().y > -0.12f) {
                 Vector3f sunPos = new Vector3f(sample.sunDir()).mul(98.0f);
                 if (system.hasHole()) {
-                    SceneRenderer.drawHole(system, view, projectionMatrix, sunPos, 4.5f, ContinuumVisuals.quality(),
+                    SceneRenderer.drawHole(system, body, view, projectionMatrix, sunPos, 4.5f, ContinuumVisuals.quality(),
                             true);
                 } else {
                     SceneRenderer.drawSystemStar(system, system.starColor(), view, projectionMatrix, sunPos, 6.0f,

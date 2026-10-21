@@ -132,7 +132,9 @@ public final class ContinuumData {
                 color(hole, "cool_color", -1),
                 Math.max(2.2f, GsonHelper.getAsFloat(hole, "separation", d.separation())),
                 Math.max(0.1f, Math.min(1.0f, GsonHelper.getAsFloat(hole, "mass_ratio", d.massRatio()))),
-                Math.max(2.0f, GsonHelper.getAsFloat(hole, "period_seconds", d.periodSeconds())));
+                Math.max(2.0f, GsonHelper.getAsFloat(hole, "period_seconds", d.periodSeconds())),
+                hole.has("sky_inclination") ? GsonHelper.getAsFloat(hole, "sky_inclination") : Float.NaN,
+                hole.has("sky_lean") ? GsonHelper.getAsFloat(hole, "sky_lean") : Float.NaN);
     }
 
     public static ContinuumBody parseBody(ResourceLocation id, JsonObject json) {
@@ -199,7 +201,9 @@ public final class ContinuumData {
                         GsonHelper.getAsString(json, "discipline") : null,
                 parsePdimCost(json), parseTransient(json),
                 json.has("hole_tilt") ? Math.max(0.0f, Math.min(1.0f, GsonHelper.getAsFloat(json, "hole_tilt"))) :
-                        null);
+                        null,
+                json.has("sky_hole_inclination") ? GsonHelper.getAsFloat(json, "sky_hole_inclination") : null,
+                json.has("sky_hole_lean") ? GsonHelper.getAsFloat(json, "sky_hole_lean") : null);
     }
 
     private static @Nullable ContinuumBody.Transient parseTransient(JsonObject json) {
