@@ -35,7 +35,8 @@ public class PhoenixContinuum {
     public PhoenixContinuum() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         ContinuumConfigs.init();
-        REGISTRATE.registerEventListeners(modEventBus);
+        net.phoenix.continuum.integration.gtceu.GTCEuCompat.init(modEventBus);
+        net.phoenix.continuum.integration.solaris.SolarisSites.init();
 
         ContinuumRegistry.init();
         modEventBus.addGenericListener(com.gregtechceu.gtceu.api.machine.MachineDefinition.class,

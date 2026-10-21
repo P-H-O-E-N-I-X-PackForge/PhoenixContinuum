@@ -14,7 +14,6 @@ import net.phoenix.continuum.data.ContinuumData;
 import net.phoenix.continuum.data.ContinuumReport;
 import net.phoenix.continuum.data.ContinuumSystem;
 import net.phoenix.continuum.data.DiscoveryStage;
-import net.phoenix.core.utils.TeamUtils;
 
 import com.google.gson.JsonObject;
 import org.jetbrains.annotations.Nullable;
@@ -52,7 +51,7 @@ public final class ContinuumAPI {
 
     /** A team from a player, a UUID or a UUID string. */
     public static UUID team(Object who) {
-        if (who instanceof ServerPlayer player) return TeamUtils.getTeamIdOrPlayerFallback(player.getUUID());
+        if (who instanceof ServerPlayer player) return net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         if (who instanceof UUID uuid) return uuid;
         return UUID.fromString(String.valueOf(who));
     }

@@ -17,6 +17,12 @@ public final class ContinuumRecipes {
 
     private ContinuumRecipes() {}
 
+    /** PhoenixCore's Ensorcelled Weave when it is installed, titanium otherwise. */
+    private static com.gregtechceu.gtceu.api.data.chemical.material.Material weave() {
+        var found = com.gregtechceu.gtceu.common.data.GTMaterials.get("phoenixcore:ensorcelled_weave");
+        return found != null ? found : Titanium;
+    }
+
     public static void init(java.util.function.Consumer<FinishedRecipe> provider) {
         ASSEMBLER_RECIPES.recipeBuilder("continuum_probe")
                 .inputItems(plate, Steel, 2)
@@ -73,7 +79,7 @@ public final class ContinuumRecipes {
                 .inputItems(plate, TungstenSteel, 8)
                 .inputItems(CustomTags.IV_CIRCUITS, 2)
                 .inputFluids(SolderingAlloy, 576)
-                .inputFluids(net.phoenix.core.common.data.materials.AstralMaterials.ENSORCELLED_WEAVE.getFluid(288))
+                .inputFluids(weave().getFluid(288))
                 .outputItems(ContinuumRegistry.REFIT_MK4)
                 .duration(600).EUt(VA[IV])
                 .save(provider);

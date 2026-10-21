@@ -5,7 +5,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
 import net.phoenix.continuum.common.ContinuumTeamData;
-import net.phoenix.core.utils.TeamUtils;
 
 public class C2SRequestHistoryPacket {
 
@@ -19,7 +18,7 @@ public class C2SRequestHistoryPacket {
         ctx.get().enqueueWork(() -> {
             ServerPlayer player = ctx.get().getSender();
             if (player == null) return;
-            var team = TeamUtils.getTeamIdOrPlayerFallback(player.getUUID());
+            var team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
             net.phoenix.continuum.network.ContinuumNetwork.sendToPlayer(player,
                     new S2CHistoryPacket(ContinuumTeamData.get(player.server).history(team)));
         });

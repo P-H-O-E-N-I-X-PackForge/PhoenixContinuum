@@ -13,7 +13,6 @@ import net.phoenix.continuum.data.ContinuumBody;
 import net.phoenix.continuum.data.ContinuumData;
 import net.phoenix.continuum.data.ContinuumSystem;
 import net.phoenix.continuum.data.DiscoveryStage;
-import net.phoenix.core.utils.TeamUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,7 +62,7 @@ public final class ContinuumDiscoveryNotifier {
 
         List<ServerPlayer> players = new ArrayList<>();
         for (ServerPlayer p : server.getPlayerList().getPlayers())
-            if (TeamUtils.isPlayerOnTeam(p, team)) players.add(p);
+            if (net.phoenix.continuum.api.ContinuumHost.teams().onTeam(p, team)) players.add(p);
         if (players.isEmpty()) return;
 
         List<Component> lines = new ArrayList<>();

@@ -8,7 +8,6 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
-import net.phoenix.core.api.PhoenixSounds;
 
 public final class ContinuumSounds {
 
@@ -98,16 +97,17 @@ public final class ContinuumSounds {
     }
 
     public static Loop engineLoop() {
-        return startLoop(PhoenixSounds.PHOENIX_VOLCANIC_RUMBLE.getMainEvent(), 0.0f);
+        return startLoop(HostSounds.phoenix_volcanic_rumble(), 0.0f);
     }
 
     public static Loop humLoop() {
-        return startLoop(PhoenixSounds.VOID_COSMIC_DRONE.getMainEvent(), 0.0f);
+        return startLoop(HostSounds.void_cosmic_drone(), 0.0f);
     }
 
-    private static Loop startLoop(SoundEvent event, float volume) {
-        Loop loop = new Loop(event, volume);
-        play(loop);
+    private static Loop startLoop(@org.jetbrains.annotations.Nullable SoundEvent event, float volume) {
+        // a missing sound gets a loop that is never played, so callers need no null checks
+        Loop loop = new Loop(event == null ? SoundEvents.UI_BUTTON_CLICK.value() : event, volume);
+        if (event != null) play(loop);
         return loop;
     }
 

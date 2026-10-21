@@ -10,7 +10,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.phoenix.continuum.PhoenixContinuum;
-import net.phoenix.core.integration.conflux.research.WorldResearchData;
 import net.phoenix.continuum.data.ContinuumBody;
 
 import com.google.gson.Gson;
@@ -106,7 +105,7 @@ public final class Affinities extends SimpleJsonResourceReloadListener {
     }
 
     public static Factors of(MinecraftServer server, UUID team, ContinuumBody body) {
-        return of(WorldResearchData.get(server.overworld()).getDiscipline(team), body);
+        return of(net.phoenix.continuum.api.ContinuumHost.research(server.overworld()).getDiscipline(team), body);
     }
 
     public static int scaled(int base, float factor, net.minecraft.util.RandomSource random) {

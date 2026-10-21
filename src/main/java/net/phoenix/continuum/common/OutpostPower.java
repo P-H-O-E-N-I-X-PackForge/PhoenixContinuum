@@ -2,7 +2,7 @@ package net.phoenix.continuum.common;
 
 import net.minecraft.server.MinecraftServer;
 import net.phoenix.continuum.config.ContinuumConfigs;
-import net.phoenix.continuum.machine.LaunchPadMachine;
+import net.phoenix.continuum.machine.LaunchComplex;
 
 import java.util.UUID;
 
@@ -23,13 +23,13 @@ public final class OutpostPower {
 
     private static long stored(UUID team) {
         long total = 0;
-        for (LaunchPadMachine complex : LaunchPadMachine.complexesOf(team)) total += complex.storedEnergy();
+        for (LaunchComplex complex : LaunchComplex.complexesOf(team)) total += complex.storedEnergy();
         return total;
     }
 
     private static void drain(UUID team, long amount) {
         long remaining = amount;
-        for (LaunchPadMachine complex : LaunchPadMachine.complexesOf(team)) {
+        for (LaunchComplex complex : LaunchComplex.complexesOf(team)) {
             if (remaining <= 0) break;
             long take = Math.min(remaining, complex.storedEnergy());
             if (take > 0 && complex.drainEnergy(take)) remaining -= take;

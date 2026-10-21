@@ -24,8 +24,7 @@ import net.phoenix.continuum.data.DiscoveryStage;
 import net.phoenix.continuum.item.ContinuumProbeItem;
 import net.phoenix.continuum.item.ContinuumRepairKitItem;
 import net.phoenix.continuum.item.ContinuumRocketItem;
-import net.phoenix.continuum.machine.LaunchPadMachine;
-import net.phoenix.core.utils.TeamUtils;
+import net.phoenix.continuum.machine.LaunchComplex;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -65,7 +64,7 @@ public final class ContinuumMissions {
         String place();
     }
 
-    private record BusStock(LaunchPadMachine complex) implements Stock {
+    private record BusStock(LaunchComplex complex) implements Stock {
 
         @Override
         public ItemStack peekRocket() {
@@ -157,7 +156,7 @@ public final class ContinuumMissions {
 
     public static PadStockView padStock(ServerPlayer player, BlockPos pad) {
         var level = player.level();
-        if (level.isLoaded(pad) && MetaMachine.getMachine(level, pad) instanceof LaunchPadMachine complex &&
+        if (level.isLoaded(pad) && MetaMachine.getMachine(level, pad) instanceof LaunchComplex complex &&
                 complex.isFormed()) {
             BusStock stock = new BusStock(complex);
             return new PadStockView(true, stock.peekRocket(), stock.probes(), stock.kits(), stock.rockets());
@@ -212,7 +211,7 @@ public final class ContinuumMissions {
             if (passing == null) return body.name() + " has passed beyond reach.";
         }
 
-        LaunchPadMachine complex = MetaMachine.getMachine(level, pad) instanceof LaunchPadMachine machine ? machine :
+        LaunchComplex complex = MetaMachine.getMachine(level, pad) instanceof LaunchComplex machine ? machine :
                 null;
         long launchEnergy = 0;
         if (complex != null) {
@@ -238,7 +237,7 @@ public final class ContinuumMissions {
             return "There is no launch pad there.";
         }
 
-        UUID team = TeamUtils.getTeamIdOrPlayerFallback(player.getUUID());
+        UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         ContinuumTeamData data = ContinuumTeamData.get(server);
 
         DiscoveryStage stage = data.effectiveStage(server, team, destinationId);
@@ -579,7 +578,7 @@ public final class ContinuumMissions {
     }
 
     public static int collectAll(ServerPlayer player) {
-        UUID team = TeamUtils.getTeamIdOrPlayerFallback(player.getUUID());
+        UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         ContinuumTeamData data = ContinuumTeamData.get(player.server);
         int collected = 0;
         for (Mission mission : List.copyOf(data.missions(team))) {
@@ -778,7 +777,7 @@ public final class ContinuumMissions {
 
     public static @Nullable String collect(ServerPlayer player, UUID missionId) {
         MinecraftServer server = player.server;
-        UUID team = TeamUtils.getTeamIdOrPlayerFallback(player.getUUID());
+        UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         ContinuumTeamData data = ContinuumTeamData.get(server);
 
         Mission mission = data.mission(team, missionId).orElse(null);
@@ -789,7 +788,7 @@ public final class ContinuumMissions {
                     durationText(mission.distressUntil - System.currentTimeMillis()) + ".";
         }
 
-        LaunchPadMachine pad = launchComplexOf(server, mission);
+        LaunchComplex pad = launchComplexOf(server, mission);
         ItemStack rocket = mission.rocket.copy();
         int items = 0;
         int delivered = 0;
@@ -825,14 +824,14 @@ public final class ContinuumMissions {
         return null;
     }
 
-    private static @Nullable LaunchPadMachine launchComplexOf(MinecraftServer server, Mission mission) {
+    private static @Nullable LaunchComplex launchComplexOf(MinecraftServer server, Mission mission) {
         if (mission.padDimension == null) return null;
         var key = net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION,
                 new ResourceLocation(mission.padDimension));
         var level = server.getLevel(key);
         BlockPos pos = BlockPos.of(mission.padPos);
         if (level == null || !level.isLoaded(pos)) return null;
-        return MetaMachine.getMachine(level, pos) instanceof LaunchPadMachine machine && machine.isFormed() ? machine :
+        return MetaMachine.getMachine(level, pos) instanceof LaunchComplex machine && machine.isFormed() ? machine :
                 null;
     }
 
@@ -845,7 +844,7 @@ public final class ContinuumMissions {
     static void notifyTeam(MinecraftServer server, UUID team, Component message) {
         if (!ContinuumTeamData.get(server).isEngaged(team)) return;
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            if (TeamUtils.isPlayerOnTeam(player, team)) player.sendSystemMessage(message);
+            if (net.phoenix.continuum.api.ContinuumHost.teams().onTeam(player, team)) player.sendSystemMessage(message);
         }
     }
 }

@@ -26,7 +26,6 @@ public final class ContinuumClientSetup {
 
     private static void onClientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
-            net.phoenix.core.api.client.ConfluxNodeNotes.register(ContinuumNodeNotes::notes);
             Minecraft mc = Minecraft.getInstance();
             SuiteHudBar.register(
                     PhoenixContinuum.MOD_ID,

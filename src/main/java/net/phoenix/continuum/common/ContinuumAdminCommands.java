@@ -13,7 +13,6 @@ import net.phoenix.continuum.ContinuumRegistry;
 import net.phoenix.continuum.data.ContinuumData;
 import net.phoenix.continuum.data.DiscoveryStage;
 import net.phoenix.continuum.item.ContinuumRocketItem;
-import net.phoenix.core.utils.TeamUtils;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.FloatArgumentType;
@@ -48,7 +47,7 @@ final class ContinuumAdminCommands {
             return 0;
         }
         ServerPlayer player = source.getPlayerOrException();
-        UUID team = TeamUtils.getTeamIdOrPlayerFallback(player.getUUID());
+        UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         ContinuumTeamData.get(source.getServer()).setVisibilityOverride(team, id, visible);
         ContinuumServerEvents.onDataReloaded();
         source.sendSuccess(() -> Component.literal(visible == null ? "Cleared the override on " + id :
@@ -62,7 +61,7 @@ final class ContinuumAdminCommands {
             source.sendFailure(Component.literal("No body " + id + "."));
             return 0;
         }
-        UUID team = TeamUtils.getTeamIdOrPlayerFallback(source.getPlayerOrException().getUUID());
+        UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(source.getPlayerOrException().getUUID());
         for (String line : net.phoenix.continuum.common.visibility.ContinuumVisibility.explain(source.getServer(),
                 team, body)) {
             source.sendSuccess(() -> Component.literal(line), false);
@@ -337,7 +336,7 @@ final class ContinuumAdminCommands {
     }
 
     private static UUID team(CommandSourceStack source) throws CommandSyntaxException {
-        return TeamUtils.getTeamIdOrPlayerFallback(source.getPlayerOrException().getUUID());
+        return net.phoenix.continuum.api.ContinuumHost.teamOf(source.getPlayerOrException().getUUID());
     }
 
     private static int giveRocket(CommandSourceStack source) throws CommandSyntaxException {

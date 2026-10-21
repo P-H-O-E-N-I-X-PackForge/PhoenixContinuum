@@ -8,7 +8,6 @@ import net.minecraftforge.network.NetworkEvent;
 import net.phoenix.continuum.common.ContinuumMissions;
 import net.phoenix.continuum.common.ContinuumServerEvents;
 import net.phoenix.continuum.common.Mission;
-import net.phoenix.core.utils.TeamUtils;
 
 public class C2SLaunchMissionPacket {
 
@@ -54,7 +53,7 @@ public class C2SLaunchMissionPacket {
                     new S2CMissionLaunchedPacket(error == null, msg.destination, msg.pad, error == null ? "" : error));
             if (error == null) {
                 ContinuumServerEvents.sendStateToTeam(player.server,
-                        TeamUtils.getTeamIdOrPlayerFallback(player.getUUID()));
+                        net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID()));
             }
         });
         ctx.get().setPacketHandled(true);

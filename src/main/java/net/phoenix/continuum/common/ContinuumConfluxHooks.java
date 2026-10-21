@@ -1,44 +1,33 @@
 package net.phoenix.continuum.common;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.phoenix.continuum.PhoenixContinuum;
-import net.phoenix.core.api.event.ConfluxResearchEvent;
-import net.phoenix.core.api.event.ConfluxTeamChangedEvent;
+import net.minecraft.server.MinecraftServer;
 import net.phoenix.continuum.data.DiscoveryStage;
 
 import java.util.Map;
+import java.util.UUID;
 
 /**
- * Everything Continuum does in answer to Conflux, through PhoenixCore's public events only. When Continuum becomes its own
- * mod this class moves with it unchanged.
+ * What Continuum does when research or team membership changes. The companion mod that owns research calls these through
+ * {@link net.phoenix.continuum.api.ContinuumHost}.
  */
-@Mod.EventBusSubscriber(modid = PhoenixContinuum.MOD_ID)
 public final class ContinuumConfluxHooks {
 
     private ContinuumConfluxHooks() {}
 
-    private static final String SNAPSHOT = "continuum_discovery_before";
-
-    @SubscribeEvent
-    public static void onResearchPre(ConfluxResearchEvent.Pre event) {
-        event.getContext().put(SNAPSHOT, ContinuumDiscoveryNotifier.snapshot(event.getServer(), event.getTeam()));
+    public static Object before(MinecraftServer server, UUID team) {
+        return ContinuumDiscoveryNotifier.snapshot(server, team);
     }
 
     @SuppressWarnings("unchecked")
-    @SubscribeEvent
-    public static void onResearchPost(ConfluxResearchEvent.Post event) {
-        Object before = event.getContext().get(SNAPSHOT);
+    public static void after(MinecraftServer server, UUID team, Object before) {
         if (before instanceof Map<?, ?> snapshot) {
-            ContinuumDiscoveryNotifier.announce(event.getServer(), event.getTeam(),
-                    (Map<ResourceLocation, DiscoveryStage>) snapshot);
+            ContinuumDiscoveryNotifier.announce(server, team, (Map<ResourceLocation, DiscoveryStage>) snapshot);
         }
-        ContinuumServerEvents.sendStateToTeam(event.getServer(), event.getTeam());
+        ContinuumServerEvents.sendStateToTeam(server, team);
     }
 
-    @SubscribeEvent
-    public static void onTeamChanged(ConfluxTeamChangedEvent event) {
-        ContinuumServerEvents.sendStateToTeam(event.getServer(), event.getTeam());
+    public static void teamChanged(MinecraftServer server, UUID team) {
+        ContinuumServerEvents.sendStateToTeam(server, team);
     }
 }

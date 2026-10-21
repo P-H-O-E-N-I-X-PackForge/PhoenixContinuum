@@ -1,61 +1,59 @@
 package net.phoenix.continuum.machine;
 
-import com.gregtechceu.gtceu.api.blockentity.BlockEntityCreationInfo;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
+import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
-import com.gregtechceu.gtceu.api.machine.trait.notifiable.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.EnergyHatchPartMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.ItemBusPartMachine;
-import com.gregtechceu.gtceu.utils.ExtendedUseOnContext;
 
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.phoenix.continuum.network.S2COpenMapPacket;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Predicate;
 
-public class LaunchPadMachine extends MultiblockControllerMachine {
+/** The launch complex controller for GregTech 7.x. {@code LaunchPadMachine8} is the GregTech 8 twin of this class. */
+public class LaunchPadMachine extends MultiblockControllerMachine implements LaunchComplex, IInteractedMachine {
 
-    private static final java.util.Map<java.util.UUID, java.util.Set<LaunchPadMachine>> TEAM_COMPLEXES = new java.util.concurrent.ConcurrentHashMap<>();
+    private UUID registeredTeam;
 
-    private java.util.UUID registeredTeam;
-
-    public LaunchPadMachine(BlockEntityCreationInfo info) {
-        super(info);
-    }
-
-    /** The formed launch complexes whose power outposts draw their upkeep from. */
-    public static java.util.List<LaunchPadMachine> complexesOf(java.util.UUID team) {
-        var set = TEAM_COMPLEXES.get(team);
-        if (set == null) return java.util.List.of();
-        return set.stream().filter(m -> m.isFormed()).toList();
-    }
-
-    private void unregisterComplex() {
-        if (registeredTeam == null) return;
-        var set = TEAM_COMPLEXES.get(registeredTeam);
-        if (set != null) {
-            set.remove(this);
-            if (set.isEmpty()) TEAM_COMPLEXES.remove(registeredTeam);
-        }
-        registeredTeam = null;
+    public LaunchPadMachine(IMachineBlockEntity holder) {
+        super(holder);
     }
 
     @Override
-    public void invalidateStructure(@org.jetbrains.annotations.NotNull String substructureName) {
-        unregisterComplex();
-        super.invalidateStructure(substructureName);
+    public void onStructureInvalid() {
+        registeredTeam = LaunchComplexes.unregister(this, registeredTeam);
+        super.onStructureInvalid();
     }
 
     @Override
     public void onUnload() {
-        unregisterComplex();
+        registeredTeam = LaunchComplexes.unregister(this, registeredTeam);
         super.onUnload();
+    }
+
+    @Override
+    public void onStructureFormed() {
+        super.onStructureFormed();
+        registeredTeam = LaunchComplexes.formed(this, getLevel(), getPos(), getOwnerUUID(), registeredTeam);
+    }
+
+    @Override
+    public InteractionResult onUse(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
+                                   BlockHitResult hit) {
+        if (!isFormed() || player.isShiftKeyDown()) return InteractionResult.PASS;
+        return LaunchComplexes.use(level, pos, player);
     }
 
     private List<NotifiableItemStackHandler> inputInventories() {
@@ -68,6 +66,7 @@ public class LaunchPadMachine extends MultiblockControllerMachine {
         return inventories;
     }
 
+    @Override
     public int count(Predicate<ItemStack> matches) {
         int total = 0;
         for (var inventory : inputInventories()) {
@@ -79,6 +78,7 @@ public class LaunchPadMachine extends MultiblockControllerMachine {
         return total;
     }
 
+    @Override
     public ItemStack peek(Predicate<ItemStack> matches) {
         for (var inventory : inputInventories()) {
             for (int slot = 0; slot < inventory.getSlots(); slot++) {
@@ -89,6 +89,7 @@ public class LaunchPadMachine extends MultiblockControllerMachine {
         return ItemStack.EMPTY;
     }
 
+    @Override
     public List<ItemStack> take(Predicate<ItemStack> matches, int amount) {
         List<ItemStack> taken = new ArrayList<>();
         int remaining = amount;
@@ -128,14 +129,17 @@ public class LaunchPadMachine extends MultiblockControllerMachine {
         return rest;
     }
 
+    @Override
     public ItemStack insertOutput(ItemStack stack) {
         return insertInto(stack, inventories(true));
     }
 
+    @Override
     public ItemStack insertInput(ItemStack stack) {
         return insertInto(stack, inventories(false));
     }
 
+    @Override
     public int padTier() {
         int tier = 0;
         for (var part : getParts()) {
@@ -144,6 +148,7 @@ public class LaunchPadMachine extends MultiblockControllerMachine {
         return tier;
     }
 
+    @Override
     public long energyCapacity() {
         long total = 0;
         for (var part : getParts()) {
@@ -152,6 +157,7 @@ public class LaunchPadMachine extends MultiblockControllerMachine {
         return total;
     }
 
+    @Override
     public long storedEnergy() {
         long total = 0;
         for (var part : getParts()) {
@@ -160,6 +166,7 @@ public class LaunchPadMachine extends MultiblockControllerMachine {
         return total;
     }
 
+    @Override
     public boolean drainEnergy(long amount) {
         if (amount <= 0) return true;
         if (storedEnergy() < amount) return false;
@@ -175,41 +182,5 @@ public class LaunchPadMachine extends MultiblockControllerMachine {
             remaining -= take;
         }
         return true;
-    }
-
-    @Override
-    public void formStructure(@org.jetbrains.annotations.NotNull String substructureName) {
-        super.formStructure(substructureName);
-        if (isRemote() || getLevel() == null || getLevel().getServer() == null) return;
-        java.util.UUID owner = getOwnerUUID();
-        if (owner == null) return;
-        var server = getLevel().getServer();
-        var teams = net.phoenix.continuum.common.ContinuumTeamData.get(server);
-        java.util.UUID team = net.phoenix.core.utils.TeamUtils.getTeamIdOrPlayerFallback(owner);
-        teams.markEngaged(team);
-        unregisterComplex();
-        registeredTeam = team;
-        TEAM_COMPLEXES.computeIfAbsent(team, k -> java.util.concurrent.ConcurrentHashMap.newKeySet()).add(this);
-        if (getLevel() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-            net.phoenix.core.integration.solaris.TeamSiteData.registerSite(serverLevel, team, "launch_complex",
-                    getBlockPos());
-        }
-        ServerPlayer builder = server.getPlayerList().getPlayer(owner);
-        if (builder != null) {
-            net.phoenix.continuum.common.ContinuumServerEvents.engageAndSend(builder);
-        }
-    }
-
-    @Override
-    public InteractionResult onUse(ExtendedUseOnContext context) {
-        Player player = context.getPlayer();
-        if (!isFormed() || player == null || player.isShiftKeyDown()) return super.onUse(context);
-
-        Level level = context.getLevel();
-        if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
-            net.phoenix.continuum.common.ContinuumServerEvents.engageAndSend(serverPlayer);
-            net.phoenix.continuum.network.ContinuumNetwork.sendToPlayer(serverPlayer, new S2COpenMapPacket(getBlockPos()));
-        }
-        return InteractionResult.sidedSuccess(level.isClientSide);
     }
 }

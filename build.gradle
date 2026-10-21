@@ -7,8 +7,15 @@ plugins {
 version = mod_version
 group = mod_group_id
 
-sourceSets.main.resources {
-    srcDir 'src/generated/resources'
+sourceSets {
+    main.resources {
+        srcDir 'src/generated/resources'
+    }
+    // The parts written for GregTech 8 (compiled against it, shipped in the same jar, only loaded when GregTech 8 is
+    // the installed version). Everything else is compiled against GregTech 7.5.3.
+    gtm8 {
+        java.srcDir 'src/gtm8/java'
+    }
 }
 
 repositories {
@@ -86,26 +93,43 @@ legacyForge {
     mods {
         "${mod_id}" {
             sourceSet(sourceSets.main)
+            sourceSet(sourceSets.gtm8)
         }
     }
 }
 
+configurations {
+    gtm8CompileOnly.extendsFrom(compileOnly, implementation)
+}
+def gtm8Remapped = obfuscation.createRemappingConfiguration(configurations.gtm8CompileOnly)
+sourceSets.gtm8.compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+
 dependencies {
     compileOnly 'org.jetbrains:annotations:26.0.1'
 
-    // GregTech and what it is built on
-    modImplementation("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtceu_version}:slim")
-    modImplementation("com.lowdragmc.ldlib:ldlib-forge-${minecraft_version}:${ldlib_version}") { transitive = false }
-    modImplementation("brachy.modularui:modularui-mc${minecraft_version}:${mui_version}") { transitive = false }
-    modImplementation("com.tterrag.registrate:Registrate:${registrate_version}")
-    modImplementation "curse.maven:configuration-444699:5840405"
-    modImplementation "net.phoenixvine.wiki:phoenix_wiki:0.5.5"
+    // Compile against GregTech 7.x; the GregTech 8 classes compile in the gtm8 source set.
+    modCompileOnly("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtceu_version}:slim") { transitive = false }
+    modGtm8CompileOnly("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtceu8_version}:slim") { transitive = false }
+    // Which GregTech the dev client or server runs: 7.x by default, the GT 8 snapshot with -Pgtm=8, or any exact
+    // version with -Pgtm=<version> (for example -Pgtm=8.0.0).
+    modRuntimeOnly("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${project.findProperty('gtm') == '8' ? gtceu8_version : (project.findProperty('gtm') ?: gtceu_version)}:slim") { transitive = false }
+    // The GT 8 snapshot jar-in-jars these (its slim jar leaves them out), so a dev run on it has to provide them.
+    if (project.findProperty('gtm') != null) {
+        modRuntimeOnly("brachy.modularui:modularui-mc${minecraft_version}:${mui_version}") { transitive = false }
+        modRuntimeOnly("io.github.llamalad7:mixinextras-forge:0.5.3")
+        modRuntimeOnly("top.theillusivec4.curios:curios-forge:5.9.1+1.20.1")
+    }
 
-    // PhoenixCore (Conflux research, teams, sounds): the 1.20.1 build, a plain jar in libs/
-    compileOnly files('libs/PhoenixCore-1.20.1.jar')
+    modImplementation("com.lowdragmc.ldlib:ldlib-forge-${minecraft_version}:${ldlib_version}") { transitive = false }
+    modImplementation("com.tterrag.registrate:Registrate:${registrate_version}")
+    modImplementation "curse.maven:configuration-444699:5840405" // Configuration 3.1.0 (GregTech 8 needs 3.1+)
+    jarJar(modImplementation("net.phoenixvine.wiki:phoenix_wiki:0.5.5"))
+
+    // Solaris (map markers for launch complexes), optional: a plain jar in libs/
+    modCompileOnly "solaris:solaris:1.20.1"
 
     modCompileOnly("dev.emi:emi-forge:${emi_version}+${minecraft_version}")
-    modRuntimeOnly("dev.emi:emi-forge:${emi_version}+${minecraft_version}")
+    modRuntimeOnly("dev.emi:emi-forge:${project.findProperty('gtm') != null ? '1.1.24' : emi_version}+${minecraft_version}")
     modCompileOnly("dev.latvian.mods:kubejs-forge:${kubejs_version}") { transitive = false }
     modCompileOnly("dev.latvian.mods:rhino-forge:${rhino_version}") { transitive = false }
 }
@@ -135,6 +159,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.named('jar', Jar).configure {
+    from sourceSets.gtm8.output
     archiveClassifier.set('slim')
     finalizedBy 'reobfJar'
 }
@@ -152,5 +177,18 @@ idea {
     module {
         downloadSources = true
         downloadJavadoc = true
+    }
+}
+
+// One-click dev runs against newer GregTech, visible under "mod development" in the Gradle tool window.
+[['Gtm8', '8', 'the GregTech 8 development snapshot'], ['Gtm8Release', '8.0.0', 'the GregTech 8.0.0 release']].each { suffix, version, label ->
+    ['Client', 'Server'].each { side ->
+        tasks.register("run${side}${suffix}", GradleBuild) {
+            group = 'mod development'
+            description = "Runs the dev ${side.toLowerCase()} with ${label} instead of GregTech ${gtceu_version}."
+            dir = projectDir
+            tasks = ["run${side}".toString()]
+            startParameter.projectProperties = [gtm: version]
+        }
     }
 }

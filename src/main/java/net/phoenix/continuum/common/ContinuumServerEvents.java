@@ -13,7 +13,6 @@ import net.phoenix.continuum.PhoenixContinuum;
 import net.phoenix.continuum.data.ContinuumData;
 import net.phoenix.continuum.network.S2CContinuumDataPacket;
 import net.phoenix.continuum.network.S2CContinuumStatePacket;
-import net.phoenix.core.utils.TeamUtils;
 
 import java.util.UUID;
 
@@ -76,18 +75,18 @@ public final class ContinuumServerEvents {
     }
 
     public static void sendState(ServerPlayer player) {
-        UUID team = TeamUtils.getTeamIdOrPlayerFallback(player.getUUID());
+        UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         if (!ContinuumTeamData.get(player.server).isEngaged(team)) return;
         sendStateAlways(player);
     }
 
     public static void engageAndSend(ServerPlayer player) {
-        ContinuumTeamData.get(player.server).markEngaged(TeamUtils.getTeamIdOrPlayerFallback(player.getUUID()));
+        ContinuumTeamData.get(player.server).markEngaged(net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID()));
         sendStateAlways(player);
     }
 
     private static void sendStateAlways(ServerPlayer player) {
-        UUID team = TeamUtils.getTeamIdOrPlayerFallback(player.getUUID());
+        UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         net.phoenix.continuum.network.ContinuumNetwork.sendToPlayer(player,
                 new S2CContinuumStatePacket(ContinuumStateSnapshot.build(player.server, team)));
     }
@@ -99,7 +98,7 @@ public final class ContinuumServerEvents {
 
     public static void sendStateToTeam(MinecraftServer server, UUID team) {
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            if (TeamUtils.isPlayerOnTeam(player, team)) sendState(player);
+            if (net.phoenix.continuum.api.ContinuumHost.teams().onTeam(player, team)) sendState(player);
         }
     }
 }
