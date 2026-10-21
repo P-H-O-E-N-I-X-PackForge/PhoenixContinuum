@@ -103,7 +103,6 @@ dependencies {
 
     // PhoenixCore (Conflux research, teams, sounds): the 1.20.1 build, a plain jar in libs/
     compileOnly files('libs/PhoenixCore-1.20.1.jar')
-    runtimeOnly files('libs/PhoenixCore-1.20.1.jar')
 
     modCompileOnly("dev.emi:emi-forge:${emi_version}+${minecraft_version}")
     modRuntimeOnly("dev.emi:emi-forge:${emi_version}+${minecraft_version}")

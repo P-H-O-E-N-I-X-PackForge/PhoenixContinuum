@@ -38,7 +38,8 @@ public class PhoenixContinuum {
         REGISTRATE.registerEventListeners(modEventBus);
 
         ContinuumRegistry.init();
-        ContinuumMachines.init();
+        modEventBus.addGenericListener(com.gregtechceu.gtceu.api.machine.MachineDefinition.class,
+                (com.gregtechceu.gtceu.api.GTCEuAPI.RegisterEvent<ResourceLocation, com.gregtechceu.gtceu.api.machine.MachineDefinition> event) -> ContinuumMachines.init());
 
         ContinuumNetwork.register();
         modEventBus.addListener(net.phoenix.continuum.data.ContinuumPackFolder::register);

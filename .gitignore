@@ -7,3 +7,4 @@ run-*/
 out/
 libs/
 build_log.txt
+server_log.txt
