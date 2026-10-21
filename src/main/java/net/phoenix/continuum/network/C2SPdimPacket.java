@@ -33,12 +33,15 @@ public class C2SPdimPacket implements CustomPacketPayload {
     private final float gravity;
     private final float daySpeed;
     private final float lockedTime;
+    private final boolean orbitView;
 
-    public C2SPdimPacket(Action action, ResourceLocation body, float gravity) {
-        this(action, body, gravity, 1.0f, -1.0f);
+    public C2SPdimPacket(Action action, ResourceLocation body, float gravity, boolean orbitView) {
+        this(action, body, gravity, 1.0f, -1.0f, orbitView);
     }
 
-    public C2SPdimPacket(Action action, ResourceLocation body, float gravity, float daySpeed, float lockedTime) {
+    public C2SPdimPacket(Action action, ResourceLocation body, float gravity, float daySpeed, float lockedTime,
+                         boolean orbitView) {
+        this.orbitView = orbitView;
         this.action = action;
         this.body = body;
         this.gravity = gravity;
@@ -52,6 +55,7 @@ public class C2SPdimPacket implements CustomPacketPayload {
         this.gravity = buf.readFloat();
         this.daySpeed = buf.readFloat();
         this.lockedTime = buf.readFloat();
+        this.orbitView = buf.readBoolean();
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -60,6 +64,7 @@ public class C2SPdimPacket implements CustomPacketPayload {
         buf.writeFloat(gravity);
         buf.writeFloat(daySpeed);
         buf.writeFloat(lockedTime);
+        buf.writeBoolean(orbitView);
     }
 
     public static void handle(C2SPdimPacket msg, IPayloadContext ctx) {
@@ -69,8 +74,9 @@ public class C2SPdimPacket implements CustomPacketPayload {
 
             String error = switch (msg.action) {
                 case LEAVE -> PdimActions.leave(player);
-                case ADJUST -> PdimActions.adjust(player, msg.body, msg.gravity, msg.daySpeed, msg.lockedTime);
-                default -> PdimActions.createAndEnter(player, msg.body, msg.gravity);
+                case ADJUST -> PdimActions.adjust(player, msg.body, msg.gravity, msg.daySpeed, msg.lockedTime,
+                        msg.orbitView);
+                default -> PdimActions.createAndEnter(player, msg.body, msg.gravity, msg.orbitView);
             };
             if (error != null) player.displayClientMessage(Component.literal(error), true);
         });

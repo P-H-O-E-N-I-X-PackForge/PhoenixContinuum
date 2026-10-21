@@ -36,6 +36,7 @@ public class ContinuumPdimScreen extends Screen {
     private final List<Object[]> rects = new ArrayList<>();
     private int selected;
     private float scale = 1.0f;
+    private boolean orbitChoice;
 
     public ContinuumPdimScreen(Screen parent, ContinuumBody body) {
         super(Component.literal("Personal dimension"));
@@ -106,6 +107,8 @@ public class ContinuumPdimScreen extends Screen {
             button(g, x + 10, ty, third, "Lock noon", "lockNoon", true, locked == 6000.0f, mx, my);
             button(g, x + 15 + third, ty, third, "Lock midnight", "lockNight", true, locked == 18000.0f, mx, my);
             button(g, x + 20 + 2 * third, ty, third, "Run clock", "unlock", locked >= 0, false, mx, my);
+            button(g, x + 10, ty + 22, W - 20, PdimClientState.orbitView() ? "Sky: seen from orbit  (click for the surface)" :
+                    "Sky: as if you stand on it  (click for orbit)", "sky", true, false, mx, my);
             costLine(g, x + 10, y + H - 62, charged, cost, have, canPay);
             button(g, x + 10, y + H - 48, W - 20, "Enter", "enter", canPay, false, mx, my);
         } else {
@@ -119,6 +122,8 @@ public class ContinuumPdimScreen extends Screen {
                 String label = p.label() + String.format(Locale.ROOT, "  x%.2f", p.gravity());
                 button(g, bx, by, bw, label, "preset" + i, true, i == selected, mx, my);
             }
+            button(g, x + 10, ty + 52, W - 20, orbitChoice ? "Sky: seen from orbit  (click for the surface)" :
+                    "Sky: as if you stand on it  (click for orbit)", "sky", true, false, mx, my);
             costLine(g, x + 10, y + H - 62, charged, cost, have, canPay);
             button(g, x + 10, y + H - 48, W - 20, "Create and enter", "create", canPay, false, mx, my);
         }
@@ -143,7 +148,8 @@ public class ContinuumPdimScreen extends Screen {
 
     private void sendAdjust(float gravity, float speed, float locked) {
         PacketDistributor.sendToServer(
-                new C2SPdimPacket(C2SPdimPacket.Action.ADJUST, body.id(), gravity, speed, locked));
+                new C2SPdimPacket(C2SPdimPacket.Action.ADJUST, body.id(), gravity, speed, locked,
+                        PdimClientState.orbitView()));
     }
 
     private void costLine(GuiGraphics g, int x, int y, boolean charged, PdimCosts.Cost cost, int have, boolean canPay) {
@@ -202,16 +208,23 @@ public class ContinuumPdimScreen extends Screen {
                     sendAdjust(gravityNow, speedNow, 18000.0f);
                 } else if (current != null && id.equals("unlock")) {
                     sendAdjust(gravityNow, speedNow, -1.0f);
+                } else if (id.equals("sky")) {
+                    if (current != null) {
+                        PacketDistributor.sendToServer(new C2SPdimPacket(C2SPdimPacket.Action.ADJUST, body.id(), gravityNow,
+                                speedNow, lockedNow, !PdimClientState.orbitView()));
+                    } else {
+                        orbitChoice = !orbitChoice;
+                    }
                 } else if (id.startsWith("preset")) {
                     selected = Integer.parseInt(id.substring(6));
                 } else if (id.equals("create") || id.equals("enter")) {
                     float gravity = existing() != null ? existing() : presets.get(selected).gravity();
                     PacketDistributor.sendToServer(
-                            new C2SPdimPacket(C2SPdimPacket.Action.ENTER, body.id(), gravity));
+                            new C2SPdimPacket(C2SPdimPacket.Action.ENTER, body.id(), gravity, orbitChoice));
                     Minecraft.getInstance().setScreen(null);
                 } else if (id.equals("leave")) {
                     PacketDistributor.sendToServer(
-                            new C2SPdimPacket(C2SPdimPacket.Action.LEAVE, body.id(), 1.0f));
+                            new C2SPdimPacket(C2SPdimPacket.Action.LEAVE, body.id(), 1.0f, false));
                     Minecraft.getInstance().setScreen(null);
                 } else {
                     onClose();

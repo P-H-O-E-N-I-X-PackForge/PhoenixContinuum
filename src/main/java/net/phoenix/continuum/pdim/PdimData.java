@@ -21,10 +21,14 @@ public class PdimData extends SavedData {
      * @param daySpeed   how fast the sky clock runs in this dimension (1 = normal)
      * @param lockedTime a fixed time of day in ticks (0..24000), or a negative number for none
      */
-    public record Entry(float gravity, int plot, float daySpeed, float lockedTime) {
+    public record Entry(float gravity, int plot, float daySpeed, float lockedTime, boolean orbitView) {
 
         public Entry(float gravity, int plot) {
-            this(gravity, plot, 1.0f, -1.0f);
+            this(gravity, plot, 1.0f, -1.0f, false);
+        }
+
+        public Entry(float gravity, int plot, float daySpeed, float lockedTime) {
+            this(gravity, plot, daySpeed, lockedTime, false);
         }
     }
 
@@ -48,12 +52,12 @@ public class PdimData extends SavedData {
         return entries.getOrDefault(player, Map.of());
     }
 
-    public Entry create(UUID player, ResourceLocation body, float gravity) {
+    public Entry create(UUID player, ResourceLocation body, float gravity, boolean orbitView) {
         Entry existing = entry(player, body);
         if (existing != null) return existing;
 
         int plot = nextPlot.merge(body, 1, Integer::sum) - 1;
-        Entry entry = new Entry(PdimDimensions.clampGravity(gravity), plot);
+        Entry entry = new Entry(PdimDimensions.clampGravity(gravity), plot, 1.0f, -1.0f, orbitView);
         entries.computeIfAbsent(player, p -> new HashMap<>()).put(body, entry);
         setDirty();
         return entry;
@@ -102,6 +106,7 @@ public class PdimData extends SavedData {
                 e.putInt("Plot", entry.getValue().plot());
                 e.putFloat("DaySpeed", entry.getValue().daySpeed());
                 e.putFloat("LockedTime", entry.getValue().lockedTime());
+                e.putBoolean("OrbitView", entry.getValue().orbitView());
                 list.add(e);
             }
             playerTag.put("Entries", list);
@@ -140,7 +145,8 @@ public class PdimData extends SavedData {
                 map.put(ResourceLocation.parse(entry.getString("Body")),
                         new Entry(entry.getFloat("Gravity"), entry.getInt("Plot"),
                                 entry.contains("DaySpeed") ? entry.getFloat("DaySpeed") : 1.0f,
-                                entry.contains("LockedTime") ? entry.getFloat("LockedTime") : -1.0f));
+                                entry.contains("LockedTime") ? entry.getFloat("LockedTime") : -1.0f,
+                                entry.getBoolean("OrbitView")));
             }
             data.entries.put(playerTag.getUUID("Player"), map);
         }

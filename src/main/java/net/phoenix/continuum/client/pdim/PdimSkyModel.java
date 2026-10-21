@@ -50,6 +50,12 @@ public final class PdimSkyModel {
 
     private PdimSkyModel() {}
 
+    /** How far the star's daily path is tipped for this world, in radians. */
+    public static float latitude(ContinuumBody body) {
+        if (body == null) return BASE_LATITUDE;
+        return clamp(BASE_LATITUDE + (float) Math.toRadians(Math.abs(body.params().axialTiltDeg())) * 0.8f, 0.10f, 1.10f);
+    }
+
     public static Sample sample(ClientLevel level, float partialTick, ContinuumBody body, ContinuumSystem system) {
         int starColor = system != null ? system.starColor() : 0xfff1cf;
         boolean holeSun = system != null && system.hasHole();
@@ -69,11 +75,7 @@ public final class PdimSkyModel {
             double ticks = (level.getDayTime() + (double) partialTick) * PdimClientState.daySpeed();
             dayFrac = (float) ((ticks % 24000.0) / 24000.0);
         }
-        float lat = BASE_LATITUDE;
-        if (body != null) {
-            lat = clamp(BASE_LATITUDE + (float) Math.toRadians(Math.abs(body.params().axialTiltDeg())) * 0.8f,
-                    0.10f, 1.10f);
-        }
+        float lat = latitude(body);
         // dayFrac 0 = sunrise, 0.25 = noon, 0.5 = sunset, 0.75 = midnight (the usual Minecraft day)
         double theta = 2.0 * Math.PI * dayFrac;
         Vector3f sunDir = new Vector3f((float) Math.cos(theta), (float) (Math.sin(theta) * Math.cos(lat)),

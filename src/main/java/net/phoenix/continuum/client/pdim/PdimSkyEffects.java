@@ -92,8 +92,17 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
             float radius = body.type() == ContinuumBody.Type.BLACK_HOLE ? (quasar ? 8.5f : 9.0f) :
                     centralBody ? 16.0f : 22.0f;
 
+            boolean orbit = PdimClientState.orbitView();
             if (!SceneRenderer.drawCentralBody(body, view, projectionMatrix, position, radius,
                     ContinuumVisuals.quality(), true)) {
+                // standing on the world (the default): the rest of its system is what fills the sky
+                if (!orbit) {
+                    try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("pdim.system_bodies")) {
+                        PdimSkyBodies.draw(level, partialTick, view, projectionMatrix, body, sample, time);
+                    }
+                }
+                // a moon always shows its host planet; a planet only shows itself when the view is from orbit
+                if (orbit || body.isMoon()) {
                 // On a planet the sky shows the planet itself, as before. On a moon you are standing on it, so the sky
                 // shows its host planet instead: held fixed (a moon keeps one face to its planet), sized by the
                 // planet's radius, and lit by wherever the star is, so it waxes and wanes as the day turns.
@@ -112,6 +121,7 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
                 SceneRenderer.drawPlanet(params, view, projectionMatrix, position, orbRadius, light,
                         time * params.spinDegPerSec() * 0.5f, time * params.cloudSpinDegPerSec() * 0.5f,
                         ContinuumVisuals.quality(), true);
+                }
             }
         }
 

@@ -73,7 +73,7 @@ public final class PdimCommands {
         ServerPlayer player = source.getPlayerOrException();
         ContinuumBody body = ContinuumData.body(id);
         float g = gravity != null ? gravity : body != null ? PdimDimensions.naturalGravity(body) : 1.0f;
-        String error = PdimActions.createAndEnter(player, id, g);
+        String error = PdimActions.createAndEnter(player, id, g, false);
         if (error != null) {
             source.sendFailure(Component.literal(error));
             return 0;

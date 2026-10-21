@@ -23,7 +23,8 @@ public final class PdimActions {
 
     private PdimActions() {}
 
-    public static @Nullable String createAndEnter(ServerPlayer player, ResourceLocation bodyId, float gravity) {
+    public static @Nullable String createAndEnter(ServerPlayer player, ResourceLocation bodyId, float gravity,
+                                                 boolean orbitView) {
         MinecraftServer server = player.server;
         ContinuumBody body = ContinuumData.body(bodyId);
         if (body == null) return "That body does not exist.";
@@ -48,7 +49,7 @@ public final class PdimActions {
             PdimCosts.take(player, cost);
         }
 
-        PdimData.Entry entry = data.create(player.getUUID(), bodyId, gravity);
+        PdimData.Entry entry = data.create(player.getUUID(), bodyId, gravity, orbitView);
         BlockPos origin = PdimDimensions.plotOrigin(entry.plot());
         buildPlatform(target, origin);
 
@@ -111,10 +112,11 @@ public final class PdimActions {
 
     /** Changes the gravity and sky clock of a dimension the player already has. */
     public static @Nullable String adjust(ServerPlayer player, ResourceLocation bodyId, float gravity, float daySpeed,
-                                          float lockedTime) {
+                                          float lockedTime, boolean orbitView) {
         var changed = PdimData.get(player.server).update(player.getUUID(), bodyId,
                 e -> new PdimData.Entry(PdimDimensions.clampGravity(gravity), e.plot(),
-                        PdimDimensions.clampDaySpeed(daySpeed), lockedTime < 0 ? -1.0f : lockedTime % 24000.0f));
+                        PdimDimensions.clampDaySpeed(daySpeed), lockedTime < 0 ? -1.0f : lockedTime % 24000.0f,
+                        orbitView));
         if (changed == null) return "You have no personal dimension there.";
         sendState(player);
         return null;
@@ -128,6 +130,7 @@ public final class PdimActions {
         float gravity = 1.0f;
         float daySpeed = 1.0f;
         float lockedTime = -1.0f;
+        boolean orbitView = false;
         ResourceLocation here = PdimDimensions.bodyOf(player.level().dimension());
         if (here != null) {
             PdimData.Entry entry = data.entry(player.getUUID(), here);
@@ -135,13 +138,14 @@ public final class PdimActions {
                 gravity = entry.gravity();
                 daySpeed = entry.daySpeed();
                 lockedTime = entry.lockedTime();
+                orbitView = entry.orbitView();
             }
         }
         Map<ResourceLocation, PdimCosts.Cost> costs = new HashMap<>();
         for (ContinuumBody body : ContinuumData.allBodies()) costs.put(body.id(), PdimCosts.costFor(body));
         boolean everyVisit = PdimCosts.charges(true);
 
-        PacketDistributor.sendToPlayer(player, new S2CPdimStatePacket(here != null, gravity, daySpeed, lockedTime, mine, costs, everyVisit));
+        PacketDistributor.sendToPlayer(player, new S2CPdimStatePacket(here != null, gravity, daySpeed, lockedTime, orbitView, mine, costs, everyVisit));
     }
 
     public static boolean isIn(Level level) {
