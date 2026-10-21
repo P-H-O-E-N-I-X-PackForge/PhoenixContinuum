@@ -2,7 +2,8 @@ package net.phoenix.continuum.common;
 
 import net.minecraft.server.MinecraftServer;
 import net.phoenix.continuum.config.ContinuumConfigs;
-import net.phoenix.core.integration.phoenix_tesla_network.saveddata.TeslaTeamEnergyData;
+import net.neoforged.fml.ModList;
+import net.phoenix_tesla_network.tesla.saveddata.TeslaTeamEnergyData;
 
 import java.math.BigInteger;
 import java.util.UUID;
@@ -21,8 +22,13 @@ public final class OutpostPower {
         return Math.round(ContinuumConfigs.INSTANCE.outpostUpkeepEUPerProbe) * Math.max(0, probes);
     }
 
+    /** The Tesla network is an optional dependency: without it the upkeep cannot be charged, so outposts run free. */
+    private static boolean teslaPresent() {
+        return ModList.get().isLoaded("phoenix_tesla_network");
+    }
+
     public static Outpost.CyclePayer payerFor(MinecraftServer server, UUID team) {
-        if (!enabled()) return Outpost.FREE;
+        if (!enabled() || !teslaPresent()) return Outpost.FREE;
 
         return (cycles, probes) -> {
             long perCycle = upkeepPerCycle(probes);
@@ -40,7 +46,7 @@ public final class OutpostPower {
 
     public static boolean canAffordCycle(MinecraftServer server, UUID team, int probes) {
         long perCycle = upkeepPerCycle(probes);
-        if (perCycle <= 0) return true;
+        if (perCycle <= 0 || !teslaPresent()) return true;
 
         var pool = TeslaTeamEnergyData.get(server.overworld()).getNetworksView().get(team);
         return pool != null && pool.stored.compareTo(BigInteger.valueOf(perCycle)) >= 0;

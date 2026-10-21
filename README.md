@@ -1,7 +1,10 @@
 # Phoenix Continuum
 
-The galaxy map, rockets, missions, outposts and personal dimensions of the Phoenix suite. Split out of PhoenixCore; it
-reads and writes Conflux research through PhoenixCore's public API (`net.phoenix.core.api`) and its events.
+The galaxy map, rockets, missions, outposts and personal dimensions of the Phoenix suite. 
+Split out of PhoenixCore; 
+it
+reads and writes Conflux research through PhoenixCore's public API (`net.phoenix.core.api`) 
+and its events.
 
 - Mod id `phoenix_continuum`, package `net.phoenix.continuum`
 - Requires PhoenixCore (`publishToMavenLocal` there first), GTCEu, and optionally EMI
