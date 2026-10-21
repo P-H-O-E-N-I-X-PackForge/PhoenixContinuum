@@ -57,7 +57,7 @@ public final class ContinuumData {
     }
 
     /** The body definition as the server sent it (resolved JSON), or null. */
-    static @Nullable JsonObject rawBody(ResourceLocation id) {
+    public static @Nullable JsonObject rawBody(ResourceLocation id) {
         String json = rawBodies.get(id);
         return json == null ? null : JsonParser.parseString(json).getAsJsonObject();
     }

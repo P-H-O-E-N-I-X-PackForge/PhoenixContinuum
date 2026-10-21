@@ -61,6 +61,7 @@ public class ContinuumTeamData extends SavedData {
 
     public void markEngaged(UUID team) {
         if (engaged.add(team)) setDirty();
+        ResearchGrants.sweep(team);
     }
 
     private static DiscoveryStage initial(ResourceLocation id) {
@@ -150,12 +151,14 @@ public class ContinuumTeamData extends SavedData {
         map.put(id, stage);
         setDirty();
         net.phoenix.continuum.api.ContinuumEvents.postDiscovery(team, id, stage);
+        ResearchGrants.sweep(team);
         return true;
     }
 
     public void force(UUID team, ResourceLocation id, DiscoveryStage stage) {
         stages.computeIfAbsent(team, t -> new HashMap<>()).put(id, stage);
         setDirty();
+        ResearchGrants.sweep(team);
     }
 
     public void resetDiscovery(UUID team) {

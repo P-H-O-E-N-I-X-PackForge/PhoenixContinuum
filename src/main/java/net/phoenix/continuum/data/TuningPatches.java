@@ -28,11 +28,12 @@ public final class TuningPatches {
     public static final Set<String> EDITABLE = Set.of("name", "description", "trip_minutes", "initial_stage", "orbit",
             "gate", "yields", "pdim_cost", "discipline", "radius", "gas_giant", "axial_tilt", "spin_deg_per_sec",
             "cloud_spin_deg_per_sec", "surface", "atmosphere", "rings", "style", "hole_tilt", "sky_hole_inclination",
-            "sky_hole_lean", "lore", "visibility");
+            "sky_hole_lean", "lore", "visibility", "grants_research");
 
     /** The top-level keys the tuner may change on a system. */
     public static final Set<String> EDITABLE_SYSTEM = Set.of("name", "description", "galaxy", "star_color",
-            "star_radius", "star_kind", "initial_stage", "gate", "hole", "visibility");
+            "star_radius", "star_kind", "initial_stage", "gate", "hole", "visibility",
+            "grants_research");
 
     private TuningPatches() {}
 

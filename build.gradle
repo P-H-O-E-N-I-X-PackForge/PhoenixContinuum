@@ -211,6 +211,9 @@ dependencies {
     compileOnly("dev.latvian.mods:kubejs-neoforge:${kubejs_version}") { transitive = false }
     compileOnly("dev.latvian.mods:rhino:${rhino_version}") { transitive = false }
     runtimeOnly "dev.emi:emi-neoforge:${emi_version}+${minecraft_version}"
+    // KubeJS in the dev runtime, so the plugin and the example script actually load
+    runtimeOnly("dev.latvian.mods:kubejs-neoforge:${kubejs_version}") { exclude group: 'com.github.rtyley' }
+    runtimeOnly "dev.architectury:architectury-neoforge:13.0.8"
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

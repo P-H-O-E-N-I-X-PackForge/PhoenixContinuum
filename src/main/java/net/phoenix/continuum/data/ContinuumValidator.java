@@ -19,10 +19,10 @@ final class ContinuumValidator {
     private static final Set<String> BODY_KEYS = Set.of("system", "type", "name", "description", "orbit", "radius",
             "gas_giant", "axial_tilt", "spin_deg_per_sec", "cloud_spin_deg_per_sec", "surface", "atmosphere", "gate",
             "trip_minutes", "initial_stage", "yields", "lore", "parent", "rings", "style", "discipline", "pdim_cost",
-            "transient", "hole_tilt", "sky_hole_inclination", "sky_hole_lean", "visibility");
+            "transient", "hole_tilt", "sky_hole_inclination", "sky_hole_lean", "visibility", "grants_research");
 
     private static final Set<String> SYSTEM_KEYS = Set.of("name", "description", "galaxy", "star_color", "star_radius",
-            "star_kind", "initial_stage", "gate", "hole", "visibility");
+            "star_kind", "initial_stage", "gate", "hole", "visibility", "grants_research");
 
     private ContinuumValidator() {}
 

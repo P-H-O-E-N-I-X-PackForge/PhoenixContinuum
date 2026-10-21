@@ -179,8 +179,11 @@ public final class ContinuumAPI {
         ContinuumVisibility.clearCache();
     }
 
-    /** Java mods: same as {@link #registerCondition} with a typed condition. */
-    public static void registerCondition(ResourceLocation type,
+    /**
+     * Java mods: same as {@link #registerCondition} with a typed condition. Named differently so scripts, which cannot tell the two
+     * apart by their arguments, always get the script version.
+     */
+    public static void registerConditionType(ResourceLocation type,
                                          java.util.function.Function<JsonObject, ContinuumCondition> parser) {
         ContinuumConditions.register(type, parser);
         ContinuumVisibility.clearCache();

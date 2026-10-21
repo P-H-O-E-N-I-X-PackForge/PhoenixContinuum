@@ -72,7 +72,8 @@ public final class ContinuumAmbience {
         });
     }
 
-    private static void add(Map<SoundEvent, Float> targets, SoundEvent event, float volume) {
+    private static void add(Map<SoundEvent, Float> targets, @Nullable SoundEvent event, float volume) {
+        if (event == null) return;
         targets.merge(event, volume, Float::sum);
     }
 

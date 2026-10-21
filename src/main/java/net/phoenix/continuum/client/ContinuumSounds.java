@@ -104,9 +104,10 @@ public final class ContinuumSounds {
         return startLoop(HostSounds.void_cosmic_drone(), 0.0f);
     }
 
-    private static Loop startLoop(SoundEvent event, float volume) {
-        Loop loop = new Loop(event, volume);
-        play(loop);
+    private static Loop startLoop(@org.jetbrains.annotations.Nullable SoundEvent event, float volume) {
+        // a missing sound gets a loop that is never played, so callers need no null checks
+        Loop loop = new Loop(event == null ? SoundEvents.UI_BUTTON_CLICK.value() : event, volume);
+        if (event != null) play(loop);
         return loop;
     }
 
