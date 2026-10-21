@@ -24,6 +24,7 @@ public final class ContinuumConfluxHooks {
         if (before instanceof Map<?, ?> snapshot) {
             ContinuumDiscoveryNotifier.announce(server, team, (Map<ResourceLocation, DiscoveryStage>) snapshot);
         }
+        ResearchGrants.sweep(server, team);
         ContinuumServerEvents.sendStateToTeam(server, team);
     }
 

@@ -134,6 +134,10 @@ dependencies {
     modRuntimeOnly("dev.emi:emi-forge:${project.findProperty('gtm') != null ? '1.1.24' : emi_version}+${minecraft_version}")
     modCompileOnly("dev.latvian.mods:kubejs-forge:${kubejs_version}") { transitive = false }
     modCompileOnly("dev.latvian.mods:rhino-forge:${rhino_version}") { transitive = false }
+    // KubeJS in the dev runtime, so the plugin and the example script actually load
+    modRuntimeOnly("dev.latvian.mods:kubejs-forge:${kubejs_version}")
+    modRuntimeOnly("dev.latvian.mods:rhino-forge:${rhino_version}")
+    modRuntimeOnly("dev.architectury:architectury-forge:9.2.14")
 }
 
 tasks.named('processResources', ProcessResources).configure {

@@ -23,6 +23,12 @@ Continuum.raise(player, 'example_rock', 'surveyed')  // never lowers; true if it
 Continuum.setVisible(player, 'example_giant', false) // per-team override (also for a whole system id)
 Continuum.clearOverride(player, 'example_giant')
 
+Continuum.grantResearch(player, 'mypack:node')   // Continuum's own research; true if it was new
+Continuum.revokeResearch(player, 'mypack:node')
+Continuum.hasResearch(player, 'mypack:node')
+Continuum.setResearchFlag(player, 'flag', true)
+Continuum.setDiscipline(player, 'name')          // '' clears it
+
 Continuum.reload()                       // reload Continuum data, returns the report
 Continuum.report()                       // last load report (issues, errors(), warnings())
 ```
@@ -61,3 +67,19 @@ ContinuumEvents.mission(event => {
   // event.kind ('launched' | 'succeeded' | 'failed'), event.team, event.destination, event.missionType, event.probes
 })
 ```
+
+## Earning research without a script
+
+A body or system can give research ids to a team once the team reaches a stage of it:
+
+```json
+{ "grants_research": { "detected": ["mypack:sensors"], "surveyed": ["mypack:landing"] } }
+```
+
+A plain list (`"grants_research": ["mypack:landing"]`) means "when surveyed". Granting can open other gates, which can grant more.
+This is for Continuum's own research; a mod that replaces it (PhoenixCore's Conflux) decides for itself.
+
+## Example script
+
+`examples/kubejs/continuum_example.js` in the Continuum repository shows a discovery handler, a mission log, the visibility
+event and a custom condition. Copy it into `kubejs/server_scripts/`.
