@@ -136,3 +136,17 @@ needed, orbit, personal dimension cost, and the yield list), plus a "push visual
 visual edits to the server. Server edits are saved as small patch files in `config/phoenix_continuum/tuning/<ns>/`
 (only the changed keys), merged over the resolved definition on every load and re-synced to everyone at once. Deleting a
 patch, or "Reset server edits", puts the body back; the original definition files are never modified.
+
+## The default game (nothing to configure)
+
+Continuum ships a small progression as ordinary data, so a player with no commands and no operator rights has somewhere to go:
+
+1. Build a launch complex, make a rocket and probes, open the map from the controller.
+2. **Example Rock** is on the map from the start. Surveying it earns the research `lunar_survey`, which reveals **Example Moon**
+   (`gate.detected_research`). Surveying the moon earns `deep_space`, which reveals **Example Giant**.
+3. The team is told in chat when it earns research, and `/continuum goals` lists what to survey next (the ones that open
+   something new come first). No operator is involved at any point.
+
+Everything here is data you can replace: edit or disable the example definitions, write your own `grants_research` and
+`gate` entries, set `announceResearch` off in the config, or set `progressionMode` to `SHOW_ALL` to put everything on the map
+from the start. A mod that provides its own research (PhoenixCore) takes over the research side and these grants do nothing.
