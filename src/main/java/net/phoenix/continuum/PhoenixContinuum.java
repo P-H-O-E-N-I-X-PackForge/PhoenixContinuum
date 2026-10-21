@@ -42,6 +42,7 @@ public class PhoenixContinuum {
         ContinuumMachines.init();
 
         modEventBus.addListener(this::registerPayloads);
+        modEventBus.addListener(net.phoenix.continuum.data.ContinuumPackFolder::register);
         if (FMLEnvironment.dist.isClient()) ContinuumClientSetup.init(modEventBus);
     }
 

@@ -257,23 +257,56 @@ public final class ContinuumData {
     private record Parsed(Map<ResourceLocation, ContinuumSystem> systems, Map<ResourceLocation, ContinuumBody> bodies,
                           Map<ResourceLocation, String> rawSystems, Map<ResourceLocation, String> rawBodies) {}
 
+    /** Reloads only Continuum's data from the server's current resource packs, and pushes it to everyone. */
+    public static ContinuumReport reloadNow(net.minecraft.server.MinecraftServer server) {
+        Loader loader = new Loader();
+        Parsed parsed = loader.prepare(server.getResourceManager(),
+                net.minecraft.util.profiling.InactiveProfiler.INSTANCE);
+        loader.apply(parsed, server.getResourceManager(), net.minecraft.util.profiling.InactiveProfiler.INSTANCE);
+        return ContinuumReport.last();
+    }
+
     private static final class Loader extends SimplePreparableReloadListener<Parsed> {
 
         @Override
         protected Parsed prepare(ResourceManager manager, ProfilerFiller profiler) {
+            ContinuumReport report = new ContinuumReport();
+
+            Map<ResourceLocation, JsonObject> rawSystems = new LinkedHashMap<>();
+            Map<ResourceLocation, JsonObject> rawBodies = new LinkedHashMap<>();
+            read(manager, SYSTEM_DIR, rawSystems::put, report);
+            read(manager, BODY_DIR, rawBodies::put, report);
+
+            Map<ResourceLocation, JsonObject> systemJson = ContentResolver.resolve("system", rawSystems, report);
+            Map<ResourceLocation, JsonObject> bodyJson = ContentResolver.resolve("body", rawBodies, report);
+
             Map<ResourceLocation, ContinuumSystem> loadedSystems = new LinkedHashMap<>();
             Map<ResourceLocation, ContinuumBody> loadedBodies = new LinkedHashMap<>();
             Map<ResourceLocation, String> loadedRawSystems = new LinkedHashMap<>();
             Map<ResourceLocation, String> loadedRawBodies = new LinkedHashMap<>();
 
-            read(manager, SYSTEM_DIR, (id, json) -> {
-                loadedSystems.put(id, parseSystem(id, json));
-                loadedRawSystems.put(id, json.toString());
+            systemJson.forEach((id, json) -> {
+                ContinuumValidator.checkShape("system", id, rawSystems.getOrDefault(id, json), report);
+                ContinuumValidator.checkStage("system", id, json, report);
+                try {
+                    loadedSystems.put(id, parseSystem(id, json));
+                    loadedRawSystems.put(id, json.toString());
+                } catch (Exception e) {
+                    report.error("system " + id, "could not be read: " + e.getMessage());
+                }
             });
-            read(manager, BODY_DIR, (id, json) -> {
-                loadedBodies.put(id, parseBody(id, json));
-                loadedRawBodies.put(id, json.toString());
+            bodyJson.forEach((id, json) -> {
+                ContinuumValidator.checkShape("body", id, rawBodies.getOrDefault(id, json), report);
+                ContinuumValidator.checkStage("body", id, json, report);
+                try {
+                    loadedBodies.put(id, parseBody(id, json));
+                    loadedRawBodies.put(id, json.toString());
+                } catch (Exception e) {
+                    report.error("body " + id, "could not be read: " + e.getMessage());
+                }
             });
+            ContinuumValidator.checkReferences(loadedSystems, loadedBodies, report);
+            ContinuumReport.publish(report);
             return new Parsed(loadedSystems, loadedBodies, loadedRawSystems, loadedRawBodies);
         }
 
@@ -283,12 +316,19 @@ public final class ContinuumData {
             bodies = parsed.bodies();
             rawSystems = parsed.rawSystems();
             rawBodies = parsed.rawBodies();
-            LOGGER.info("[PhoenixCore/Continuum] Loaded {} systems and {} bodies", systems.size(), bodies.size());
+            ContinuumReport report = ContinuumReport.last();
+            LOGGER.info("[PhoenixCore/Continuum] Loaded {} systems and {} bodies ({} errors, {} warnings)",
+                    systems.size(), bodies.size(), report.errors(), report.warnings());
+            for (ContinuumReport.Issue issue : report.issues()) {
+                if (issue.level() == ContinuumReport.Level.ERROR) LOGGER.error("[Continuum] {}", issue);
+                else LOGGER.warn("[Continuum] {}", issue);
+            }
             ContinuumServerEvents.onDataReloaded();
         }
 
         private static void read(ResourceManager manager, String dir,
-                                 java.util.function.BiConsumer<ResourceLocation, JsonObject> consumer) {
+                                 java.util.function.BiConsumer<ResourceLocation, JsonObject> consumer,
+                                 ContinuumReport report) {
             for (Map.Entry<ResourceLocation, Resource> entry : manager
                     .listResources(dir, path -> path.getPath().endsWith(".json")).entrySet()) {
                 ResourceLocation file = entry.getKey();
@@ -298,8 +338,9 @@ public final class ContinuumData {
                 try (Reader reader = entry.getValue().openAsReader()) {
                     JsonElement element = JsonParser.parseReader(reader);
                     if (element.isJsonObject()) consumer.accept(id, element.getAsJsonObject());
+                    else report.error(file.toString(), "must contain a JSON object");
                 } catch (Exception e) {
-                    LOGGER.error("[PhoenixCore/Continuum] Failed to load {}: {}", file, e.getMessage());
+                    report.error(file.toString(), "invalid JSON: " + e.getMessage());
                 }
             }
         }

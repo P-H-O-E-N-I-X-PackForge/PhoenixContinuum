@@ -32,6 +32,54 @@ final class ContinuumAdminCommands {
 
     private ContinuumAdminCommands() {}
 
+    private static final int SHOWN_ISSUES = 12;
+
+    private static int validate(CommandSourceStack source, boolean all) {
+        var report = net.phoenix.continuum.data.ContinuumReport.last();
+        var issues = report.issues();
+        if (issues.isEmpty()) {
+            source.sendSuccess(() -> Component.literal("Continuum data: no problems found.")
+                    .withStyle(ChatFormatting.GREEN), false);
+            return 1;
+        }
+        source.sendSuccess(() -> Component.literal("Continuum data: " + report.errors() + " errors, " +
+                report.warnings() + " warnings" + (all || issues.size() <= SHOWN_ISSUES ? "" :
+                        " (first " + SHOWN_ISSUES + "; /continuumadmin validate all for the rest)"))
+                .withStyle(report.errors() > 0 ? ChatFormatting.RED : ChatFormatting.YELLOW), false);
+        int shown = 0;
+        for (var issue : issues) {
+            if (!all && shown++ >= SHOWN_ISSUES) break;
+            source.sendSuccess(() -> Component.literal(issue.toString()).withStyle(
+                    issue.level() == net.phoenix.continuum.data.ContinuumReport.Level.ERROR ? ChatFormatting.RED :
+                            ChatFormatting.GOLD),
+                    false);
+        }
+        return issues.size();
+    }
+
+    private static int reloadData(CommandSourceStack source) {
+        var report = ContinuumData.reloadNow(source.getServer());
+        source.sendSuccess(() -> Component.literal("Reloaded Continuum data: " + ContinuumData.systems().size() +
+                " systems, " + ContinuumData.allBodies().size() + " bodies, " + report.errors() + " errors, " +
+                report.warnings() + " warnings. /continuumadmin validate lists them.")
+                .withStyle(report.errors() > 0 ? ChatFormatting.RED : ChatFormatting.GREEN), true);
+        return 1;
+    }
+
+    /** The body as the loader resolved it (after inheritance), as the server holds it. */
+    private static int dump(CommandSourceStack source, ResourceLocation id) {
+        String json = ContinuumData.snapshot().bodies().get(id);
+        if (json == null) {
+            source.sendFailure(Component.literal("No body " + id + "."));
+            return 0;
+        }
+        String pretty = new com.google.gson.GsonBuilder().setPrettyPrinting().create()
+                .toJson(com.google.gson.JsonParser.parseString(json));
+        net.phoenix.continuum.PhoenixContinuum.LOGGER.info("[Continuum] resolved {} {}", id, pretty);
+        source.sendSuccess(() -> Component.literal(pretty), false);
+        return 1;
+    }
+
     static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(literal("continuumadmin")
                 .requires(source -> source.hasPermission(2))
@@ -102,6 +150,16 @@ final class ContinuumAdminCommands {
                                 .then(argument("body", ResourceLocationArgument.id())
                                         .executes(ctx -> cometClear(ctx.getSource(),
                                                 ResourceLocationArgument.getId(ctx, "body"))))))
+                .then(literal("validate").executes(ctx -> validate(ctx.getSource(), false))
+                        .then(literal("all").executes(ctx -> validate(ctx.getSource(), true))))
+                .then(literal("reload").executes(ctx -> reloadData(ctx.getSource())))
+                .then(literal("dump")
+                        .then(argument("body", ResourceLocationArgument.id())
+                                .suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider
+                                        .suggestResource(ContinuumData.allBodies().stream()
+                                                .map(net.phoenix.continuum.data.ContinuumBody::id), builder))
+                                .executes(ctx -> dump(ctx.getSource(),
+                                        ResourceLocationArgument.getId(ctx, "body")))))
                 .then(literal("reset").executes(ctx -> reset(ctx.getSource())))
                 .then(literal("missions")
                         .then(literal("send")
