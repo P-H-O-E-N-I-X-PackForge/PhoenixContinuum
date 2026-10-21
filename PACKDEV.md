@@ -119,3 +119,14 @@ The PFT modpack should set `progressionMode = RESEARCH_GATED` so its research ga
 
 Still to do: docs pages and the example pack walkthrough, nested-key validation, removing bodies that have reference
 errors from the registry, KubeJS bindings, the live-tuning panel.
+
+## Status update (KubeJS and tuner)
+
+Built: a KubeJS plugin (compile-only dependency; loaded only when KubeJS is installed) with the `Continuum` global
+(`ContinuumAPI`), script-defined condition types, and the `ContinuumEvents` group (`visibility`, `discovery`,
+`mission`); see KUBEJS.md. The same `ContinuumAPI` and the game-bus events (`ContinuumEvents.Discovery`,
+`ContinuumEvents.MissionChanged`, `ContinuumVisibilityEvent`) are usable from Java without KubeJS.
+
+Built: the live tuner, `/continuum tune [body]` (client command; operators or the single-player owner). It edits a
+body's visual parameters on this client only, shows a surface preview, and exports the merged definition to
+`config/phoenix_continuum/tuner_export/` and the clipboard, ready to drop into the pack folder.

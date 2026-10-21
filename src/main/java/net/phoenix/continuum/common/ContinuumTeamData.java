@@ -150,6 +150,7 @@ public class ContinuumTeamData extends SavedData {
         if (current.atLeast(stage)) return false;
         map.put(id, stage);
         setDirty();
+        net.phoenix.continuum.api.ContinuumEvents.postDiscovery(team, id, stage);
         return true;
     }
 

@@ -423,6 +423,8 @@ public final class ContinuumMissions {
             mission.padPos = pad.asLong();
         }
         data.addMission(mission);
+        net.phoenix.continuum.api.ContinuumEvents.postMission(
+                net.phoenix.continuum.api.ContinuumEvents.MissionChanged.Kind.LAUNCHED, mission);
         data.log(team, MissionLog.Kind.LAUNCH, destinationId,
                 type.label() + " launched to " + body.name() + " (" + durationText(trip) + " flight)" +
                         (stranded != null ? ", to rescue the stranded rocket" : "") + ".");
@@ -631,6 +633,8 @@ public final class ContinuumMissions {
                 (flare ? MissionEvent.SOLAR_FLARE_WEAR : 0.0f);
         if (mission.willSucceed) {
             mission.state = Mission.State.SUCCESS;
+            net.phoenix.continuum.api.ContinuumEvents.postMission(
+                    net.phoenix.continuum.api.ContinuumEvents.MissionChanged.Kind.SUCCEEDED, mission);
             RocketStats.setWear(mission.rocket, wear);
 
             String message = switch (mission.type) {
@@ -682,6 +686,8 @@ public final class ContinuumMissions {
                     Component.literal(message + eventText(mission)).withStyle(ChatFormatting.GREEN));
         } else {
             mission.state = Mission.State.FAILED;
+            net.phoenix.continuum.api.ContinuumEvents.postMission(
+                    net.phoenix.continuum.api.ContinuumEvents.MissionChanged.Kind.FAILED, mission);
             RocketStats.setWear(mission.rocket, wear + RocketStats.FAILURE_WEAR);
 
             String lost = switch (mission.type) {

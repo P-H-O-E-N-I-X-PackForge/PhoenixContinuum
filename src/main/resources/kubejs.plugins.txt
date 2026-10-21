@@ -1,0 +1,1 @@
+net.phoenix.continuum.integration.kubejs.ContinuumKubeJSPlugin

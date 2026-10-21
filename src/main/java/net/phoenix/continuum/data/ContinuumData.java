@@ -53,6 +53,20 @@ public final class ContinuumData {
         bodies = newBodies;
         rawSystems = snapshot.systems();
         rawBodies = snapshot.bodies();
+        ContinuumTuner.reapply();
+    }
+
+    /** The body definition as the server sent it (resolved JSON), or null. */
+    static @Nullable JsonObject rawBody(ResourceLocation id) {
+        String json = rawBodies.get(id);
+        return json == null ? null : JsonParser.parseString(json).getAsJsonObject();
+    }
+
+    /** Client side only: swaps a parsed body in place, for live tuning. */
+    static void replaceBody(ResourceLocation id, ContinuumBody body) {
+        Map<ResourceLocation, ContinuumBody> copy = new LinkedHashMap<>(bodies);
+        copy.put(id, body);
+        bodies = copy;
     }
 
     private static void parse(ResourceLocation id, String json, java.util.function.Consumer<JsonObject> consumer) {

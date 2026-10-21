@@ -46,6 +46,12 @@ public final class SurfaceMap {
         return id;
     }
 
+    /** Forgets one body picture so it is painted again (after its parameters changed). */
+    public static void invalidate(ResourceLocation body) {
+        ResourceLocation texture = TEXTURES.remove(body);
+        if (texture != null) Minecraft.getInstance().getTextureManager().release(texture);
+    }
+
     /** Drops the cached textures, for example when the body data is reloaded. */
     public static void clear() {
         var manager = Minecraft.getInstance().getTextureManager();

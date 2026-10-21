@@ -111,6 +111,13 @@ repositories {
         )
         filter { includeGroup('dev.toma.configuration') }
     }
+    maven { // KubeJS (optional scripting bindings, compile-only)
+        url = 'https://maven.latvian.dev/releases'
+        content {
+            includeGroup 'dev.latvian.mods'
+            includeGroup 'dev.latvian.apps'
+        }
+    }
     maven { // Geckolib
         url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
     }
@@ -200,6 +207,8 @@ dependencies {
     implementation "net.phoenixvine.wiki:neoforge:${phoenix_wiki_version}"
 
     compileOnly "dev.emi:emi-neoforge:${emi_version}+${minecraft_version}"
+    compileOnly("dev.latvian.mods:kubejs-neoforge:${kubejs_version}") { transitive = false }
+    compileOnly("dev.latvian.mods:rhino:${rhino_version}") { transitive = false }
     runtimeOnly "dev.emi:emi-neoforge:${emi_version}+${minecraft_version}"
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
