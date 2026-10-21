@@ -43,12 +43,13 @@ public class ContinuumConfigs {
 
         @Configurable
         @Configurable.Comment({
-                "SHOW_ALL: every system and body is on the map from the start (surveying them is still a mission), and",
-                "the research gates in definitions (detected_research / surveyed_research) are not required. Rules a pack",
-                "wrote itself (\"visibility\") still apply. RESEARCH_GATED: those research gates decide what is found.",
-                "Default: SHOW_ALL"
+                "RESEARCH_GATED: the research gates in definitions (detected_research / surveyed_research) decide what is",
+                "found, and what is surveyed can earn research (grants_research), so there is something to work towards",
+                "without any setup. SHOW_ALL: every system and body is on the map from the start (surveying them is still a",
+                "mission) and the gates are not required. Rules a pack wrote itself (\"visibility\") apply either way.",
+                "Default: RESEARCH_GATED"
         })
-        public ProgressionMode progressionMode = ProgressionMode.SHOW_ALL;
+        public ProgressionMode progressionMode = ProgressionMode.RESEARCH_GATED;
 
         @Configurable
         @Configurable.Comment({
@@ -223,6 +224,13 @@ public class ContinuumConfigs {
                 "(sneak + use a rocket). Default: true"
         })
         public boolean rocketTierGating = true;
+
+        @Configurable
+        @Configurable.Comment({
+                "Tell a team in chat when it earns research (from grants_research in definitions).",
+                "Default: true"
+        })
+        public boolean announceResearch = true;
 
         @Configurable
         @Configurable.Comment({

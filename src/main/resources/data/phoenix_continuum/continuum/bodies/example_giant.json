@@ -25,7 +25,7 @@
     "density": 0.6
   },
   "trip_minutes": 14,
-  "initial_stage": "detected",
+  "initial_stage": "unknown",
   "style": "storm",
   "rings": {
     "inner": 1.5,
@@ -52,5 +52,8 @@
   "lore": {
     "detected": "Its rings are visible long before the planet is.",
     "surveyed": "Example Giant offers little to land on, but its rings are rich in crystals."
+  },
+  "gate": {
+    "detected_research": "phoenix_continuum:deep_space"
   }
 }
