@@ -1,0 +1,599 @@
+
+> Task :createMinecraftArtifacts
+Loaded 135 artifacts from C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\build\tmp\createMinecraftArtifacts\nfrt_artifact_manifest.properties
+  [33mWARNING: [0mde.oceanlabs.mcp:mcp_config:1.20.1-20230612.114412@zip is not present in the artifact manifest
+[1m*** Started working on [4mdownloadJson[0m[0m
+ [1m[92mDONE [0m Completed [4mdownloadJson[0m in 0.06s
+[1m*** Started working on [4mdownloadClient[0m[0m
+[1m*** Started working on [4mdownloadClientMappings[0m[0m
+[1m*** Started working on [4mdownloadServer[0m[0m
+[1m*** Started working on [4mlistLibraries[0m[0m
+ [1m[92mREUSE[0m Used cache of [4mlistLibraries[0m in 0.00s
+ [1m[92mDONE [0m Completed [4mdownloadServer[0m in 0.08s
+ [1m[92mDONE [0m Completed [4mdownloadClientMappings[0m in 0.08s
+ [1m[92mDONE [0m Completed [4mdownloadClient[0m in 0.08s
+[1m*** Started working on [4mmergeMappings[0m[0m
+ [1m[92mREUSE[0m Used cache of [4mmergeMappings[0m in 0.00s
+[1m*** Started working on [4mcreateMappings[0m[0m
+ [1m[92mREUSE[0m Used cache of [4mcreateMappings[0m in 0.00s
+[1m*** Started working on [4mstripClient[0m[0m
+ [1m[92mREUSE[0m Used cache of [4mstripClient[0m in 0.00s
+[1m*** Started working on [4mextractServer[0m[0m
+ [1m[92mREUSE[0m Used cache of [4mextractServer[0m in 0.00s
+[1m*** Started working on [4mstripServer[0m[0m
+ [1m[92mREUSE[0m Used cache of [4mstripServer[0m in 0.00s
+[1m*** Started working on [4mmerge[0m[0m
+ [1m[92mREUSE[0m Used cache of [4mmerge[0m in 0.01s
+[1m*** Started working on [4mrename[0m[0m
+ [1m[92mREUSE[0m Used cache of [4mrename[0m in 0.02s
+[1m*** Started working on [4mstripSideAnnotations[0m[0m
+ [1m[92mREUSE[0m Used cache of [4mstripSideAnnotations[0m in 0.00s
+[1m*** Started working on [4mdecompile[0m[0m
+ [1m[92mREUSE[0m Used cache of [4mdecompile[0m in 0.00s
+[1m*** Started working on [4minject[0m[0m
+ [1m[92mREUSE[0m Used cache of [4minject[0m in 0.03s
+[1m*** Started working on [4mpatch[0m[0m
+ [1m[92mREUSE[0m Used cache of [4mpatch[0m in 0.00s
+[1m*** Started working on [4mapplyNeoforgePatches[0m[0m
+ [1m[92mREUSE[0m Used cache of [4mapplyNeoforgePatches[0m in 0.00s
+[1m*** Started working on [4mtransformSources[0m[0m
+ [1m[92mREUSE[0m Used cache of [4mtransformSources[0m in 0.00s
+[1m*** Started working on [4mremapSrgSourcesToOfficial[0m[0m
+ [1m[92mREUSE[0m Used cache of [4mremapSrgSourcesToOfficial[0m in 0.01s
+[1m*** Started working on [4mapplyParchment[0m[0m
+ [1m[92mREUSE[0m Used cache of [4mapplyParchment[0m in 0.00s
+[1m*** Started working on [4mrecompile[0m[0m
+ [1m[92mREUSE[0m Used cache of [4mrecompile[0m in 0.00s
+[1m*** Started working on [4msourcesAndCompiledWithNeoForge[0m[0m
+ [1m[92mREUSE[0m Used cache of [4msourcesAndCompiledWithNeoForge[0m in 0.00s
+Total runtime: 2.78s
+
+
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+
+> Task :downloadAssets
+Loaded 135 artifacts from C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\build\tmp\downloadAssets\nfrt_artifact_manifest.properties
+  [33mWARNING: [0mde.oceanlabs.mcp:mcp_config:1.20.1-20230612.114412@zip is not present in the artifact manifest
+Downloading asset index 5
+Using Minecraft asset root: C:\Users\conno\.gradle\caches\neoformruntime\assets
+  DL    https://piston-meta.mojang.com/v1/packages/f82e00e6575beb66b18575a97c91125378e875bb/5.json
+
+> Task :writeServerLegacyClasspath
+> Task :prepareServerRun
+
+> Task :runServer
+2026-10-21 10:15:51,522 main WARN Advanced terminal features are not available in this environment
+[10:15:51] [main/INFO] [cp.mo.mo.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgeserveruserdev, --gameDir, ., --fml.forgeVersion, 47.4.1, --fml.mcVersion, 1.20.1, --fml.forgeGroup, net.minecraftforge, --fml.mcpVersion, 20230612.114412, --nogui]
+[10:15:51] [main/INFO] [cp.mo.mo.Launcher/MODLAUNCHER]: ModLauncher 10.0.10+10.0.10+main.22f00f84 starting: java version 17.0.16 by Eclipse Adoptium; OS Windows 11 arch amd64 version 10.0
+[10:15:51] [main/DEBUG] [cp.mo.mo.LaunchServiceHandler/MODLAUNCHER]: Found launch services [fmlclientdev,forgeclient,minecraft,forgegametestserverdev,fmlserveruserdev,fmlclient,fmldatauserdev,forgeserverdev,forgeserveruserdev,forgeclientdev,forgeclientuserdev,forgeserver,forgedatadev,fmlserver,fmlclientuserdev,fmlserverdev,forgedatauserdev,testharness,forgegametestserveruserdev]
+[10:15:51] [main/DEBUG] [cp.mo.mo.NameMappingServiceHandler/MODLAUNCHER]: Found naming services : [srgtomcp]
+[10:15:52] [main/DEBUG] [cp.mo.mo.LaunchPluginHandler/MODLAUNCHER]: Found launch plugins: [mixin,eventbus,slf4jfixer,object_holder_definalize,runtime_enum_extender,capability_token_subclass,accesstransformer,runtimedistcleaner]
+[10:15:52] [main/DEBUG] [cp.mo.mo.TransformationServicesHandler/MODLAUNCHER]: Discovering transformation services
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLPaths/CORE]: Path GAMEDIR is C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\run
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLPaths/CORE]: Path MODSDIR is C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\run\mods
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLPaths/CORE]: Path CONFIGDIR is C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\run\config
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLPaths/CORE]: Path FMLCONFIG is C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\run\config\fml.toml
+[10:15:52] [main/DEBUG] [cp.mo.mo.TransformationServicesHandler/MODLAUNCHER]: Found additional transformation services from discovery services: 
+[10:15:52] [main/INFO] [ne.mi.fm.lo.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgeserveruserdev
+[10:15:52] [main/DEBUG] [cp.mo.mo.TransformationServicesHandler/MODLAUNCHER]: Found transformer services : [mixin,fml]
+[10:15:52] [main/DEBUG] [cp.mo.mo.TransformationServicesHandler/MODLAUNCHER]: Transformation services loading
+[10:15:52] [main/DEBUG] [cp.mo.mo.TransformationServiceDecorator/MODLAUNCHER]: Loading service mixin
+[10:15:52] [main/DEBUG] [cp.mo.mo.TransformationServiceDecorator/MODLAUNCHER]: Loaded service mixin
+[10:15:52] [main/DEBUG] [cp.mo.mo.TransformationServiceDecorator/MODLAUNCHER]: Loading service fml
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.LauncherVersion/CORE]: Found FMLLauncher version 1.0
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLLoader/CORE]: FML 1.0 loading
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLLoader/CORE]: FML found ModLauncher version : 10.0.10+10.0.10+main.22f00f84
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLLoader/CORE]: Requesting CoreMods to not apply the fix for ASMAPI.findFirstInstructionBefore by default
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLLoader/CORE]: FML found AccessTransformer version : 8.0.4+66+master.c09db6d7
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLLoader/CORE]: FML found EventBus version : 6.0.5+6.0.5+master.eb8e549b
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLLoader/CORE]: Found Runtime Dist Cleaner
+[10:15:52] [main/DEBUG] [ne.mi.co.CoreModEngine/]: CoreMods will preserve legacy behavior of ASMAPI.findFirstInstructionBefore for backwards-compatibility
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLLoader/CORE]: FML found CoreMod version : 5.2.4
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLLoader/CORE]: Found ForgeSPI package implementation version 7.0.1+7.0.1+master.d2b38bf6
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLLoader/CORE]: Found ForgeSPI package specification 5
+[10:15:52] [main/DEBUG] [cp.mo.mo.TransformationServiceDecorator/MODLAUNCHER]: Loaded service fml
+[10:15:52] [main/DEBUG] [cp.mo.mo.TransformationServicesHandler/MODLAUNCHER]: Configuring option handling for services
+[10:15:52] [main/DEBUG] [cp.mo.mo.TransformationServicesHandler/MODLAUNCHER]: Transformation services initializing
+[10:15:52] [main/DEBUG] [cp.mo.mo.TransformationServiceDecorator/MODLAUNCHER]: Initializing transformation service mixin
+[10:15:52] [main/DEBUG] [mixin/]: MixinService [ModLauncher] was successfully booted in cpw.mods.cl.ModuleClassLoader@233fe9b6
+[10:15:52] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.5 Source=union:/C:/Users/conno/.gradle/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.5/9d1c0c3a304ae6697ecd477218fa61b850bf57fc/mixin-0.8.5.jar%23142!/ Service=ModLauncher Env=SERVER
+[10:15:52] [main/DEBUG] [mixin/]: Initialising Mixin Platform Manager
+[10:15:52] [main/DEBUG] [mixin/]: Adding mixin platform agents for container ModLauncher Root Container(ModLauncher:4f56a0a2)
+[10:15:52] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for ModLauncher Root Container(ModLauncher:4f56a0a2)
+[10:15:52] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container ModLauncher Root Container(ModLauncher:4f56a0a2)
+[10:15:52] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for ModLauncher Root Container(ModLauncher:4f56a0a2)
+[10:15:52] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container ModLauncher Root Container(ModLauncher:4f56a0a2)
+[10:15:52] [main/DEBUG] [cp.mo.mo.TransformationServiceDecorator/MODLAUNCHER]: Initialized transformation service mixin
+[10:15:52] [main/DEBUG] [cp.mo.mo.TransformationServiceDecorator/MODLAUNCHER]: Initializing transformation service fml
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLServiceProvider/CORE]: Setting up basic FML game directories
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLPaths/CORE]: Path GAMEDIR is C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\run
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLPaths/CORE]: Path MODSDIR is C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\run\mods
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLPaths/CORE]: Path CONFIGDIR is C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\run\config
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLPaths/CORE]: Path FMLCONFIG is C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\run\config\fml.toml
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLServiceProvider/CORE]: Loading configuration
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLServiceProvider/CORE]: Preparing ModFile
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLServiceProvider/CORE]: Preparing launch handler
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLLoader/CORE]: Using forgeserveruserdev as launch service
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLLoader/CORE]: Received command line version data  : VersionInfo[forgeVersion=47.4.1, mcVersion=1.20.1, mcpVersion=20230612.114412, forgeGroup=net.minecraftforge]
+[10:15:52] [main/DEBUG] [cp.mo.mo.TransformationServiceDecorator/MODLAUNCHER]: Initialized transformation service fml
+[10:15:52] [main/DEBUG] [cp.mo.mo.NameMappingServiceHandler/MODLAUNCHER]: Current naming domain is 'mcp'
+[10:15:52] [main/DEBUG] [cp.mo.mo.NameMappingServiceHandler/MODLAUNCHER]: Identified name mapping providers {srg=srgtomcp:1234}
+[10:15:52] [main/DEBUG] [cp.mo.mo.TransformationServicesHandler/MODLAUNCHER]: Transformation services begin scanning
+[10:15:52] [main/DEBUG] [cp.mo.mo.TransformationServiceDecorator/MODLAUNCHER]: Beginning scan trigger - transformation service mixin
+[10:15:52] [main/DEBUG] [cp.mo.mo.TransformationServiceDecorator/MODLAUNCHER]: End scan trigger - transformation service mixin
+[10:15:52] [main/DEBUG] [cp.mo.mo.TransformationServiceDecorator/MODLAUNCHER]: Beginning scan trigger - transformation service fml
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.FMLServiceProvider/CORE]: Initiating mod scan
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModListHandler/CORE]: Found mod coordinates from lists: []
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModDiscoverer/CORE]: Found Mod Locators : (mods folder:null),(maven libs:null),(exploded directory:null),(minecraft:null),(userdev classpath:null)
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModDiscoverer/CORE]: Found Dependency Locators : (JarInJar:null)
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\run\mods\phoenixcore-api-stub-1.20.1.jar
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file phoenixcore-api-stub-1.20.1.jar with {phoenixcore} mods - versions {0.2.1}
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.ta.CommonLaunchHandler/CORE]: Got mod coordinates phoenix_continuum%%C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\build\classes\java\main;phoenix_continuum%%C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\build\resources\main from env
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.ta.CommonLaunchHandler/CORE]: Found supplied mod coordinates [{phoenix_continuum=[C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\build\classes\java\main, C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\build\resources\main]}]
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file forge-1.20.1-47.4.1.jar with {minecraft} mods - versions {1.20.1}
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\modules-2\files-2.1\net.minecraftforge\fmlcore\1.20.1-47.4.1\3061e70b85c05f936d9fa24477be4d4205d8f6b8\fmlcore-1.20.1-47.4.1.jar
+[10:15:52] [main/WARN] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Mod file C:\Users\conno\.gradle\caches\modules-2\files-2.1\net.minecraftforge\fmlcore\1.20.1-47.4.1\3061e70b85c05f936d9fa24477be4d4205d8f6b8\fmlcore-1.20.1-47.4.1.jar is missing mods.toml file
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\modules-2\files-2.1\net.minecraftforge\javafmllanguage\1.20.1-47.4.1\97b774cead20444ed9d0c2de762881a15d872397\javafmllanguage-1.20.1-47.4.1.jar
+[10:15:52] [main/WARN] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Mod file C:\Users\conno\.gradle\caches\modules-2\files-2.1\net.minecraftforge\javafmllanguage\1.20.1-47.4.1\97b774cead20444ed9d0c2de762881a15d872397\javafmllanguage-1.20.1-47.4.1.jar is missing mods.toml file
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\modules-2\files-2.1\net.minecraftforge\lowcodelanguage\1.20.1-47.4.1\da4a2af4a4ebbbb33e35b292a16fe3f7122b236\lowcodelanguage-1.20.1-47.4.1.jar
+[10:15:52] [main/WARN] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Mod file C:\Users\conno\.gradle\caches\modules-2\files-2.1\net.minecraftforge\lowcodelanguage\1.20.1-47.4.1\da4a2af4a4ebbbb33e35b292a16fe3f7122b236\lowcodelanguage-1.20.1-47.4.1.jar is missing mods.toml file
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\modules-2\files-2.1\net.minecraftforge\mclanguage\1.20.1-47.4.1\75a8f0757adad78cbd8108dff9e0d39cbdb3d787\mclanguage-1.20.1-47.4.1.jar
+[10:15:52] [main/WARN] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Mod file C:\Users\conno\.gradle\caches\modules-2\files-2.1\net.minecraftforge\mclanguage\1.20.1-47.4.1\75a8f0757adad78cbd8108dff9e0d39cbdb3d787\mclanguage-1.20.1-47.4.1.jar is missing mods.toml file
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\build\classes\java\main
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file main with {phoenix_continuum} mods - versions {0.1.0}
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate /
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file  with {forge} mods - versions {47.4.1}
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\8.10\transforms\716a4e70f0053e008b4a8a6a2855a560\transformed\gtceu-1.20.1-8.0.0-SNAPSHOT-slim.jar
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file gtceu-1.20.1-8.0.0-SNAPSHOT-slim.jar with {gtceu} mods - versions {8.0.0-SNAPSHOT+aae6d4e}
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\8.10\transforms\0d190a9ef0914b64e595d61ee88c726e\transformed\ldlib-forge-1.20.1-1.0.40.b.jar
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file ldlib-forge-1.20.1-1.0.40.b.jar with {ldlib} mods - versions {1.0.40.b}
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\8.10\transforms\d8ee5be29fe15b7eaf07d43982b8e1cf\transformed\modularui-mc1.20.1-3.3.1-SNAPSHOT.jar
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file modularui-mc1.20.1-3.3.1-SNAPSHOT.jar with {modularui} mods - versions {3.3.1-SNAPSHOT}
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\8.10\transforms\47b762622e2a6d9d4cdffc3d013921a5\transformed\configuration-444699-5840405.jar
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file configuration-444699-5840405.jar with {configuration} mods - versions {3.1.0}
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\8.10\transforms\7a7a7967ddb12daf89761be80f4ec13c\transformed\phoenix_wiki-0.5.5.jar
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file phoenix_wiki-0.5.5.jar with {phoenix_wiki} mods - versions {0.5.5}
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\8.10\transforms\ded48591d4ce75d01e2cc1f04063ecc8\transformed\emi-forge-1.1.24+1.20.1.jar
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file emi-forge-1.1.24+1.20.1.jar with {emi} mods - versions {1.1.24+1.20.1+forge}
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\8.10\transforms\716a4e70f0053e008b4a8a6a2855a560\transformed\gtceu-1.20.1-8.0.0-SNAPSHOT-slim.jar
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file gtceu-1.20.1-8.0.0-SNAPSHOT-slim.jar with {gtceu} mods - versions {8.0.0-SNAPSHOT+aae6d4e}
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\8.10\transforms\0d190a9ef0914b64e595d61ee88c726e\transformed\ldlib-forge-1.20.1-1.0.40.b.jar
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file ldlib-forge-1.20.1-1.0.40.b.jar with {ldlib} mods - versions {1.0.40.b}
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\8.10\transforms\d8ee5be29fe15b7eaf07d43982b8e1cf\transformed\modularui-mc1.20.1-3.3.1-SNAPSHOT.jar
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file modularui-mc1.20.1-3.3.1-SNAPSHOT.jar with {modularui} mods - versions {3.3.1-SNAPSHOT}
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\8.10\transforms\47b762622e2a6d9d4cdffc3d013921a5\transformed\configuration-444699-5840405.jar
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file configuration-444699-5840405.jar with {configuration} mods - versions {3.1.0}
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\8.10\transforms\7a7a7967ddb12daf89761be80f4ec13c\transformed\phoenix_wiki-0.5.5.jar
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file phoenix_wiki-0.5.5.jar with {phoenix_wiki} mods - versions {0.5.5}
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\8.10\transforms\ded48591d4ce75d01e2cc1f04063ecc8\transformed\emi-forge-1.1.24+1.20.1.jar
+[10:15:52] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file emi-forge-1.1.24+1.20.1.jar with {emi} mods - versions {1.1.24+1.20.1+forge}
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.UniqueModListBuilder/]: Found 2 mods for first modid emi, selecting most recent based on version data
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.UniqueModListBuilder/]: Selected file emi-forge-1.1.24+1.20.1.jar for modid emi with version 1.1.24+1.20.1+forge
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.UniqueModListBuilder/]: Found 2 mods for first modid phoenix_wiki, selecting most recent based on version data
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.UniqueModListBuilder/]: Selected file phoenix_wiki-0.5.5.jar for modid phoenix_wiki with version 0.5.5
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.UniqueModListBuilder/]: Found 2 mods for first modid configuration, selecting most recent based on version data
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.UniqueModListBuilder/]: Selected file configuration-444699-5840405.jar for modid configuration with version 3.1.0
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.UniqueModListBuilder/]: Found 2 mods for first modid modularui, selecting most recent based on version data
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.UniqueModListBuilder/]: Selected file modularui-mc1.20.1-3.3.1-SNAPSHOT.jar for modid modularui with version 3.3.1-SNAPSHOT
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.UniqueModListBuilder/]: Found 2 mods for first modid gtceu, selecting most recent based on version data
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.UniqueModListBuilder/]: Selected file gtceu-1.20.1-8.0.0-SNAPSHOT-slim.jar for modid gtceu with version 8.0.0-SNAPSHOT+aae6d4e
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.UniqueModListBuilder/]: Found 2 mods for first modid ldlib, selecting most recent based on version data
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.UniqueModListBuilder/]: Selected file ldlib-forge-1.20.1-1.0.40.b.jar for modid ldlib with version 1.0.40.b
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.AbstractJarFileDependencyLocator/]: Failed to load resource META-INF\jarjar\metadata.json from emi-forge-1.1.24+1.20.1.jar, it does not contain dependency information.
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.AbstractJarFileDependencyLocator/]: Failed to load resource META-INF\jarjar\metadata.json from phoenix_wiki-0.5.5.jar, it does not contain dependency information.
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.AbstractJarFileDependencyLocator/]: Failed to load resource META-INF\jarjar\metadata.json from forge-1.20.1-47.4.1.jar, it does not contain dependency information.
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.AbstractJarFileDependencyLocator/]: Failed to load resource META-INF\jarjar\metadata.json from configuration-444699-5840405.jar, it does not contain dependency information.
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.AbstractJarFileDependencyLocator/]: Failed to load resource META-INF\jarjar\metadata.json from phoenixcore-api-stub-1.20.1.jar, it does not contain dependency information.
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.AbstractJarFileDependencyLocator/]: Failed to load resource META-INF\jarjar\metadata.json from , it does not contain dependency information.
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.AbstractJarFileDependencyLocator/]: Failed to load resource META-INF\jarjar\metadata.json from gtceu-1.20.1-8.0.0-SNAPSHOT-slim.jar, it does not contain dependency information.
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.AbstractJarFileDependencyLocator/]: Failed to load resource META-INF\jarjar\metadata.json from Registrate-MC1.20-1.3.11.jar, it does not contain dependency information.
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.AbstractJarFileDependencyLocator/]: Failed to load resource META-INF\jarjar\metadata.json from main, it does not contain dependency information.
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.AbstractJarFileDependencyLocator/]: Failed to load resource META-INF\jarjar\metadata.json from mclanguage-1.20.1-47.4.1.jar, it does not contain dependency information.
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.AbstractJarFileDependencyLocator/]: Failed to load resource META-INF\jarjar\metadata.json from javafmllanguage-1.20.1-47.4.1.jar, it does not contain dependency information.
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.AbstractJarFileDependencyLocator/]: Failed to load resource META-INF\jarjar\metadata.json from fmlcore-1.20.1-47.4.1.jar, it does not contain dependency information.
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.AbstractJarFileDependencyLocator/]: Failed to load resource META-INF\jarjar\metadata.json from lowcodelanguage-1.20.1-47.4.1.jar, it does not contain dependency information.
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate 
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file mixinextras-forge-0.3.5.jar with {mixinextras} mods - versions {0.3.5}
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.AbstractJarFileDependencyLocator/]: Failed to load resource META-INF\jarjar\metadata.json from EvalEx-3.6.0.jar, it does not contain dependency information.
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.AbstractJarFileDependencyLocator/]: Failed to load resource META-INF\jarjar\metadata.json from MixinExtras-0.3.5.jar, it does not contain dependency information.
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.AbstractJarFileDependencyLocator/]: Failed to load resource META-INF\jarjar\metadata.json from MixinExtras-0.5.5.jar, it does not contain dependency information.
+[10:15:53] [main/INFO] [ne.mi.fm.lo.mo.JarInJarDependencyLocator/]: Found 3 dependencies adding them to mods collection
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file forge-1.20.1-47.4.1.jar with {minecraft} mods - versions {1.20.1}
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Loading mod file C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\build\moddev\artifacts\forge-1.20.1-47.4.1.jar with languages [LanguageSpec[languageName=minecraft, acceptedVersions=1]]
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\8.10\transforms\7a7a7967ddb12daf89761be80f4ec13c\transformed\phoenix_wiki-0.5.5.jar
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file phoenix_wiki-0.5.5.jar with {phoenix_wiki} mods - versions {0.5.5}
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Loading mod file C:\Users\conno\.gradle\caches\8.10\transforms\7a7a7967ddb12daf89761be80f4ec13c\transformed\phoenix_wiki-0.5.5.jar with languages [LanguageSpec[languageName=javafml, acceptedVersions=[47,)]]
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\8.10\transforms\ded48591d4ce75d01e2cc1f04063ecc8\transformed\emi-forge-1.1.24+1.20.1.jar
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file emi-forge-1.1.24+1.20.1.jar with {emi} mods - versions {1.1.24+1.20.1+forge}
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Loading mod file C:\Users\conno\.gradle\caches\8.10\transforms\ded48591d4ce75d01e2cc1f04063ecc8\transformed\emi-forge-1.1.24+1.20.1.jar with languages [LanguageSpec[languageName=javafml, acceptedVersions=[40,)]]
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\run\mods\phoenixcore-api-stub-1.20.1.jar
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file phoenixcore-api-stub-1.20.1.jar with {phoenixcore} mods - versions {0.2.1}
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Loading mod file C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\run\mods\phoenixcore-api-stub-1.20.1.jar with languages [LanguageSpec[languageName=javafml, acceptedVersions=[47,)]]
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\8.10\transforms\d8ee5be29fe15b7eaf07d43982b8e1cf\transformed\modularui-mc1.20.1-3.3.1-SNAPSHOT.jar
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file modularui-mc1.20.1-3.3.1-SNAPSHOT.jar with {modularui} mods - versions {3.3.1-SNAPSHOT}
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Loading mod file C:\Users\conno\.gradle\caches\8.10\transforms\d8ee5be29fe15b7eaf07d43982b8e1cf\transformed\modularui-mc1.20.1-3.3.1-SNAPSHOT.jar with languages [LanguageSpec[languageName=javafml, acceptedVersions=[47,)]]
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\8.10\transforms\47b762622e2a6d9d4cdffc3d013921a5\transformed\configuration-444699-5840405.jar
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file configuration-444699-5840405.jar with {configuration} mods - versions {3.1.0}
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Loading mod file C:\Users\conno\.gradle\caches\8.10\transforms\47b762622e2a6d9d4cdffc3d013921a5\transformed\configuration-444699-5840405.jar with languages [LanguageSpec[languageName=javafml, acceptedVersions=[47,)]]
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\8.10\transforms\716a4e70f0053e008b4a8a6a2855a560\transformed\gtceu-1.20.1-8.0.0-SNAPSHOT-slim.jar
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file gtceu-1.20.1-8.0.0-SNAPSHOT-slim.jar with {gtceu} mods - versions {8.0.0-SNAPSHOT+aae6d4e}
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Loading mod file C:\Users\conno\.gradle\caches\8.10\transforms\716a4e70f0053e008b4a8a6a2855a560\transformed\gtceu-1.20.1-8.0.0-SNAPSHOT-slim.jar with languages [LanguageSpec[languageName=javafml, acceptedVersions=[47,)]]
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\.gradle\caches\8.10\transforms\0d190a9ef0914b64e595d61ee88c726e\transformed\ldlib-forge-1.20.1-1.0.40.b.jar
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file ldlib-forge-1.20.1-1.0.40.b.jar with {ldlib} mods - versions {1.0.40.b}
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Loading mod file C:\Users\conno\.gradle\caches\8.10\transforms\0d190a9ef0914b64e595d61ee88c726e\transformed\ldlib-forge-1.20.1-1.0.40.b.jar with languages [LanguageSpec[languageName=javafml, acceptedVersions=[47,)]]
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\build\classes\java\main
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file main with {phoenix_continuum} mods - versions {0.1.0}
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Loading mod file C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\build\classes\java\main with languages [LanguageSpec[languageName=javafml, acceptedVersions=[47,)]]
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Considering mod file candidate /
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileInfo/LOADING]: Found valid mod file  with {forge} mods - versions {47.4.1}
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Loading mod file / with languages [LanguageSpec[languageName=javafml, acceptedVersions=[24,]]]
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Found coremod field_to_method with Javascript path coremods/field_to_method.js
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Found coremod field_to_instanceof with Javascript path coremods/field_to_instanceof.js
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Found coremod add_bouncer_method with Javascript path coremods/add_bouncer_method.js
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFileParser/LOADING]: Found coremod method_redirector with Javascript path coremods/method_redirector.js
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Found coremod coremods/field_to_method.js
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Found coremod coremods/field_to_instanceof.js
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Found coremod coremods/add_bouncer_method.js
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Found coremod coremods/method_redirector.js
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Loading mod file  with languages []
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Loading mod file  with languages []
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Loading mod file  with languages []
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Loading mod file C:\Users\conno\.gradle\caches\8.10\transforms\9a11d2c8c6951793407a23fe04eff074\transformed\Registrate-MC1.20-1.3.11.jar with languages []
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Loading mod file  with languages []
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Loading mod file  with languages []
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Loading mod file  with languages []
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.mo.ModFile/LOADING]: Loading mod file C:\Users\conno\.gradle\caches\8.10\transforms\9a11d2c8c6951793407a23fe04eff074\transformed\Registrate-MC1.20-1.3.11.jar with languages []
+[10:15:53] [main/DEBUG] [cp.mo.mo.TransformationServiceDecorator/MODLAUNCHER]: End scan trigger - transformation service fml
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.LanguageLoadingProvider/CORE]: Found 3 language providers
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.LanguageLoadingProvider/CORE]: Found language provider minecraft, version 1.0
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.LanguageLoadingProvider/CORE]: Found language provider lowcodefml, version 47
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.LanguageLoadingProvider/CORE]: Found language provider javafml, version 47
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.UniqueModListBuilder/]: Found 2 mods for first modid mixinextras, selecting most recent based on version data
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.UniqueModListBuilder/]: Selected file mixinextras-forge-0.5.5.jar for modid mixinextras with version 0.5.5
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.UniqueModListBuilder/]: Found 2 mods for first modid EvalEx, selecting most recent based on version data
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.UniqueModListBuilder/]: Selected file EvalEx-3.6.0.jar for modid EvalEx with version 0.0NONE
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.UniqueModListBuilder/]: Found 2 mods for first modid MixinExtras, selecting most recent based on version data
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.UniqueModListBuilder/]: Selected file MixinExtras-0.5.5.jar for modid MixinExtras with version 0.5.5
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.UniqueModListBuilder/]: Found 2 mods for first modid Registrate.MC1._20, selecting most recent based on version data
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.UniqueModListBuilder/]: Selected file Registrate-MC1.20-1.3.11.jar for modid Registrate.MC1._20 with version 0.0NONE
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.ModSorter/]: Configured system mods: [minecraft, forge]
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.ModSorter/]: Found system mod: minecraft
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.ModSorter/]: Found system mod: forge
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.ModSorter/LOADING]: Found 24 mod requirements (15 mandatory, 9 optional)
+[10:15:53] [main/DEBUG] [ne.mi.fm.lo.ModSorter/LOADING]: Found 0 mod requirements missing (0 mandatory, 0 optional)
+[10:15:54] [main/DEBUG] [ne.mi.fm.lo.MCPNamingService/CORE]: Loaded 31003 field mappings from fields.csv
+[10:15:54] [main/DEBUG] [ne.mi.fm.lo.MCPNamingService/CORE]: Loaded 33222 method mappings from methods.csv
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformationServicesHandler/MODLAUNCHER]: Transformation services loading transformers
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformationServiceDecorator/MODLAUNCHER]: Initializing transformers for transformation service mixin
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformationServiceDecorator/MODLAUNCHER]: Initialized transformers for transformation service mixin
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformationServiceDecorator/MODLAUNCHER]: Initializing transformers for transformation service fml
+[10:15:54] [main/DEBUG] [ne.mi.fm.lo.FMLServiceProvider/CORE]: Loading coremod transformers
+[10:15:54] [main/DEBUG] [ne.mi.co.CoreModEngine/COREMOD]: Loading CoreMod from coremods/field_to_method.js
+[10:15:54] [main/DEBUG] [ne.mi.co.CoreModEngine/COREMOD]: CoreMod loaded successfully
+[10:15:54] [main/DEBUG] [ne.mi.co.CoreModEngine/COREMOD]: Loading CoreMod from coremods/field_to_instanceof.js
+[10:15:54] [main/DEBUG] [ne.mi.co.CoreModEngine/COREMOD]: CoreMod loaded successfully
+[10:15:54] [main/DEBUG] [ne.mi.co.CoreModEngine/COREMOD]: Loading CoreMod from coremods/add_bouncer_method.js
+[10:15:54] [main/DEBUG] [ne.mi.co.CoreModEngine/COREMOD]: CoreMod loaded successfully
+[10:15:54] [main/DEBUG] [ne.mi.co.CoreModEngine/COREMOD]: Loading CoreMod from coremods/method_redirector.js
+[10:15:54] [main/DEBUG] [ne.mi.co.CoreModEngine/COREMOD]: CoreMod loaded successfully
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@5807efad to Target : CLASS {Lnet/minecraft/world/level/biome/Biome;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@29ebbdf4 to Target : CLASS {Lnet/minecraft/world/level/levelgen/structure/Structure;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@2fd954f to Target : CLASS {Lnet/minecraft/world/effect/MobEffectInstance;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@5731d3a to Target : CLASS {Lnet/minecraft/world/level/block/LiquidBlock;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@6a0f2853 to Target : CLASS {Lnet/minecraft/world/item/BucketItem;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@1eff3cfb to Target : CLASS {Lnet/minecraft/world/level/block/StairBlock;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@70c69586 to Target : CLASS {Lnet/minecraft/world/level/block/FlowerPotBlock;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@6dc1dc69 to Target : CLASS {Lnet/minecraft/world/item/ItemStack;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@7e9f2c32 to Target : CLASS {Lnet/minecraft/network/play/client/CClientSettingsPacket;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/world/entity/EntityType;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/world/level/levelgen/PhantomSpawner;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/world/entity/animal/frog/Tadpole;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/world/level/levelgen/PatrolSpawner;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/server/commands/SummonCommand;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/server/commands/RaidCommand;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/world/entity/monster/Spider;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/world/entity/animal/horse/SkeletonTrapGoal;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/world/entity/monster/ZombieVillager;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/world/entity/ai/village/VillageSiege;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/world/entity/raid/Raid;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/world/entity/monster/Strider;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/world/entity/npc/CatSpawner;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/world/level/levelgen/structure/structures/OceanRuinPieces$OceanRuinPiece;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/world/entity/monster/Zombie;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/world/level/levelgen/structure/structures/WoodlandMansionPieces$WoodlandMansionPiece;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/world/level/levelgen/structure/structures/OceanMonumentPieces$OceanMonumentPiece;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/world/level/NaturalSpawner;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplate;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/world/entity/npc/Villager;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/world/entity/monster/Evoker$EvokerSummonSpellGoal;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformStore/MODLAUNCHER]: Adding transformer net.minecraftforge.coremod.transformer.CoreModClassTransformer@19e0dffe to Target : CLASS {Lnet/minecraft/world/level/levelgen/structure/structures/SwampHutPiece;} {} {V}
+[10:15:54] [main/DEBUG] [cp.mo.mo.TransformationServiceDecorator/MODLAUNCHER]: Initialized transformers for transformation service fml
+[10:15:57] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:ModLauncher Root Container(ModLauncher:4f56a0a2)]
+[10:15:57] [main/DEBUG] [mixin/]: Processing launch tasks for PlatformAgent[MixinPlatformAgentDefault:ModLauncher Root Container(ModLauncher:4f56a0a2)]
+[10:15:57] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(emi)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(emi)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(emi)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(emi)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(emi)
+[10:15:57] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(emi)]
+[10:15:57] [main/DEBUG] [mixin/]: Registering mixin config: emi.mixins.json
+[10:15:57] [main/DEBUG] [mixin/]: Compatibility level JAVA_17 specified by emi.mixins.json is higher than the maximum level supported by this version of mixin (JAVA_13).
+[10:15:57] [main/INFO] [mixin/]: Compatibility level set to JAVA_17
+[10:15:57] [main/DEBUG] [mixin/]: Registering mixin config: emi-forge.mixins.json
+[10:15:57] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(phoenix_wiki)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(phoenix_wiki)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(phoenix_wiki)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(phoenix_wiki)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(phoenix_wiki)
+[10:15:57] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(phoenix_wiki)]
+[10:15:57] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(minecraft)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(minecraft)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(minecraft)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(minecraft)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(minecraft)
+[10:15:57] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(minecraft)]
+[10:15:57] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(configuration)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(configuration)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(configuration)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(configuration)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(configuration)
+[10:15:57] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(configuration)]
+[10:15:57] [main/DEBUG] [mixin/]: Registering mixin config: configuration.mixins.json
+[10:15:57] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(modularui)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(modularui)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(modularui)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(modularui)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(modularui)
+[10:15:57] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(modularui)]
+[10:15:57] [main/DEBUG] [mixin/]: Registering mixin config: modularui.mixins.json
+[10:15:57] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(phoenixcore)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(phoenixcore)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(phoenixcore)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(phoenixcore)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(phoenixcore)
+[10:15:57] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(phoenixcore)]
+[10:15:57] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(gtceu)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(gtceu)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(gtceu)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(gtceu)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(gtceu)
+[10:15:57] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(gtceu)]
+[10:15:57] [main/DEBUG] [mixin/]: Registering mixin config: gtceu.mixins.json
+[10:15:57] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(ldlib)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(ldlib)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(ldlib)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(ldlib)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(ldlib)
+[10:15:57] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(ldlib)]
+[10:15:57] [main/DEBUG] [mixin/]: Registering mixin config: ldlib-common.mixins.json
+[10:15:57] [main/DEBUG] [mixin/]: Registering mixin config: ldlib.mixins.json
+[10:15:57] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(phoenix_continuum)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(phoenix_continuum)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(phoenix_continuum)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(phoenix_continuum)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(phoenix_continuum)
+[10:15:57] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(phoenix_continuum)]
+[10:15:57] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(forge)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(forge)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(forge)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(forge)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(forge)
+[10:15:57] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(forge)]
+[10:15:57] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(mixinextras)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(mixinextras)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(mixinextras)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(mixinextras)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(mixinextras)
+[10:15:57] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(mixinextras)]
+[10:15:57] [main/DEBUG] [mixin/]: Registering mixin config: mixinextras.init.mixins.json
+[10:15:57] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(EvalEx)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(EvalEx)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(EvalEx)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(EvalEx)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(EvalEx)
+[10:15:57] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(EvalEx)]
+[10:15:57] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(MixinExtras)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(MixinExtras)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(MixinExtras)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(MixinExtras)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(MixinExtras)
+[10:15:57] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(MixinExtras)]
+[10:15:57] [main/DEBUG] [mixin/]: Adding mixin platform agents for container SecureJarResource(Registrate.MC1._20)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentMinecraftForge for SecureJarResource(Registrate.MC1._20)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentMinecraftForge rejected container SecureJarResource(Registrate.MC1._20)
+[10:15:57] [main/DEBUG] [mixin/]: Instancing new MixinPlatformAgentDefault for SecureJarResource(Registrate.MC1._20)
+[10:15:57] [main/DEBUG] [mixin/]: MixinPlatformAgentDefault accepted container SecureJarResource(Registrate.MC1._20)
+[10:15:57] [main/DEBUG] [mixin/]: Processing prepare() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(Registrate.MC1._20)]
+[10:15:57] [main/DEBUG] [mixin/]: inject() running with 15 agents
+[10:15:57] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:ModLauncher Root Container(ModLauncher:4f56a0a2)]
+[10:15:57] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(emi)]
+[10:15:57] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(phoenix_wiki)]
+[10:15:57] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(minecraft)]
+[10:15:57] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(configuration)]
+[10:15:57] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(modularui)]
+[10:15:57] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(phoenixcore)]
+[10:15:57] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(gtceu)]
+[10:15:57] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(ldlib)]
+[10:15:57] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(phoenix_continuum)]
+[10:15:57] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(forge)]
+[10:15:57] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(mixinextras)]
+[10:15:57] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(EvalEx)]
+[10:15:57] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(MixinExtras)]
+[10:15:57] [main/DEBUG] [mixin/]: Processing inject() for PlatformAgent[MixinPlatformAgentDefault:SecureJarResource(Registrate.MC1._20)]
+[10:15:57] [main/INFO] [cp.mo.mo.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgeserveruserdev' with arguments [--gameDir, ., --nogui]
+[10:15:57] [main/DEBUG] [mixin/]: Error cleaning class output directory: .mixin.out
+[10:15:57] [main/DEBUG] [mixin/]: Preparing mixins for MixinEnvironment[DEFAULT]
+[10:15:57] [main/DEBUG] [mixin/]: Selecting config emi.mixins.json
+[10:15:58] [main/INFO] [mixin/]: Remapping refMap emi-xplat-refmap.json using C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\build\moddev\artifacts\intermediateToNamed.srg
+[10:15:58] [main/DEBUG] [mixin/]: Selecting config emi-forge.mixins.json
+[10:15:58] [main/DEBUG] [mixin/]: Selecting config configuration.mixins.json
+[10:15:58] [main/INFO] [mixin/]: Remapping refMap configuration.refmap.json using C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\build\moddev\artifacts\intermediateToNamed.srg
+[10:15:58] [main/DEBUG] [mixin/]: Selecting config modularui.mixins.json
+[10:15:58] [main/INFO] [mixin/]: Remapping refMap modularui.refmap.json using C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\build\moddev\artifacts\intermediateToNamed.srg
+[10:15:58] [main/DEBUG] [mixin/]: Selecting config gtceu.mixins.json
+[10:15:58] [main/INFO] [mixin/]: Remapping refMap gtceu.refmap.json using C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\build\moddev\artifacts\intermediateToNamed.srg
+[10:15:58] [main/DEBUG] [mixin/]: Selecting config ldlib-common.mixins.json
+[10:15:58] [main/INFO] [mixin/]: Remapping refMap ldlib-common-1.20.1-ldlib-common-refmap.json using C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\build\moddev\artifacts\intermediateToNamed.srg
+[10:15:58] [main/DEBUG] [mixin/]: Selecting config ldlib.mixins.json
+[10:15:58] [main/INFO] [mixin/]: Remapping refMap ldlib-forge-1.20.1-ldlib-forge-refmap.json using C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\build\moddev\artifacts\intermediateToNamed.srg
+[10:15:58] [main/DEBUG] [mixin/]: Selecting config mixinextras.init.mixins.json
+[10:15:58] [main/DEBUG] [MixinExtras|Service/]: com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.5) is taking over from null
+[10:15:58] [main/DEBUG] [mixin/]: Registering new injector for @Inject with org.spongepowered.asm.mixin.injection.struct.CallbackInjectionInfo
+[10:15:58] [main/DEBUG] [mixin/]: Registering new injector for @ModifyArg with org.spongepowered.asm.mixin.injection.struct.ModifyArgInjectionInfo
+[10:15:58] [main/DEBUG] [mixin/]: Registering new injector for @ModifyArgs with org.spongepowered.asm.mixin.injection.struct.ModifyArgsInjectionInfo
+[10:15:58] [main/DEBUG] [mixin/]: Registering new injector for @Redirect with org.spongepowered.asm.mixin.injection.struct.RedirectInjectionInfo
+[10:15:58] [main/DEBUG] [mixin/]: Registering new injector for @ModifyVariable with org.spongepowered.asm.mixin.injection.struct.ModifyVariableInjectionInfo
+[10:15:58] [main/DEBUG] [mixin/]: Registering new injector for @ModifyConstant with org.spongepowered.asm.mixin.injection.struct.ModifyConstantInjectionInfo
+[10:15:58] [main/DEBUG] [mixin/]: Preparing emi.mixins.json (25)
+[10:15:58] [main/DEBUG] [mixin/]: Preparing emi-forge.mixins.json (0)
+[10:15:58] [main/DEBUG] [mixin/]: Preparing configuration.mixins.json (3)
+[10:15:58] [main/DEBUG] [mixin/]: Preparing modularui.mixins.json (22)
+[10:15:58] [main/DEBUG] [mixin/]: Preparing gtceu.mixins.json (100)
+[10:15:58] [main/DEBUG] [ne.mi.co.tr.CoreModBaseTransformer/COREMOD]: Transforming net/minecraft/world/item/ItemStack
+[10:15:58] [main/DEBUG] [mixin/]: Preparing ldlib-common.mixins.json (29)
+[10:15:58] [main/DEBUG] [mixin/]: Preparing ldlib.mixins.json (3)
+[10:15:58] [main/DEBUG] [mixin/]: Preparing mixinextras.init.mixins.json (0)
+[10:15:58] [main/DEBUG] [mixin/]: Prepared 69 mixins in 0.923 sec (13.4ms avg) (0ms load, 0ms transform, 0ms plugin)
+2026-10-21 10:15:58,607 main WARN Error parsing URI C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\build\moddev\serverLog4j2.xml
+[10:15:58] [main/INFO] [MixinExtras|Service/]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.5).
+[10:16:07] [modloading-worker-0/INFO] [PhoenixWiki/]: Phoenix Wiki loaded (library mod. see PhoenixWikiAPI to open a wiki screen)
+[10:16:07] [modloading-worker-0/INFO] [GregTechCEu/]: GregTechCEu is initializing...
+[10:16:08] [modloading-worker-0/INFO] [LowDragLib/]: LowDragLib is initializing on platform: Forge
+[10:16:08] [modloading-worker-0/INFO] [ne.mi.co.ForgeMod/FORGEMOD]: Forge mod loading, version 47.4.1, for MC 1.20.1 with MCP 20230612.114412
+[10:16:08] [modloading-worker-0/INFO] [ne.mi.co.MinecraftForge/FORGE]: MinecraftForge v47.4.1 Initialized
+[10:16:08] [modloading-worker-0/INFO] [Configuration/FileWatching]: Registered phoenix_continuum config for auto-sync function
+[10:16:08] [modloading-worker-0/INFO] [Configuration/FileWatching]: Registered configuration config for auto-sync function
+[10:16:08] [modloading-worker-0/INFO] [Configuration/FileWatching]: Registered gtceu config for auto-sync function
+[10:16:08] [modloading-worker-0/INFO] [GregTechCEu/]: High-Tier is Enabled.
+[10:16:08] [main/INFO] [GregTechCEu/]: GTCEu common proxy init!
+[10:16:08] [main/INFO] [GregTechCEu/]: Registering GTCEu Materials
+[10:16:08] [main/INFO] [GregTechCEu/]: Registering addon Materials
+[10:16:09] [main/WARN] [GregTechCEu/]: FluidStorageKey{gtceu:liquid} already has an associated fluid for material gtceu:water
+[10:16:09] [main/WARN] [GregTechCEu/]: FluidStorageKey{gtceu:liquid} already has an associated fluid for material gtceu:lava
+[10:16:09] [main/WARN] [GregTechCEu/]: FluidStorageKey{gtceu:liquid} already has an associated fluid for material gtceu:milk
+[10:16:11] [main/WARN] [ne.mi.fm.DeferredWorkQueue/LOADING]: Mod 'gtceu' took 2.848 s to run a deferred task.
+[10:16:13] [Forge Version Check/INFO] [ne.mi.fm.VersionChecker/]: [forge] Starting version check at https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json
+[10:16:13] [Forge Version Check/INFO] [ne.mi.fm.VersionChecker/]: [forge] Found status: OUTDATED Current: 47.4.1 Target: 47.4.10
+[10:16:14] [main/INFO] [mojang/YggdrasilAuthenticationService]: Environment: authHost='https://authserver.mojang.com', accountsHost='https://api.mojang.com', sessionHost='https://sessionserver.mojang.com', servicesHost='https://api.minecraftservices.com', name='PROD'
+[10:16:14] [main/WARN] [minecraft/VanillaPackResourcesBuilder]: Assets URL 'union:/C:/Users/conno/Desktop/PFT%20Core/PhoenixContinuum/build/moddev/artifacts/forge-1.20.1-47.4.1.jar%23147!/assets/.mcassetsroot' uses unexpected schema
+[10:16:14] [main/WARN] [minecraft/VanillaPackResourcesBuilder]: Assets URL 'union:/C:/Users/conno/Desktop/PFT%20Core/PhoenixContinuum/build/moddev/artifacts/forge-1.20.1-47.4.1.jar%23147!/data/.mcassetsroot' uses unexpected schema
+[10:16:24] [main/WARN] [GregTechCEu/]: Recipe gtceu:continuum_hull_refit_mk4 is trying to add more inputs than its recipe type can support, Max gtceu:fluid inputs: 1
+[10:16:25] [main/INFO] [GregTechCEu/]: GregTech Data loading took 10946ms
+[10:16:25] [main/WARN] [minecraft/Pack]: Missing metadata in pack mod:phoenixcore
+[10:16:25] [main/WARN] [minecraft/MinecraftServer]: Missing data pack mod:phoenixcore
+[10:16:25] [main/INFO] [minecraft/MinecraftServer]: Found new data pack continuum_pack_folder, loading it automatically
+[10:16:25] [main/INFO] [minecraft/MinecraftServer]: Found new data pack gtceu:dynamic_data, loading it automatically
+[10:16:31] [main/INFO] [minecraft/RecipeManager]: Loaded 65 recipes
+[10:16:33] [main/INFO] [minecraft/AdvancementList]: Loaded 1306 advancements
+[10:16:33] [main/INFO] [ne.ph.co.da.ContinuumData/]: [PhoenixCore/Continuum] Loaded 1 systems and 3 bodies (0 errors, 0 warnings)
+[10:16:34] [Server thread/INFO] [minecraft/DedicatedServer]: Starting minecraft server version 1.20.1
+[10:16:34] [Server thread/INFO] [minecraft/DedicatedServer]: Loading properties
+[10:16:34] [Server thread/INFO] [minecraft/DedicatedServer]: Default game type: SURVIVAL
+[10:16:34] [Server thread/INFO] [minecraft/MinecraftServer]: Generating keypair
+[10:16:34] [Server thread/INFO] [minecraft/DedicatedServer]: Starting Minecraft server on *:25565
+[10:16:34] [Server thread/INFO] [minecraft/ServerConnectionListener]: Using default channel type
+[10:16:34] [Server thread/WARN] [ne.mi.co.ForgeConfigSpec/CORE]: Configuration file .\world\serverconfig\forge-server.toml is not correct. Correcting
+[10:16:34] [Server thread/WARN] [ne.mi.co.ForgeConfigSpec/CORE]: Incorrect key server was corrected from null to its default, SimpleCommentedConfig:{}. 
+[10:16:34] [Server thread/WARN] [ne.mi.co.ForgeConfigSpec/CORE]: Incorrect key server.removeErroringBlockEntities was corrected from null to its default, false. 
+[10:16:34] [Server thread/WARN] [ne.mi.co.ForgeConfigSpec/CORE]: Incorrect key server.removeErroringEntities was corrected from null to its default, false. 
+[10:16:34] [Server thread/WARN] [ne.mi.co.ForgeConfigSpec/CORE]: Incorrect key server.fullBoundingBoxLadders was corrected from null to its default, false. 
+[10:16:34] [Server thread/WARN] [ne.mi.co.ForgeConfigSpec/CORE]: Incorrect key server.zombieBaseSummonChance was corrected from null to its default, 0.1. 
+[10:16:34] [Server thread/WARN] [ne.mi.co.ForgeConfigSpec/CORE]: Incorrect key server.zombieBabyChance was corrected from null to its default, 0.05. 
+[10:16:34] [Server thread/WARN] [ne.mi.co.ForgeConfigSpec/CORE]: Incorrect key server.permissionHandler was corrected from null to its default, forge:default_handler. 
+[10:16:34] [Server thread/WARN] [ne.mi.co.ForgeConfigSpec/CORE]: Incorrect key server.advertiseDedicatedServerToLan was corrected from null to its default, true. 
+[10:16:34] [Server thread/WARN] [ne.mi.co.ForgeConfigSpec/CORE]: Incorrect key server.useItemWithDurationZero was corrected from null to its default, false. 
+[10:16:34] [Server thread/INFO] [minecraft/DedicatedServer]: Preparing level "world"
+[10:16:41] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing start region for dimension minecraft:overworld
+[10:16:42] [Worker-Main-6/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 0%
+[10:16:42] [Worker-Main-10/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 0%
+[10:16:42] [Worker-Main-6/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 0%
+[10:16:42] [Worker-Main-7/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 0%
+[10:16:43] [Worker-Main-1/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 0%
+[10:16:43] [Worker-Main-6/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 0%
+[10:16:44] [Worker-Main-9/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 1%
+[10:16:44] [Worker-Main-4/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 1%
+[10:16:45] [Worker-Main-7/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 3%
+[10:16:45] [Worker-Main-11/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 4%
+[10:16:46] [Worker-Main-11/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 5%
+[10:16:46] [Worker-Main-6/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 5%
+[10:16:47] [Worker-Main-8/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 6%
+[10:16:47] [Worker-Main-11/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 8%
+[10:16:48] [Worker-Main-1/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 9%
+[10:16:48] [Worker-Main-5/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 9%
+[10:16:49] [Worker-Main-3/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 10%
+[10:16:50] [Worker-Main-11/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 12%
+[10:16:50] [Worker-Main-9/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 12%
+[10:16:50] [Worker-Main-7/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 14%
+[10:16:51] [Worker-Main-1/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 15%
+[10:16:51] [Worker-Main-7/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 18%
+[10:16:52] [Worker-Main-7/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 21%
+[10:16:52] [Worker-Main-4/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 22%
+[10:16:53] [Worker-Main-1/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 23%
+[10:16:53] [Worker-Main-1/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 25%
+[10:16:54] [Worker-Main-10/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 27%
+[10:16:54] [Worker-Main-4/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 29%
+[10:16:55] [Worker-Main-8/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 31%
+[10:16:55] [Worker-Main-4/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 32%
+[10:16:56] [Worker-Main-9/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 34%
+[10:16:56] [Worker-Main-7/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 35%
+[10:16:57] [Worker-Main-5/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 39%
+[10:16:57] [Worker-Main-6/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 42%
+[10:16:58] [Worker-Main-9/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 44%
+[10:16:58] [Worker-Main-9/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 46%
+[10:16:59] [Worker-Main-8/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 48%
+[10:16:59] [Worker-Main-4/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 51%
+[10:17:00] [Worker-Main-5/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 54%
+[10:17:00] [Worker-Main-8/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 55%
+[10:17:01] [Worker-Main-8/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 57%
+[10:17:01] [Worker-Main-10/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 57%
+[10:17:02] [Worker-Main-5/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 58%
+[10:17:02] [Worker-Main-11/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 60%
+[10:17:03] [Worker-Main-7/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 60%
+[10:17:03] [Worker-Main-10/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 62%
+[10:17:04] [Worker-Main-3/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 64%
+[10:17:04] [Worker-Main-5/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 66%
+[10:17:05] [Worker-Main-1/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 68%
+[10:17:05] [Worker-Main-6/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 69%
+[10:17:06] [Worker-Main-1/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 71%
+[10:17:06] [Worker-Main-5/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 71%
+[10:17:07] [Worker-Main-9/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 73%
+[10:17:07] [Worker-Main-7/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 74%
+[10:17:08] [Worker-Main-3/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 77%
+[10:17:08] [Worker-Main-2/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 77%
+[10:17:09] [Worker-Main-9/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 79%
+[10:17:09] [Worker-Main-3/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 79%
+[10:17:10] [Worker-Main-9/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 80%
+[10:17:10] [Worker-Main-1/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 81%
+[10:17:11] [Worker-Main-6/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 83%
+[10:17:11] [Worker-Main-11/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 83%
+[10:17:12] [Worker-Main-3/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 84%
+[10:17:12] [Worker-Main-11/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 85%
+[10:17:13] [Worker-Main-9/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 87%
+[10:17:13] [Worker-Main-7/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 90%
+[10:17:14] [Worker-Main-4/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 92%
+[10:17:14] [Worker-Main-9/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 93%
+[10:17:15] [Worker-Main-1/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 95%
+[10:17:15] [Worker-Main-9/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 96%
+[10:17:16] [Server thread/INFO] [minecraft/LoggerChunkProgressListener]: Time elapsed: 34970 ms
+[10:17:16] [Server thread/INFO] [minecraft/DedicatedServer]: Done (41.615s)! For help, type "help"
+[10:17:16] [Server thread/INFO] [ne.mi.ga.ForgeGameTestHooks/]: Enabled Gametest Namespaces: []
+[10:17:16] [Server thread/INFO] [ne.mi.se.pe.PermissionAPI/]: Successfully initialized permission handler forge:default_handler
+
+> Task :runServer FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':runServer'.
+> Process 'command 'C:\Program Files\Eclipse Adoptium\jdk-17.0.16.8-hotspot\bin\java.exe'' finished with non-zero exit value -1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1m 56s
+7 actionable tasks: 5 executed, 2 up-to-date

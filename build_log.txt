@@ -1,0 +1,123 @@
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\data\ContinuumData.java:199: warning: [removal] ResourceLocation(String) in ResourceLocation has been deprecated and marked for removal
+                new ResourceLocation(GsonHelper.getAsString(json, "system")),
+                ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\data\ContinuumData.java:241: warning: [removal] ResourceLocation(String,String) in ResourceLocation has been deprecated and marked for removal
+                item != null ? item : new ResourceLocation("minecraft", "air"),
+                                      ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\data\ContinuumData.java:254: warning: [removal] ResourceLocation(String) in ResourceLocation has been deprecated and marked for removal
+            yields.add(new ContinuumBody.Yield(new ResourceLocation(GsonHelper.getAsString(entry, "item")), min, max,
+                                               ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\data\ContinuumData.java:262: warning: [removal] ResourceLocation(String) in ResourceLocation has been deprecated and marked for removal
+        return new ResourceLocation(GsonHelper.getAsString(json, key));
+               ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\data\ContinuumData.java:356: warning: [removal] ResourceLocation(String,String) in ResourceLocation has been deprecated and marked for removal
+                ResourceLocation id = new ResourceLocation(file.getNamespace(),
+                                      ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\client\ContinuumClientSetup.java:33: warning: [removal] ResourceLocation(String,String) in ResourceLocation has been deprecated and marked for removal
+                    new ResourceLocation(PhoenixContinuum.MOD_ID, "textures/gui/suite_continuum.png"),
+                    ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\client\HostSounds.java:48: warning: [removal] ResourceLocation(String,String) in ResourceLocation has been deprecated and marked for removal
+        return ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation(NAMESPACE, path));
+                                                     ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\client\screen\ContinuumAscentScreen.java:35: warning: [removal] ResourceLocation(String,String) in ResourceLocation has been deprecated and marked for removal
+    private static final ResourceLocation HOME_WORLD = new ResourceLocation("phoenix_continuum", "anvil");
+                                                       ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\client\screen\ContinuumMapScreen.java:1066: warning: [removal] ResourceLocation(String,String) in ResourceLocation has been deprecated and marked for removal
+    private static final ResourceLocation HOME_SYSTEM = new ResourceLocation("phoenix_continuum", "home");
+                                                        ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\client\screen\ContinuumMapScreen.java:1067: warning: [removal] ResourceLocation(String,String) in ResourceLocation has been deprecated and marked for removal
+    private static final ResourceLocation HOME_BODY = new ResourceLocation("phoenix_continuum", "anvil");
+                                                      ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\common\Affinities.java:72: warning: [removal] ResourceLocation(String) in ResourceLocation has been deprecated and marked for removal
+                            e.has("system") ? new ResourceLocation(GsonHelper.getAsString(e, "system")) : null,
+                                              ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\common\Affinities.java:74: warning: [removal] ResourceLocation(String) in ResourceLocation has been deprecated and marked for removal
+                            e.has("body") ? new ResourceLocation(GsonHelper.getAsString(e, "body")) : null,
+                                            ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\common\ConfluxTravel.java:72: warning: [removal] ResourceLocation(String) in ResourceLocation has been deprecated and marked for removal
+                ResourceKey.create(Registries.DIMENSION, new ResourceLocation(back.getString("Dimension"))));
+                                                         ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\common\ContinuumMissions.java:830: warning: [removal] ResourceLocation(String) in ResourceLocation has been deprecated and marked for removal
+                new ResourceLocation(mission.padDimension));
+                ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\common\ContinuumTeamData.java:405: warning: [removal] ResourceLocation(String) in ResourceLocation has been deprecated and marked for removal
+                map.put(new ResourceLocation(e.getString("Id")), DiscoveryStage.values()[ordinal]);
+                        ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\common\ContinuumTeamData.java:420: warning: [removal] ResourceLocation(String) in ResourceLocation has been deprecated and marked for removal
+                map.put(new ResourceLocation(e.getString("Body")), Outpost.load(e));
+                        ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\common\ContinuumTeamData.java:430: warning: [removal] ResourceLocation(String) in ResourceLocation has been deprecated and marked for removal
+                map.put(new ResourceLocation(e.getString("Body")), e.getInt("Depth"));
+                        ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\common\ContinuumTeamData.java:440: warning: [removal] ResourceLocation(String) in ResourceLocation has been deprecated and marked for removal
+                map.put(new ResourceLocation(e.getString("Body")), e.getInt("Level"));
+                        ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\common\ContinuumTeamData.java:456: warning: [removal] ResourceLocation(String) in ResourceLocation has been deprecated and marked for removal
+                map.put(new ResourceLocation(entry.getString("Id")), entry.getBoolean("Visible"));
+                        ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\common\ContinuumTransients.java:147: warning: [removal] ResourceLocation(String) in ResourceLocation has been deprecated and marked for removal
+            transients.windows.put(new ResourceLocation(e.getString("Body")),
+                                   ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\common\visibility\ContinuumConditions.java:98: warning: [removal] ResourceLocation(String,String) in ResourceLocation has been deprecated and marked for removal
+        return new ResourceLocation("phoenix_continuum", path);
+               ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\common\visibility\ContinuumVisibility.java:84: warning: [removal] ResourceLocation(String,String) in ResourceLocation has been deprecated and marked for removal
+        ResourceLocation guard = new ResourceLocation(kind.name().toLowerCase(), body.id().toString()
+                                 ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\config\ContinuumConfigs.java:18: warning: [removal] yaml() in ConfigFormats has been deprecated and marked for removal
+        CONFIG_HOLDER = Configuration.registerConfig(ContinuumConfigs.class, ConfigFormats.yaml());
+                                                                                          ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\PhoenixContinuum.java:36: warning: [removal] get() in FMLJavaModLoadingContext has been deprecated and marked for removal
+        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+                                                        ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\PhoenixContinuum.java:51: warning: [removal] ResourceLocation(String,String) in ResourceLocation has been deprecated and marked for removal
+        return new ResourceLocation(MOD_ID, path);
+               ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\integration\emi\ContinuumEmi.java:33: warning: [removal] ResourceLocation(String,String) in ResourceLocation has been deprecated and marked for removal
+            new ResourceLocation(PhoenixContinuum.MOD_ID, "continuum_bodies"),
+            ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\integration\emi\ContinuumEmi.java:37: warning: [removal] ResourceLocation(String,String) in ResourceLocation has been deprecated and marked for removal
+            new ResourceLocation(PhoenixContinuum.MOD_ID, "continuum_refit"),
+            ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\integration\emi\ContinuumEmi.java:153: warning: [removal] ResourceLocation(String,String) in ResourceLocation has been deprecated and marked for removal
+                    new ResourceLocation(PhoenixContinuum.MOD_ID, "/continuum_body/" + body.id().getPath()),
+                    ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\integration\emi\ContinuumEmi.java:216: warning: [removal] ResourceLocation(String,String) in ResourceLocation has been deprecated and marked for removal
+            super(REFIT, new ResourceLocation(PhoenixContinuum.MOD_ID, "/continuum_refit/hull_mk" + tier),
+                         ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\integration\emi\ContinuumEmi.java:253: warning: [removal] ResourceLocation(String,String) in ResourceLocation has been deprecated and marked for removal
+                    new ResourceLocation(PhoenixContinuum.MOD_ID, "/continuum_refit/module_" + upgrade),
+                    ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\integration\gtceu\GtmBootstrap7.java:53: warning: [removal] ResourceLocation(String,String) in ResourceLocation has been deprecated and marked for removal
+        var frame = Predicates.blocks(ForgeRegistries.BLOCKS.getValue(new ResourceLocation("gtceu", "steel_frame")));
+                                                                      ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\integration\solaris\SolarisSitesImpl.java:45: warning: [removal] ResourceLocation(String) in ResourceLocation has been deprecated and marked for removal
+                .name("Launch Complex").at(new ResourceLocation(dimension), pos.getX(), pos.getY(), pos.getZ())
+                                           ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\main\java\net\phoenix\continuum\integration\solaris\SolarisSitesImpl.java:58: warning: [removal] ResourceLocation(String) in ResourceLocation has been deprecated and marked for removal
+                    ResourceKey.create(Registries.DIMENSION, new ResourceLocation(site.dimension())));
+                                                             ^
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+33 warnings
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\gtm8\java\net\phoenix\continuum\integration\gtceu\GtmBootstrap8.java:49: warning: [removal] ResourceLocation(String,String) in ResourceLocation has been deprecated and marked for removal
+        var frame = Predicates.blocks(ForgeRegistries.BLOCKS.getValue(new ResourceLocation("gtceu", "steel_frame")));
+                                                                      ^
+C:\Users\conno\Desktop\PFT Core\PhoenixContinuum\src\gtm8\java\net\phoenix\continuum\machine\LaunchPadMachine8.java:58: error: cannot access IUIHolder
+            NotifiableItemStackHandler inventory = bus.getInventory();
+                                                      ^
+  class file for brachy.modularui.api.IUIHolder not found
+1 error
+1 warning
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileGtm8Java'.
+> Compilation failed; see the compiler error output for details.
+
+* Try:
+> Run with --info option to get more log output.
+> Run with --scan to get full insights.
+
+BUILD FAILED in 33s
