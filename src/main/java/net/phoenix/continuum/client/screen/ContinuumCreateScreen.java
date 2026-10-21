@@ -13,7 +13,6 @@ import net.phoenix.continuum.data.ContinuumData;
 import net.phoenix.continuum.data.ContinuumSystem;
 import net.phoenix.continuum.network.C2SCreatePacket;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,34 +30,24 @@ import java.util.Random;
 public final class ContinuumCreateScreen extends Screen {
 
     private static final String[] KINDS = { "Planet", "Gas giant", "Moon", "Black hole" };
-    private static final String[] STAR_KINDS = { "star", "red_giant", "brown_dwarf", "wolf_rayet", "black_hole",
-            "quasar" };
 
     private final Screen parent;
-    private final boolean system;
     private final List<ContinuumSystem> systems = new ArrayList<>();
     private int systemIndex;
     private int kindIndex;
     private int templateIndex;
     private int parentIndex;
-    private int starKindIndex;
 
     private EditBox name;
-    private EditBox color;
-    private EditBox posX;
-    private EditBox posY;
-    private EditBox posZ;
     private Button systemButton;
     private Button kindButton;
     private Button templateButton;
     private Button parentButton;
-    private Button starKindButton;
     private String error = "";
 
-    public ContinuumCreateScreen(Screen parent, boolean system, @Nullable ResourceLocation startSystem) {
-        super(Component.literal(system ? "New system" : "New body"));
+    public ContinuumCreateScreen(Screen parent, @Nullable ResourceLocation startSystem) {
+        super(Component.literal("New body"));
         this.parent = parent;
-        this.system = system;
         systems.addAll(ContinuumData.systems());
         systems.sort(Comparator.comparing(ContinuumSystem::name));
         for (int i = 0; i < systems.size(); i++) {
@@ -132,46 +121,28 @@ public final class ContinuumCreateScreen extends Screen {
         setInitialFocus(name);
         y += 38;
 
-        if (system) {
-            color = new EditBox(font, x, y + 12, 80, 16, Component.literal("Star colour"));
-            color.setValue("#ffe9b0");
-            color.setMaxLength(7);
-            addRenderableWidget(color);
-            starKindButton = addRenderableWidget(Button.builder(Component.literal(""), b -> {
-                starKindIndex = (starKindIndex + 1) % STAR_KINDS.length;
-                refreshLabels();
-            }).bounds(x + 90, y + 12, w - 90, 16).build());
-            y += 38;
-
-            double[] at = freeSpot();
-            posX = box(x, y + 12, 80, String.format(Locale.ROOT, "%.1f", at[0]));
-            posY = box(x + 90, y + 12, 80, String.format(Locale.ROOT, "%.1f", at[1]));
-            posZ = box(x + 180, y + 12, 80, String.format(Locale.ROOT, "%.1f", at[2]));
-            y += 44;
-        } else {
-            systemButton = addRenderableWidget(Button.builder(Component.literal(""), b -> {
-                systemIndex++;
-                parentIndex = 0;
-                refreshLabels();
-            }).bounds(x, y + 12, w, 16).build());
-            y += 38;
-            kindButton = addRenderableWidget(Button.builder(Component.literal(""), b -> {
-                kindIndex = (kindIndex + 1) % KINDS.length;
-                templateIndex = 0;
-                refreshLabels();
-            }).bounds(x, y + 12, w, 16).build());
-            y += 38;
-            parentButton = addRenderableWidget(Button.builder(Component.literal(""), b -> {
-                parentIndex++;
-                refreshLabels();
-            }).bounds(x, y + 12, w, 16).build());
-            y += 38;
-            templateButton = addRenderableWidget(Button.builder(Component.literal(""), b -> {
-                templateIndex++;
-                refreshLabels();
-            }).bounds(x, y + 12, w, 16).build());
-            y += 44;
-        }
+        systemButton = addRenderableWidget(Button.builder(Component.literal(""), b -> {
+            systemIndex++;
+            parentIndex = 0;
+            refreshLabels();
+        }).bounds(x, y + 12, w, 16).build());
+        y += 38;
+        kindButton = addRenderableWidget(Button.builder(Component.literal(""), b -> {
+            kindIndex = (kindIndex + 1) % KINDS.length;
+            templateIndex = 0;
+            refreshLabels();
+        }).bounds(x, y + 12, w, 16).build());
+        y += 38;
+        parentButton = addRenderableWidget(Button.builder(Component.literal(""), b -> {
+            parentIndex++;
+            refreshLabels();
+        }).bounds(x, y + 12, w, 16).build());
+        y += 38;
+        templateButton = addRenderableWidget(Button.builder(Component.literal(""), b -> {
+            templateIndex++;
+            refreshLabels();
+        }).bounds(x, y + 12, w, 16).build());
+        y += 44;
 
         addRenderableWidget(Button.builder(Component.literal("Create"), b -> submit())
                 .bounds(x, y + 6, w / 2 - 3, 18).build());
@@ -180,19 +151,7 @@ public final class ContinuumCreateScreen extends Screen {
         refreshLabels();
     }
 
-    private EditBox box(int x, int y, int w, String value) {
-        EditBox box = new EditBox(font, x, y, w, 16, Component.empty());
-        box.setValue(value);
-        box.setMaxLength(10);
-        addRenderableWidget(box);
-        return box;
-    }
-
     private void refreshLabels() {
-        if (system) {
-            starKindButton.setMessage(Component.literal("Star kind: " + STAR_KINDS[starKindIndex]));
-            return;
-        }
         ContinuumSystem sys = currentSystem();
         systemButton.setMessage(Component.literal("System: " + (sys == null ? "none" : sys.name())));
         kindButton.setMessage(Component.literal("Kind: " + KINDS[kindIndex]));
@@ -206,7 +165,7 @@ public final class ContinuumCreateScreen extends Screen {
     }
 
     /** The position in the galaxy furthest from every existing system, close to the middle. */
-    private static double[] freeSpot() {
+    static double[] freeSpot() {
         double bestX = 0;
         double bestZ = 0;
         double bestScore = -1;
@@ -231,11 +190,10 @@ public final class ContinuumCreateScreen extends Screen {
 
     private ResourceLocation freshId(String display) {
         String slug = display.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "_").replaceAll("^_+|_+$", "");
-        if (slug.isEmpty()) slug = system ? "new_system" : "new_body";
+        if (slug.isEmpty()) slug = "new_body";
         String candidate = slug;
         int n = 2;
-        while ((system ? ContinuumData.system(new ResourceLocation("phoenix_continuum", candidate)) :
-                ContinuumData.body(new ResourceLocation("phoenix_continuum", candidate))) != null) {
+        while (ContinuumData.body(new ResourceLocation("phoenix_continuum", candidate)) != null) {
             candidate = slug + "_" + n++;
         }
         return new ResourceLocation("phoenix_continuum", candidate);
@@ -251,74 +209,55 @@ public final class ContinuumCreateScreen extends Screen {
         JsonObject def = new JsonObject();
         def.addProperty("format", 1);
 
-        if (system) {
-            def.addProperty("name", display);
-            def.addProperty("description", "Created in game.");
-            JsonArray galaxy = new JsonArray();
-            try {
-                galaxy.add(Double.parseDouble(posX.getValue()));
-                galaxy.add(Double.parseDouble(posY.getValue()));
-                galaxy.add(Double.parseDouble(posZ.getValue()));
-            } catch (NumberFormatException e) {
-                error = "The position must be numbers.";
-                return;
+        ContinuumSystem sys = currentSystem();
+        if (sys == null) {
+            error = "There is no system to put it in.";
+            return;
+        }
+        ContinuumBody template = template();
+        ContinuumBody parentBody = isMoon() ? orbited() : null;
+        if (isMoon() && parentBody == null) {
+            error = "A moon needs a planet to orbit in that system.";
+            return;
+        }
+        if (template != null) def.addProperty("inherits", template.id().toString());
+        def.addProperty("system", sys.id().toString());
+        def.addProperty("name", display);
+        def.addProperty("description", "Created in game.");
+        def.addProperty("type", isHole() ? "black_hole" : isMoon() ? "moon" : "planet");
+        def.addProperty("initial_stage", "detected");
+        if (parentBody != null) def.addProperty("parent", parentBody.id().toString());
+
+        Random random = new Random();
+        JsonObject orbit = new JsonObject();
+        if (isHole()) {
+            orbit.addProperty("radius_au", 0.0);
+            orbit.addProperty("period_days", 1.0);
+        } else if (isMoon()) {
+            double radius = 0.006;
+            for (ContinuumBody moon : ContinuumData.moonsOf(parentBody.id())) {
+                radius = Math.max(radius, moon.orbitAu() + 0.004);
             }
-            def.add("galaxy", galaxy);
-            def.addProperty("star_color", color.getValue().startsWith("#") ? color.getValue() : "#" + color.getValue());
-            def.addProperty("star_radius", 1.0);
-            def.addProperty("star_kind", STAR_KINDS[starKindIndex]);
-            def.addProperty("initial_stage", "detected");
+            orbit.addProperty("radius_au", Math.round(radius * 1000) / 1000.0);
+            orbit.addProperty("period_days", Math.round(8 + radius * 900));
         } else {
-            ContinuumSystem sys = currentSystem();
-            if (sys == null) {
-                error = "There is no system to put it in.";
-                return;
+            double radius = 0.8;
+            for (ContinuumBody body : ContinuumData.bodiesOf(sys.id())) {
+                if (body.type() == ContinuumBody.Type.PLANET) radius = Math.max(radius, body.orbitAu() + 0.9);
             }
-            ContinuumBody template = template();
-            ContinuumBody parentBody = isMoon() ? orbited() : null;
-            if (isMoon() && parentBody == null) {
-                error = "A moon needs a planet to orbit in that system.";
-                return;
-            }
-            if (template != null) def.addProperty("inherits", template.id().toString());
-            def.addProperty("system", sys.id().toString());
-            def.addProperty("name", display);
-            def.addProperty("description", "Created in game.");
-            def.addProperty("type", isHole() ? "black_hole" : isMoon() ? "moon" : "planet");
-            def.addProperty("initial_stage", "detected");
-            if (parentBody != null) def.addProperty("parent", parentBody.id().toString());
+            orbit.addProperty("radius_au", Math.round(radius * 100) / 100.0);
+            orbit.addProperty("period_days", Math.round(365 * Math.pow(radius, 1.5)));
+        }
+        orbit.addProperty("phase", Math.round(random.nextDouble() * 100) / 100.0);
+        def.add("orbit", orbit);
 
-            Random random = new Random();
-            JsonObject orbit = new JsonObject();
-            if (isHole()) {
-                orbit.addProperty("radius_au", 0.0);
-                orbit.addProperty("period_days", 1.0);
-            } else if (isMoon()) {
-                double radius = 0.006;
-                for (ContinuumBody moon : ContinuumData.moonsOf(parentBody.id())) {
-                    radius = Math.max(radius, moon.orbitAu() + 0.004);
-                }
-                orbit.addProperty("radius_au", Math.round(radius * 1000) / 1000.0);
-                orbit.addProperty("period_days", Math.round(8 + radius * 900));
-            } else {
-                double radius = 0.8;
-                for (ContinuumBody body : ContinuumData.bodiesOf(sys.id())) {
-                    if (body.type() == ContinuumBody.Type.PLANET) radius = Math.max(radius, body.orbitAu() + 0.9);
-                }
-                orbit.addProperty("radius_au", Math.round(radius * 100) / 100.0);
-                orbit.addProperty("period_days", Math.round(365 * Math.pow(radius, 1.5)));
-            }
-            orbit.addProperty("phase", Math.round(random.nextDouble() * 100) / 100.0);
-            def.add("orbit", orbit);
-
-            if (!isHole()) {
-                JsonObject surface = new JsonObject();
-                surface.addProperty("seed", random.nextInt(9000) + 1);
-                def.add("surface", surface);
-            }
+        if (!isHole()) {
+            JsonObject surface = new JsonObject();
+            surface.addProperty("seed", random.nextInt(9000) + 1);
+            def.add("surface", surface);
         }
 
-        net.phoenix.continuum.network.ContinuumNetwork.sendToServer(new C2SCreatePacket(system, id, def.toString()));
+        net.phoenix.continuum.network.ContinuumNetwork.sendToServer(new C2SCreatePacket(false, id, def.toString()));
         minecraft.setScreen(parent);
     }
 
@@ -335,13 +274,8 @@ public final class ContinuumCreateScreen extends Screen {
         int x = (width - w) / 2;
         g.drawCenteredString(font, title, width / 2, 16, 0xFFFFFFFF);
         g.drawString(font, "Name", x, 40, 0xFFAEBBCF, false);
-        if (system) {
-            g.drawString(font, "Star colour / kind", x, 78, 0xFFAEBBCF, false);
-            g.drawString(font, "Position (galaxy x, y, z)", x, 116, 0xFFAEBBCF, false);
-        }
         if (!error.isEmpty()) g.drawCenteredString(font, error, width / 2, height - 24, 0xFFFF6666);
-        g.drawCenteredString(font, system ? "Placed in the free space furthest from the other systems." :
-                "A new body inherits the one you start from; edit it afterwards in the tuner.", width / 2,
+        g.drawCenteredString(font, "A new body inherits the one you start from; edit it afterwards in the tuner.", width / 2,
                 height - 40, 0xFF7F8A99);
         super.render(g, mx, my, partialTick);
     }

@@ -20,7 +20,7 @@ public final class ContinuumRecipes {
     /** PhoenixCore's Ensorcelled Weave when it is installed, titanium otherwise. */
     private static com.gregtechceu.gtceu.api.data.chemical.material.Material weave() {
         var found = com.gregtechceu.gtceu.common.data.GTMaterials.get("phoenixcore:ensorcelled_weave");
-        return found != null ? found : Titanium;
+        return found != null && !found.isNull() && found.hasFluid() ? found : Titanium;
     }
 
     public static void init(java.util.function.Consumer<FinishedRecipe> provider) {

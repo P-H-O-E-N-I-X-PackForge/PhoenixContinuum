@@ -136,3 +136,16 @@ needed, orbit, personal dimension cost, and the yield list), plus a "push visual
 visual edits to the server. Server edits are saved as small patch files in `config/phoenix_continuum/tuning/<ns>/`
 (only the changed keys), merged over the resolved definition on every load and re-synced to everyone at once. Deleting a
 patch, or "Reset server edits", puts the body back; the original definition files are never modified.
+
+## Status update (system screen, creator, GregTech versions)
+
+- **Tuner:** the body preview is a live 3D planet (drag to turn, scroll to zoom), drawn with the map's renderer.
+- **System screen** (`ContinuumSystemScreen`, from the tuner): tune one system at a time with a 3D view of its star, or start
+  a new one. It edits a working copy; Apply sends each changed top-level key as a server patch
+  (`config/phoenix_continuum/tuning_systems/<ns>/<name>.json`), Create writes a new system file into the pack folder.
+- **New body** keeps its own small screen; it inherits the template you pick.
+- **1.20.1 branch:** compiled against GregTech 7.5.3. The GregTech 8 classes live in `src/gtm8/java` (same jar), and
+  `GTCEuCompat` picks the matching `GtmBootstrap` at startup. Dev runs: `runServer` (7.5.3), `runServerGtm8`.
+- **No PhoenixCore dependency on 1.20.1.** `ContinuumHost` holds the teams, research and discipline-travel hooks; a companion
+  installs its own. Ambience sounds are looked up by id (`phoenixcore:ambient/...`) and are silent when missing. Launch
+  complexes appear on the Solaris map when Solaris is installed (`TeamSiteData` lives in Solaris).

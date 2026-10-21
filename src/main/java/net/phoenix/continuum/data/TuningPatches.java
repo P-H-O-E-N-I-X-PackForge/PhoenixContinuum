@@ -30,19 +30,37 @@ public final class TuningPatches {
             "cloud_spin_deg_per_sec", "surface", "atmosphere", "rings", "style", "hole_tilt", "sky_hole_inclination",
             "sky_hole_lean", "lore", "visibility");
 
+    /** The top-level keys the tuner may change on a system. */
+    public static final Set<String> EDITABLE_SYSTEM = Set.of("name", "description", "galaxy", "star_color",
+            "star_radius", "star_kind", "initial_stage", "gate", "hole", "visibility");
+
     private TuningPatches() {}
 
     public static Path root() {
         return FMLPaths.CONFIGDIR.get().resolve("phoenix_continuum").resolve("tuning");
     }
 
-    private static Path file(ResourceLocation id) {
-        return root().resolve(id.getNamespace()).resolve(id.getPath() + ".json");
+    /** Where system edits live, next to the body ones. */
+    public static Path systemRoot() {
+        return FMLPaths.CONFIGDIR.get().resolve("phoenix_continuum").resolve("tuning_systems");
+    }
+
+    private static Path file(ResourceLocation id, boolean system) {
+        return (system ? systemRoot() : root()).resolve(id.getNamespace()).resolve(id.getPath() + ".json");
     }
 
     /** Merges every patch file over the matching resolved body. */
     static void applyAll(Map<ResourceLocation, JsonObject> resolvedBodies, ContinuumReport report) {
-        Path root = root();
+        applyAll(root(), resolvedBodies, "body", report);
+    }
+
+    /** Merges every system patch file over the matching resolved system. */
+    static void applySystems(Map<ResourceLocation, JsonObject> resolvedSystems, ContinuumReport report) {
+        applyAll(systemRoot(), resolvedSystems, "system", report);
+    }
+
+    private static void applyAll(Path root, Map<ResourceLocation, JsonObject> resolvedBodies, String what,
+                                 ContinuumReport report) {
         if (!Files.isDirectory(root)) return;
         try (Stream<Path> walk = Files.walk(root)) {
             walk.filter(path -> path.toString().endsWith(".json")).forEach(path -> {
@@ -55,7 +73,7 @@ public final class TuningPatches {
                 if (id == null) return;
                 JsonObject target = resolvedBodies.get(id);
                 if (target == null) {
-                    report.warn("tuning " + id, "has a patch but no such body exists (ignored)");
+                    report.warn("tuning " + id, "has a patch but no such " + what + " exists (ignored)");
                     return;
                 }
                 try (Reader reader = Files.newBufferedReader(path)) {
@@ -70,8 +88,8 @@ public final class TuningPatches {
         }
     }
 
-    private static JsonObject read(ResourceLocation id) {
-        Path file = file(id);
+    private static JsonObject read(ResourceLocation id, boolean system) {
+        Path file = file(id, system);
         if (!Files.exists(file)) return new JsonObject();
         try (Reader reader = Files.newBufferedReader(file)) {
             JsonElement element = JsonParser.parseReader(reader);
@@ -81,8 +99,8 @@ public final class TuningPatches {
         }
     }
 
-    private static void write(ResourceLocation id, JsonObject patch) throws IOException {
-        Path file = file(id);
+    private static void write(ResourceLocation id, JsonObject patch, boolean system) throws IOException {
+        Path file = file(id, system);
         if (patch.size() == 0) {
             Files.deleteIfExists(file);
             return;
@@ -98,10 +116,16 @@ public final class TuningPatches {
      * @return null on success, otherwise what was wrong
      */
     public static String set(ResourceLocation id, String path, JsonElement value) {
-        String[] parts = path.split("[.]");
-        if (parts.length == 0 || !EDITABLE.contains(parts[0])) return "\"" + path + "\" cannot be edited here";
+        return set(id, path, value, false);
+    }
 
-        JsonObject patch = read(id);
+    public static String set(ResourceLocation id, String path, JsonElement value, boolean system) {
+        String[] parts = path.split("[.]");
+        if (parts.length == 0 || !(system ? EDITABLE_SYSTEM : EDITABLE).contains(parts[0])) {
+            return "\"" + path + "\" cannot be edited here";
+        }
+
+        JsonObject patch = read(id, system);
         JsonObject cursor = patch;
         for (int i = 0; i < parts.length - 1; i++) {
             JsonElement next = cursor.get(parts[i]);
@@ -115,7 +139,7 @@ public final class TuningPatches {
         else cursor.add(parts[parts.length - 1], value);
 
         try {
-            write(id, patch);
+            write(id, patch, system);
         } catch (IOException e) {
             return "could not write the patch: " + e.getMessage();
         }
@@ -124,8 +148,12 @@ public final class TuningPatches {
 
     /** Removes every server-side edit of a body. */
     public static String reset(ResourceLocation id) {
+        return reset(id, false);
+    }
+
+    public static String reset(ResourceLocation id, boolean system) {
         try {
-            write(id, new JsonObject());
+            write(id, new JsonObject(), system);
         } catch (IOException e) {
             return "could not remove the patch: " + e.getMessage();
         }

@@ -43,6 +43,7 @@ repositories {
         }
     }
     maven { url = 'https://maven.terraformersmc.com/' }
+    maven { url = 'https://maven.theillusivec4.top/' }
     maven {
         url = 'https://cursemaven.com/'
         content { includeGroup 'curse.maven' }
@@ -110,6 +111,7 @@ dependencies {
     // Compile against GregTech 7.x; the GregTech 8 classes compile in the gtm8 source set.
     modCompileOnly("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtceu_version}:slim") { transitive = false }
     modGtm8CompileOnly("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtceu8_version}:slim") { transitive = false }
+    modGtm8CompileOnly("brachy.modularui:modularui-mc${minecraft_version}:${mui_version}") { transitive = false }
     // Which GregTech the dev client or server runs: 7.x by default, the GT 8 snapshot with -Pgtm=8, or any exact
     // version with -Pgtm=<version> (for example -Pgtm=8.0.0).
     modRuntimeOnly("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${project.findProperty('gtm') == '8' ? gtceu8_version : (project.findProperty('gtm') ?: gtceu_version)}:slim") { transitive = false }
