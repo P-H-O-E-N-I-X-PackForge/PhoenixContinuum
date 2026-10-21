@@ -96,7 +96,7 @@ public class ContinuumPdimScreen extends Screen {
                     MapUi.TEXT);
             ty += 11;
             ty = wrapped(g,
-                    "Gravity is fixed when a dimension is made. /pdim delete forgets it so you can make a new one.",
+                    "Change it any time with /pdim gravity <x>; /pdim day speed|lock|unlock sets the sky clock. /pdim delete forgets it.",
                     x + 10, ty, W - 20, MapUi.DIM);
             costLine(g, x + 10, y + H - 62, charged, cost, have, canPay);
             button(g, x + 10, y + H - 48, W - 20, "Enter", "enter", canPay, false, mx, my);

@@ -197,8 +197,6 @@ dependencies {
 
     // Phoenix suite. PhoenixCore (Conflux research, teams, sounds) is a hard dependency; the wiki library comes with it.
     implementation "net.phoenix.core:PhoenixCore:${phoenix_core_version}"
-    // Optional: outposts draw upkeep from the Tesla network when this mod is installed
-    compileOnly "net.phoenix_tesla_network.tesla:phoenix_tesla_network:${phoenix_tesla_version}"
     implementation "net.phoenixvine.wiki:neoforge:${phoenix_wiki_version}"
 
     compileOnly "dev.emi:emi-neoforge:${emi_version}+${minecraft_version}"

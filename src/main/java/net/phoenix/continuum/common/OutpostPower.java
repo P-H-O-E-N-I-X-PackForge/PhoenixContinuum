@@ -2,12 +2,11 @@ package net.phoenix.continuum.common;
 
 import net.minecraft.server.MinecraftServer;
 import net.phoenix.continuum.config.ContinuumConfigs;
-import net.neoforged.fml.ModList;
-import net.phoenix_tesla_network.tesla.saveddata.TeslaTeamEnergyData;
+import net.phoenix.continuum.machine.LaunchPadMachine;
 
-import java.math.BigInteger;
 import java.util.UUID;
 
+/** Outpost upkeep is paid out of the power stored in the team's formed Launch Complexes. */
 public final class OutpostPower {
 
     private OutpostPower() {}
@@ -22,33 +21,38 @@ public final class OutpostPower {
         return Math.round(ContinuumConfigs.INSTANCE.outpostUpkeepEUPerProbe) * Math.max(0, probes);
     }
 
-    /** The Tesla network is an optional dependency: without it the upkeep cannot be charged, so outposts run free. */
-    private static boolean teslaPresent() {
-        return ModList.get().isLoaded("phoenix_tesla_network");
+    private static long stored(UUID team) {
+        long total = 0;
+        for (LaunchPadMachine complex : LaunchPadMachine.complexesOf(team)) total += complex.storedEnergy();
+        return total;
+    }
+
+    private static void drain(UUID team, long amount) {
+        long remaining = amount;
+        for (LaunchPadMachine complex : LaunchPadMachine.complexesOf(team)) {
+            if (remaining <= 0) break;
+            long take = Math.min(remaining, complex.storedEnergy());
+            if (take > 0 && complex.drainEnergy(take)) remaining -= take;
+        }
     }
 
     public static Outpost.CyclePayer payerFor(MinecraftServer server, UUID team) {
-        if (!enabled() || !teslaPresent()) return Outpost.FREE;
+        if (!enabled()) return Outpost.FREE;
 
         return (cycles, probes) -> {
             long perCycle = upkeepPerCycle(probes);
             if (perCycle <= 0 || cycles <= 0) return cycles;
 
-            var pool = TeslaTeamEnergyData.get(server.overworld()).getNetworksView().get(team);
-            if (pool == null) return 0;
-
-            BigInteger affordable = pool.stored.divide(BigInteger.valueOf(perCycle));
-            int paid = affordable.min(BigInteger.valueOf(cycles)).intValue();
-            if (paid > 0) pool.drain(BigInteger.valueOf(perCycle).multiply(BigInteger.valueOf(paid)));
+            long affordable = stored(team) / perCycle;
+            int paid = (int) Math.min(affordable, cycles);
+            if (paid > 0) drain(team, perCycle * paid);
             return paid;
         };
     }
 
     public static boolean canAffordCycle(MinecraftServer server, UUID team, int probes) {
         long perCycle = upkeepPerCycle(probes);
-        if (perCycle <= 0 || !teslaPresent()) return true;
-
-        var pool = TeslaTeamEnergyData.get(server.overworld()).getNetworksView().get(team);
-        return pool != null && pool.stored.compareTo(BigInteger.valueOf(perCycle)) >= 0;
+        if (perCycle <= 0) return true;
+        return stored(team) >= perCycle;
     }
 }

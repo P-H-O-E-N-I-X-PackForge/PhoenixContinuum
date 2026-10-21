@@ -116,16 +116,22 @@ public final class PdimActions {
         data.entries(player.getUUID()).forEach((body, entry) -> mine.put(body, entry.gravity()));
 
         float gravity = 1.0f;
+        float daySpeed = 1.0f;
+        float lockedTime = -1.0f;
         ResourceLocation here = PdimDimensions.bodyOf(player.level().dimension());
         if (here != null) {
             PdimData.Entry entry = data.entry(player.getUUID(), here);
-            if (entry != null) gravity = entry.gravity();
+            if (entry != null) {
+                gravity = entry.gravity();
+                daySpeed = entry.daySpeed();
+                lockedTime = entry.lockedTime();
+            }
         }
         Map<ResourceLocation, PdimCosts.Cost> costs = new HashMap<>();
         for (ContinuumBody body : ContinuumData.allBodies()) costs.put(body.id(), PdimCosts.costFor(body));
         boolean everyVisit = PdimCosts.charges(true);
 
-        PacketDistributor.sendToPlayer(player, new S2CPdimStatePacket(here != null, gravity, mine, costs, everyVisit));
+        PacketDistributor.sendToPlayer(player, new S2CPdimStatePacket(here != null, gravity, daySpeed, lockedTime, mine, costs, everyVisit));
     }
 
     public static boolean isIn(Level level) {

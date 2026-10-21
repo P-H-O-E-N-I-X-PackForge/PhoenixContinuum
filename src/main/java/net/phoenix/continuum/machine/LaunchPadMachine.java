@@ -22,8 +22,41 @@ import java.util.function.Predicate;
 
 public class LaunchPadMachine extends MultiblockControllerMachine {
 
+    private static final java.util.Map<java.util.UUID, java.util.Set<LaunchPadMachine>> TEAM_COMPLEXES = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private java.util.UUID registeredTeam;
+
     public LaunchPadMachine(BlockEntityCreationInfo info) {
         super(info);
+    }
+
+    /** The formed launch complexes whose power outposts draw their upkeep from. */
+    public static java.util.List<LaunchPadMachine> complexesOf(java.util.UUID team) {
+        var set = TEAM_COMPLEXES.get(team);
+        if (set == null) return java.util.List.of();
+        return set.stream().filter(m -> m.isFormed()).toList();
+    }
+
+    private void unregisterComplex() {
+        if (registeredTeam == null) return;
+        var set = TEAM_COMPLEXES.get(registeredTeam);
+        if (set != null) {
+            set.remove(this);
+            if (set.isEmpty()) TEAM_COMPLEXES.remove(registeredTeam);
+        }
+        registeredTeam = null;
+    }
+
+    @Override
+    public void invalidateStructure(@org.jetbrains.annotations.NotNull String substructureName) {
+        unregisterComplex();
+        super.invalidateStructure(substructureName);
+    }
+
+    @Override
+    public void onUnload() {
+        unregisterComplex();
+        super.onUnload();
     }
 
     private List<NotifiableItemStackHandler> inputInventories() {
@@ -153,7 +186,11 @@ public class LaunchPadMachine extends MultiblockControllerMachine {
         if (owner == null) return;
         var server = getLevel().getServer();
         var teams = net.phoenix.continuum.common.ContinuumTeamData.get(server);
-        teams.markEngaged(net.phoenix.core.utils.TeamUtils.getTeamIdOrPlayerFallback(owner));
+        java.util.UUID team = net.phoenix.core.utils.TeamUtils.getTeamIdOrPlayerFallback(owner);
+        teams.markEngaged(team);
+        unregisterComplex();
+        registeredTeam = team;
+        TEAM_COMPLEXES.computeIfAbsent(team, k -> java.util.concurrent.ConcurrentHashMap.newKeySet()).add(this);
         ServerPlayer builder = server.getPlayerList().getPlayer(owner);
         if (builder != null) {
             net.phoenix.continuum.common.ContinuumServerEvents.engageAndSend(builder);

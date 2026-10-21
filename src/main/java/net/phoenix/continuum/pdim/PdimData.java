@@ -17,7 +17,16 @@ public class PdimData extends SavedData {
 
     private static final String ID = "continuum_pdim";
 
-    public record Entry(float gravity, int plot) {}
+    /**
+     * @param daySpeed   how fast the sky clock runs in this dimension (1 = normal)
+     * @param lockedTime a fixed time of day in ticks (0..24000), or a negative number for none
+     */
+    public record Entry(float gravity, int plot, float daySpeed, float lockedTime) {
+
+        public Entry(float gravity, int plot) {
+            this(gravity, plot, 1.0f, -1.0f);
+        }
+    }
 
     public record Return(ResourceLocation dimension, double x, double y, double z, float yaw, float pitch) {}
 
@@ -48,6 +57,15 @@ public class PdimData extends SavedData {
         entries.computeIfAbsent(player, p -> new HashMap<>()).put(body, entry);
         setDirty();
         return entry;
+    }
+
+    public @Nullable Entry update(UUID player, ResourceLocation body, java.util.function.UnaryOperator<Entry> change) {
+        Entry existing = entry(player, body);
+        if (existing == null) return null;
+        Entry changed = change.apply(existing);
+        entries.get(player).put(body, changed);
+        setDirty();
+        return changed;
     }
 
     public boolean delete(UUID player, ResourceLocation body) {
@@ -82,6 +100,8 @@ public class PdimData extends SavedData {
                 e.putString("Body", entry.getKey().toString());
                 e.putFloat("Gravity", entry.getValue().gravity());
                 e.putInt("Plot", entry.getValue().plot());
+                e.putFloat("DaySpeed", entry.getValue().daySpeed());
+                e.putFloat("LockedTime", entry.getValue().lockedTime());
                 list.add(e);
             }
             playerTag.put("Entries", list);
@@ -118,7 +138,9 @@ public class PdimData extends SavedData {
             for (Tag e : playerTag.getList("Entries", Tag.TAG_COMPOUND)) {
                 CompoundTag entry = (CompoundTag) e;
                 map.put(ResourceLocation.parse(entry.getString("Body")),
-                        new Entry(entry.getFloat("Gravity"), entry.getInt("Plot")));
+                        new Entry(entry.getFloat("Gravity"), entry.getInt("Plot"),
+                                entry.contains("DaySpeed") ? entry.getFloat("DaySpeed") : 1.0f,
+                                entry.contains("LockedTime") ? entry.getFloat("LockedTime") : -1.0f));
             }
             data.entries.put(playerTag.getUUID("Player"), map);
         }

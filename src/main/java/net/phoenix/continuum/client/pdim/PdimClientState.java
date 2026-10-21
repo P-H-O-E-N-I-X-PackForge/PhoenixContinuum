@@ -13,15 +13,19 @@ public final class PdimClientState {
 
     private static boolean inside;
     private static float gravity = 1.0f;
+    private static float daySpeed = 1.0f;
+    private static float lockedTime = -1.0f;
     private static Map<ResourceLocation, Float> mine = Map.of();
     private static Map<ResourceLocation, net.phoenix.continuum.pdim.PdimCosts.Cost> costs = Map.of();
     private static boolean everyVisit = true;
 
-    public static void accept(boolean insideNow, float gravityNow, Map<ResourceLocation, Float> dimensions,
+    public static void accept(boolean insideNow, float gravityNow, float daySpeedNow, float lockedTimeNow, Map<ResourceLocation, Float> dimensions,
                               Map<ResourceLocation, net.phoenix.continuum.pdim.PdimCosts.Cost> costMap,
                               boolean chargesEveryVisit) {
         inside = insideNow;
         gravity = gravityNow;
+        daySpeed = daySpeedNow;
+        lockedTime = lockedTimeNow;
         mine = new HashMap<>(dimensions);
         costs = new HashMap<>(costMap);
         everyVisit = chargesEveryVisit;
@@ -37,6 +41,15 @@ public final class PdimClientState {
 
     public static boolean inside() {
         return inside;
+    }
+
+    public static float daySpeed() {
+        return daySpeed;
+    }
+
+    /** A fixed time of day in ticks, or negative when the sky clock is running. */
+    public static float lockedTime() {
+        return lockedTime;
     }
 
     public static float gravity() {

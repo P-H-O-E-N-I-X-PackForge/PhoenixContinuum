@@ -197,7 +197,9 @@ public final class ContinuumData {
                 GsonHelper.getAsString(lore, "surveyed", ""),
                 json.has("discipline") && !json.get("discipline").isJsonNull() ?
                         GsonHelper.getAsString(json, "discipline") : null,
-                parsePdimCost(json), parseTransient(json));
+                parsePdimCost(json), parseTransient(json),
+                json.has("hole_tilt") ? Math.max(0.0f, Math.min(1.0f, GsonHelper.getAsFloat(json, "hole_tilt"))) :
+                        null);
     }
 
     private static @Nullable ContinuumBody.Transient parseTransient(JsonObject json) {

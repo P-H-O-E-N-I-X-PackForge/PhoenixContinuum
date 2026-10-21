@@ -19,8 +19,8 @@ public final class PdimDimensions {
     public static final int PLOT_SPACING = 1024;
     public static final int PLATFORM_Y = 64;
 
-    public static final float MIN_GRAVITY = 0.1f;
-    public static final float MAX_GRAVITY = 3.0f;
+    public static final float MIN_GRAVITY = 0.02f;
+    public static final float MAX_GRAVITY = 6.0f;
 
     public static ResourceKey<Level> keyFor(ResourceLocation body) {
         return ResourceKey.create(Registries.DIMENSION, PhoenixContinuum.id(PREFIX + body.getPath()));
@@ -38,6 +38,13 @@ public final class PdimDimensions {
 
     public static BlockPos plotOrigin(int plot) {
         return new BlockPos((plot % 32) * PLOT_SPACING, PLATFORM_Y, (plot / 32) * PLOT_SPACING);
+    }
+
+    public static final float MIN_DAY_SPEED = 0.05f;
+    public static final float MAX_DAY_SPEED = 20.0f;
+
+    public static float clampDaySpeed(float speed) {
+        return Math.max(MIN_DAY_SPEED, Math.min(MAX_DAY_SPEED, speed));
     }
 
     public static float clampGravity(float gravity) {

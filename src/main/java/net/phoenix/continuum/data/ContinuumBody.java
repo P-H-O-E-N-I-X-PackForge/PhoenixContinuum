@@ -29,7 +29,8 @@ public record ContinuumBody(
                             String loreSurveyed,
                             @Nullable String discipline,
                             @Nullable PdimCost pdimCost,
-                            @Nullable Transient transientInfo) {
+                            @Nullable Transient transientInfo,
+                            @Nullable Float holeTilt) {
 
     public record Transient(int durationMinutes, int cooldownMinutes, float chance, float innerAu, float outerAu) {}
 

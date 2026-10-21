@@ -26,15 +26,20 @@ public class S2CPdimStatePacket implements CustomPacketPayload {
 
     private final boolean inside;
     private final float gravity;
+    private final float daySpeed;
+    private final float lockedTime;
     private final Map<ResourceLocation, Float> mine;
     private final Map<ResourceLocation, net.phoenix.continuum.pdim.PdimCosts.Cost> costs;
     private final boolean everyVisit;
 
-    public S2CPdimStatePacket(boolean inside, float gravity, Map<ResourceLocation, Float> mine,
+    public S2CPdimStatePacket(boolean inside, float gravity, float daySpeed, float lockedTime,
+                              Map<ResourceLocation, Float> mine,
                               Map<ResourceLocation, net.phoenix.continuum.pdim.PdimCosts.Cost> costs,
                               boolean everyVisit) {
         this.inside = inside;
         this.gravity = gravity;
+        this.daySpeed = daySpeed;
+        this.lockedTime = lockedTime;
         this.mine = mine;
         this.costs = costs;
         this.everyVisit = everyVisit;
@@ -43,6 +48,8 @@ public class S2CPdimStatePacket implements CustomPacketPayload {
     public S2CPdimStatePacket(FriendlyByteBuf buf) {
         this.inside = buf.readBoolean();
         this.gravity = buf.readFloat();
+        this.daySpeed = buf.readFloat();
+        this.lockedTime = buf.readFloat();
         int count = buf.readVarInt();
         this.mine = new HashMap<>();
         for (int i = 0; i < count; i++) mine.put(buf.readResourceLocation(), buf.readFloat());
@@ -59,6 +66,8 @@ public class S2CPdimStatePacket implements CustomPacketPayload {
     public void encode(FriendlyByteBuf buf) {
         buf.writeBoolean(inside);
         buf.writeFloat(gravity);
+        buf.writeFloat(daySpeed);
+        buf.writeFloat(lockedTime);
         buf.writeVarInt(mine.size());
         mine.forEach((body, g) -> {
             buf.writeResourceLocation(body);
@@ -76,7 +85,7 @@ public class S2CPdimStatePacket implements CustomPacketPayload {
     public static void handle(S2CPdimStatePacket msg, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             if (FMLEnvironment.dist.isClient())
-                PdimClientState.accept(msg.inside, msg.gravity, msg.mine, msg.costs, msg.everyVisit);
+                PdimClientState.accept(msg.inside, msg.gravity, msg.daySpeed, msg.lockedTime, msg.mine, msg.costs, msg.everyVisit);
         });
     }
 }

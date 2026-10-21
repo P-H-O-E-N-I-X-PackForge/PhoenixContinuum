@@ -90,9 +90,9 @@ public class ContinuumMapScreen extends Screen {
     private static int TEXT = 0xFFB8B0D8;
     private static int DIM = 0xFF7a7498;
 
-    private final MapCamera galaxyCam = new MapCamera(15, 24, GALAXY_DISTANCE, 7, 60);
-    private final MapCamera systemCam = new MapCamera(20, 38, SYSTEM_DISTANCE, 6, 30);
-    private final MapCamera bodyCam = new MapCamera(0, 10, BODY_DISTANCE, 2.6f, 9);
+    private final MapCamera galaxyCam = new MapCamera(15, 24, GALAXY_DISTANCE, 7, 220);
+    private final MapCamera systemCam = new MapCamera(20, 38, SYSTEM_DISTANCE, 6, 120);
+    private final MapCamera bodyCam = new MapCamera(0, 10, BODY_DISTANCE, 2.6f, 36);
 
     private Level level = Level.GALAXY;
     private @Nullable ContinuumSystem system;

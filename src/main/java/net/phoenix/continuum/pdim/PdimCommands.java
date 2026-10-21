@@ -41,6 +41,27 @@ public final class PdimCommands {
                         .suggests((ctx, builder) -> SharedSuggestionProvider.suggestResource(
                                 ContinuumData.allBodies().stream().map(ContinuumBody::id), builder))
                         .executes(ctx -> enter(ctx.getSource(), ResourceLocationArgument.getId(ctx, "body"), null))))
+                .then(literal("gravity").then(argument("gravity", FloatArgumentType.floatArg(
+                        PdimDimensions.MIN_GRAVITY, PdimDimensions.MAX_GRAVITY))
+                        .executes(ctx -> adjust(ctx.getSource(), "gravity x" + String.format(Locale.ROOT, "%.2f",
+                                FloatArgumentType.getFloat(ctx, "gravity")),
+                                e -> new PdimData.Entry(PdimDimensions.clampGravity(
+                                        FloatArgumentType.getFloat(ctx, "gravity")), e.plot(), e.daySpeed(),
+                                        e.lockedTime())))))
+                .then(literal("day")
+                        .then(literal("speed").then(argument("speed", FloatArgumentType.floatArg(
+                                PdimDimensions.MIN_DAY_SPEED, PdimDimensions.MAX_DAY_SPEED))
+                                .executes(ctx -> adjust(ctx.getSource(), "day speed x" + String.format(Locale.ROOT,
+                                        "%.2f", FloatArgumentType.getFloat(ctx, "speed")),
+                                        e -> new PdimData.Entry(e.gravity(), e.plot(), PdimDimensions.clampDaySpeed(
+                                                FloatArgumentType.getFloat(ctx, "speed")), -1.0f)))))
+                        .then(literal("lock").then(argument("tick", FloatArgumentType.floatArg(0.0f, 24000.0f))
+                                .executes(ctx -> adjust(ctx.getSource(), "time locked at tick " + (int) FloatArgumentType
+                                        .getFloat(ctx, "tick"),
+                                        e -> new PdimData.Entry(e.gravity(), e.plot(), e.daySpeed(),
+                                                FloatArgumentType.getFloat(ctx, "tick"))))))
+                        .then(literal("unlock").executes(ctx -> adjust(ctx.getSource(), "time running",
+                                e -> new PdimData.Entry(e.gravity(), e.plot(), e.daySpeed(), -1.0f)))))
                 .then(literal("leave").executes(ctx -> leave(ctx.getSource())))
                 .then(literal("list").executes(ctx -> list(ctx.getSource())))
                 .then(literal("delete").then(argument("body", ResourceLocationArgument.id())
@@ -57,6 +78,24 @@ public final class PdimCommands {
             source.sendFailure(Component.literal(error));
             return 0;
         }
+        return 1;
+    }
+
+    /** Changes a setting of the personal dimension the player is standing in. */
+    private static int adjust(CommandSourceStack source, String what,
+                              java.util.function.UnaryOperator<PdimData.Entry> change) throws CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        ResourceLocation body = PdimDimensions.bodyOf(player.level().dimension());
+        if (body == null) {
+            source.sendFailure(Component.literal("Stand in your personal dimension to change it."));
+            return 0;
+        }
+        if (PdimData.get(player.server).update(player.getUUID(), body, change) == null) {
+            source.sendFailure(Component.literal("You have no personal dimension on " + body + "."));
+            return 0;
+        }
+        PdimActions.sendState(player);
+        source.sendSuccess(() -> Component.literal("Set " + what + " (sky changes are shown only to you)."), false);
         return 1;
     }
 

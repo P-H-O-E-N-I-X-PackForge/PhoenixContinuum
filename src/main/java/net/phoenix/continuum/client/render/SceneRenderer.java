@@ -74,7 +74,7 @@ public final class SceneRenderer {
     }
 
     public static Matrix4f projection(float width, float height, float fovDeg) {
-        return new Matrix4f().perspective((float) Math.toRadians(fovDeg), width / height, 0.1f, 400.0f);
+        return new Matrix4f().perspective((float) Math.toRadians(fovDeg), width / height, 0.1f, 1600.0f);
     }
 
     private static float time() {
@@ -225,8 +225,16 @@ public final class SceneRenderer {
     public static void drawHole(net.phoenix.continuum.data.ContinuumSystem system, Matrix4f view,
                                 Matrix4f projection, Vector3f worldPos, float radius, PlanetRenderer.Quality quality,
                                 boolean sky) {
+        drawHole(system, null, view, projection, worldPos, radius, quality, sky);
+    }
+
+    /** @param tiltOverride a per-body disk tilt (0 = edge-on, 1 = face-on) replacing the system's, or null */
+    public static void drawHole(net.phoenix.continuum.data.ContinuumSystem system, Float tiltOverride, Matrix4f view,
+                                Matrix4f projection, Vector3f worldPos, float radius, PlanetRenderer.Quality quality,
+                                boolean sky) {
         var style = system != null ? system.hole() :
                 net.phoenix.continuum.data.ContinuumSystem.HoleStyle.DEFAULT;
+        if (tiltOverride != null) style = style.withTilt(tiltOverride);
         if (system != null && system.isBinaryHole()) {
             drawBinaryHole(style, view, projection, worldPos, radius, quality, sky);
             return;
@@ -547,7 +555,7 @@ public final class SceneRenderer {
         var owner = net.phoenix.continuum.data.ContinuumData.system(body.system());
         switch (body.type()) {
             case BLACK_HOLE -> {
-                drawHole(owner, view, projection, worldPos, radius, quality, sky);
+                drawHole(owner, body.holeTilt(), view, projection, worldPos, radius, quality, sky);
                 return true;
             }
             case STAR -> {

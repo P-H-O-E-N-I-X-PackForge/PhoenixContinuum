@@ -60,7 +60,15 @@ public final class PdimSkyModel {
         boolean surfaceWorld = body != null && system != null && body.type() != ContinuumBody.Type.STAR &&
                 body.type() != ContinuumBody.Type.BLACK_HOLE;
 
-        float dayFrac = ((Math.floorMod(level.getDayTime(), 24000L)) + partialTick) / 24000.0f;
+        // The dimension shares the overworld's clock, so each player's chosen day speed / locked time is applied here
+        float locked = PdimClientState.lockedTime();
+        float dayFrac;
+        if (locked >= 0.0f) {
+            dayFrac = (locked % 24000.0f) / 24000.0f;
+        } else {
+            double ticks = (level.getDayTime() + (double) partialTick) * PdimClientState.daySpeed();
+            dayFrac = (float) ((ticks % 24000.0) / 24000.0);
+        }
         float lat = BASE_LATITUDE;
         if (body != null) {
             lat = clamp(BASE_LATITUDE + (float) Math.toRadians(Math.abs(body.params().axialTiltDeg())) * 0.8f,

@@ -221,7 +221,7 @@ public class ContinuumConfigs {
         @Configurable
         @Configurable.Comment({
                 "Whether outposts need power. If true, every production cycle costs upkeep drawn from the owning",
-                "team's Tesla Network; a cycle that cannot be paid for is lost, so an unpowered outpost idles.",
+                "team's Launch Complex power; a cycle that cannot be paid for is lost, so an unpowered outpost idles.",
                 "Default: true"
         })
         public boolean outpostRequiresPower = true;

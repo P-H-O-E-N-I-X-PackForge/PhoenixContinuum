@@ -22,6 +22,11 @@ public record ContinuumSystem(
 
         public static final HoleStyle DEFAULT = new HoleStyle(1.0f, 1.0f, 0.0f, 0.075f, -1, -1, 3.2f, 0.6f, 24.0f);
 
+        public HoleStyle withTilt(float newTilt) {
+            return new HoleStyle(diskSize, diskIntensity, feeding, newTilt, hotColor, coolColor, separation,
+                    massRatio, periodSeconds);
+        }
+
         public HoleStyle withDisk(float size, float intensity) {
             return new HoleStyle(size, intensity, feeding, tilt, hotColor, coolColor, separation, massRatio,
                     periodSeconds);
