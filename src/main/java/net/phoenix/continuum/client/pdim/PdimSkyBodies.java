@@ -200,6 +200,26 @@ final class PdimSkyBodies {
             double angle = Math.PI * (0.18 + 0.64 * progress);
             Vector3f direction = ecliptic(plan.e1(), plan.e2(), plan.normal(), angle, 0.22 + 0.2 * Math.sin(seed * 5.1));
             Vector3f pos = new Vector3f(direction).mul(SKY_DISTANCE);
+
+            if (comet.isRemnant()) {
+                // a huge, faint shell on the sky that swells over the whole visit: up to about 17 degrees across at the end
+                float grow = (float) Math.pow(progress, 0.55);
+                float shell = SKY_DISTANCE * (0.03f + 0.28f * grow);
+                SceneRenderer.drawRemnant(comet.params().mid(), progress, view, projection,
+                        new Vector3f(plan.e1()).mul((float) Math.cos(seed * 2.3)).add(
+                                new Vector3f(plan.e2()).mul((float) Math.abs(Math.sin(seed * 2.3)) + 0.2f))
+                                .normalize().mul(SKY_DISTANCE),
+                        shell / 0.72f * (float) Math.max(0.45, grow + 0.1), ContinuumVisuals.quality(), true);
+                continue;
+            }
+            if (comet.isRogue()) {
+                // a dark world drifting across the sky, swelling as it comes close and shrinking as it leaves
+                float size = 1.6f + 6.0f * (float) Math.sin(Math.PI * progress);
+                SceneRenderer.drawPlanet(comet.params(), view, projection, pos, size,
+                        new Vector3f(pos).add(new Vector3f(sample.sunDir()).mul(400.0f)), time * 2.0f, 0.0f,
+                        ContinuumVisuals.quality(), size >= 4.0f);
+                continue;
+            }
             float radius = 1.1f;
             Vector3f away = new Vector3f(pos).sub(new Vector3f(sample.sunDir()).mul(98.0f)).normalize();
 

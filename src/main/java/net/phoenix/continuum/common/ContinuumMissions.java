@@ -246,7 +246,7 @@ public final class ContinuumMissions {
 
         long[] passing = null;
         if (body.transientInfo() != null) {
-            if (type != Mission.Type.EXTRACT) return "Only extraction runs can catch a passing comet.";
+            if (type != Mission.Type.EXTRACT) return "Only extraction runs can catch a passing " + body.visitorKind() + ".";
             passing = ContinuumTransients.get(server).window(destinationId, System.currentTimeMillis());
             if (passing == null) return body.name() + " has passed beyond reach.";
         }

@@ -33,6 +33,10 @@ public record PlanetParams(
     public static final int STYLE_AURORA = 6;
     /** Not a planet: a star being torn apart by a black hole. Drawn by the tidal disruption effect, never as a sphere. */
     public static final int STYLE_TIDAL = 7;
+    /** A planet that is not bound to any star, passing through the system. Drawn as an ordinary (dark) planet. */
+    public static final int STYLE_ROGUE = 8;
+    /** Not a planet: the expanding shell of a supernova. Drawn by the remnant effect, never as a sphere. */
+    public static final int STYLE_REMNANT = 9;
 
     public record Ring(float inner, float outer, int color, int color2, float tiltDeg, float opacity) {}
 
@@ -54,6 +58,8 @@ public record PlanetParams(
             case "shatter" -> STYLE_SHATTER;
             case "aurora" -> STYLE_AURORA;
             case "tidal_disruption", "tidal" -> STYLE_TIDAL;
+            case "rogue", "rogue_planet" -> STYLE_ROGUE;
+            case "remnant", "supernova_remnant", "supernova" -> STYLE_REMNANT;
             default -> STYLE_NONE;
         };
     }

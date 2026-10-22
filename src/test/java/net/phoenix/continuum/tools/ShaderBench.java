@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public class ShaderBench {
 
-    static final String[] QUAD = {"wolfrayet", "pulsar", "protostar", "planetary", "megastructure", "dyson", "comet", "tidal", "blackhole",
+    static final String[] QUAD = {"wolfrayet", "pulsar", "protostar", "planetary", "megastructure", "dyson", "comet", "remnant1", "remnant2", "remnant3", "tidal", "blackhole",
             "nebula", "galaxy", "backdrop", "sky", "starfield", "glow"};
 
     public static void main(String[] args) throws Exception {
@@ -82,7 +82,7 @@ public class ShaderBench {
         System.out.printf(Locale.ROOT, "%-16s %10s %10s%n", "shader", "ms/frame", "ms per Mpx");
         for (String name : QUAD) {
             if (!name.contains(filter)) continue;
-            String base = "continuum_" + name;
+            String base = "continuum_" + name.replaceAll("[0-9]$", "");
             JsonObject json = JsonParser.parseString(Files.readString(dir.resolve(base + ".json"))).getAsJsonObject();
             int program = build(Files.readString(dir.resolve(base + ".vsh")), Files.readString(dir.resolve(base + ".fsh")));
             if (program == 0) {
@@ -555,6 +555,10 @@ public class ShaderBench {
                 f(program, "Extent", 16.0f);
                 f(program, "Core", 1.0f);
                 f(program, "Tint", 1.0f, 0.82f, 0.45f);
+            }
+            case "remnant1", "remnant2", "remnant3" -> {
+                f(program, "Tint", 1.0f, 0.6f, 0.4f);
+                f(program, "Progress", name.equals("remnant1") ? 0.12f : name.equals("remnant2") ? 0.5f : 0.88f);
             }
             case "comet" -> {
                 f(program, "Extent", 26.0f);

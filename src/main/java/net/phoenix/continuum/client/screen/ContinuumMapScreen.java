@@ -362,6 +362,10 @@ public class ContinuumMapScreen extends Screen {
                 drawTidalEvent(sys, b, view, projection);
                 continue;
             }
+            if (b.isRemnant()) {
+                drawRemnantEvent(b, view, projection);
+                continue;
+            }
 
             PlanetParams params = stage == DiscoveryStage.SURVEYED ? b.params() : b.params().ghost();
             PlanetRenderer.Quality q = b.isMoon() ? PlanetRenderer.Quality.LOW : quality();
@@ -371,7 +375,7 @@ public class ContinuumMapScreen extends Screen {
 
             // a passing comet trails its tails away from the star, more of them the closer it gets
             var passing = b.transientInfo() == null ? null : ContinuumClientState.transientWindow(b.id());
-            if (passing != null) {
+            if (passing != null && b.isComet()) {
                 float activity = 0.25f + 0.75f * transientProgress(passing);
                 SceneRenderer.drawCometTail(params.mid(), view, projection, pos, visualRadius(b),
                         new Vector3f(pos).sub(sun).normalize(), activity, 26.0f, q, false);
@@ -495,6 +499,18 @@ public class ContinuumMapScreen extends Screen {
                 (b.transientInfo().innerAu() - b.transientInfo().outerAu()) * progress);
         float angle = (float) (2.0 * Math.PI * (b.phase() + 0.55 * progress));
         return new Vector3f((float) Math.cos(angle) * radius, 0.0f, (float) Math.sin(angle) * radius);
+    }
+
+    /** A supernova remnant: a shell centred on a point of the system that swells over the visit and fades. */
+    private void drawRemnantEvent(ContinuumBody b, Matrix4f view, Matrix4f projection) {
+        var window = ContinuumClientState.transientWindow(b.id());
+        if (window == null) return;
+        float progress = transientProgress(window);
+        var info = b.transientInfo();
+        float radius = orbitWorldRadius(0.5f * (info.innerAu() + info.outerAu()));
+        float angle = (float) (2.0 * Math.PI * b.phase());
+        Vector3f center = new Vector3f((float) Math.cos(angle) * radius, 0.0f, (float) Math.sin(angle) * radius);
+        SceneRenderer.drawRemnant(b.params().mid(), progress, view, projection, center, 4.4f, quality(), false);
     }
 
     private void drawTidalEvent(ContinuumSystem sys, ContinuumBody b, Matrix4f view, Matrix4f projection) {

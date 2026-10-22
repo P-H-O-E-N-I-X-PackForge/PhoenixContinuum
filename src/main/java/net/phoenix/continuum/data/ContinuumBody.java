@@ -87,4 +87,25 @@ public record ContinuumBody(
     public boolean isMoon() {
         return parent != null;
     }
+
+    /** A passing visitor that is a comet: any transient that is not one of the special kinds below. */
+    public boolean isComet() {
+        return transientInfo != null && params.style() != PlanetParams.STYLE_TIDAL &&
+                params.style() != PlanetParams.STYLE_ROGUE && params.style() != PlanetParams.STYLE_REMNANT;
+    }
+
+    public boolean isRogue() {
+        return transientInfo != null && params.style() == PlanetParams.STYLE_ROGUE;
+    }
+
+    /** A supernova remnant: a transient drawn as an expanding shell of gas. */
+    public boolean isRemnant() {
+        return transientInfo != null && params.style() == PlanetParams.STYLE_REMNANT;
+    }
+
+    /** What a passing visitor is called in messages. */
+    public String visitorKind() {
+        return isRogue() ? "rogue planet" : isRemnant() ? "supernova remnant" :
+                params.style() == PlanetParams.STYLE_TIDAL ? "stellar collision" : "comet";
+    }
 }

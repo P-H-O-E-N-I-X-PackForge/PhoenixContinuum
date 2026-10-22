@@ -614,6 +614,17 @@ public final class SceneRenderer {
     }
 
     /**
+     * A supernova remnant: the shell of gas from an exploded star, expanding over its visit ({@code progress} runs 0..1).
+     * {@code halfSize} is the half-width of the billboard in world units; the shell grows to about 0.72 of it.
+     */
+    public static void drawRemnant(int rgb, float progress, Matrix4f view, Matrix4f projection, Vector3f worldPos,
+                                   float halfSize, PlanetRenderer.Quality quality, boolean sky) {
+        if (ContinuumShaders.REMNANT == null) return;
+        drawStarFx(ContinuumShaders.REMNANT, rgb, 1.0f, view, projection, worldPos, halfSize, quality, sky,
+                s -> s.safeGetUniform("Progress").set(progress));
+    }
+
+    /**
      * The tails of a comet at {@code worldPos}: a glowing coma, a straight blue ion tail pushed away from the star and a
      * curved, warmer dust tail. {@code awayFromStar} is the direction away from the star in world space; {@code activity}
      * (0..1) is how active the comet is, stronger the closer it is to the star. {@code extent} is the billboard half-size

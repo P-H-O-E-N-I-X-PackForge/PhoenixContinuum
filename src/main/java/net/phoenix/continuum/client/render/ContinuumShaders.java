@@ -35,6 +35,7 @@ public final class ContinuumShaders {
     public static ShaderInstance NEBULA_BAKE;
     public static ShaderInstance PLANET_BAKE;
     public static ShaderInstance COMET;
+    public static ShaderInstance REMNANT;
     public static ShaderInstance TIDAL;
 
     public static ShaderInstance STARFIELD;
@@ -55,6 +56,7 @@ public final class ContinuumShaders {
         register(event, "phoenix_continuum:continuum_galaxy", DefaultVertexFormat.POSITION, s -> GALAXY = s);
         register(event, "phoenix_continuum:continuum_megastructure", DefaultVertexFormat.POSITION,
                 s -> MEGASTRUCTURE = s);
+        register(event, "phoenix_continuum:continuum_remnant", DefaultVertexFormat.POSITION, s -> REMNANT = s);
         register(event, "phoenix_continuum:continuum_comet", DefaultVertexFormat.POSITION, s -> COMET = s);
         register(event, "phoenix_continuum:continuum_planet_bake", DefaultVertexFormat.POSITION, s -> PLANET_BAKE = s);
         register(event, "phoenix_continuum:continuum_nebula_bake", DefaultVertexFormat.POSITION, s -> NEBULA_BAKE = s);

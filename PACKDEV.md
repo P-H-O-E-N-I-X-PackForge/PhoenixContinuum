@@ -183,6 +183,12 @@ from the start. A mod that provides its own research (PhoenixCore) takes over th
 - **Dyson sphere:** `star_kind` of `dyson_sphere` (or `dyson_shell`) shuts the star inside a complete shell: dark plates with
   glowing seams, great rifts where the star shows through, a lit belt of docks in the orbital plane, and the glare ringing
   its edge. It is opaque, so it hides the star.
+- **Rogue planet:** a transient body with `"style": "rogue"` is a planet that belongs to no star, drifting through the system for
+  the body's `transient` window. It is drawn as an ordinary planet (give it a dark surface), without a comet's tails; in a
+  personal dimension it swells as it comes close and shrinks as it leaves. Extraction runs can catch it, like a comet.
+- **Supernova remnant:** a transient body with `"style": "remnant"` is drawn as the expanding shell of an exploded star (a ragged
+  red shock front, a green-teal layer behind it, a blue-white glow inside and a pulsing neutron star at the centre) that swells over
+  the visit and fades; its surface `mid` colour tints it. In a personal dimension it is a huge, faint shell on the sky.
 - **Tidal disruption event:** a transient body with `"style": "tidal_disruption"` is drawn as a star being torn apart by the
   system's black hole instead of as a planet: the star stretched along its path, a stream of gas spiralling in (red to
   blue-white as it falls), and the ring round the hole flaring. It appears for the body's `transient.duration_minutes`
