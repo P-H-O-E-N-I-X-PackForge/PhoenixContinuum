@@ -56,19 +56,16 @@ public final class ContinuumData {
         ContinuumTuner.reapply();
     }
 
-    /** The body definition as the server sent it (resolved JSON), or null. */
     public static @Nullable JsonObject rawBody(ResourceLocation id) {
         String json = rawBodies.get(id);
         return json == null ? null : JsonParser.parseString(json).getAsJsonObject();
     }
 
-    /** The system definition as the server sent it (resolved JSON), or null. */
     public static @Nullable JsonObject rawSystem(ResourceLocation id) {
         String json = rawSystems.get(id);
         return json == null ? null : JsonParser.parseString(json).getAsJsonObject();
     }
 
-    /** Client side only: swaps a parsed body in place, for live tuning. */
     static void replaceBody(ResourceLocation id, ContinuumBody body) {
         Map<ResourceLocation, ContinuumBody> copy = new LinkedHashMap<>(bodies);
         copy.put(id, body);
@@ -328,7 +325,6 @@ public final class ContinuumData {
     private record Parsed(Map<ResourceLocation, ContinuumSystem> systems, Map<ResourceLocation, ContinuumBody> bodies,
                           Map<ResourceLocation, String> rawSystems, Map<ResourceLocation, String> rawBodies) {}
 
-    /** Reloads only Continuum's data from the server's current resource packs, and pushes it to everyone. */
     public static ContinuumReport reloadNow(net.minecraft.server.MinecraftServer server) {
         Loader loader = new Loader();
         Parsed parsed = loader.prepare(server.getResourceManager(),
@@ -346,11 +342,12 @@ public final class ContinuumData {
             Map<ResourceLocation, JsonObject> rawSystems = new LinkedHashMap<>();
             Map<ResourceLocation, JsonObject> rawBodies = new LinkedHashMap<>();
             read(manager, SYSTEM_DIR, rawSystems::put, report);
-            applyDisabled(manager, systemJson, bodyJson, report);
             read(manager, BODY_DIR, rawBodies::put, report);
 
             Map<ResourceLocation, JsonObject> systemJson = ContentResolver.resolve("system", rawSystems, report);
             Map<ResourceLocation, JsonObject> bodyJson = ContentResolver.resolve("body", rawBodies, report);
+            applyDisabled(manager, systemJson, bodyJson, report);
+            addGenerated(systemJson, bodyJson, report);
             TuningPatches.applyAll(bodyJson, report);
             TuningPatches.applySystems(systemJson, report);
 
@@ -397,6 +394,10 @@ public final class ContinuumData {
             for (ContinuumReport.Issue issue : report.issues()) {
                 if (issue.level() == ContinuumReport.Level.ERROR) LOGGER.error("[Continuum] {}", issue);
                 else LOGGER.warn("[Continuum] {}", issue);
+            }
+            ContinuumServerEvents.onDataReloaded();
+        }
+
         /**
          * Any pack can ship {@code data/<namespace>/continuum/disable.json} with {@code "systems"} and
          * {@code "bodies"} lists of ids to remove. Every copy in every pack is read, so it does not matter which
@@ -434,6 +435,22 @@ public final class ContinuumData {
             });
         }
 
+        /** This world's seeded galaxy, if it has one: generated again from its seed on every load. */
+        private static void addGenerated(Map<ResourceLocation, JsonObject> systemJson,
+                                         Map<ResourceLocation, JsonObject> bodyJson, ContinuumReport report) {
+            try {
+                ResourceLocation homeId = ResourceLocation.fromNamespaceAndPath("phoenix_continuum", "home");
+                JsonObject homeJson = systemJson.get(homeId);
+                ContinuumSystem home = homeJson == null ? null : parseSystem(homeId, homeJson);
+                var generated = net.phoenix.continuum.common.GeneratedGalaxy.currentResult(home);
+                if (generated == null) return;
+                generated.systems().forEach(systemJson::putIfAbsent);
+                generated.bodies().forEach(bodyJson::putIfAbsent);
+            } catch (Exception e) {
+                report.error("generated galaxy", "could not be added: " + e.getMessage());
+            }
+        }
+
         private static void collectIds(JsonObject json, String key, Set<ResourceLocation> into, ResourceLocation file,
                                        ContinuumReport report) {
             if (!json.has(key)) return;
@@ -446,10 +463,6 @@ public final class ContinuumData {
                 if (id == null) report.error(file.toString(), "\"" + key + "\" has an entry that is not an id: " + entry);
                 else into.add(id);
             }
-        }
-
-            }
-            ContinuumServerEvents.onDataReloaded();
         }
 
         private static void read(ResourceManager manager, String dir,

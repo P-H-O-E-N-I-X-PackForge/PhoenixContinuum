@@ -168,6 +168,11 @@ neoForge {
             programArgument 'Player2'
         }
 
+        gameTestServer {
+            type = 'gameTestServer'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
         server {
             server()
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
