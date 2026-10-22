@@ -46,8 +46,14 @@ public class SwarmReceiverMachine8 extends MultiblockControllerMachine implement
 
     @Override
     public long accept(long amount) {
-        if (!isFormed()) return 0;
-        long remaining = amount;
+        if (!isFormed() || getLevel() == null || getLevel().getServer() == null) return 0;
+        return net.phoenix.continuum.common.SwarmStorage.exchange(getLevel().getServer(), getLevel(), getBlockPos(), amount,
+                this::fillHatches);
+    }
+
+    /** Puts up to this much into the energy hatches; returns how much they took. */
+    private long fillHatches(long available) {
+        long remaining = available;
         for (var part : getParts()) {
             if (remaining <= 0) break;
             if (!(part instanceof EnergyHatchPartMachine hatch)) continue;
@@ -58,6 +64,6 @@ public class SwarmReceiverMachine8 extends MultiblockControllerMachine implement
             hatch.energyContainer.changeEnergy(put);
             remaining -= put;
         }
-        return amount - remaining;
+        return available - remaining;
     }
 }

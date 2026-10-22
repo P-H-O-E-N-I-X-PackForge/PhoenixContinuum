@@ -50,13 +50,15 @@ public final class Swarms {
     /** Once a second: offers each team's swarm power to its sinks, then to its launch complexes. */
     public static void tick(MinecraftServer server) {
         var data = ContinuumTeamData.get(server);
-        for (UUID team : data.teamsWithStations()) {
+        java.util.Set<UUID> teams = data.teamsWithStations();
+        teams.addAll(ContinuumSwarmPower.teams());
+        for (UUID team : teams) {
             long remaining = powerPerTick(server, team) * 20L;
-            if (remaining <= 0) continue;
+            // a sink is offered power even when there is none, so a capacitor can keep feeding what it holds
             for (ContinuumSwarmPower.Sink sink : ContinuumSwarmPower.sinks(team)) {
-                if (remaining <= 0) break;
                 remaining -= Math.max(0L, Math.min(remaining, sink.accept(remaining)));
             }
+            if (remaining <= 0) continue;
             for (LaunchComplex complex : LaunchComplex.complexesOf(team)) {
                 if (remaining <= 0) break;
                 remaining -= Math.max(0L, Math.min(remaining, complex.chargeEnergy(remaining)));

@@ -60,4 +60,25 @@ public class SwarmGameTests {
                 "continuumadmin generate clear");
         helper.succeed();
     }
+
+    @GameTest(template = "gametest_empty", timeoutTicks = 100)
+    public static void capacitorKeepsWhatTheHatchesCannotTake(GameTestHelper helper) {
+        MinecraftServer server = helper.getLevel().getServer();
+        var level = helper.getLevel();
+        var pos = helper.absolutePos(new net.minecraft.core.BlockPos(1, 1, 1));
+        var storage = net.phoenix.continuum.common.SwarmStorage.get(server);
+        storage.set(level, pos, 0);
+
+        // the hatches take 300 of 1000 offered: the other 700 wait in the capacitor, and all 1000 count as kept
+        long kept = net.phoenix.continuum.common.SwarmStorage.exchange(server, level, pos, 1000, available -> 300);
+        helper.assertTrue(kept == 1000, "all of the swarm's power should be kept, was " + kept);
+        helper.assertTrue(storage.get(level, pos) == 700, "700 should be stored, is " + storage.get(level, pos));
+
+        // with no swarm power the capacitor keeps feeding the hatches
+        kept = net.phoenix.continuum.common.SwarmStorage.exchange(server, level, pos, 0, available -> 500);
+        helper.assertTrue(kept == 0, "nothing new was offered, kept " + kept);
+        helper.assertTrue(storage.get(level, pos) == 200, "200 should be left, is " + storage.get(level, pos));
+        storage.set(level, pos, 0);
+        helper.succeed();
+    }
 }

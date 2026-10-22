@@ -386,6 +386,23 @@ public class ContinuumConfigs {
         public int swarmReceiverMaxFEPerTick = 4000;
 
         @Configurable
+        @Configurable.Comment({
+                "Without GregTech: how much FE a Swarm Receiver block stores inside. Practically unlimited by",
+                "default, so a swarm's output is never wasted while it has somewhere to go. Default: 1.0E15"
+        })
+        @Configurable.DecimalRange(min = 1000.0, max = 9.0E18)
+        public double swarmReceiverCapacityFE = 1.0E15;
+
+        @Configurable
+        @Configurable.Comment({
+                "With GregTech: how much EU a Swarm Receiver Array's capacitor stores. The array fills its output",
+                "hatches from it, so a swarm's output is smoothed out and kept while the hatches are full.",
+                "Default: 1.0E12"
+        })
+        @Configurable.DecimalRange(min = 0.0, max = 9.0E18)
+        public double swarmArrayCapacitorEU = 1.0E12;
+
+        @Configurable
         @Configurable.Comment({ "The most extraction probes one mission can carry.", "Default: 16" })
         @Configurable.Range(min = 1, max = 64)
         public int maxProbesPerMission = 16;

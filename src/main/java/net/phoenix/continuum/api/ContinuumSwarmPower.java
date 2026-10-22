@@ -47,6 +47,10 @@ public final class ContinuumSwarmPower {
         return Swarms.powerPerTick(server, team);
     }
 
+    public static Set<UUID> teams() {
+        return SINKS.keySet();
+    }
+
     public static Set<Sink> sinks(UUID team) {
         Set<Sink> set = SINKS.get(team);
         return set == null ? Set.of() : set;

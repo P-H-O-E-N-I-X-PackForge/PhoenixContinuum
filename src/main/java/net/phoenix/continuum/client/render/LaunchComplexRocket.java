@@ -4,22 +4,21 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.client.model.data.ModelData;
+import net.phoenix.continuum.ContinuumRegistry;
 import net.phoenix.continuum.PhoenixContinuum;
 import net.phoenix.continuum.integration.gtceu.ContinuumGt;
 import net.phoenix.continuum.integration.gtceu.GregTech;
@@ -29,18 +28,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A rocket standing in the shaft of every formed Launch Complex, so the multiblock looks like a launch site and not
- * just a gantry. Drawn from a plain block model ({@code models/special/launch_rocket.json}) that a resource pack can
- * replace. It finds the complexes by looking through the loaded chunks around the camera once every couple of
- * seconds, so it needs nothing from GregTech's own rendering and works the same on every GregTech version.
+ * Our rocket item, standing large in the shaft of every formed Launch Complex and turning slowly, so the multiblock
+ * looks like a launch site and not just a gantry. It finds the complexes by looking through the loaded chunks around
+ * the camera every couple of seconds, so it needs nothing from GregTech's own rendering and works the same on every
+ * GregTech version.
  */
 @Mod.EventBusSubscriber(modid = PhoenixContinuum.MOD_ID, value = Dist.CLIENT)
 public final class LaunchComplexRocket {
 
-    public static final ResourceLocation MODEL = new ResourceLocation(PhoenixContinuum.MOD_ID, "special/launch_rocket");
-
-    /** The model is 16 units tall; the shaft is 1 block wide and about 4 blocks tall. */
-    private static final float SCALE = 3.5f;
+    /** The item sprite is one block; the shaft is one block wide and about three clear blocks tall. */
+    private static final float SCALE = 3.0f;
+    private static final float DEGREES_PER_TICK = 1.2f;
     private static final int SCAN_EVERY = 40;
     private static final int SCAN_CHUNKS = 8;
 
@@ -48,13 +46,9 @@ public final class LaunchComplexRocket {
 
     private static List<Site> sites = List.of();
     private static int ticks;
+    private static ItemStack rocket;
 
     private LaunchComplexRocket() {}
-
-    /** Mod bus: asks the model manager to bake the rocket model even though no block uses it. */
-    public static void registerModel(ModelEvent.RegisterAdditional event) {
-        event.register(MODEL);
-    }
 
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent event) {
@@ -117,28 +111,29 @@ public final class LaunchComplexRocket {
         Minecraft mc = Minecraft.getInstance();
         Level level = mc.level;
         if (level == null) return;
-        var model = mc.getModelManager().getModel(MODEL);
-        if (model == mc.getModelManager().getMissingModel()) return;
+        if (rocket == null) rocket = ContinuumRegistry.ROCKET.asStack();
 
         Vec3 camera = event.getCamera().getPosition();
         PoseStack pose = event.getPoseStack();
         var buffers = mc.renderBuffers().bufferSource();
-        var consumer = buffers.getBuffer(RenderType.cutout());
+        float angle = (level.getGameTime() + event.getPartialTick()) * DEGREES_PER_TICK;
         boolean drew = false;
         for (Site site : sites) {
             LaunchComplex complex = ContinuumGt.complexAt(level, site.controller());
             if (complex == null || !complex.isFormed()) continue;
             BlockPos base = site.base();
             pose.pushPose();
-            pose.translate(base.getX() + 0.5 - camera.x, base.getY() - camera.y, base.getZ() + 0.5 - camera.z);
+            // the sprite is centred on its middle: lift it by half its scaled height so it stands on the slab
+            pose.translate(base.getX() + 0.5 - camera.x, base.getY() + SCALE * 0.5 - camera.y,
+                    base.getZ() + 0.5 - camera.z);
+            pose.mulPose(com.mojang.math.Axis.YP.rotationDegrees(angle));
             pose.scale(SCALE, SCALE, SCALE);
-            pose.translate(-0.5, 0.0, -0.5);
             int light = LevelRenderer.getLightColor(level, base.above(2));
-            mc.getBlockRenderer().getModelRenderer().renderModel(pose.last(), consumer, null, model, 1.0f, 1.0f,
-                    1.0f, light, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, RenderType.cutout());
+            mc.getItemRenderer().renderStatic(rocket, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, pose,
+                    buffers, level, 0);
             pose.popPose();
             drew = true;
         }
-        if (drew) buffers.endBatch(RenderType.cutout());
+        if (drew) buffers.endBatch();
     }
 }

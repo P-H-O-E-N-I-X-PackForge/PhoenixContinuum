@@ -27,7 +27,7 @@ import java.util.UUID;
  */
 public class SwarmReceiverBlockEntity extends BlockEntity implements ContinuumSwarmPower.Sink {
 
-    private int stored;
+    private long stored;
     private UUID owner;
     private UUID registeredTeam;
     private final LazyOptional<IEnergyStorage> output = LazyOptional.of(Output::new);
@@ -45,7 +45,7 @@ public class SwarmReceiverBlockEntity extends BlockEntity implements ContinuumSw
 
         @Override
         public int extractEnergy(int amount, boolean simulate) {
-            int taken = Math.min(Math.min(amount, stored), maxOut());
+            int taken = (int) Math.min(Math.min(amount, stored), maxOut());
             if (taken > 0 && !simulate) {
                 stored -= taken;
                 setChanged();
@@ -55,12 +55,12 @@ public class SwarmReceiverBlockEntity extends BlockEntity implements ContinuumSw
 
         @Override
         public int getEnergyStored() {
-            return stored;
+            return (int) Math.min(Integer.MAX_VALUE, stored);
         }
 
         @Override
         public int getMaxEnergyStored() {
-            return capacity();
+            return (int) Math.min(Integer.MAX_VALUE, capacity());
         }
 
         @Override
@@ -78,12 +78,17 @@ public class SwarmReceiverBlockEntity extends BlockEntity implements ContinuumSw
         return Math.max(1, ContinuumConfigs.INSTANCE.swarmReceiverMaxFEPerTick);
     }
 
-    private int capacity() {
-        return (int) Math.min(Integer.MAX_VALUE, (long) maxOut() * 40L);
+    /** Practically unlimited: this is where a swarm's power waits until something draws it. */
+    private static long capacity() {
+        return (long) Math.min(9.0E18, Math.max(1000.0, ContinuumConfigs.INSTANCE.swarmReceiverCapacityFE));
     }
 
     private boolean isActive() {
         return PadTiers.basic();
+    }
+
+    public long stored() {
+        return stored;
     }
 
     public void setOwner(@Nullable UUID player) {
@@ -109,8 +114,8 @@ public class SwarmReceiverBlockEntity extends BlockEntity implements ContinuumSw
 
     @Override
     public long accept(long amount) {
-        int room = capacity() - stored;
-        int taken = (int) Math.max(0L, Math.min(amount, room));
+        long room = capacity() - stored;
+        long taken = Math.max(0L, Math.min(amount, room));
         if (taken > 0) {
             stored += taken;
             setChanged();
@@ -120,7 +125,7 @@ public class SwarmReceiverBlockEntity extends BlockEntity implements ContinuumSw
 
     public static void tick(Level level, BlockPos pos, BlockState state, SwarmReceiverBlockEntity self) {
         if (level.isClientSide || self.stored <= 0 || !self.isActive()) return;
-        int budget = Math.min(self.stored, maxOut());
+        int budget = (int) Math.min(self.stored, maxOut());
         for (Direction side : Direction.values()) {
             if (budget <= 0) break;
             BlockEntity neighbour = level.getBlockEntity(pos.relative(side));
@@ -164,14 +169,14 @@ public class SwarmReceiverBlockEntity extends BlockEntity implements ContinuumSw
     @Override
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
-        tag.putInt("Stored", stored);
+        tag.putLong("Stored", stored);
         if (owner != null) tag.putUUID("Owner", owner);
     }
 
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
-        stored = tag.getInt("Stored");
+        stored = tag.getLong("Stored");
         owner = tag.hasUUID("Owner") ? tag.getUUID("Owner") : null;
     }
 }
