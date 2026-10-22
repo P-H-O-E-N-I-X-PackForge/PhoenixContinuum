@@ -17,17 +17,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * The rest of a world's system as seen from standing on it: the other planets (rings and all) and, on a planet, its own
- * moons, each at the place its orbit puts it and lit from the side the star is on, so they have phases. This is what makes
- * a personal dimension feel like being on that planet instead of looking at it.
- *
- * <p>Positions come from the definitions (orbit radius, period and phase) and the game clock, in the same frame as the
- * sun: a body keeps the same angle from the sun in the ecliptic, and the whole sky turns once a day with the sun. Only
- * what the team has found is drawn, so the sky does not give away worlds nobody has detected yet. Sizes are exaggerated
- * so a distant planet is a visible disc rather than a speck, and only the biggest few are drawn so it stays cheap.
- */
-final class PdimSkyBodies {
+public final class PdimSkyBodies {
 
     private static final float SKY_DISTANCE = 90.0f;
     private static final int MAX_BODIES = 6;
@@ -36,14 +26,12 @@ final class PdimSkyBodies {
 
     private record Item(ContinuumBody body, Vector3f direction, float skyRadius, Vector3f light, boolean moon) {}
 
-    /** Where everything is in the sky right now: the frame of the ecliptic and the worlds to draw, biggest first. */
     private record Plan(Vector3f e1, Vector3f e2, Vector3f normal, List<Item> items) {}
 
-    /** The sun's apparent radius as drawn (see PdimSkyEffects: radius 6 at 98), in radians. */
     private static final float SUN_ANGULAR_RADIUS = (float) Math.atan(6.0 / 98.0);
 
-    private static @org.jetbrains.annotations.Nullable Plan plan(ClientLevel level, float partialTick,
-                                                                  ContinuumBody self, PdimSkyModel.Sample sample) {
+    private static @org.jetbrains.annotations.Nullable Plan plan(PdimSkyView view0, ContinuumBody self,
+                                                                  PdimSkyModel.Sample sample) {
         if (self == null || self.type() == ContinuumBody.Type.STAR || self.type() == ContinuumBody.Type.BLACK_HOLE) {
             return null;
         }
@@ -53,27 +41,26 @@ final class PdimSkyBodies {
         Vector3f e2 = new Vector3f(0.0f, (float) Math.cos(lat), (float) -Math.sin(lat));
         Vector3f normal = new Vector3f(0.0f, (float) Math.sin(lat), (float) Math.cos(lat));
 
-        // where the sun is on its daily circle: the angle every other body is measured from
-        boolean fixed = PdimClientState.fixedSky();
+        boolean fixed = view0.fixed();
         double thetaSun = Math.atan2(sample.sunDir().dot(e2), sample.sunDir().dot(e1));
-        double days = (level.getGameTime() + (double) partialTick) / 24000.0;
+        double days = view0.gameTicks() / 24000.0;
 
         ContinuumBody home = self.isMoon() && self.parent() != null ? ContinuumData.body(self.parent()) : self;
         if (home == null) home = self;
         double[] homePos = positionAu(home, days);
-        double sunBearing = Math.atan2(-homePos[1], -homePos[0]);   // the way to the star, in the ecliptic
+        double sunBearing = Math.atan2(-homePos[1], -homePos[0]);   
 
         List<Item> items = new ArrayList<>();
         for (ContinuumBody other : ContinuumData.bodiesOf(self.system())) {
             if (other.id().equals(self.id()) || other.id().equals(home.id()) || other.isCentral()) continue;
             if (other.transientInfo() != null) continue;
-            if (ContinuumClientState.stage(other.id()) == DiscoveryStage.UNKNOWN) continue;
+            if (!view0.showUndiscovered() && ContinuumClientState.stage(other.id()) == DiscoveryStage.UNKNOWN) continue;
 
             double bearing;
             float skyRadius;
             Vector3f light;
             if (other.isMoon()) {
-                // only the moons of the world you stand on (a sibling moon is close enough to matter too)
+                
                 if (other.parent() == null || !other.parent().equals(home.id())) continue;
                 double angle = 2.0 * Math.PI * (other.phase() + days / Math.max(0.05, other.periodDays()));
                 bearing = angle;
@@ -87,14 +74,14 @@ final class PdimSkyBodies {
                 double dist = Math.max(0.05, Math.hypot(dx, dy));
                 bearing = Math.atan2(dy, dx);
                 skyRadius = clamp(1.3f + 5.5f * (float) Math.sqrt(other.radius()) / (0.6f + (float) dist), 1.2f, 14.0f);
-                // lit from the star's side, as that body sees it
+                
                 double toStar = Math.atan2(-p[1], -p[0]);
                 light = ecliptic(e1, e2, normal, thetaSun + (toStar - sunBearing), 0.0).mul(400.0f);
             }
             double seed = other.params().seed();
             double angle = thetaSun + (bearing - sunBearing);
             if (fixed) {
-                // pinned to the sky and always shown: spread along the upper arc in the order they orbit the star
+                
                 double frac = ((bearing - sunBearing) / (2.0 * Math.PI)) % 1.0;
                 if (frac < 0.0) frac += 1.0;
                 angle = Math.PI * (0.10 + 0.80 * frac);
@@ -102,17 +89,15 @@ final class PdimSkyBodies {
 
             Vector3f direction;
             if (other.isMoon() && !fixed) {
-                // A moon's path wobbles above and below the sun's: for a stretch of its cycle it passes straight across the
-                // star (an eclipse), then misses it for a while, the way eclipse seasons come and go.
+
                 double wobble = 0.15 * Math.sin(2.0 * Math.PI * days / (Math.max(0.05, other.periodDays()) * 11.0) +
                         seed * 3.7);
                 direction = ecliptic(e1, e2, normal, angle, wobble);
             } else {
-                // Each world sits a little above or below the plane it orbits in, a different amount each, so they
-                // spread across the sky instead of lining up on one arc with the star.
+
                 double inclination = 0.32 * Math.sin(seed * 12.9898) + 0.12 * Math.sin(seed * 78.233 + other.orbitAu());
                 direction = ecliptic(e1, e2, normal, angle, inclination);
-                // never sit on the star, or a ringed world reads as the star having rings: slide it off to a clear gap
+                
                 double side = inclination >= 0.0 ? 1.0 : -1.0;
                 double gap = 0.17 + 0.012 * skyRadius;
                 for (int k = 0; k < 12 && sample.hasSun() && angleBetween(direction, sample.sunDir()) < gap; k++) {
@@ -128,13 +113,33 @@ final class PdimSkyBodies {
         return new Plan(e1, e2, normal, items);
     }
 
-    /**
-     * How much of the star a world in the sky is covering right now, 0 (none) to 1 (all of it). Only the moons of the
-     * world you stand on ever cross the star. Used to dim the day, bring out the stars and draw the corona.
-     */
-    static float eclipse(ClientLevel level, float partialTick, ContinuumBody self, PdimSkyModel.Sample sample) {
+    /** A world in the sky, described for a list: where it is and how big it looks. */
+    public record SkyBody(ContinuumBody body, float elevationDeg, float azimuthDeg, float apparentDeg, boolean moon) {}
+
+    /** What is in the sky of {@code self}, nearest the sun last, with the direction and size each appears at. */
+    public static List<SkyBody> describe(PdimSkyView view0, ContinuumBody self, PdimSkyModel.Sample sample) {
+        Plan plan = plan(view0, self, sample);
+        List<SkyBody> out = new ArrayList<>();
+        if (plan == null) return out;
+        for (Item item : plan.items()) {
+            Vector3f d = item.direction();
+            float elevation = (float) Math.toDegrees(Math.asin(Math.max(-1.0f, Math.min(1.0f, d.y))));
+            float azimuth = (float) Math.toDegrees(Math.atan2(d.x, -d.z));
+            if (azimuth < 0.0f) azimuth += 360.0f;
+            float apparent = (float) Math.toDegrees(2.0 * Math.atan(item.skyRadius() / SKY_DISTANCE));
+            out.add(new SkyBody(item.body(), elevation, azimuth, apparent, item.moon()));
+        }
+        return out;
+    }
+
+    /** Where a world is on its orbit, in AU from the star, at a day count. */
+    public static double[] orbitPosition(ContinuumBody body, double days) {
+        return positionAu(body, days);
+    }
+
+    static float eclipse(PdimSkyView view0, ContinuumBody self, PdimSkyModel.Sample sample) {
         if (!sample.hasSun()) return 0.0f;
-        Plan plan = plan(level, partialTick, self, sample);
+        Plan plan = plan(view0, self, sample);
         if (plan == null) return 0.0f;
         float covered = 0.0f;
         for (Item item : plan.items()) {
@@ -145,20 +150,18 @@ final class PdimSkyBodies {
             if (sep >= reach) continue;
             float small = Math.min(bodyR, SUN_ANGULAR_RADIUS);
             float overlap = clamp((reach - sep) / (2.0f * small), 0.0f, 1.0f);
-            // a body smaller than the star leaves a ring of it showing (an annular eclipse) rather than covering it all
+            
             float area = Math.min(1.0f, (bodyR * bodyR) / (SUN_ANGULAR_RADIUS * SUN_ANGULAR_RADIUS));
             covered = Math.max(covered, overlap * area);
         }
         return covered;
     }
 
-    static void draw(ClientLevel level, float partialTick, Matrix4f view, Matrix4f projection, ContinuumBody self,
+    static void draw(PdimSkyView view0, Matrix4f view, Matrix4f projection, ContinuumBody self,
                      PdimSkyModel.Sample sample, float time) {
-        Plan plan = plan(level, partialTick, self, sample);
+        Plan plan = plan(view0, self, sample);
         if (plan == null) return;
 
-        // If the world has rings they arc across the sky. (The planet under your feet is not drawn, so nothing is hidden
-        // below the horizon: a ring or a world that dips under it keeps going instead of being cut off.)
         float unit = 40.0f;
         Vector3f center = new Vector3f(0.0f, -unit, 0.0f);
         if (!self.isMoon() && self.params().ring() != null) {
@@ -178,14 +181,9 @@ final class PdimSkyBodies {
 
         drawComets(self, view, projection, plan, sample, time);
 
-        // the horizon sphere only wrote depth to hide things behind it; the world is drawn after the sky, so remove it
         com.mojang.blaze3d.systems.RenderSystem.clear(256, net.minecraft.client.Minecraft.ON_OSX);
     }
 
-    /**
-     * Comets passing through the system while their visit lasts: a small nucleus with its tails, crossing the sky slowly
-     * over the whole visit (they are the same comets the map shows, announced in chat).
-     */
     private static void drawComets(ContinuumBody self, Matrix4f view, Matrix4f projection, Plan plan,
                                    PdimSkyModel.Sample sample, float time) {
         for (ContinuumBody comet : ContinuumData.bodiesOf(self.system())) {
@@ -195,14 +193,13 @@ final class PdimSkyBodies {
             float progress = clamp((ContinuumClientState.now() - window[0]) / (float) Math.max(1L, window[1] - window[0]),
                     0.0f, 1.0f);
 
-            // it climbs across the upper sky over the visit, on its own tilt
             double seed = comet.params().seed();
             double angle = Math.PI * (0.18 + 0.64 * progress);
             Vector3f direction = ecliptic(plan.e1(), plan.e2(), plan.normal(), angle, 0.22 + 0.2 * Math.sin(seed * 5.1));
             Vector3f pos = new Vector3f(direction).mul(SKY_DISTANCE);
 
             if (comet.isRemnant()) {
-                // a huge, faint shell on the sky that swells over the whole visit: up to about 17 degrees across at the end
+                
                 float grow = (float) Math.pow(progress, 0.55);
                 float shell = SKY_DISTANCE * (0.03f + 0.28f * grow);
                 SceneRenderer.drawRemnant(comet.params().mid(), progress, view, projection,
@@ -213,7 +210,7 @@ final class PdimSkyBodies {
                 continue;
             }
             if (comet.isRogue()) {
-                // a dark world drifting across the sky, swelling as it comes close and shrinking as it leaves
+                
                 float size = 1.6f + 6.0f * (float) Math.sin(Math.PI * progress);
                 SceneRenderer.drawPlanet(comet.params(), view, projection, pos, size,
                         new Vector3f(pos).add(new Vector3f(sample.sunDir()).mul(400.0f)), time * 2.0f, 0.0f,
@@ -231,7 +228,6 @@ final class PdimSkyBodies {
         }
     }
 
-    /** A body's place in the system plane, in AU, at the given game day. */
     private static double[] positionAu(ContinuumBody body, double days) {
         if (body.isCentral()) return new double[] {0.0, 0.0};
         double angle = 2.0 * Math.PI * (body.phase() + days / Math.max(0.05, body.periodDays()));

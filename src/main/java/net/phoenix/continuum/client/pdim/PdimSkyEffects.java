@@ -54,15 +54,26 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
         Matrix4f view = new Matrix4f(poseStack.last().pose());
         float time = (float) (System.currentTimeMillis() % 10000000L) / 1000.0f;
 
-        PdimSkyModel.Sample sample = PdimSkyModel.sample(level, partialTick, body, system);
-        if (!PdimClientState.orbitView()) {
-            sample = sample.withEclipse(PdimSkyBodies.eclipse(level, partialTick, body, sample));
-        }
+        PdimSkyView live = PdimSkyView.live(level, partialTick);
+        PdimSkyModel.Sample sample = drawScene(view, projectionMatrix, live, body, system, time);
         float[] fog = sample.horizonNow();
         horizonFog = new Vec3(fog[0], fog[1], fog[2]);
+        return true;
+    }
+
+    /**
+     * Draws the sky as seen from {@code body}: nebula, horizon, star, the other worlds. Used by the live sky and by the
+     * tuner's sky view. Returns the sample it drew with (the sun, the air colours, the eclipse).
+     */
+    public static PdimSkyModel.Sample drawScene(Matrix4f view, Matrix4f projection, PdimSkyView view0,
+                                                ContinuumBody body, ContinuumSystem system, float time) {
+        PdimSkyModel.Sample sample = PdimSkyModel.sample(view0, body, system);
+        if (!view0.orbit()) {
+            sample = sample.withEclipse(PdimSkyBodies.eclipse(view0, body, sample));
+        }
 
         try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("pdim.sky")) {
-            drawNebula(view, projectionMatrix, time, body, system, sample);
+            drawNebula(view, projection, time, body, system, sample, view0.orbit());
         }
 
         if (body != null && ContinuumShaders.ready()) {
@@ -71,15 +82,15 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
             RenderSystem.depthMask(true);
 
             // standing on a world: its horizon hides what has set, so the star and the other worlds sink behind it
-            if (sample.hasSun() && !PdimClientState.orbitView()) SceneRenderer.drawHorizonPlane(view, projectionMatrix);
+            if (sample.hasSun() && !view0.orbit()) SceneRenderer.drawHorizonPlane(view, projection);
 
             if (sample.hasSun() && system != null && sample.sunDir().y > -0.25f) {
                 Vector3f sunPos = new Vector3f(sample.sunDir()).mul(98.0f);
                 if (system.hasHole()) {
-                    SceneRenderer.drawHole(system, body, view, projectionMatrix, sunPos, 4.5f, ContinuumVisuals.quality(),
+                    SceneRenderer.drawHole(system, body, view, projection, sunPos, 4.5f, ContinuumVisuals.quality(),
                             true);
                 } else {
-                    SceneRenderer.drawSystemStar(system, system.starColor(), view, projectionMatrix, sunPos, 6.0f,
+                    SceneRenderer.drawSystemStar(system, system.starColor(), view, projection, sunPos, 6.0f,
                             ContinuumVisuals.quality(), true);
                 }
                 RenderSystem.enableCull();
@@ -95,13 +106,13 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
             float radius = body.type() == ContinuumBody.Type.BLACK_HOLE ? (quasar ? 8.5f : 9.0f) :
                     centralBody ? 16.0f : 22.0f;
 
-            boolean orbit = PdimClientState.orbitView();
-            if (!SceneRenderer.drawCentralBody(body, view, projectionMatrix, position, radius,
+            boolean orbit = view0.orbit();
+            if (!SceneRenderer.drawCentralBody(body, view, projection, position, radius,
                     ContinuumVisuals.quality(), true)) {
                 
                 if (!orbit) {
                     try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("pdim.system_bodies")) {
-                        PdimSkyBodies.draw(level, partialTick, view, projectionMatrix, body, sample, time);
+                        PdimSkyBodies.draw(view0, view, projection, body, sample, time);
                     }
                 }
                 
@@ -119,7 +130,7 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
                     }
                 }
                 var params = orbBody.params();
-                SceneRenderer.drawPlanet(params, view, projectionMatrix, position, orbRadius, light,
+                SceneRenderer.drawPlanet(params, view, projection, position, orbRadius, light,
                         time * params.spinDegPerSec() * 0.5f, time * params.cloudSpinDegPerSec() * 0.5f,
                         ContinuumVisuals.quality(), true);
                 }
@@ -130,11 +141,11 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(true);
-        return true;
+        return sample;
     }
 
     private static void drawNebula(Matrix4f view, Matrix4f projection, float time, ContinuumBody body,
-                                   ContinuumSystem system, PdimSkyModel.Sample sample) {
+                                   ContinuumSystem system, PdimSkyModel.Sample sample, boolean orbit) {
         ShaderInstance sky = ContinuumShaders.SKY;
         if (sky == null) return;
 
@@ -172,7 +183,7 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
         sky.safeGetUniform("HorizonColor").set(sample.horizon()[0], sample.horizon()[1], sample.horizon()[2]);
         sky.safeGetUniform("DuskColor").set(sample.dusk()[0], sample.dusk()[1], sample.dusk()[2]);
         sky.safeGetUniform("SunColor").set(sample.sunColor()[0], sample.sunColor()[1], sample.sunColor()[2]);
-        sky.safeGetUniform("Ground").set(sample.hasSun() && !PdimClientState.orbitView() ? 1.0f : 0.0f);
+        sky.safeGetUniform("Ground").set(sample.hasSun() && !orbit ? 1.0f : 0.0f);
         sky.safeGetUniform("Eclipse").set(sample.eclipse());
         sky.safeGetUniform("Aurora").set(sample.aurora());
         sky.safeGetUniform("AuroraColor").set(sample.auroraColor()[0], sample.auroraColor()[1], sample.auroraColor()[2]);

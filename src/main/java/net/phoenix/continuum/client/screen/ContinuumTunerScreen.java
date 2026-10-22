@@ -458,11 +458,12 @@ public final class ContinuumTunerScreen extends Screen {
         action(g, mx, my, px, ay, 200, "Export definition", "export");
         action(g, mx, my, px, ay + 20, 200, "Reset local edits", "reset");
         action(g, mx, my, px, ay + 40, 200, "Reset server edits", "resetServer");
-        action(g, mx, my, px, ay + 60, 200, "Close", "close");
-        g.drawString(font, "Visual edits: this client only", px, ay + 84, 0xFF7F8A99, false);
-        g.drawString(font, "until pushed. Gold rows go to the", px, ay + 94, 0xFF7F8A99, false);
-        g.drawString(font, "server and are saved as patches.", px, ay + 104, 0xFF7F8A99, false);
-        if (!status.isEmpty()) g.drawString(font, font.plainSubstrByWidth(status, 200), px, ay + 120, 0xFF66DDFF, false);
+        action(g, mx, my, px, ay + 60, 200, "Sky view...", "sky");
+        action(g, mx, my, px, ay + 80, 200, "Close", "close");
+        g.drawString(font, "Visual edits: this client only", px, ay + 104, 0xFF7F8A99, false);
+        g.drawString(font, "until pushed. Gold rows go to the", px, ay + 114, 0xFF7F8A99, false);
+        g.drawString(font, "server and are saved as patches.", px, ay + 124, 0xFF7F8A99, false);
+        if (!status.isEmpty()) g.drawString(font, font.plainSubstrByWidth(status, 200), px, ay + 140, 0xFF66DDFF, false);
 
         super.render(g, mx, my, partialTick);
         if (pickerField != null) renderPicker(g);
@@ -769,6 +770,7 @@ public final class ContinuumTunerScreen extends Screen {
     private void runAction(String action) {
         switch (action) {
             case "close" -> onClose();
+            case "sky" -> minecraft.setScreen(new ContinuumSkyScreen(this, body()));
             case "reset" -> {
                 ContinuumTuner.reset(body().id());
                 SurfaceMap.invalidate(body().id());

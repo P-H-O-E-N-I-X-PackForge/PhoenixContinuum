@@ -52,17 +52,14 @@ public final class PdimClientState {
         return daySpeed;
     }
 
-    /** A fixed time of day in ticks, or negative when the sky clock is running. */
     public static float lockedTime() {
         return lockedTime;
     }
 
-    /** True when the sky shows the world from orbit (the planet itself in the sky) instead of from its surface. */
     public static boolean orbitView() {
         return orbitView;
     }
 
-    /** True when the other worlds of the system stay put in the sky and are always shown, instead of turning with the day. */
     public static boolean fixedSky() {
         return fixedSky;
     }
@@ -76,7 +73,6 @@ public final class PdimClientState {
         return e == null ? null : e.gravity();
     }
 
-    /** The settings of the player's dimension on a body (gravity, sky clock, view), or null if they have none. */
     public static @Nullable net.phoenix.continuum.pdim.PdimData.Entry entry(ResourceLocation body) {
         return mine.get(body);
     }
