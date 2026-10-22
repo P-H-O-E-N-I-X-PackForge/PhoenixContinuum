@@ -163,6 +163,11 @@ from the start. A mod that provides its own research (PhoenixCore) takes over th
   to grant; and a `message`). Once a team has reached the reveal stage the body panel on the map lists it with an
   Investigate button; each can be investigated once per team. Scripts hear about it with
   `ContinuumEvents.anomaly(event => ...)` (`event.player`, `event.team`, `event.body`, `event.anomaly`).
+- **Observatory:** a block (`phoenix_continuum:continuum_observatory`, with a plain crafting recipe you can override) that opens
+  a live 3D view of every body and star the team has found: a list to pick from, drag to turn, scroll to zoom, and the
+  orbit, launch window, anomalies and lore for each. Detected-only bodies show as the faint scan return they are.
+- **Comets:** passing comets (transient bodies) now trail a coma, an ion tail and a dust tail on the map, and cross the sky of
+  a personal dimension in that system while they pass.
 - **Named expeditions:** the mission planner has a "Name and crew" button: a flight can be given a name and up to three online
   teammates as crew. It appears under that name in the fleet and the log ("Expedition "Dawn Runner" (crew: ...)"), and each
   crew member lowers the flight's chance of failing by 3%.

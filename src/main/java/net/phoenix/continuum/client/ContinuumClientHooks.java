@@ -37,6 +37,11 @@ public final class ContinuumClientHooks {
         }
     }
 
+    /** Opens the observatory screen (the observatory block was used on this client). */
+    public static void openObservatory() {
+        Minecraft.getInstance().setScreen(new net.phoenix.continuum.client.screen.ContinuumObservatoryScreen());
+    }
+
     public static void acceptState(ContinuumStateSnapshot snapshot) {
         ContinuumClientState.accept(snapshot);
     }
