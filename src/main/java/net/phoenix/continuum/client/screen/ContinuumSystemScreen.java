@@ -8,6 +8,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.phoenix.continuum.data.ContinuumBody;
 import net.phoenix.continuum.data.ContinuumData;
 import net.phoenix.continuum.data.ContinuumSystem;
 import net.phoenix.continuum.data.TuningPatches;
@@ -434,8 +435,13 @@ public final class ContinuumSystemScreen extends Screen {
             action(g, mx, my, px, ay + 40, 200, "Reset server edits", "resetServer");
         }
         action(g, mx, my, px, ay + 60, 200, creating ? "Tune an existing system" : "New system...", "mode");
-        action(g, mx, my, px, ay + 80, 200, "Back", "close");
-        if (!status.isEmpty()) g.drawString(font, font.plainSubstrByWidth(status, 220), px, ay + 104, 0xFF66DDFF, false);
+        int backY = ay + 80;
+        if (!creating) {
+            action(g, mx, my, px, ay + 80, 200, "Sky view...", "sky");
+            backY = ay + 100;
+        }
+        action(g, mx, my, px, backY, 200, "Back", "close");
+        if (!status.isEmpty()) g.drawString(font, font.plainSubstrByWidth(status, 220), px, backY + 24, 0xFF66DDFF, false);
 
         super.render(g, mx, my, partialTick);
     }
@@ -515,6 +521,23 @@ public final class ContinuumSystemScreen extends Screen {
         return super.mouseClicked(mx, my, button);
     }
 
+    /** The sky from the system's innermost world, drawn with the star as it is in the draft (applied or not). */
+    private void openSky() {
+        ContinuumSystem system = draftSystem();
+        if (system == null || creating) return;
+        ContinuumBody from = null;
+        for (ContinuumBody b : ContinuumData.bodiesOf(system.id())) {
+            if (b.isCentral() || b.transientInfo() != null || b.isMoon()) continue;
+            from = b;
+            break;
+        }
+        if (from == null) {
+            status = "This system has no worlds to look from yet.";
+            return;
+        }
+        minecraft.setScreen(new ContinuumSkyScreen(this, from, system));
+    }
+
     private void runAction(String id) {
         switch (id) {
             case "apply" -> apply();
@@ -531,6 +554,7 @@ public final class ContinuumSystemScreen extends Screen {
                 if (creating && !systems.isEmpty()) beginTune();
                 else beginCreate();
             }
+            case "sky" -> openSky();
             case "close" -> onClose();
             default -> {}
         }

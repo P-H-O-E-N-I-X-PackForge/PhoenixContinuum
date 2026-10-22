@@ -39,6 +39,7 @@ public final class ContinuumSkyScreen extends Screen {
     private static final String[] SPEED_LABELS = { "paused", "1x", "10x", "100x" };
 
     private final Screen parent;
+    private final @org.jetbrains.annotations.Nullable ContinuumSystem systemOverride;
     private final List<ContinuumBody> bodies = new ArrayList<>();
     private int index;
     private final SceneTarget target = new SceneTarget();
@@ -59,8 +60,15 @@ public final class ContinuumSkyScreen extends Screen {
     private String message = "";
 
     public ContinuumSkyScreen(Screen parent, ContinuumBody start) {
+        this(parent, start, null);
+    }
+
+    /** {@code systemOverride}: the system as the editor has it, applied or not (null for the one the game has). */
+    public ContinuumSkyScreen(Screen parent, ContinuumBody start,
+                              @org.jetbrains.annotations.Nullable ContinuumSystem systemOverride) {
         super(Component.literal("Sky view"));
         this.parent = parent;
+        this.systemOverride = systemOverride;
         for (ContinuumBody b : ContinuumData.bodiesOf(start.system())) {
             if (b.isCentral() || b.transientInfo() != null) continue;
             bodies.add(b);
@@ -71,6 +79,11 @@ public final class ContinuumSkyScreen extends Screen {
         }
         var level = Minecraft.getInstance().level;
         if (level != null) day = level.getGameTime() / 24000L;
+    }
+
+    private @org.jetbrains.annotations.Nullable ContinuumSystem systemOf(ContinuumBody body) {
+        return systemOverride != null && systemOverride.id().equals(body.system()) ? systemOverride :
+                ContinuumData.system(body.system());
     }
 
     private ContinuumBody body() {
@@ -113,7 +126,7 @@ public final class ContinuumSkyScreen extends Screen {
 
         hits.clear();
         ContinuumBody body = body();
-        ContinuumSystem system = ContinuumData.system(body.system());
+        ContinuumSystem system = systemOf(body);
         PdimSkyView view0 = sky();
 
         PdimSkyModel.Sample sample = null;
@@ -356,7 +369,7 @@ public final class ContinuumSkyScreen extends Screen {
         timeOfDay = (float) ((target - Math.floor(target)) * TICKS_PER_DAY);
         speed = 0;
 
-        ContinuumSystem system = ContinuumData.system(body.system());
+        ContinuumSystem system = systemOf(body);
         if (system != null) {
             var sample = PdimSkyModel.sample(sky(), body, system);
             yaw = (float) Math.toDegrees(Math.atan2(sample.sunDir().x, -sample.sunDir().z));
