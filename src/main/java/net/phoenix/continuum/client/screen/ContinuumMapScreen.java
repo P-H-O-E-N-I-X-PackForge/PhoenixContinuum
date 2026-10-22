@@ -1063,7 +1063,8 @@ public class ContinuumMapScreen extends Screen {
                 graphics.drawString(font, outpost.powered() ? "OK" : "NO POWER", x + 81, ty,
                         outpost.powered() ? MapUi.GOOD : MapUi.BAD);
                 ty += 11;
-                ty = stat(graphics, "Upkeep", String.format(Locale.ROOT, "%,d EU / cycle", outpost.upkeepPerCycle()),
+                ty = stat(graphics, "Upkeep", String.format(Locale.ROOT, "%,d " + net.phoenix.continuum.machine.PadTiers.energyUnit() + " / cycle",
+                        outpost.upkeepPerCycle()),
                         x + 7, ty);
                 if (outpost.lostCycles() > 0) {
                     graphics.drawString(font, "Lost cycles", x + 7, ty, DIM);
@@ -1079,8 +1080,8 @@ public class ContinuumMapScreen extends Screen {
         }
         int stationLevel = ContinuumClientState.stationLevel(b.id());
         if (stationLevel > 0) {
-            ty = stat(graphics, "Station", "Level " + stationLevel + " of " +
-                    net.phoenix.continuum.common.Stations.MAX_LEVEL, x + 7, ty);
+            ty = stat(graphics, net.phoenix.continuum.common.Swarms.isSwarm(b) ? "Swarm" : "Station",
+                    "Level " + stationLevel + " of " + net.phoenix.continuum.common.Stations.maxLevel(b), x + 7, ty);
         }
 
         if (!anomalies.isEmpty()) {

@@ -58,12 +58,13 @@ class SystemGeneratorTest {
                     assertNotNull(bodies.get(body.parent()), "moon " + body.id() + " has no parent");
                     assertFalse(bodies.get(body.parent()).isMoon());
                 }
-                assertTrue(body.orbitAu() > 0.0f);
+                assertTrue(body.isCentral() ? body.type() == ContinuumBody.Type.STAR : body.orbitAu() > 0.0f,
+                        "only a star sits at the centre: " + body.id());
                 assertTrue(body.periodDays() > 0.0f);
                 assertFalse(body.yields().isEmpty(), "body " + body.id() + " has nothing to mine");
             }
             for (var system : systems.values()) {
-                assertTrue(bodies.values().stream().anyMatch(b -> b.system().equals(system.id()) && !b.isMoon()),
+                assertTrue(bodies.values().stream().anyMatch(b -> b.system().equals(system.id()) && !b.isMoon() && !b.isCentral()),
                         "system " + system.id() + " has no planet");
             }
         }

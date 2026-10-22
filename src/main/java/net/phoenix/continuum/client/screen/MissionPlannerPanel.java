@@ -18,6 +18,7 @@ import net.phoenix.continuum.common.Mission;
 import net.phoenix.continuum.common.OutpostPower;
 import net.phoenix.continuum.common.RocketStats;
 import net.phoenix.continuum.common.Stations;
+import net.phoenix.continuum.common.Swarms;
 import net.phoenix.continuum.data.ContinuumBody;
 import net.phoenix.continuum.data.DiscoveryStage;
 
@@ -160,7 +161,9 @@ final class MissionPlannerPanel {
         boolean canRescue = stranded != null;
         int rescueKits = Math.max(1, cfg.rescueKits);
         int stationLevel = ContinuumClientState.stationLevel(body.id());
-        boolean canStation = stage == DiscoveryStage.SURVEYED && stationLevel < Stations.MAX_LEVEL;
+        boolean swarm = Swarms.isSwarm(body);
+        int stationMax = Stations.maxLevel(body);
+        boolean canStation = stage == DiscoveryStage.SURVEYED && stationLevel < stationMax;
 
         long[] passing = body.transientInfo() == null ? null : ContinuumClientState.transientWindow(body.id());
         if (body.transientInfo() != null) {
@@ -168,7 +171,7 @@ final class MissionPlannerPanel {
             canDeploy = false;
             canStation = false;
         }
-        int stationProbes = Math.max(1, cfg.stationProbesPerLevel);
+        int stationProbes = Stations.probesPerLevel(body);
         int strandedCount = 0;
         for (var m : ContinuumClientState.missions()) {
             if (m.stranded() && !m.rescuing() && m.destination().equals(body.id())) strandedCount++;
@@ -231,8 +234,10 @@ final class MissionPlannerPanel {
                 mode == Mission.Type.RESCUE, mx, my);
 
         modeRects[Mission.Type.STATION.ordinal()] = button(g, font, x + 10, y + 104, 312, 16,
-                stationLevel > 0 ? "Upgrade orbital station  (level " + stationLevel + " of " + Stations.MAX_LEVEL +
-                        ")" : "Build orbital station",
+                swarm ? (stationLevel > 0 ? "Grow Dyson swarm  (level " + stationLevel + " of " + stationMax + ")" :
+                        "Build Dyson swarm") :
+                        stationLevel > 0 ? "Upgrade orbital station  (level " + stationLevel + " of " + stationMax +
+                                ")" : "Build orbital station",
                 canStation, mode == Mission.Type.STATION, mx, my);
 
         int ty = y + 130;
@@ -255,7 +260,8 @@ final class MissionPlannerPanel {
                 case HAUL -> "Brings home everything the outpost has stockpiled.";
                 case REPAIR -> "Delivers " + kitsNeeded + " repair kit" + (kitsNeeded == 1 ? "" : "s") +
                         " and gets the broken outpost producing again.";
-                case STATION -> "Level " + (stationLevel + 1) + ": " + Stations.describe(stationLevel + 1);
+                case STATION -> "Level " + (stationLevel + 1) + ": " + (swarm ?
+                        Swarms.describe(body, stationLevel + 1) : Stations.describe(stationLevel + 1));
                 case RESCUE -> "Flies a second rocket out with " + rescueKits + " repair kit" +
                         (rescueKits == 1 ? "" : "s") + " and brings the stranded one home. It must arrive before " +
                         "the distress signal fades.";
@@ -371,7 +377,9 @@ final class MissionPlannerPanel {
                         x + 10, ty, MapUi.TEXT);
                 long upkeep = OutpostPower.upkeepPerCycle(existingProbes + probes);
                 if (upkeep > 0) {
-                    ty = row(g, font, "Upkeep", String.format(Locale.ROOT, "%,d EU / cycle (Launch Complex)", upkeep),
+                    ty = row(g, font, "Upkeep", String.format(Locale.ROOT, "%,d " + net.phoenix.continuum.machine.PadTiers.energyUnit() +
+                    " / cycle (" + (net.phoenix.continuum.machine.PadTiers.basic() ? "Launch Pad" : "Launch Complex") +
+                    ")", upkeep),
                             x + 10, ty, MapUi.WARN);
                 }
                 ty = yields(g, font, body, x + 10, ty, 1, "Each probe, each cycle:");

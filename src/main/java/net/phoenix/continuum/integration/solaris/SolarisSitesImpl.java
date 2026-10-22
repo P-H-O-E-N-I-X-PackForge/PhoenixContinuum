@@ -8,13 +8,12 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.phoenix.continuum.machine.LaunchComplex;
 import net.phoenix.continuum.api.ContinuumHost;
-import net.phoenix.continuum.machine.LaunchPadMachine;
 import net.phoenixvine.solaris.api.SolarisMarkerSyncEvent;
 import net.phoenixvine.solaris.api.SolarisMarkers;
 import net.phoenixvine.solaris.api.sites.TeamSiteData;
 
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -56,7 +55,7 @@ final class SolarisSitesImpl {
             ServerLevel level = player.server.getLevel(
                     ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(site.dimension())));
             if (level != null && level.isLoaded(site.pos()) &&
-                    !(MetaMachine.getMachine(level, site.pos()) instanceof LaunchPadMachine)) {
+                    !(net.phoenix.continuum.machine.LaunchSites.at(level, site.pos()) instanceof LaunchComplex)) {
                 data.remove(team, entry.getKey());
                 continue;
             }

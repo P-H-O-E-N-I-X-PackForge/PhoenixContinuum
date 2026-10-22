@@ -337,6 +337,72 @@ public class ContinuumConfigs {
         public int padTierEndgame = 6;
 
         @Configurable
+        @Configurable.Comment({
+                "Without GregTech the Launch Pad is the launcher and runs on Forge Energy. A launch from a pad of tier T",
+                "costs this much FE times (1 + T); the pad stores eight times this. Default: 40000"
+        })
+        @Configurable.Range(min = 0, max = 200000000)
+        public int basicLaunchEnergyFE = 40_000;
+
+        @Configurable
+        @Configurable.Comment({ "The most Forge Energy a Launch Pad takes in per tick. Default: 2000" })
+        @Configurable.Range(min = 1, max = 100000000)
+        public int basicPadMaxFePerTick = 2000;
+
+        @Configurable
+        @Configurable.Comment({
+                "Without GregTech: FE one probe costs per outpost production cycle, drawn from the team's Launch Pads.",
+                "0 turns upkeep off. Default: 20000"
+        })
+        @Configurable.Range(min = 0, max = 100000000)
+        public int basicOutpostUpkeepFEPerProbe = 20_000;
+
+        @Configurable
+        @Configurable.Comment({
+                "Dyson swarms: an orbital station at a star. How many levels a swarm can have. Default: 10"
+        })
+        @Configurable.Range(min = 1, max = 100)
+        public int swarmMaxLevel = 10;
+
+        @Configurable
+        @Configurable.Comment({ "Probes one swarm level costs to build. Default: 8" })
+        @Configurable.Range(min = 1, max = 64)
+        public int swarmProbesPerLevel = 8;
+
+        @Configurable
+        @Configurable.Comment({
+                "Power one swarm level produces per tick (EU with GregTech, FE without), times the star's size",
+                "(0.5 to 4). Default: 256"
+        })
+        @Configurable.Range(min = 0, max = 100000000)
+        public int swarmPowerPerLevel = 256;
+
+        @Configurable
+        @Configurable.Comment({
+                "Without GregTech: the most FE per tick one Swarm Receiver block can pass on. A team needs",
+                "several receivers for a big swarm. Default: 4000"
+        })
+        @Configurable.Range(min = 1, max = 100000000)
+        public int swarmReceiverMaxFEPerTick = 4000;
+
+        @Configurable
+        @Configurable.Comment({
+                "Without GregTech: how much FE a Swarm Receiver block stores inside. Practically unlimited by",
+                "default, so a swarm's output is never wasted while it has somewhere to go. Default: 1.0E15"
+        })
+        @Configurable.DecimalRange(min = 1000.0, max = 9.0E18)
+        public double swarmReceiverCapacityFE = 1.0E15;
+
+        @Configurable
+        @Configurable.Comment({
+                "With GregTech: how much EU a Swarm Receiver Array's capacitor stores. The array fills its output",
+                "hatches from it, so a swarm's output is smoothed out and kept while the hatches are full.",
+                "Default: 1.0E12"
+        })
+        @Configurable.DecimalRange(min = 0.0, max = 9.0E18)
+        public double swarmArrayCapacitorEU = 1.0E12;
+
+        @Configurable
         @Configurable.Comment({ "The most extraction probes one mission can carry.", "Default: 16" })
         @Configurable.Range(min = 1, max = 64)
         public int maxProbesPerMission = 16;

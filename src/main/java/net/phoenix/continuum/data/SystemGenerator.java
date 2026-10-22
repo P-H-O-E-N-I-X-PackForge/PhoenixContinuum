@@ -267,6 +267,9 @@ public final class SystemGenerator {
     private static void generateBodies(Random rng, ResourceLocation systemId, String slug, String systemName, Star star,
                                        float distance, Map<ResourceLocation, JsonObject> out) {
         int count = 1 + rng.nextInt(Math.max(1, star.maxPlanets()));
+        if (hasStarBody(star)) {
+            out.put(ResourceLocation.fromNamespaceAndPath(NAMESPACE, slug + "_star"), centralStar(systemId, systemName, star, distance));
+        }
         float habitable = (float) Math.sqrt(star.luminosity());
         float orbit = Math.max(0.12f, habitable * (0.25f + rng.nextFloat() * 0.35f));
 
@@ -289,6 +292,45 @@ public final class SystemGenerator {
                 out.put(moonId, moon(rng, systemId, id, planetName + " " + (char) ('a' + m), m, distance));
             }
         }
+    }
+
+    /** Ordinary stars are bodies too (a place to survey and build a Dyson swarm); the exotic ones are scenery. */
+    private static boolean hasStarBody(Star star) {
+        return switch (star.kind()) {
+            case "star", "red_giant", "rapid_rotator", "wolf_rayet" -> true;
+            default -> false;
+        };
+    }
+
+    private static JsonObject centralStar(ResourceLocation system, String systemName, Star star, float distance) {
+        JsonObject body = new JsonObject();
+        body.addProperty("format", 1);
+        body.addProperty("system", system.toString());
+        body.addProperty("type", "star");
+        body.addProperty("name", systemName + " (star)");
+        body.addProperty("description", "The star itself. Rockets need stellar shielding to go near it.");
+        JsonObject orbit = new JsonObject();
+        orbit.addProperty("radius_au", 0.0);
+        orbit.addProperty("period_days", 1);
+        orbit.addProperty("phase", 0.0);
+        body.add("orbit", orbit);
+        body.addProperty("radius", round(star.radius(), 2));
+        body.addProperty("trip_minutes", Math.min(60, tripMinutes(distance, 0.0f) + 6));
+        body.addProperty("initial_stage", "unknown");
+        JsonObject gate = new JsonObject();
+        gate.addProperty("min_tier", "mid");
+        body.add("gate", gate);
+        JsonArray yields = new JsonArray();
+        yields.add(yieldOf("minecraft:glowstone_dust", 4, 10, 1.0f));
+        yields.add(yieldOf("minecraft:blaze_powder", 2, 6, 0.7f));
+        yields.add(yieldOf("minecraft:netherite_scrap", 1, 1, 0.05f));
+        body.add("yields", yields);
+        JsonObject lore = new JsonObject();
+        lore.addProperty("detected", "A star, bright enough to read by from here.");
+        lore.addProperty("surveyed", systemName + " burns steadily. A swarm of collectors in orbit would catch " +
+                "a great deal of it.");
+        body.add("lore", lore);
+        return body;
     }
 
     /** How a kind of world looks and what it gives. Colours are picked from the palettes, so two worlds differ. */

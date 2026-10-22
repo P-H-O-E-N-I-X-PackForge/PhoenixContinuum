@@ -1,0 +1,178 @@
+package net.phoenix.continuum.block;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.phoenix.continuum.ContinuumRegistry;
+import net.phoenix.continuum.api.ContinuumHost;
+import net.phoenix.continuum.api.ContinuumSwarmPower;
+import net.phoenix.continuum.config.ContinuumConfigs;
+import net.phoenix.continuum.machine.PadTiers;
+
+import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
+
+/**
+ * Turns the power of its team's Dyson swarms into Forge Energy, which it pushes into whatever touches it. Used when
+ * GregTech is not installed (with it, the swarm is received by a GregTech multiblock instead).
+ */
+public class SwarmReceiverBlockEntity extends BlockEntity implements ContinuumSwarmPower.Sink {
+
+    private long stored;
+    private UUID owner;
+    private UUID registeredTeam;
+    private final IEnergyStorage output = new Output();
+
+    public SwarmReceiverBlockEntity(BlockPos pos, BlockState state) {
+        super(ContinuumRegistry.SWARM_RECEIVER_ENTITY.get(), pos, state);
+    }
+
+    private final class Output implements IEnergyStorage {
+
+        @Override
+        public int receiveEnergy(int amount, boolean simulate) {
+            return 0;
+        }
+
+        @Override
+        public int extractEnergy(int amount, boolean simulate) {
+            int taken = (int) Math.min(Math.min(amount, stored), maxOut());
+            if (taken > 0 && !simulate) {
+                stored -= taken;
+                setChanged();
+            }
+            return taken;
+        }
+
+        @Override
+        public int getEnergyStored() {
+            return (int) Math.min(Integer.MAX_VALUE, stored);
+        }
+
+        @Override
+        public int getMaxEnergyStored() {
+            return (int) Math.min(Integer.MAX_VALUE, capacity());
+        }
+
+        @Override
+        public boolean canExtract() {
+            return true;
+        }
+
+        @Override
+        public boolean canReceive() {
+            return false;
+        }
+    }
+
+    private static int maxOut() {
+        return Math.max(1, ContinuumConfigs.INSTANCE.swarmReceiverMaxFEPerTick);
+    }
+
+    /** Practically unlimited: this is where a swarm's power waits until something draws it. */
+    private static long capacity() {
+        return (long) Math.min(9.0E18, Math.max(1000.0, ContinuumConfigs.INSTANCE.swarmReceiverCapacityFE));
+    }
+
+    private boolean isActive() {
+        return PadTiers.basic();
+    }
+
+    public long stored() {
+        return stored;
+    }
+
+    public void setOwner(@Nullable UUID player) {
+        if (player == null || level == null || level.isClientSide) return;
+        owner = player;
+        setChanged();
+        register();
+    }
+
+    private void register() {
+        if (!isActive() || owner == null || level == null || level.isClientSide) return;
+        UUID team = ContinuumHost.teamOf(owner);
+        if (team.equals(registeredTeam)) return;
+        unregister();
+        registeredTeam = team;
+        ContinuumSwarmPower.register(team, this);
+    }
+
+    private void unregister() {
+        if (registeredTeam != null) ContinuumSwarmPower.unregister(registeredTeam, this);
+        registeredTeam = null;
+    }
+
+    @Override
+    public long accept(long amount) {
+        long room = capacity() - stored;
+        long taken = Math.max(0L, Math.min(amount, room));
+        if (taken > 0) {
+            stored += taken;
+            setChanged();
+        }
+        return taken;
+    }
+
+    public static void tick(Level level, BlockPos pos, BlockState state, SwarmReceiverBlockEntity self) {
+        if (level.isClientSide || self.stored <= 0 || !self.isActive()) return;
+        int budget = (int) Math.min(self.stored, maxOut());
+        for (Direction side : Direction.values()) {
+            if (budget <= 0) break;
+            var target = level.getCapability(Capabilities.EnergyStorage.BLOCK, pos.relative(side), side.getOpposite());
+            if (target == null || !target.canReceive()) continue;
+            int moved = target.receiveEnergy(budget, false);
+            if (moved > 0) {
+                budget -= moved;
+                self.stored -= moved;
+                self.setChanged();
+            }
+        }
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        register();
+    }
+
+    @Override
+    public void setRemoved() {
+        unregister();
+        super.setRemoved();
+    }
+
+    @Override
+    public void onChunkUnloaded() {
+        unregister();
+        super.onChunkUnloaded();
+    }
+
+    /** The energy capability: only without GregTech (with it a multiblock receives the swarm instead). */
+    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ContinuumRegistry.SWARM_RECEIVER_ENTITY.get(),
+                (receiver, side) -> receiver.isActive() ? receiver.output : null);
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.putLong("Stored", stored);
+        if (owner != null) tag.putUUID("Owner", owner);
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        stored = tag.getLong("Stored");
+        owner = tag.hasUUID("Owner") ? tag.getUUID("Owner") : null;
+    }
+}

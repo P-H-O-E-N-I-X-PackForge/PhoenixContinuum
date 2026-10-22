@@ -201,11 +201,19 @@ configurations {
 dependencies {
     compileOnly 'org.jetbrains:annotations:26.0.2'
 
-    // GregTech and what it is built on
-    implementation("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtm_version}") { transitive = false }
-    implementation("brachy.modularui:modularui-mc${minecraft_version}:${mui_version}") { transitive = false }
-    implementation "com.tterrag.registrate:Registrate:${registrate_version}"
+    // GregTech and what it is built on: compiled against, but optional at runtime (-Pgtm=none runs without it)
+    compileOnly("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtm_version}") { transitive = false }
+    compileOnly("brachy.modularui:modularui-mc${minecraft_version}:${mui_version}") { transitive = false }
+    compileOnly "com.tterrag.registrate:Registrate:${registrate_version}"
+    if (project.findProperty('gtm') != 'none') {
+        runtimeOnly("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${gtm_version}") { transitive = false }
+        runtimeOnly("brachy.modularui:modularui-mc${minecraft_version}:${mui_version}") { transitive = false }
+        runtimeOnly "com.tterrag.registrate:Registrate:${registrate_version}"
+    }
     implementation "dev.toma.configuration:configuration-${minecraft_version}:${configuration_version}"
+
+    // Phoenix Tesla Network (optional): swarm power can go straight into its tesla storage
+    compileOnly "net.phoenix_tesla_network.tesla:phoenix_tesla_network:0.5.0"
 
     implementation "net.phoenixvine.wiki:neoforge:${phoenix_wiki_version}"
 

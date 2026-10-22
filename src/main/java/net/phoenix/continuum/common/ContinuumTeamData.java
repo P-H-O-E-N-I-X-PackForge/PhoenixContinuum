@@ -200,8 +200,17 @@ public class ContinuumTeamData extends SavedData {
         return stations.getOrDefault(team, Map.of());
     }
 
+    /** The stations that add a mission slot: swarms at stars do not. */
     public int stationCount(UUID team) {
-        return stations.getOrDefault(team, Map.of()).size();
+        int count = 0;
+        for (ResourceLocation body : stations.getOrDefault(team, Map.of()).keySet()) {
+            if (!Swarms.isSwarm(ContinuumData.body(body))) count++;
+        }
+        return count;
+    }
+
+    public java.util.Set<UUID> teamsWithStations() {
+        return new java.util.HashSet<>(stations.keySet());
     }
 
     public void setStationLevel(UUID team, ResourceLocation body, int level) {
@@ -209,7 +218,7 @@ public class ContinuumTeamData extends SavedData {
             Map<ResourceLocation, Integer> mine = stations.get(team);
             if (mine != null) mine.remove(body);
         } else {
-            stations.computeIfAbsent(team, t -> new HashMap<>()).put(body, Math.min(Stations.MAX_LEVEL, level));
+            stations.computeIfAbsent(team, t -> new HashMap<>()).put(body, Math.min(Swarms.maxLevel(ContinuumData.body(body)), level));
         }
         setDirty();
     }

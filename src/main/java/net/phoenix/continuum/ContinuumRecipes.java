@@ -134,6 +134,30 @@ public final class ContinuumRecipes {
                 .duration(800).EUt(VA[LuV])
                 .save(provider);
 
+        ASSEMBLER_RECIPES.recipeBuilder("continuum_swarm_array")
+                .inputItems(GTMachines.HULL[IV].asStack())
+                .inputItems(CASING_STEEL_SOLID, 8)
+                .inputItems(frameGt, Steel, 4)
+                .inputItems(SENSOR_IV, 2)
+                .inputItems(EMITTER_IV, 2)
+                .inputItems(CustomTags.IV_CIRCUITS, 4)
+                .inputFluids(SolderingAlloy, 576)
+                .outputItems(ContinuumMachines.SWARM_RECEIVER)
+                .duration(600).EUt(VA[IV])
+                .save(provider);
+
+        ASSEMBLER_RECIPES.recipeBuilder("continuum_swarm_array")
+                .inputItems(GTMachines.HULL[IV].asStack())
+                .inputItems(CASING_STEEL_SOLID, 8)
+                .inputItems(frameGt, Steel, 4)
+                .inputItems(SENSOR_IV, 2)
+                .inputItems(EMITTER_IV, 2)
+                .inputItems(CustomTags.IV_CIRCUITS, 4)
+                .inputFluids(SolderingAlloy, 576)
+                .outputItems(ContinuumMachines.SWARM_RECEIVER)
+                .duration(600).EUt(VA[IV])
+                .save(provider);
+
         ASSEMBLER_RECIPES.recipeBuilder("continuum_launch_complex")
                 .inputItems(GTMachines.HULL[EV].asStack())
                 .inputItems(CASING_STEEL_SOLID, 8)

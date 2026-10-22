@@ -195,9 +195,11 @@ public class ContinuumFleetScreen extends Screen {
         int y = top + 38;
         for (var entry : stations.entrySet()) {
             graphics.drawString(font, bodyName(entry.getKey()), x + 8, y, MapUi.TEXT);
-            String level = "Lv " + entry.getValue() + "/" + Stations.MAX_LEVEL;
+            var stationBody = net.phoenix.continuum.data.ContinuumData.body(entry.getKey());
+            int stationMax = stationBody == null ? Stations.MAX_LEVEL : Stations.maxLevel(stationBody);
+            String level = "Lv " + entry.getValue() + "/" + stationMax;
             graphics.drawString(font, level, x + w - 8 - font.width(level), y,
-                    entry.getValue() >= Stations.MAX_LEVEL ? MapUi.GOOD : MapUi.WARN);
+                    entry.getValue() >= stationMax ? MapUi.GOOD : MapUi.WARN);
             y += 12;
         }
     }

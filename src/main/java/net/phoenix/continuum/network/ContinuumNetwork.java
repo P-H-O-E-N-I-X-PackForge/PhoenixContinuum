@@ -6,6 +6,15 @@ public final class ContinuumNetwork {
 
     private ContinuumNetwork() {}
 
+    public static void sendToServer(net.minecraft.network.protocol.common.custom.CustomPacketPayload message) {
+        net.neoforged.neoforge.network.PacketDistributor.sendToServer(message);
+    }
+
+    public static void sendToPlayer(net.minecraft.server.level.ServerPlayer player,
+                                    net.minecraft.network.protocol.common.custom.CustomPacketPayload message) {
+        net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player, message);
+    }
+
     public static void register(PayloadRegistrar registrar) {
         registrar.playToClient(S2CContinuumDataPacket.TYPE, S2CContinuumDataPacket.STREAM_CODEC,
                 S2CContinuumDataPacket::handle);
