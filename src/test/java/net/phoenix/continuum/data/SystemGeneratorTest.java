@@ -84,6 +84,23 @@ class SystemGeneratorTest {
         }
     }
 
+    @Test
+    void worldsAreVariedAndNoKindDominates() {
+        Map<String, Integer> counts = new HashMap<>();
+        int planets = 0;
+        for (long seed : new long[] { 1L, 2L, 3L, 4L, 5L }) {
+            for (JsonObject body : SystemGenerator.generate(seed, 60, HOME).bodies().values()) {
+                if (!"planet".equals(body.get("type").getAsString())) continue;
+                // each kind of world has its own description, so it names the kind
+                counts.merge(body.get("description").getAsString(), 1, Integer::sum);
+                planets++;
+            }
+        }
+        int most = counts.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+        assertTrue(counts.size() >= 16, "only " + counts.size() + " kinds of world turned up: " + counts);
+        assertTrue(most <= planets * 0.14, "one kind is " + most + " of " + planets + " worlds: " + counts);
+    }
+
     private static float[] position(JsonObject system) {
         var galaxy = system.getAsJsonArray("galaxy");
         return new float[] { galaxy.get(0).getAsFloat(), galaxy.get(1).getAsFloat(), galaxy.get(2).getAsFloat() };
