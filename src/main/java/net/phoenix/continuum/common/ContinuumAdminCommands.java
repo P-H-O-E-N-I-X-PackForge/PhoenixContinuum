@@ -348,6 +348,12 @@ final class ContinuumAdminCommands {
                                         .executes(ctx -> discipline(ctx.getSource(),
                                                 StringArgumentType.getString(ctx, "name"))))))
                 .then(literal("discover")
+                        .then(literal("all")
+                                .then(argument("stage", StringArgumentType.word())
+                                        .suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider
+                                                .suggest(List.of("unknown", "detected", "surveyed"), builder))
+                                        .executes(ctx -> discoverAll(ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "stage")))))
                         .then(argument("target", ResourceLocationArgument.id())
                                 .suggests((ctx, builder) -> {
                                     ContinuumData.systems().forEach(s -> builder.suggest(s.id().toString()));
@@ -617,6 +623,32 @@ final class ContinuumAdminCommands {
         source.sendSuccess(() -> Component.literal(target + " is now " + stage.name().toLowerCase(Locale.ROOT) + "."),
                 false);
         return 1;
+    }
+
+    /** Sets every system and body to one stage for your team (the tedious way to test is one command per target). */
+    private static int discoverAll(CommandSourceStack source, String stageName) throws CommandSyntaxException {
+        DiscoveryStage stage = DiscoveryStage.parse(stageName, null);
+        if (stage == null) {
+            source.sendFailure(Component.literal("Stage must be unknown, detected or surveyed."));
+            return 0;
+        }
+
+        UUID team = team(source);
+        ContinuumTeamData data = ContinuumTeamData.get(source.getServer());
+        int count = 0;
+        for (var system : ContinuumData.systems()) {
+            data.force(team, system.id(), stage);
+            count++;
+        }
+        for (var body : ContinuumData.allBodies()) {
+            data.force(team, body.id(), stage);
+            count++;
+        }
+        ContinuumServerEvents.engageTeam(source.getServer(), team);
+        int total = count;
+        source.sendSuccess(() -> Component.literal("All " + total + " systems and bodies are now " +
+                stage.name().toLowerCase(Locale.ROOT) + "."), false);
+        return total;
     }
 
     private static int grantOutpost(CommandSourceStack source, ResourceLocation body, int probes)
