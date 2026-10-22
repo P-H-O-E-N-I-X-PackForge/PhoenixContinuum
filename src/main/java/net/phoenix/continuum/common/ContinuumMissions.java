@@ -1,7 +1,5 @@
 package net.phoenix.continuum.common;
 
-import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -25,6 +23,8 @@ import net.phoenix.continuum.item.ContinuumProbeItem;
 import net.phoenix.continuum.item.ContinuumRepairKitItem;
 import net.phoenix.continuum.item.ContinuumRocketItem;
 import net.phoenix.continuum.machine.LaunchComplex;
+import net.phoenix.continuum.machine.LaunchSites;
+import net.phoenix.continuum.machine.PadTiers;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -156,8 +156,8 @@ public final class ContinuumMissions {
 
     public static PadStockView padStock(ServerPlayer player, BlockPos pad) {
         var level = player.level();
-        if (level.isLoaded(pad) && MetaMachine.getMachine(level, pad) instanceof LaunchComplex complex &&
-                complex.isFormed()) {
+        LaunchComplex complex = level.isLoaded(pad) ? LaunchSites.at(level, pad) : null;
+        if (complex != null && complex.isFormed() && complex.hasBuses()) {
             BusStock stock = new BusStock(complex);
             return new PadStockView(true, stock.peekRocket(), stock.probes(), stock.kits(), stock.rockets());
         }
@@ -251,8 +251,7 @@ public final class ContinuumMissions {
             if (passing == null) return body.name() + " has passed beyond reach.";
         }
 
-        LaunchComplex complex = MetaMachine.getMachine(level, pad) instanceof LaunchComplex machine ? machine :
-                null;
+        LaunchComplex complex = LaunchSites.at(level, pad);
         long launchEnergy = 0;
         if (complex != null) {
             if (!complex.isFormed()) return "The launch complex is not fully built.";
@@ -261,18 +260,22 @@ public final class ContinuumMissions {
             int needed = requiredPadTier(body);
             if (padTier < needed) {
                 return "This pad is tier " + tierName(padTier) + " but " + body.name() + " needs tier " +
-                        tierName(needed) + " or better. Fit a stronger energy hatch.";
+                        tierName(needed) + " or better. " + (PadTiers.basic() ?
+                                "Build the pad on a better foundation block." : "Fit a stronger energy hatch.");
             }
 
-            launchEnergy = GTValues.V[Math.max(0, Math.min(padTier, GTValues.V.length - 1))] * cfg.launchEnergyAmpTicks;
+            launchEnergy = PadTiers.launchEnergy(padTier);
 
             launchEnergy = Math.min(launchEnergy, complex.energyCapacity() * 9 / 10);
             if (complex.storedEnergy() < launchEnergy) {
-                return "The pad needs " + launchEnergy + " EU stored in its energy hatches to launch (it has " +
+                return "The pad needs " + launchEnergy + " " + PadTiers.energyUnit() + " stored " +
+                        (PadTiers.basic() ? "" : "in its energy hatches ") + "to launch (it has " +
                         complex.storedEnergy() + ").";
             }
         } else if (level.getBlockState(pad).getBlock() instanceof LaunchPadBlock) {
-            if (cfg.requireMultiblockPad) return "Missions launch from a Continuum Launch Complex. Build one.";
+            if (cfg.requireMultiblockPad && !PadTiers.basic()) {
+                return "Missions launch from a Continuum Launch Complex. Build one.";
+            }
         } else {
             return "There is no launch pad there.";
         }
@@ -292,7 +295,7 @@ public final class ContinuumMissions {
         int stationLevel = data.stationLevel(team, destinationId);
         Affinities.Factors affinity = Affinities.of(server, team, body);
 
-        Stock stock = complex != null ? new BusStock(complex) : new PlayerStock(player);
+        Stock stock = complex != null && complex.hasBuses() ? new BusStock(complex) : new PlayerStock(player);
 
         long now = System.currentTimeMillis();
         int carried = 0;
@@ -488,18 +491,11 @@ public final class ContinuumMissions {
     }
 
     public static int requiredPadTier(ContinuumBody body) {
-        var cfg = ContinuumConfigs.INSTANCE;
-        return switch (body.minTier().toLowerCase(java.util.Locale.ROOT)) {
-            case "early" -> cfg.padTierEarly;
-            case "mid" -> cfg.padTierMid;
-            case "late" -> cfg.padTierLate;
-            case "endgame" -> cfg.padTierEndgame;
-            default -> cfg.padTierStart;
-        };
+        return PadTiers.required(body);
     }
 
     public static String tierName(int tier) {
-        return GTValues.VN[Math.max(0, Math.min(tier, GTValues.VN.length - 1))];
+        return PadTiers.name(tier);
     }
 
     private static String notEnoughProbes(int needed, Stock stock) {
@@ -885,8 +881,8 @@ public final class ContinuumMissions {
         var level = server.getLevel(key);
         BlockPos pos = BlockPos.of(mission.padPos);
         if (level == null || !level.isLoaded(pos)) return null;
-        return MetaMachine.getMachine(level, pos) instanceof LaunchComplex machine && machine.isFormed() ? machine :
-                null;
+        LaunchComplex machine = LaunchSites.at(level, pos);
+        return machine != null && machine.isFormed() ? machine : null;
     }
 
     static void notifyLogged(MinecraftServer server, ContinuumTeamData data, UUID team, MissionLog.Kind kind,

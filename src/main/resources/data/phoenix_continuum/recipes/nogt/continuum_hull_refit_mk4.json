@@ -1,0 +1,33 @@
+{
+  "conditions": [
+    {
+      "type": "forge:not",
+      "value": {
+        "type": "forge:mod_loaded",
+        "modid": "gtceu"
+      }
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "NSN",
+    "NBN",
+    "NSN"
+  ],
+  "key": {
+    "N": {
+      "item": "minecraft:netherite_block"
+    },
+    "S": {
+      "item": "minecraft:nether_star"
+    },
+    "B": {
+      "item": "minecraft:beacon"
+    }
+  },
+  "result": {
+    "item": "phoenix_continuum:continuum_hull_refit_mk4",
+    "count": 1
+  }
+}

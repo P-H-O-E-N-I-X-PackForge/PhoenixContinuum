@@ -1,0 +1,36 @@
+{
+  "conditions": [
+    {
+      "type": "forge:not",
+      "value": {
+        "type": "forge:mod_loaded",
+        "modid": "gtceu"
+      }
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " I ",
+    "IFI",
+    "DBD"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "F": {
+      "item": "minecraft:firework_rocket"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "B": {
+      "item": "minecraft:blaze_powder"
+    }
+  },
+  "result": {
+    "item": "phoenix_continuum:continuum_rocket",
+    "count": 1
+  }
+}

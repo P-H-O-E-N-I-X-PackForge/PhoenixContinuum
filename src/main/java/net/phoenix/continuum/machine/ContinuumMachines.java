@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 
 import net.phoenix.continuum.integration.gtceu.GTCEuCompat;
 
+/** The GregTech launch complex. Only touched when GregTech is installed. */
 public final class ContinuumMachines {
 
     private ContinuumMachines() {}

@@ -1,0 +1,30 @@
+{
+  "conditions": [
+    {
+      "type": "forge:not",
+      "value": {
+        "type": "forge:mod_loaded",
+        "modid": "gtceu"
+      }
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "III",
+    "ICI",
+    "III"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_block"
+    },
+    "C": {
+      "item": "minecraft:copper_block"
+    }
+  },
+  "result": {
+    "item": "phoenix_continuum:continuum_module_hull",
+    "count": 1
+  }
+}

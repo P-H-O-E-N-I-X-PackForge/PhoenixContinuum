@@ -372,7 +372,9 @@ final class MissionPlannerPanel {
                         x + 10, ty, MapUi.TEXT);
                 long upkeep = OutpostPower.upkeepPerCycle(existingProbes + probes);
                 if (upkeep > 0) {
-                    ty = row(g, font, "Upkeep", String.format(Locale.ROOT, "%,d EU / cycle (Launch Complex)", upkeep),
+                    ty = row(g, font, "Upkeep", String.format(Locale.ROOT, "%,d " + net.phoenix.continuum.machine.PadTiers.energyUnit() +
+                    " / cycle (" + (net.phoenix.continuum.machine.PadTiers.basic() ? "Launch Pad" : "Launch Complex") +
+                    ")", upkeep),
                             x + 10, ty, MapUi.WARN);
                 }
                 ty = yields(g, font, body, x + 10, ty, 1, "Each probe, each cycle:");

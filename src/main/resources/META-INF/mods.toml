@@ -8,7 +8,7 @@ version = "${mod_version}"
 displayName = "${mod_name}"
 displayURL = "${mod_url}"
 authors = "${mod_author}"
-description = '''Continuum: the galaxy map, rockets, missions, outposts and personal dimensions of the Phoenix suite. Works on its own; PhoenixCore connects it to Conflux research.'''
+description = '''Continuum: the galaxy map, rockets, missions, outposts and personal dimensions of the Phoenix suite. Works on its own, with or without GregTech (GregTech adds the Launch Complex multiblock); PhoenixCore connects it to Conflux research.'''
 
 [[dependencies.${mod_id}]]
 modId = "forge"
@@ -26,9 +26,16 @@ side = "BOTH"
 
 [[dependencies.${mod_id}]]
 modId = "gtceu"
-mandatory = true
+mandatory = false
 versionRange = "[${gtceu_version_min},)"
 ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "configuration"
+mandatory = true
+versionRange = "[3.1.0,)"
+ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]

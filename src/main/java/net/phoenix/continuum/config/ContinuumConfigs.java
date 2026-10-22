@@ -337,6 +337,27 @@ public class ContinuumConfigs {
         public int padTierEndgame = 6;
 
         @Configurable
+        @Configurable.Comment({
+                "Without GregTech the Launch Pad is the launcher and runs on Forge Energy. A launch from a pad of tier T",
+                "costs this much FE times (1 + T); the pad stores eight times this. Default: 40000"
+        })
+        @Configurable.Range(min = 0, max = 200000000)
+        public int basicLaunchEnergyFE = 40_000;
+
+        @Configurable
+        @Configurable.Comment({ "The most Forge Energy a Launch Pad takes in per tick. Default: 2000" })
+        @Configurable.Range(min = 1, max = 100000000)
+        public int basicPadMaxFePerTick = 2000;
+
+        @Configurable
+        @Configurable.Comment({
+                "Without GregTech: FE one probe costs per outpost production cycle, drawn from the team's Launch Pads.",
+                "0 turns upkeep off. Default: 20000"
+        })
+        @Configurable.Range(min = 0, max = 100000000)
+        public int basicOutpostUpkeepFEPerProbe = 20_000;
+
+        @Configurable
         @Configurable.Comment({ "The most extraction probes one mission can carry.", "Default: 16" })
         @Configurable.Range(min = 1, max = 64)
         public int maxProbesPerMission = 16;

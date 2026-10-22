@@ -125,9 +125,12 @@ dependencies {
     modGtm8CompileOnly("brachy.modularui:modularui-mc${minecraft_version}:${mui_version}") { transitive = false }
     // Which GregTech the dev client or server runs: 7.x by default, the GT 8 snapshot with -Pgtm=8, or any exact
     // version with -Pgtm=<version> (for example -Pgtm=8.0.0).
-    modRuntimeOnly("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${project.findProperty('gtm') == '8' ? gtceu8_version : (project.findProperty('gtm') ?: gtceu_version)}:slim") { transitive = false }
+    // -Pgtm=none runs without GregTech at all, to check the Launch Pad path.
+    if (project.findProperty('gtm') != 'none') {
+        modRuntimeOnly("com.gregtechceu.gtceu:gtceu-${minecraft_version}:${project.findProperty('gtm') == '8' ? gtceu8_version : (project.findProperty('gtm') ?: gtceu_version)}:slim") { transitive = false }
+    }
     // The GT 8 snapshot jar-in-jars these (its slim jar leaves them out), so a dev run on it has to provide them.
-    if (project.findProperty('gtm') != null) {
+    if (project.findProperty('gtm') != null && project.findProperty('gtm') != 'none') {
         modRuntimeOnly("brachy.modularui:modularui-mc${minecraft_version}:${mui_version}") { transitive = false }
         modRuntimeOnly("io.github.llamalad7:mixinextras-forge:0.5.3")
         modRuntimeOnly("top.theillusivec4.curios:curios-forge:5.9.1+1.20.1")

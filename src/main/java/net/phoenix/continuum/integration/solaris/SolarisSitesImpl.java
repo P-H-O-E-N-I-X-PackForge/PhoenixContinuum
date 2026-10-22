@@ -14,7 +14,6 @@ import net.phoenixvine.solaris.api.SolarisMarkerSyncEvent;
 import net.phoenixvine.solaris.api.SolarisMarkers;
 import net.phoenixvine.solaris.api.sites.TeamSiteData;
 
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -57,7 +56,7 @@ final class SolarisSitesImpl {
             ServerLevel level = player.server.getLevel(
                     ResourceKey.create(Registries.DIMENSION, new ResourceLocation(site.dimension())));
             if (level != null && level.isLoaded(site.pos()) &&
-                    !(MetaMachine.getMachine(level, site.pos()) instanceof LaunchComplex)) {
+                    !(net.phoenix.continuum.machine.LaunchSites.at(level, site.pos()) instanceof LaunchComplex)) {
                 data.remove(team, entry.getKey());
                 continue;
             }

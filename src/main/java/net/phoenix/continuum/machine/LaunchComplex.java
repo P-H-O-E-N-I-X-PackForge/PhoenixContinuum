@@ -14,6 +14,11 @@ public interface LaunchComplex {
 
     boolean isFormed();
 
+    /** False for the plain Launch Pad: rockets, probes and kits come from the launching player, not from item buses. */
+    default boolean hasBuses() {
+        return true;
+    }
+
     int count(Predicate<ItemStack> matches);
 
     ItemStack peek(Predicate<ItemStack> matches);

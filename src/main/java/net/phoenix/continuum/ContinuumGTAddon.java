@@ -13,7 +13,7 @@ public class ContinuumGTAddon implements IGTAddon {
 
     @Override
     public GTRegistrate getRegistrate() {
-        return PhoenixContinuum.REGISTRATE;
+        return net.phoenix.continuum.integration.gtceu.ContinuumGt.REGISTRATE;
     }
 
     @Override

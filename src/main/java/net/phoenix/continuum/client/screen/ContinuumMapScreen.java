@@ -1062,7 +1062,8 @@ public class ContinuumMapScreen extends Screen {
                 graphics.drawString(font, outpost.powered() ? "OK" : "NO POWER", x + 81, ty,
                         outpost.powered() ? MapUi.GOOD : MapUi.BAD);
                 ty += 11;
-                ty = stat(graphics, "Upkeep", String.format(Locale.ROOT, "%,d EU / cycle", outpost.upkeepPerCycle()),
+                ty = stat(graphics, "Upkeep", String.format(Locale.ROOT, "%,d " + net.phoenix.continuum.machine.PadTiers.energyUnit() + " / cycle",
+                        outpost.upkeepPerCycle()),
                         x + 7, ty);
                 if (outpost.lostCycles() > 0) {
                     graphics.drawString(font, "Lost cycles", x + 7, ty, DIM);

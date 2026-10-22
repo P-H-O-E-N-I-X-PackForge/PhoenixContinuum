@@ -13,12 +13,16 @@ public final class OutpostPower {
 
     public static boolean enabled() {
         var cfg = ContinuumConfigs.INSTANCE;
-        return cfg.outpostRequiresPower && cfg.outpostUpkeepEUPerProbe > 0.0;
+        return cfg.outpostRequiresPower && (net.phoenix.continuum.machine.PadTiers.basic() ?
+                cfg.basicOutpostUpkeepFEPerProbe > 0 : cfg.outpostUpkeepEUPerProbe > 0.0);
     }
 
     public static long upkeepPerCycle(int probes) {
         if (!enabled()) return 0L;
-        return Math.round(ContinuumConfigs.INSTANCE.outpostUpkeepEUPerProbe) * Math.max(0, probes);
+        var cfg = ContinuumConfigs.INSTANCE;
+        long perProbe = net.phoenix.continuum.machine.PadTiers.basic() ? cfg.basicOutpostUpkeepFEPerProbe :
+                Math.round(cfg.outpostUpkeepEUPerProbe);
+        return perProbe * Math.max(0, probes);
     }
 
     private static long stored(UUID team) {

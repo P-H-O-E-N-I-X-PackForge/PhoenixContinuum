@@ -13,7 +13,6 @@ import com.gregtechceu.gtceu.common.data.GTBlocks;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.phoenix.continuum.PhoenixContinuum;
 import net.phoenix.continuum.machine.ContinuumMachines;
 import net.phoenix.continuum.machine.LaunchComplexShape;
 import net.phoenix.continuum.machine.LaunchPadMachine8;
@@ -23,12 +22,12 @@ public final class GtmBootstrap8 implements GtmBootstrap {
 
     @Override
     public void init(IEventBus modEventBus) {
-        PhoenixContinuum.REGISTRATE.registerEventListeners(modEventBus);
+        ContinuumGt.REGISTRATE.registerEventListeners(modEventBus);
     }
 
     @Override
     public void registerMachines() {
-        ContinuumMachines.LAUNCH_COMPLEX = PhoenixContinuum.REGISTRATE
+        ContinuumMachines.LAUNCH_COMPLEX = ContinuumGt.REGISTRATE
                 .multiblock("continuum_launch_complex", LaunchPadMachine8::new)
                 .langValue("Continuum Launch Complex")
                 .rotationState(RotationState.NON_Y_AXIS)

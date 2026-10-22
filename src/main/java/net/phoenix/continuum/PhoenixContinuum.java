@@ -1,19 +1,15 @@
 package net.phoenix.continuum;
 
-import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
-
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLLoader;
 import net.phoenix.continuum.client.ContinuumClientSetup;
 import net.phoenix.continuum.config.ContinuumConfigs;
-import net.phoenix.continuum.machine.ContinuumMachines;
+import net.phoenix.continuum.integration.gtceu.GregTech;
 import net.phoenix.continuum.network.ContinuumNetwork;
 
-import com.tterrag.registrate.util.entry.RegistryEntry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -22,25 +18,18 @@ public class PhoenixContinuum {
 
     public static final String MOD_ID = "phoenix_continuum";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
-    public static final GTRegistrate REGISTRATE = GTRegistrate.create(MOD_ID);
-
-    public static RegistryEntry<CreativeModeTab> CREATIVE_TAB = REGISTRATE
-            .defaultCreativeTab(MOD_ID,
-                    builder -> builder
-                            .title(REGISTRATE.addLang("itemGroup", id("creative_tab"), "Phoenix Continuum"))
-                            .icon(() -> ContinuumRegistry.ROCKET.asStack())
-                            .build())
-            .register();
 
     public PhoenixContinuum() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         ContinuumConfigs.init();
-        net.phoenix.continuum.integration.gtceu.GTCEuCompat.init(modEventBus);
+        ContinuumRegistry.register(modEventBus);
+        // with GregTech: the launch complex multiblock and its recipes; without it: the energy-powered Launch Pad
+        if (GregTech.loaded()) {
+            net.phoenix.continuum.integration.gtceu.ContinuumGt.init(modEventBus);
+        } else {
+            LOGGER.info("GregTech is not installed: missions launch from the Launch Pad, powered by Forge Energy");
+        }
         net.phoenix.continuum.integration.solaris.SolarisSites.init();
-
-        ContinuumRegistry.init();
-        modEventBus.addGenericListener(com.gregtechceu.gtceu.api.machine.MachineDefinition.class,
-                (com.gregtechceu.gtceu.api.GTCEuAPI.RegisterEvent<ResourceLocation, com.gregtechceu.gtceu.api.machine.MachineDefinition> event) -> ContinuumMachines.init());
 
         ContinuumNetwork.register();
         modEventBus.addListener(net.phoenix.continuum.data.ContinuumPackFolder::register);
