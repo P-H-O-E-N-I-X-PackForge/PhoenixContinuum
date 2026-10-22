@@ -25,44 +25,45 @@ public final class NebulaBake {
 
     private record Key(float p0, float p1, float p2, float s0, float s1, float s2, int octaves) {}
 
-    private static @Nullable TextureTarget front;
-    private static @Nullable Key frontKey;
-    private static @Nullable TextureTarget back;
-    private static @Nullable Key backKey;
-    private static int backRow;
+    /** A picture being drawn, a strip of rows at a time. */
+    private static final class Pending {
+        final TextureTarget target = create();
+        int row;
+    }
+
+    private static final int MAX_DONE = 4;
+    private static final java.util.Map<Key, TextureTarget> done = new java.util.LinkedHashMap<>(8, 0.75f, true);
+    private static final java.util.Map<Key, Pending> building = new java.util.HashMap<>();
 
     private NebulaBake() {}
 
-    /** The baked picture for these colours (it may still be the previous one for a few frames), or null if unavailable. */
+    /**
+     * The baked picture for these colours, or null while it is still being drawn (the shaders then work the nebula out
+     * live, which looks the same). Several colour sets can be in use at once (the map backdrop and a dimension's sky are
+     * both drawn in a dimension), so each has its own picture rather than fighting over one.
+     */
     public static @Nullable RenderTarget get(float[] primary, float[] secondary, int octaves) {
         ShaderInstance shader = ContinuumShaders.NEBULA_BAKE;
         if (shader == null) return null;
         Key key = new Key(primary[0], primary[1], primary[2], secondary[0], secondary[1], secondary[2], octaves);
 
-        if (front == null) {
-            front = create();
-            bake(shader, front, key, 0, HEIGHT);
-            frontKey = key;
-            return front;
-        }
-        if (key.equals(frontKey)) return front;
+        TextureTarget have = done.get(key);
+        if (have != null) return have;
 
-        if (back == null) back = create();
-        if (!key.equals(backKey)) {
-            backKey = key;
-            backRow = 0;
+        Pending pending = building.computeIfAbsent(key, k -> new Pending());
+        bake(shader, pending.target, key, pending.row, Math.min(HEIGHT, pending.row + STRIP));
+        pending.row += STRIP;
+        if (pending.row < HEIGHT) return null;
+
+        building.remove(key);
+        done.put(key, pending.target);
+        if (done.size() > MAX_DONE) {
+            var oldest = done.entrySet().iterator();
+            var gone = oldest.next();
+            oldest.remove();
+            gone.getValue().destroyBuffers();
         }
-        bake(shader, back, key, backRow, Math.min(HEIGHT, backRow + STRIP));
-        backRow += STRIP;
-        if (backRow >= HEIGHT) {
-            TextureTarget done = back;
-            back = front;
-            front = done;
-            frontKey = key;
-            backKey = null;
-            backRow = 0;
-        }
-        return front;
+        return pending.target;
     }
 
     private static TextureTarget create() {
