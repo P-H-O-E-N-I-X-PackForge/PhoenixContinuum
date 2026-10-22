@@ -72,7 +72,7 @@ public final class ContinuumBodyPickerScreen extends Screen {
 
     @Override
     protected void init() {
-        search = new EditBox(font, 16, 26, Math.min(width - 32, 360), 14, Component.literal("Search"));
+        search = new EditBox(font, 16, 22, Math.min(width - 32, 360), 14, Component.literal("Search"));
         search.setMaxLength(48);
         search.setHint(Component.literal("Search every system and body..."));
         search.setResponder(text -> bodyScroll = 0);
@@ -87,7 +87,8 @@ public final class ContinuumBodyPickerScreen extends Screen {
     public void renderBackground(GuiGraphics g, int mx, int my, float partialTick) {}
 
     private int top() {
-        return 48;
+        // the search box ends at 36, and each column has a heading line above its rows
+        return 56;
     }
 
     private int rows() {

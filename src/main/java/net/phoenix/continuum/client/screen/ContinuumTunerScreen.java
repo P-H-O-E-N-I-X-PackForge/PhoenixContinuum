@@ -69,6 +69,14 @@ public final class ContinuumTunerScreen extends Screen {
     private static final int ROW = 15;
     private static final int LIST_W = 330;
 
+    // the screen is laid out for this much room; with a bigger gui scale (a smaller screen in gui units) it is drawn
+    // scaled down to fit, and the mouse is scaled to match
+    private static final int MIN_W = LIST_W + 230;
+    private static final int MIN_H = 430;
+    private float uiScale = 1.0f;
+    private int vw;
+    private int vh;
+
     /** Text fields that are sentences rather than ids: these open the roomy editor. */
     private static final java.util.Set<String> LONG_TEXT = java.util.Set.of("name", "description", "lore.detected",
             "lore.surveyed");
@@ -337,7 +345,7 @@ public final class ContinuumTunerScreen extends Screen {
     }
 
     private int left() {
-        return Math.max(8, (width - LIST_W - 210) / 2);
+        return Math.max(8, (vw - LIST_W - 210) / 2);
     }
 
     private int top() {
@@ -345,7 +353,7 @@ public final class ContinuumTunerScreen extends Screen {
     }
 
     private int rows() {
-        return Math.max(4, (height - top() - 40) / ROW);
+        return Math.max(4, (vh - top() - 40) / ROW);
     }
 
     @Override
@@ -364,11 +372,21 @@ public final class ContinuumTunerScreen extends Screen {
     public void renderBackground(GuiGraphics g, int mx, int my, float partialTick) {}
 
     @Override
-    public void render(GuiGraphics g, int mx, int my, float partialTick) {
-        g.fill(0, 0, width, height, 0xF00A0E14);
+    public void render(GuiGraphics g, int rawMx, int rawMy, float partialTick) {
+        uiScale = Math.min(1.0f, Math.min(width / (float) MIN_W, height / (float) MIN_H));
+        vw = Math.round(width / uiScale);
+        vh = Math.round(height / uiScale);
+        g.pose().pushPose();
+        g.pose().scale(uiScale, uiScale, 1.0f);
+        renderContent(g, (int) (rawMx / uiScale), (int) (rawMy / uiScale), partialTick);
+        g.pose().popPose();
+    }
+
+    private void renderContent(GuiGraphics g, int mx, int my, float partialTick) {
+        g.fill(0, 0, vw, vh, 0xF00A0E14);
         hits.clear();
         if (bodies.isEmpty()) {
-            g.drawCenteredString(font, "No bodies loaded.", width / 2, height / 2, 0xFFFFFFFF);
+            g.drawCenteredString(font, "No bodies loaded.", vw / 2, vh / 2, 0xFFFFFFFF);
             return;
         }
 
@@ -488,8 +506,8 @@ public final class ContinuumTunerScreen extends Screen {
         pickerVal = hsv[2];
         int totalW = SV_SIZE + HUE_GAP + HUE_W + PICKER_PAD * 2;
         int totalH = SV_SIZE + PICKER_PAD * 2 + 20;
-        pickerX = Math.max(4, Math.min(x, width - totalW - 4));
-        pickerY = Math.max(4, Math.min(y + 16, height - totalH - 4));
+        pickerX = Math.max(4, Math.min(x, vw - totalW - 4));
+        pickerY = Math.max(4, Math.min(y + 16, vh - totalH - 4));
     }
 
     private void closePicker() {
@@ -618,6 +636,8 @@ public final class ContinuumTunerScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
+        mx /= uiScale;
+        my /= uiScale;
         if (pickerField != null) return clickPicker(mx, my);
         if (preview.mouseClicked(mx, my)) return true;
         if (editor.isVisible() && editor.mouseClicked(mx, my, button)) return true;
@@ -690,6 +710,10 @@ public final class ContinuumTunerScreen extends Screen {
 
     @Override
     public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
+        mx /= uiScale;
+        my /= uiScale;
+        dx /= uiScale;
+        dy /= uiScale;
         if (draggingSV || draggingHue) {
             dragPicker(mx, my);
             return true;
@@ -725,6 +749,8 @@ public final class ContinuumTunerScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mx, double my, double scrollX, double scrollY) {
+        mx /= uiScale;
+        my /= uiScale;
         if (preview.mouseScrolled(mx, my, scrollY)) return true;
         scroll -= (int) Math.signum(scrollY) * 2;
         return true;
