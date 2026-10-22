@@ -10,13 +10,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
 
-/**
- * The nebula of the map backdrop and the personal-dimension sky, drawn once into a longitude / latitude picture of the
- * whole sphere, so the backdrop shaders look it up instead of evaluating the noise for every pixel of every frame (about
- * eight times cheaper on the same picture; stars are not in it, so they still twinkle live). The picture only depends on
- * the nebula's two colours and the noise detail, so it is made once. When those change, the new one is drawn a strip of
- * rows at a time into a second target and swapped in when it is whole, so there is no hitch and no half-drawn frame.
- */
 public final class NebulaBake {
 
     private static final int WIDTH = 2048;
@@ -25,7 +18,6 @@ public final class NebulaBake {
 
     private record Key(float p0, float p1, float p2, float s0, float s1, float s2, int octaves) {}
 
-    /** A picture being drawn, a strip of rows at a time. */
     private static final class Pending {
         final TextureTarget target = create();
         int row;
@@ -37,11 +29,6 @@ public final class NebulaBake {
 
     private NebulaBake() {}
 
-    /**
-     * The baked picture for these colours, or null while it is still being drawn (the shaders then work the nebula out
-     * live, which looks the same). Several colour sets can be in use at once (the map backdrop and a dimension's sky are
-     * both drawn in a dimension), so each has its own picture rather than fighting over one.
-     */
     public static @Nullable RenderTarget get(float[] primary, float[] secondary, int octaves) {
         ShaderInstance shader = ContinuumShaders.NEBULA_BAKE;
         if (shader == null) return null;
@@ -69,7 +56,7 @@ public final class NebulaBake {
     private static TextureTarget create() {
         TextureTarget target = new TextureTarget(WIDTH, HEIGHT, false, Minecraft.ON_OSX);
         target.setFilterMode(GL11.GL_LINEAR);
-        // it wraps round the sphere horizontally
+        
         GlStateManager._bindTexture(target.getColorTextureId());
         GlStateManager._texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
         GlStateManager._texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, 33071);
@@ -77,9 +64,14 @@ public final class NebulaBake {
     }
 
     private static void bake(ShaderInstance shader, TextureTarget target, Key key, int y0, int y1) {
-        int previousFbo = GL11.glGetInteger(36006);   // GL_DRAW_FRAMEBUFFER_BINDING
+        int previousFbo = GL11.glGetInteger(36006);   
         int[] viewport = new int[4];
         GL11.glGetIntegerv(GL11.GL_VIEWPORT, viewport);
+
+        boolean blendWas = GL11.glIsEnabled(GL11.GL_BLEND);
+        boolean depthTestWas = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
+        boolean cullWas = GL11.glIsEnabled(GL11.GL_CULL_FACE);
+        boolean depthMaskWas = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
 
         target.bindWrite(true);
         RenderSystem.disableBlend();
@@ -95,9 +87,13 @@ public final class NebulaBake {
         SceneRenderer.drawFullQuad(shader);
 
         GlStateManager._disableScissorTest();
-        RenderSystem.enableCull();
-        RenderSystem.depthMask(true);
-        RenderSystem.enableDepthTest();
+        if (cullWas) RenderSystem.enableCull();
+        else RenderSystem.disableCull();
+        RenderSystem.depthMask(depthMaskWas);
+        if (depthTestWas) RenderSystem.enableDepthTest();
+        else RenderSystem.disableDepthTest();
+        if (blendWas) RenderSystem.enableBlend();
+        else RenderSystem.disableBlend();
         GlStateManager._glBindFramebuffer(36160, previousFbo);
         GlStateManager._viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
     }

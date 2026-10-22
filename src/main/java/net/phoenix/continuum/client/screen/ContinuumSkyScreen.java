@@ -54,6 +54,7 @@ public final class ContinuumSkyScreen extends Screen {
     private boolean orbit;
     private boolean fixed;
     private boolean showAll = true;
+    private boolean panelOpen = true;
     private boolean draggingSky;
     private boolean draggingTime;
     private long lastMs = Util.getMillis();
@@ -102,7 +103,7 @@ public final class ContinuumSkyScreen extends Screen {
     }
 
     private int panelX() {
-        return width - PANEL_W - 8;
+        return panelOpen ? width - PANEL_W - 8 : width + 8;
     }
 
     @Override
@@ -158,7 +159,11 @@ public final class ContinuumSkyScreen extends Screen {
                     width / 2, height / 2, 0xFFFF6B6B);
         }
 
-        drawPanel(g, mx, my, body, system, view0, sample);
+        if (panelOpen) {
+            drawPanel(g, mx, my, body, system, view0, sample);
+        } else {
+            drawFoldedPanel(g, mx, my, body, view0, sample);
+        }
         super.render(g, mx, my, partialTick);
     }
 
@@ -171,6 +176,7 @@ public final class ContinuumSkyScreen extends Screen {
         g.renderOutline(x - 4, y - 4, PANEL_W + 8, bottom - y + 8, 0xFF3A4452);
 
         g.drawString(font, "Sky view", x, y, 0xFFFFFFFF, false);
+        button(g, mx, my, x + PANEL_W - 54, y - 2, 54, "Hide  H", "panel");
         y += 12;
         String title = "<  " + font.plainSubstrByWidth(body.name(), PANEL_W - 40) + "  >";
         g.drawString(font, title, x, y, 0xFFC8D4E8, false);
@@ -248,6 +254,19 @@ public final class ContinuumSkyScreen extends Screen {
         }
         button(g, mx, my, x, bottom - 16, 60, "Close", "close");
         g.drawString(font, "drag: look   scroll: zoom", x + 66, bottom - 12, 0xFF7F8A99, false);
+    }
+
+    /** The panel folded away: a slim bar with the world's name and the time, and a button to open it again. */
+    private void drawFoldedPanel(GuiGraphics g, int mx, int my, ContinuumBody body, PdimSkyView view0,
+                                 PdimSkyModel.Sample sample) {
+        String text = body.name() + "   Day " + day;
+        int w = font.width(text) + 70;
+        int x = width - w - 8;
+        g.fill(x, 8, x + w, 24, 0xC00A0E14);
+        g.renderOutline(x, 8, w, 16, 0xFF3A4452);
+        g.drawString(font, text, x + 6, 12, 0xFFC8D4E8, false);
+        button(g, mx, my, x + w - 58, 9, 54, "Info  H", "panel");
+        if (!message.isEmpty()) g.drawString(font, font.plainSubstrByWidth(message, width - 20), 10, height - 14, 0xFFFF6B6B, false);
     }
 
     private static String angles(float elevation, float azimuth, float apparent) {
@@ -344,6 +363,7 @@ public final class ContinuumSkyScreen extends Screen {
                     yaw = at[0];
                     pitch = Math.max(-89.0f, Math.min(89.0f, at[1]));
                 }
+                case "panel" -> panelOpen = !panelOpen;
                 case "close" -> onClose();
                 default -> {}
             }
@@ -404,6 +424,15 @@ public final class ContinuumSkyScreen extends Screen {
     public boolean mouseScrolled(double mx, double my, double scrollX, double scrollY) {
         fov = Math.max(20.0f, Math.min(110.0f, fov - (float) scrollY * 4.0f));
         return true;
+    }
+
+    @Override
+    public boolean keyPressed(int key, int scan, int mods) {
+        if (key == org.lwjgl.glfw.GLFW.GLFW_KEY_H) {
+            panelOpen = !panelOpen;
+            return true;
+        }
+        return super.keyPressed(key, scan, mods);
     }
 
     @Override

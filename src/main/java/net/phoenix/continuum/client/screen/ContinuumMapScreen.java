@@ -1533,6 +1533,8 @@ public class ContinuumMapScreen extends Screen {
     }
 
     private void updateTransition(float dt) {
+        // a bake in the middle of the move would hitch it, so nothing new is baked until it has landed
+        net.phoenix.continuum.client.render.PlanetBake.pause(phase != Phase.NONE);
         if (phase == Phase.NONE) return;
 
         phaseTime += dt;
@@ -1848,6 +1850,7 @@ public class ContinuumMapScreen extends Screen {
 
     @Override
     public void removed() {
+        net.phoenix.continuum.client.render.PlanetBake.pause(false);
         ambience.stop();
         if (scene != null) {
             scene.destroyBuffers();
