@@ -12,7 +12,6 @@ import net.phoenix.continuum.client.ContinuumClientState;
 import java.util.HashSet;
 import java.util.Set;
 
-/** The anomalies the player's team has already investigated, as "body|id". */
 public class S2CAnomalyStatePacket implements CustomPacketPayload {
 
     public static final Type<S2CAnomalyStatePacket> TYPE = new Type<>(

@@ -10,23 +10,18 @@ import dev.latvian.mods.kubejs.event.KubeEvent;
 
 import java.util.UUID;
 
-/** The {@code ContinuumEvents} KubeJS event group (server scripts). Only loaded when KubeJS is installed. */
 public final class ContinuumKubeEvents {
 
     public static final EventGroup GROUP = EventGroup.of("ContinuumEvents");
 
-    /** {@code ContinuumEvents.visibility(event => event.deny())}: the last word on whether something shows or is reachable. */
     public static final EventHandler VISIBILITY = GROUP.server(
             "visibility", () -> VisibilityEvent.class);
 
-    /** {@code ContinuumEvents.discovery(event => ...)}: a body or system reached a new stage for a team. */
     public static final EventHandler DISCOVERY = GROUP.server(
             "discovery", () -> DiscoveryEvent.class);
 
-    /** {@code ContinuumEvents.mission(event => ...)}: a mission launched, succeeded or failed. */
     public static final EventHandler MISSION = GROUP.server("mission", () -> MissionEvent.class);
 
-    /** {@code ContinuumEvents.anomaly(event => ...)}: a player investigated an anomaly (see a body's "anomalies"). */
     public static final EventHandler ANOMALY = GROUP.server("anomaly", () -> AnomalyEvent.class);
 
     private ContinuumKubeEvents() {}
@@ -51,12 +46,10 @@ public final class ContinuumKubeEvents {
             return event.getTeam();
         }
 
-        /** The body's id, as a string. */
         public String getBody() {
             return event.getBody().toString();
         }
 
-        /** The anomaly's id, as authored. */
         public String getAnomaly() {
             return event.getAnomaly();
         }
@@ -78,17 +71,14 @@ public final class ContinuumKubeEvents {
             return event.getTeam();
         }
 
-        /** The body (or system) id, as a string. */
         public String getSubject() {
             return event.getSubject().toString();
         }
 
-        /** "visible" or "accessible". */
         public String getKind() {
             return event.getKind().name().toLowerCase();
         }
 
-        /** What the rules and overrides decided so far. */
         public boolean getResult() {
             return event.getResult();
         }
@@ -126,7 +116,6 @@ public final class ContinuumKubeEvents {
             return event.getSubject().toString();
         }
 
-        /** "detected" or "surveyed". */
         public String getStage() {
             return event.getStage().name().toLowerCase();
         }
@@ -148,7 +137,6 @@ public final class ContinuumKubeEvents {
             return event.getTeam();
         }
 
-        /** "launched", "succeeded" or "failed". */
         public String getKind() {
             return event.getKind().name().toLowerCase();
         }
@@ -157,7 +145,6 @@ public final class ContinuumKubeEvents {
             return event.getDestination().toString();
         }
 
-        /** SURVEY, EXTRACT, DEPLOY, HAUL, REPAIR, STATION or RESCUE. */
         public String getMissionType() {
             return event.getMissionType();
         }

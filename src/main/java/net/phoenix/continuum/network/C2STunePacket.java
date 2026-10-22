@@ -13,7 +13,6 @@ import net.phoenix.continuum.data.TuningPatches;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
-/** An operator edit from the tuner: set one value in a body's (or a system's) server-side patch, or reset it. */
 public class C2STunePacket implements CustomPacketPayload {
 
     public static final Type<C2STunePacket> TYPE = new Type<>(
@@ -41,17 +40,14 @@ public class C2STunePacket implements CustomPacketPayload {
         this.valueJson = valueJson;
     }
 
-    /** Removes every server-side edit of the body. */
     public static C2STunePacket reset(ResourceLocation body) {
         return new C2STunePacket(true, false, body, "", "");
     }
 
-    /** Sets one value in a system's patch. */
     public static C2STunePacket forSystem(ResourceLocation system, String path, String valueJson) {
         return new C2STunePacket(false, true, system, path, valueJson);
     }
 
-    /** Removes every server-side edit of the system. */
     public static C2STunePacket resetSystem(ResourceLocation system) {
         return new C2STunePacket(true, true, system, "", "");
     }

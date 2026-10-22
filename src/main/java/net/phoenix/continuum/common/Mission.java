@@ -80,11 +80,9 @@ public final class Mission {
 
     public long distressUntil;
 
-    /** A name the launching team gave the flight (empty for none), and the names of the crew who went with it. */
     public String expedition = "";
     public List<String> crew = new ArrayList<>();
 
-    /** "\"Dawn Runner\" (crew: Alice, Bob)" or "" for an unnamed flight. */
     public String expeditionTag() {
         if (expedition.isEmpty()) return "";
         return "\"" + expedition + "\"" + (crew.isEmpty() ? "" : " (crew: " + String.join(", ", crew) + ")");

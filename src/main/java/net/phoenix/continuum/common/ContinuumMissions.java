@@ -170,9 +170,8 @@ public final class ContinuumMissions {
         return launchMany(player, destinationId, pad, type, probes, count, "", List.of());
     }
 
-    /** At most this many crew fly with a launch, besides the player who sends it. */
     public static final int MAX_CREW = 3;
-    /** Each crew member lowers a flight's chance of failing by this much. */
+    
     public static final float CREW_RISK_REDUCTION = 0.03f;
 
     public static @Nullable String launchMany(ServerPlayer player, ResourceLocation destinationId, BlockPos pad,
@@ -205,7 +204,6 @@ public final class ContinuumMissions {
         return launch(player, destinationId, pad, type, probes, "", List.of());
     }
 
-    /** The crew a launch really takes: online teammates (not the player), no repeats, at most {@link #MAX_CREW}. */
     private static List<String> validCrew(ServerPlayer player, List<String> wanted) {
         List<String> crew = new ArrayList<>();
         UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
@@ -427,7 +425,7 @@ public final class ContinuumMissions {
 
         List<String> crew = validCrew(player, crewNames);
         String expedition = cleanName(expeditionName);
-        // a crew improves the odds: more hands to catch what goes wrong on the way
+        
         float failureChance = Math.max(0.0f, RocketStats.failureChance(flown, stage) - CREW_RISK_REDUCTION * crew.size());
         boolean succeeds = player.getRandom().nextFloat() >= failureChance;
 
@@ -454,7 +452,7 @@ public final class ContinuumMissions {
         long trip = Math.round(RocketStats.tripMillis(body, flown) * Stations.tripFactor(stationLevel) *
                 affinity.trip());
         if (event == MissionEvent.TAILWIND) trip = Math.max(1000L, Math.round(trip * MissionEvent.TAILWIND_FACTOR));
-        // where the target is on its orbit: a good window is quicker and gentler, a bad one slower and harsher
+        
         LaunchWindows.Window window = LaunchWindows.of(body, now);
         trip = Math.max(1000L, Math.round(trip * window.factor()));
 

@@ -19,19 +19,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-/**
- * The built-in way to earn research: a body or system can name research ids it gives a team once the team reaches a stage
- * of it, for example {@code "grants_research": {"detected": ["mypack:sensors"], "surveyed": ["mypack:landing"]}}. A plain list
- * means "when surveyed". Research gates elsewhere then open as it is granted, which can grant more, so a sweep repeats until
- * nothing new is given. Only runs while Continuum's own research is the one in use.
- */
 public final class ResearchGrants {
 
     public static final String KEY = "grants_research";
 
     private ResearchGrants() {}
 
-    /** Sweeps for the team on the running server, if there is one. */
     public static void sweep(UUID team) {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server != null) sweep(server, team);
@@ -69,7 +62,6 @@ public final class ResearchGrants {
         }
     }
 
-    /** {@code mypack:deep_space} as \"Deep Space\". */
     static String pretty(ResourceLocation id) {
         StringBuilder out = new StringBuilder();
         for (String word : id.getPath().substring(id.getPath().lastIndexOf('/') + 1).split("_")) {

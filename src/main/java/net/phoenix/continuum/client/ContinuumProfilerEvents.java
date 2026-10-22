@@ -8,7 +8,6 @@ import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.phoenix.continuum.PhoenixContinuum;
 
-/** Feeds the profiler once per frame and draws its numbers while it is on. */
 @EventBusSubscriber(modid = PhoenixContinuum.MOD_ID, value = Dist.CLIENT)
 public final class ContinuumProfilerEvents {
 

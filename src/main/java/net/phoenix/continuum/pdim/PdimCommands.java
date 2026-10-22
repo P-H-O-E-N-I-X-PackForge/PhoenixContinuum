@@ -90,7 +90,6 @@ public final class PdimCommands {
         return 1;
     }
 
-    /** Changes a setting of the personal dimension the player is standing in. */
     private static int adjust(CommandSourceStack source, String what,
                               java.util.function.UnaryOperator<PdimData.Entry> change) throws CommandSyntaxException {
         ServerPlayer player = source.getPlayerOrException();

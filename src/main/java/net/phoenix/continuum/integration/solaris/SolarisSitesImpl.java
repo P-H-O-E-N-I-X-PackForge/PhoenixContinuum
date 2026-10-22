@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.UUID;
 
-/** The Solaris side of {@link SolarisSites}. Only loaded when Solaris is installed. */
 final class SolarisSitesImpl {
 
     private static final String KIND = "launch_complex";

@@ -17,17 +17,12 @@ public class PdimData extends SavedData {
 
     private static final String ID = "continuum_pdim";
 
-    /**
-     * @param daySpeed   how fast the sky clock runs in this dimension (1 = normal)
-     * @param lockedTime a fixed time of day in ticks (0..24000), or a negative number for none
-     */
     public record Entry(float gravity, int plot, float daySpeed, float lockedTime, boolean orbitView,
                          boolean fixedSky) {
 
         public Entry(float gravity, int plot, float daySpeed, float lockedTime, boolean orbitView) {
             this(gravity, plot, daySpeed, lockedTime, orbitView, false);
         }
-
 
         public Entry(float gravity, int plot) {
             this(gravity, plot, 1.0f, -1.0f, false);

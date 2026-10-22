@@ -6,10 +6,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 
 import org.jetbrains.annotations.Nullable;
 
-/**
- * The ambience Continuum plays comes from the pack around it (PhoenixCore registers these under its own id). Each one is
- * looked up when used; a sound nobody registered is simply silent.
- */
 public final class HostSounds {
 
     private HostSounds() {}

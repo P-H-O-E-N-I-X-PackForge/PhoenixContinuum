@@ -281,7 +281,6 @@ final class MissionPlannerPanel {
 
         boolean hasRocket = !rocket.isEmpty();
 
-        // where the target is on its orbit: a good launch window is quicker and gentler, a bad one slower and harsher
         var launchWindow = net.phoenix.continuum.common.LaunchWindows.of(body, now);
         long tripMs = hasRocket ? Math.round(RocketStats.tripMillis(body, rocket) * Stations.tripFactor(stationLevel) *
                 affTrip * launchWindow.factor()) : 0L;

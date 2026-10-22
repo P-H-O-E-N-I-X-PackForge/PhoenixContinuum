@@ -22,10 +22,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
-/**
- * Create a new system or body from the game (operators). The server writes it as an ordinary definition file in the
- * pack folder. A new body starts as a copy of an existing one (it inherits it) and only states what you chose here.
- */
 @OnlyIn(Dist.CLIENT)
 public final class ContinuumCreateScreen extends Screen {
 
@@ -55,8 +51,6 @@ public final class ContinuumCreateScreen extends Screen {
         }
     }
 
-    // ------------------------------------------------------------------ choices
-
     private ContinuumSystem currentSystem() {
         return systems.isEmpty() ? null : systems.get(Math.floorMod(systemIndex, systems.size()));
     }
@@ -69,7 +63,6 @@ public final class ContinuumCreateScreen extends Screen {
         return kindIndex == 3;
     }
 
-    /** Existing bodies of the chosen kind, the things a new one can start from. */
     private List<ContinuumBody> templates() {
         List<ContinuumBody> out = new ArrayList<>();
         for (ContinuumBody body : ContinuumData.allBodies()) {
@@ -105,8 +98,6 @@ public final class ContinuumCreateScreen extends Screen {
         List<ContinuumBody> list = planetsOfSystem();
         return list.isEmpty() ? null : list.get(Math.floorMod(parentIndex, list.size()));
     }
-
-    // ------------------------------------------------------------------ layout
 
     @Override
     protected void init() {
@@ -164,7 +155,6 @@ public final class ContinuumCreateScreen extends Screen {
                 template.name() + " (" + template.id().getPath() + ")")));
     }
 
-    /** The position in the galaxy furthest from every existing system, close to the middle. */
     static double[] freeSpot() {
         double bestX = 0;
         double bestZ = 0;
@@ -185,8 +175,6 @@ public final class ContinuumCreateScreen extends Screen {
         }
         return new double[] { bestX, 0.0, bestZ };
     }
-
-    // ------------------------------------------------------------------ create
 
     private ResourceLocation freshId(String display) {
         String slug = display.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "_").replaceAll("^_+|_+$", "");
@@ -260,9 +248,6 @@ public final class ContinuumCreateScreen extends Screen {
         net.neoforged.neoforge.network.PacketDistributor.sendToServer(new C2SCreatePacket(false, id, def.toString()));
         minecraft.setScreen(parent);
     }
-
-    // ------------------------------------------------------------------ drawing
-
 
     @Override
     protected void renderBlurredBackground(float partialTick) {}

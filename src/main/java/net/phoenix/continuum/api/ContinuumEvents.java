@@ -10,12 +10,10 @@ import net.phoenix.continuum.data.DiscoveryStage;
 
 import java.util.UUID;
 
-/** Game-bus events other mods and scripts can listen to. All are posted on the logical server. */
 public final class ContinuumEvents {
 
     private ContinuumEvents() {}
 
-    /** A body or system moved up a discovery stage for a team. */
     public static class Discovery extends Event {
 
         private final MinecraftServer server;
@@ -38,7 +36,6 @@ public final class ContinuumEvents {
             return team;
         }
 
-        /** The body or system id. */
         public ResourceLocation getSubject() {
             return subject;
         }
@@ -48,7 +45,6 @@ public final class ContinuumEvents {
         }
     }
 
-    /** A mission left the pad, or came back. */
     public static class MissionChanged extends Event {
 
         public enum Kind {
@@ -83,7 +79,6 @@ public final class ContinuumEvents {
             return mission.destination;
         }
 
-        /** SURVEY, EXTRACT, DEPLOY, HAUL, REPAIR, STATION or RESCUE. */
         public String getMissionType() {
             return mission.type.name();
         }
@@ -93,7 +88,6 @@ public final class ContinuumEvents {
         }
     }
 
-    /** A player investigated an anomaly on a body, and was paid for it. */
     public static class AnomalyInvestigated extends Event {
 
         private final MinecraftServer server;
@@ -127,7 +121,6 @@ public final class ContinuumEvents {
             return body;
         }
 
-        /** The anomaly's id, as authored in the body's "anomalies" list. */
         public String getAnomaly() {
             return anomaly;
         }

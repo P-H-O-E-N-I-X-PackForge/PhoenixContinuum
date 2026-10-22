@@ -11,7 +11,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.phoenix.continuum.common.AnomalyActions;
 
-/** Investigate an anomaly on a body. */
 public class C2SInvestigatePacket implements CustomPacketPayload {
 
     public static final Type<C2SInvestigatePacket> TYPE = new Type<>(

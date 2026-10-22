@@ -14,7 +14,6 @@ import net.phoenix.continuum.client.render.ContinuumShaders;
 import net.phoenix.continuum.client.screen.ContinuumMapScreen;
 import net.phoenixvine.wiki.client.suite.SuiteHudBar;
 
-/** Client-side wiring that used to live in PhoenixCore's PhoenixClient. */
 public final class ContinuumClientSetup {
 
     private ContinuumClientSetup() {}

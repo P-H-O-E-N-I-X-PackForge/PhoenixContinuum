@@ -12,7 +12,6 @@ import net.phoenix.continuum.data.ContentCreator;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-/** An operator asks the server to create a new system or body from the tuner. */
 public class C2SCreatePacket implements CustomPacketPayload {
 
     public static final Type<C2SCreatePacket> TYPE = new Type<>(

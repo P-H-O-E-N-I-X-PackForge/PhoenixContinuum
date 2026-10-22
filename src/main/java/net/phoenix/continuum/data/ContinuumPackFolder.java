@@ -16,11 +16,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
-/**
- * {@code config/phoenix_continuum/pack/} is an always-on data pack at the top of the stack. It is laid out like any
- * data pack ({@code data/<namespace>/continuum/bodies/...}), so a pack without KubeJS has one obvious place to put
- * extra or overriding content. KubeJS's own {@code kubejs/data/} works the same way without any help from here.
- */
 public final class ContinuumPackFolder {
 
     public static final String ID = "continuum_pack_folder";

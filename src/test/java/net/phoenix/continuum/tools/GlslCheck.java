@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-/** Compiles and links every continuum_* shader pair against the real driver, with a hidden window. */
 public final class GlslCheck {
 
     public static void main(String[] args) throws Exception {

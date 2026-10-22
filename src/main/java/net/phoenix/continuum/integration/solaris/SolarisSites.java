@@ -6,10 +6,6 @@ import net.neoforged.fml.ModList;
 
 import java.util.UUID;
 
-/**
- * Shows a team's launch complexes on the Solaris map. Everything that touches Solaris sits in {@link SolarisSitesImpl}, which is only
- * loaded when Solaris is installed, so Continuum runs the same without it.
- */
 public final class SolarisSites {
 
     private SolarisSites() {}
@@ -18,7 +14,6 @@ public final class SolarisSites {
         return ModList.get().isLoaded("solaris");
     }
 
-    /** Call once at startup. */
     public static void init() {
         if (present()) SolarisSitesImpl.init();
     }

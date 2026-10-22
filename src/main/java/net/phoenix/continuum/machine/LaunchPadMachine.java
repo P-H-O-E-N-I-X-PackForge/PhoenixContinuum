@@ -30,7 +30,6 @@ public class LaunchPadMachine extends MultiblockControllerMachine {
         super(info);
     }
 
-    /** The formed launch complexes whose power outposts draw their upkeep from. */
     public static java.util.List<LaunchPadMachine> complexesOf(java.util.UUID team) {
         var set = TEAM_COMPLEXES.get(team);
         if (set == null) return java.util.List.of();

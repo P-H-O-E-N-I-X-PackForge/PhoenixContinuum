@@ -110,7 +110,6 @@ public final class PdimActions {
         }
     }
 
-    /** Changes the gravity and sky clock of a dimension the player already has. */
     public static @Nullable String adjust(ServerPlayer player, ResourceLocation bodyId, float gravity, float daySpeed,
                                           float lockedTime, boolean orbitView, boolean fixedSky) {
         var changed = PdimData.get(player.server).update(player.getUUID(), bodyId,

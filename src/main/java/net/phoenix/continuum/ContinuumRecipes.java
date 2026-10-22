@@ -17,7 +17,6 @@ public final class ContinuumRecipes {
 
     private ContinuumRecipes() {}
 
-    /** PhoenixCore Ensorcelled Weave when it is installed, titanium otherwise. */
     private static com.gregtechceu.gtceu.api.data.chemical.material.Material weave() {
         var found = com.gregtechceu.gtceu.api.registry.GTRegistries.MATERIALS.get(
                 net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("phoenixcore", "ensorcelled_weave"));

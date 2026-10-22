@@ -15,11 +15,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * What a player can do next, worked out from the definitions and what the team has found, so nobody needs to read JSON or
- * have operator rights to know where to go. Anything that would earn research (see {@code grants_research}) is listed first.
- * Nothing here is configured: change the definitions and the list follows.
- */
 public final class ContinuumGoals {
 
     private ContinuumGoals() {}
