@@ -118,7 +118,9 @@ public class ContinuumObservatoryScreen extends Screen {
         int listTop = y + 22;
         int visible = (h - 30) / ROW;
         scroll = Math.max(0, Math.min(scroll, Math.max(0, entries.size() - visible)));
-        g.enableScissor(x + 6, listTop, x + 6 + listW, y + h - 6);
+        // (the scissor box is in window coordinates and is not scaled by the pose, so scale it by hand)
+        g.enableScissor(Math.round((x + 6) * scale), Math.round(listTop * scale), Math.round((x + 6 + listW) * scale),
+                Math.round((y + h - 6) * scale));
         for (int i = scroll; i < Math.min(entries.size(), scroll + visible); i++) {
             Entry e = entries.get(i);
             int ry = listTop + (i - scroll) * ROW;
