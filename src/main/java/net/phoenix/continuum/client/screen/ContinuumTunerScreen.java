@@ -28,11 +28,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Live tuning of how a world looks: edit a body's visual parameters and see the map change at once. It only changes
- * this client; nothing is sent to the server. Export writes the full definition as a file (and to the clipboard) to
- * drop into the pack folder. Open with {@code /continuum tune [body]}. Operators (or the single-player owner) only.
- */
 @OnlyIn(Dist.CLIENT)
 public final class ContinuumTunerScreen extends Screen {
 
@@ -46,10 +41,6 @@ public final class ContinuumTunerScreen extends Screen {
         BUTTON
     }
 
-    /**
-     * @param server  whether an edit goes to the server (for everyone, saved) instead of staying on this client
-     * @param choices the options of a CHOICE, in cycle order
-     */
     private record Field(String path, String label, Kind kind, double min, double max, double step, Object fallback,
                          boolean server, List<String> choices) {
 
@@ -111,7 +102,7 @@ public final class ContinuumTunerScreen extends Screen {
 
     private ContinuumBody body() {
         ContinuumBody listed = bodies.get(Math.floorMod(bodyIndex, bodies.size()));
-        // the data is replaced when the server reloads, so look the current definition up again
+        
         ContinuumBody current = ContinuumData.body(listed.id());
         return current != null ? current : listed;
     }
@@ -125,35 +116,35 @@ public final class ContinuumTunerScreen extends Screen {
         JsonObject json = ContinuumTuner.merged(body.id());
 
         if (body.type() == ContinuumBody.Type.BLACK_HOLE) {
-            fields.add(new Field("hole_tilt", "Disk tilt (map view)  0 edge-on, 1 face-on", Kind.NUMBER, 0, 1, 0.05, 0.075));
-            fields.add(new Field("sky_hole_inclination", "Disk inclination (sky), degrees", Kind.NUMBER, 0, 90, 1, 45.0));
-            fields.add(new Field("sky_hole_lean", "Disk lean (sky), degrees", Kind.NUMBER, -90, 90, 1, 15.0));
+            fields.add(new Field("hole_tilt", "Disk tilt (map view)  0 edge-on, 1 face-on", Kind.NUMBER, 0, 1, 0.1, 0.075));
+            fields.add(new Field("sky_hole_inclination", "Disk inclination (sky), degrees", Kind.NUMBER, 0, 90, 5, 45.0));
+            fields.add(new Field("sky_hole_lean", "Disk lean (sky), degrees", Kind.NUMBER, -90, 90, 5, 15.0));
             return;
         }
 
-        fields.add(new Field("radius", "Radius", Kind.NUMBER, 0.1, 12, 0.1, 1.0));
+        fields.add(new Field("radius", "Radius", Kind.NUMBER, 0.25, 8, 0.25, 1.0));
         fields.add(new Field("gas_giant", "Gas giant", Kind.BOOL, 0, 1, 1, false));
-        fields.add(new Field("axial_tilt", "Axial tilt", Kind.NUMBER, -90, 90, 1, 0.0));
-        fields.add(new Field("spin_deg_per_sec", "Spin", Kind.NUMBER, 0, 60, 0.5, 4.0));
-        fields.add(new Field("cloud_spin_deg_per_sec", "Cloud spin", Kind.NUMBER, 0, 60, 0.5, 6.0));
-        fields.add(new Field("surface.seed", "Seed", Kind.NUMBER, 0, 9999, 1, 1.0));
-        fields.add(new Field("surface.scale", "Terrain scale", Kind.NUMBER, 0.5, 10, 0.1, 2.5));
-        fields.add(new Field("surface.bump", "Bumpiness", Kind.NUMBER, 0, 2, 0.05, 0.7));
-        fields.add(new Field("surface.ocean_level", "Ocean level", Kind.NUMBER, 0, 1, 0.02, 0.0));
-        fields.add(new Field("surface.polar_ice", "Polar ice", Kind.NUMBER, 0, 1, 0.02, 0.0));
-        fields.add(new Field("surface.cloud_cover", "Cloud cover", Kind.NUMBER, 0, 1, 0.02, 0.0));
+        fields.add(new Field("axial_tilt", "Axial tilt", Kind.NUMBER, -90, 90, 5, 0.0));
+        fields.add(new Field("spin_deg_per_sec", "Spin", Kind.NUMBER, 0, 30, 1, 4.0));
+        fields.add(new Field("cloud_spin_deg_per_sec", "Cloud spin", Kind.NUMBER, 0, 30, 1, 6.0));
+        fields.add(new Field("surface.seed", "Seed", Kind.NUMBER, 0, 999, 1, 1.0));
+        fields.add(new Field("surface.scale", "Terrain scale", Kind.NUMBER, 0.5, 8, 0.25, 2.5));
+        fields.add(new Field("surface.bump", "Bumpiness", Kind.NUMBER, 0, 1.5, 0.1, 0.7));
+        fields.add(new Field("surface.ocean_level", "Ocean level", Kind.NUMBER, 0, 1, 0.05, 0.0));
+        fields.add(new Field("surface.polar_ice", "Polar ice", Kind.NUMBER, 0, 1, 0.05, 0.0));
+        fields.add(new Field("surface.cloud_cover", "Cloud cover", Kind.NUMBER, 0, 1, 0.05, 0.0));
         fields.add(new Field("surface.low", "Low ground colour", Kind.COLOR, 0, 0, 0, "#444444"));
         fields.add(new Field("surface.mid", "Mid ground colour", Kind.COLOR, 0, 0, 0, "#888888"));
         fields.add(new Field("surface.high", "High ground colour", Kind.COLOR, 0, 0, 0, "#cccccc"));
         fields.add(new Field("surface.ocean_deep", "Deep ocean colour", Kind.COLOR, 0, 0, 0, "#03123a"));
         fields.add(new Field("surface.ocean_shallow", "Shallow ocean colour", Kind.COLOR, 0, 0, 0, "#1a6f8f"));
         fields.add(new Field("atmosphere.color", "Atmosphere colour", Kind.COLOR, 0, 0, 0, "#6aa8ff"));
-        fields.add(new Field("atmosphere.density", "Atmosphere density", Kind.NUMBER, 0, 1.5, 0.02, 0.0));
+        fields.add(new Field("atmosphere.density", "Atmosphere density", Kind.NUMBER, 0, 1, 0.05, 0.0));
         if (json.has("rings")) {
-            fields.add(new Field("rings.inner", "Ring inner radius", Kind.NUMBER, 1, 6, 0.05, 1.4));
-            fields.add(new Field("rings.outer", "Ring outer radius", Kind.NUMBER, 1, 8, 0.05, 2.4));
-            fields.add(new Field("rings.tilt", "Ring tilt", Kind.NUMBER, -90, 90, 1, 0.0));
-            fields.add(new Field("rings.opacity", "Ring opacity", Kind.NUMBER, 0, 1, 0.05, 0.85));
+            fields.add(new Field("rings.inner", "Ring inner radius", Kind.NUMBER, 1, 4, 0.1, 1.4));
+            fields.add(new Field("rings.outer", "Ring outer radius", Kind.NUMBER, 1.5, 6, 0.1, 2.4));
+            fields.add(new Field("rings.tilt", "Ring tilt", Kind.NUMBER, -90, 90, 5, 0.0));
+            fields.add(new Field("rings.opacity", "Ring opacity", Kind.NUMBER, 0, 1, 0.1, 0.85));
             fields.add(new Field("rings.color", "Ring colour", Kind.COLOR, 0, 0, 0, "#d8c8a0"));
             fields.add(new Field("rings.color2", "Ring colour 2", Kind.COLOR, 0, 0, 0, "#8a7a60"));
         }
@@ -169,32 +160,30 @@ public final class ContinuumTunerScreen extends Screen {
         fields.add(Field.header("Server (applies for everyone, saved in config/phoenix_continuum/tuning)"));
         fields.add(Field.server("name", "Name", Kind.TEXT, 0, 0, 0, ""));
         fields.add(Field.server("description", "Description", Kind.TEXT, 0, 0, 0, ""));
-        fields.add(Field.server("trip_minutes", "Trip minutes", Kind.NUMBER, 1, 600, 1, 10.0));
+        fields.add(Field.server("trip_minutes", "Trip minutes", Kind.NUMBER, 5, 120, 5, 10.0));
         fields.add(Field.choice("initial_stage", "Starting stage", "unknown", "unknown", "detected", "surveyed"));
         fields.add(Field.choice("gate.min_tier", "Rocket tier needed", "start", "start", "mid", "late", "endgame"));
-        fields.add(Field.server("orbit.radius_au", "Orbit radius (AU)", Kind.NUMBER, 0, 60, 0.05, 1.0));
-        fields.add(Field.server("orbit.period_days", "Orbit period (days)", Kind.NUMBER, 0.05, 6000, 1, 100.0));
-        fields.add(Field.server("orbit.phase", "Orbit phase", Kind.NUMBER, 0, 1, 0.02, 0.0));
+        fields.add(Field.server("orbit.radius_au", "Orbit radius (AU)", Kind.NUMBER, 0, 30, 0.1, 1.0));
+        fields.add(Field.server("orbit.period_days", "Orbit period (days)", Kind.NUMBER, 1, 1500, 5, 100.0));
+        fields.add(Field.server("orbit.phase", "Orbit phase", Kind.NUMBER, 0, 1, 0.05, 0.0));
         if (json.has("pdim_cost")) {
             fields.add(Field.server("pdim_cost.item", "Personal dimension cost item", Kind.TEXT, 0, 0, 0,
                     "minecraft:ender_pearl"));
-            fields.add(Field.server("pdim_cost.count", "Personal dimension cost count", Kind.NUMBER, 0, 64, 1, 2.0));
+            fields.add(Field.server("pdim_cost.count", "Personal dimension cost count", Kind.NUMBER, 0, 16, 1, 2.0));
         }
         fields.add(Field.header("Yields"));
         int count = json.has("yields") && json.get("yields").isJsonArray() ? json.getAsJsonArray("yields").size() : 0;
         for (int i = 0; i < count; i++) {
             fields.add(Field.server("yields." + i + ".item", "  #" + (i + 1) + " item", Kind.TEXT, 0, 0, 0,
                     "minecraft:stone"));
-            fields.add(Field.server("yields." + i + ".min", "  #" + (i + 1) + " min", Kind.NUMBER, 1, 256, 1, 1.0));
-            fields.add(Field.server("yields." + i + ".max", "  #" + (i + 1) + " max", Kind.NUMBER, 1, 256, 1, 1.0));
-            fields.add(Field.server("yields." + i + ".chance", "  #" + (i + 1) + " chance", Kind.NUMBER, 0, 1, 0.05,
+            fields.add(Field.server("yields." + i + ".min", "  #" + (i + 1) + " min", Kind.NUMBER, 1, 64, 1, 1.0));
+            fields.add(Field.server("yields." + i + ".max", "  #" + (i + 1) + " max", Kind.NUMBER, 1, 64, 1, 1.0));
+            fields.add(Field.server("yields." + i + ".chance", "  #" + (i + 1) + " chance", Kind.NUMBER, 0, 1, 0.1,
                     1.0));
         }
         fields.add(Field.button("yield+", "Add a yield"));
         if (count > 0) fields.add(Field.button("yield-", "Remove the last yield"));
     }
-
-    // ------------------------------------------------------------------ values
 
     private JsonElement read(Field field) {
         JsonElement cursor = ContinuumTuner.merged(body().id());
@@ -258,7 +247,6 @@ public final class ContinuumTunerScreen extends Screen {
         status = "Sent to the server.";
     }
 
-    /** Server edits: an array element is sent as the whole updated array, anything else by its path. */
     private void sendServer(Field field, JsonElement value) {
         String[] parts = field.path().split("[.]");
         if (parts[0].equals("yields") && parts.length == 3) {
@@ -306,11 +294,10 @@ public final class ContinuumTunerScreen extends Screen {
 
     private void setNumber(Field field, double value) {
         double clamped = Math.max(field.min(), Math.min(field.max(), value));
-        clamped = Math.round(clamped / Math.min(field.step(), 0.001) ) * Math.min(field.step(), 0.001);
+        clamped = field.min() + Math.round((clamped - field.min()) / field.step()) * field.step();
+        clamped = Math.max(field.min(), Math.min(field.max(), Math.round(clamped * 10000.0) / 10000.0));
         set(field, new JsonPrimitive(field.step() >= 1 ? (Number) (long) Math.round(clamped) : (Number) clamped));
     }
-
-    // ------------------------------------------------------------------ layout
 
     private int left() {
         return Math.max(8, (width - LIST_W - 210) / 2);
@@ -403,8 +390,8 @@ public final class ContinuumTunerScreen extends Screen {
                     g.drawCenteredString(font, text, vx + 12 + 36, y + 4, 0xFFFFFFFF);
                     hit(g, mx, my, vx + 12, y + 1, 72, 13, field, "edit");
                     button(g, mx, my, vx + 84, y + 1, 12, "+", field, "inc");
-                    int barX = vx + 104;
-                    int barW = 110;
+                    int barX = vx + 100;
+                    int barW = LIST_W - 10 - (barX - x);
                     g.fill(barX, y + 6, barX + barW, y + 9, 0xFF2A3340);
                     double t = (value - field.min()) / (field.max() - field.min());
                     g.fill(barX, y + 6, barX + (int) (barW * Math.max(0, Math.min(1, t))), y + 9, 0xFF4F8FCF);
@@ -427,7 +414,6 @@ public final class ContinuumTunerScreen extends Screen {
             }
         }
 
-        // preview of the surface, and the actions
         int px = x + LIST_W + 12;
         g.drawString(font, "Preview", px, top() - 12, 0xFFAEBBCF, false);
         if (body.type() != ContinuumBody.Type.BLACK_HOLE) {
@@ -478,8 +464,6 @@ public final class ContinuumTunerScreen extends Screen {
             return 0x808080;
         }
     }
-
-    // ------------------------------------------------------------------ input
 
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
@@ -536,7 +520,7 @@ public final class ContinuumTunerScreen extends Screen {
     @Override
     public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
         if (preview.mouseDragged(dx, dy)) return true;
-        // dragging along a bar scrubs the value
+        
         for (Object[] h : hits) {
             if (!"bar".equals(h[1])) continue;
             int x = (int) h[2];
@@ -598,7 +582,7 @@ public final class ContinuumTunerScreen extends Screen {
                 setNumber(editing, Double.parseDouble(text));
             }
         } catch (NumberFormatException ignored) {
-            // leave the value as it was
+            
         }
         editor.setVisible(false);
         editing = null;
