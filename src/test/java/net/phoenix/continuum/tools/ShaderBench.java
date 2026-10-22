@@ -20,14 +20,9 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Draws Continuum's quad-based shaders offscreen with the real driver: writes a PNG of each so it can be looked at, and
- * times each one covering the whole target (the worst case) with a GPU timer query.
- * args: shaderDir outDir width height [filter]
- */
 public class ShaderBench {
 
-    static final String[] QUAD = {"wolfrayet", "pulsar", "protostar", "planetary", "megastructure", "dyson", "comet", "remnant1", "remnant2", "remnant3", "tidal", "blackhole",
+    static final String[] QUAD = {"wolfrayet", "pulsar", "protostar", "planetary", "megastructure", "dyson", "comet", "protostar1", "protostar2", "protostar3", "protostar4", "remnant1", "remnant2", "remnant3", "tidal", "blackhole",
             "nebula", "galaxy", "backdrop", "sky", "starfield", "glow"};
 
     public static void main(String[] args) throws Exception {
@@ -93,7 +88,6 @@ public class ShaderBench {
             applyDefaults(program, json);
             overrides(program, name);
 
-            // look at it (the star-wrapping shaders blend over a star)
             boolean premult = name.equals("megastructure") || name.equals("dyson");
             GL33C.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             GL33C.glClear(GL33C.GL_COLOR_BUFFER_BIT);
@@ -112,7 +106,7 @@ public class ShaderBench {
             save(out.resolve(name + ".png").toFile(), w, h);
 
             GL33C.glBlendFunc(GL33C.GL_ONE, GL33C.GL_ONE);
-            // time it covering the whole target
+            
             for (int i = 0; i < 40; i++) GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, 6);
             GL33C.glFinish();
             int frames = 30;
@@ -129,7 +123,6 @@ public class ShaderBench {
         GLFW.glfwTerminate();
     }
 
-    /** Draws a planet's terrain (mode 0) or cloud (mode 1) cube map, as the game does. */
     static int bakeCube(Path dir, int mode, float seed, float scale, int octaves, int quadVao, int mainFbo, int w, int h,
                         int internalFormat, int format) throws Exception {
         int size = 512;
@@ -177,7 +170,6 @@ public class ShaderBench {
         return tex;
     }
 
-    /** The nebula backdrops with and without the baked picture: the same frame both ways, and what each costs. */
     static void backdrops(Path dir, Path out, int w, int h, int mainFbo, int quadVao) throws Exception {
         int bake = build(Files.readString(dir.resolve("continuum_nebula_bake.vsh")), Files.readString(dir.resolve("continuum_nebula_bake.fsh")));
         if (bake == 0) return;
@@ -243,11 +235,11 @@ public class ShaderBench {
             double ms = GL33C.glGetQueryObjectui64(tq, GL33C.GL_QUERY_RESULT) / 1.0e6 / 30;
             System.out.printf(Locale.ROOT, "%-24s %10.3f %10.3f%n", label, ms, ms / (w * (double) h / 1.0e6));
         }
-        // sky events: each is one frame of the pdim sky with the event switched on (a picture, no timing)
+        
         {
             int skyProg = build(Files.readString(dir.resolve("continuum_sky.vsh")), Files.readString(dir.resolve("continuum_sky.fsh")));
             JsonObject sj = JsonParser.parseString(Files.readString(dir.resolve("continuum_sky.json"))).getAsJsonObject();
-            // name, sunDir, atmo, eclipse, aurora, storm, lens, time
+            
             Object[][] scenes = {
                     {"day", new float[] {0.0f, 0.5f, 0.866f}, 1f, 0f, 0f, 0f, 0f, 3.0f},
                     {"eclipse_partial", new float[] {0.0f, 0.5f, 0.866f}, 1f, 0.55f, 0f, 0f, 0f, 3.0f},
@@ -290,7 +282,6 @@ public class ShaderBench {
         GL33C.glBlendFunc(GL33C.GL_ONE, GL33C.GL_ONE);
     }
 
-    /** The planet shader on a sphere filling the target's height (the worst case), a few looks and octave counts. */
     static void planets(Path dir, Path out, int w, int h, int mainFbo, int quadVao) throws Exception {
         int program = build(Files.readString(dir.resolve("continuum_planet.vsh")), Files.readString(dir.resolve("continuum_planet.fsh")));
         int atmo = build(Files.readString(dir.resolve("continuum_planet.vsh")), Files.readString(dir.resolve("continuum_atmosphere.fsh")));
@@ -321,7 +312,6 @@ public class ShaderBench {
         GL33C.glEnable(GL33C.GL_DEPTH_TEST);
         GL33C.glDisable(GL33C.GL_CULL_FACE);
 
-        // sphere of radius 1 at z=-3, 40 degree vertical fov: covers about 0.6 of the height
         float aspect = w / (float) h;
         float f = (float) (1.0 / Math.tan(Math.toRadians(40) / 2));
         float near = 0.1f, far = 20f;
@@ -395,7 +385,7 @@ public class ShaderBench {
             System.out.printf(Locale.ROOT, "%-24s %10.3f %10.3f%n", look[0] + (baked ? " baked" : ""), ms, ms / (discPx / 1e6));
           }
         }
-        // atmosphere shell
+        
         GL33C.glUseProgram(atmo);
         GL33C.glUniformMatrix4fv(GL33C.glGetUniformLocation(atmo, "ModelViewMat"), false, mv);
         GL33C.glUniformMatrix4fv(GL33C.glGetUniformLocation(atmo, "ProjMat"), false, proj);
@@ -413,7 +403,6 @@ public class ShaderBench {
         double ms = GL33C.glGetQueryObjectui64(q, GL33C.GL_QUERY_RESULT) / 1.0e6 / 20;
         System.out.printf(Locale.ROOT, "%-24s %10.3f %10.3f%n", "atmosphere shell", ms, ms / (discPx / 1e6));
 
-        // a ringed planet: the sun on the same face of the ring as the viewer, then on the other face
         int ringProg = build(Files.readString(dir.resolve("continuum_ring.vsh")), Files.readString(dir.resolve("continuum_ring.fsh")));
         if (ringProg == 0) return;
         int rvao = GL33C.glGenVertexArrays();
@@ -544,11 +533,10 @@ public class ShaderBench {
         if (loc >= 0) set(loc, "float", v);
     }
 
-    /** Picture settings: what the game would pass for a typical view. */
     static void overrides(int program, String name) {
         f(program, "Time", 3.0f);
         f(program, "Detail", 4.0f);
-        // a tilted orbital plane, roughly like the map view
+        
         f(program, "DiskNormal", 0.0f, 0.93f, 0.37f);
         switch (name) {
             case "megastructure" -> {
@@ -559,6 +547,17 @@ public class ShaderBench {
             case "remnant1", "remnant2", "remnant3" -> {
                 f(program, "Tint", 1.0f, 0.6f, 0.4f);
                 f(program, "Progress", name.equals("remnant1") ? 0.12f : name.equals("remnant2") ? 0.5f : 0.88f);
+            }
+            case "protostar1", "protostar2", "protostar3", "protostar4" -> {
+                f(program, "Extent", 12.0f);
+                f(program, "Core", 1.0f);
+                f(program, "Tint", 1.0f, 0.85f, 0.4f);
+                switch (name) {
+                    case "protostar1" -> f(program, "DiskNormal", 0.0f, 1.0f, 0.0f);      // exactly edge-on
+                    case "protostar2" -> f(program, "DiskNormal", 0.0f, 0.0f, 1.0f);      // exactly face-on
+                    case "protostar3" -> f(program, "DiskNormal", 0.0f, 0.03f, 0.9995f);  // nearly face-on
+                    default -> f(program, "DiskNormal", 0.0f, 0.99f, 0.14f);              // nearly edge-on
+                }
             }
             case "comet" -> {
                 f(program, "Extent", 26.0f);

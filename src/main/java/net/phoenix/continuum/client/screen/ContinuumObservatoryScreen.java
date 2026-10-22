@@ -6,8 +6,10 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.phoenix.continuum.client.ContinuumClientState;
-import net.phoenix.continuum.common.LaunchWindows;
+import net.phoenix.continuum.config.ContinuumConfigs;
 import net.phoenix.continuum.data.ContinuumBody;
 import net.phoenix.continuum.data.ContinuumData;
 import net.phoenix.continuum.data.ContinuumSystem;
@@ -21,9 +23,10 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * The observatory: a live 3D look at any body or star the team has found, with what is known about it. Pick one from the
- * list; drag the picture to turn it and scroll over it to zoom. A body that is only detected shows as the faint scan return
- * it is; a surveyed one in full.
+ * The observatory: a live 3D look at any body or star the team has found, plus what only the instruments here can tell you
+ * (readings the map does not show): surface gravity, an estimate of the temperature, the kind of air, the materials a
+ * spectrograph picks out, a forecast of the next eclipse its moons will cast, and a live top-down view of the system's
+ * orbits. Pick a body from the list; drag the picture to turn it and scroll over it to zoom.
  */
 public class ContinuumObservatoryScreen extends Screen {
 
@@ -34,6 +37,10 @@ public class ContinuumObservatoryScreen extends Screen {
     private final List<int[]> rowRects = new ArrayList<>();
     private int selected;
     private int scroll;
+
+    // worked out once when a body is picked, not every frame
+    private int forecastFor = -2;
+    private ObservatoryReadings.Eclipse eclipse;
 
     /** A row in the list: a system heading (body == null) or a body. */
     private record Entry(ContinuumSystem system, ContinuumBody body) {}
@@ -51,12 +58,8 @@ public class ContinuumObservatoryScreen extends Screen {
             if (ContinuumClientState.stage(system.id()) == DiscoveryStage.UNKNOWN) continue;
             List<ContinuumBody> found = new ArrayList<>();
             for (ContinuumBody body : ContinuumData.bodiesOf(system.id())) {
-                if (ContinuumClientState.stage(body.id()) != DiscoveryStage.UNKNOWN && body.transientInfo() == null) {
-                    found.add(body);
-                } else if (body.transientInfo() != null && ContinuumClientState.transientWindow(body.id()) != null &&
-                        ContinuumClientState.stage(body.id()) != DiscoveryStage.UNKNOWN) {
-                    found.add(body);
-                }
+                if (ContinuumClientState.stage(body.id()) == DiscoveryStage.UNKNOWN) continue;
+                if (body.transientInfo() == null || ContinuumClientState.transientWindow(body.id()) != null) found.add(body);
             }
             if (found.isEmpty()) continue;
             entries.add(new Entry(system, null));
@@ -69,6 +72,7 @@ public class ContinuumObservatoryScreen extends Screen {
                 break;
             }
         }
+        forecastFor = -2;
     }
 
     @Override
@@ -121,62 +125,139 @@ public class ContinuumObservatoryScreen extends Screen {
         }
         g.disableScissor();
 
-        // ---- the body ----
         Entry current = entries.get(selected);
         ContinuumBody body = current.body();
         ContinuumSystem system = current.system();
         DiscoveryStage stage = ContinuumClientState.stage(body.id());
+        boolean surveyed = stage == DiscoveryStage.SURVEYED;
+
+        if (forecastFor != selected) {
+            forecastFor = selected;
+            var level = Minecraft.getInstance().level;
+            double days = level == null ? 0.0 : level.getGameTime() / 24000.0;
+            eclipse = body.isMoon() || body.isCentral() ? null : ObservatoryReadings.nextEclipse(body, days, 800.0);
+        }
+
+        // ---- the picture, and the system's orbits under it ----
         int px = x + listW + 16;
-        int size = Math.min(160, w - listW - 24 - 150);
-        size = Math.max(96, Math.min(size, h - 40));
+        int size = Math.max(90, Math.min(132, Math.min(w - listW - 24 - 150, h - 150)));
         if (body.isCentral()) {
             preview.drawSystem(g, system, px, y + 22, size);
         } else {
-            var params = stage == DiscoveryStage.SURVEYED ? body.params() : body.params().ghost();
+            var params = surveyed ? body.params() : body.params().ghost();
             preview.drawPlanet(g, params, px, y + 22, size);
         }
         g.drawString(font, "drag to turn, scroll to zoom", px, y + 26 + size, MapUi.DIM);
+        int diagramTop = y + 38 + size;
+        int diagram = Math.min(size, y + h - 8 - diagramTop);
+        if (diagram >= 64) drawOrbits(g, system, body, px, diagramTop, diagram);
 
+        // ---- what the instruments say ----
         int tx = px + size + 10;
         int tw = x + w - 8 - tx;
         int ty = y + 22;
         g.drawString(font, body.name(), tx, ty, MapUi.TITLE);
         ty += 11;
-        g.drawString(font, body.type().label() + "  -  " + (stage == DiscoveryStage.SURVEYED ? "surveyed" : "detected"),
-                tx, ty, stage == DiscoveryStage.SURVEYED ? MapUi.GOOD : MapUi.WARN);
-        ty += 13;
-        if (!body.isCentral()) {
-            ty = line(g, "Orbit", String.format(Locale.ROOT, "%.2f AU, %.0f days", body.orbitAu(), body.periodDays()), tx, ty, tw);
-        }
-        if (stage == DiscoveryStage.SURVEYED && body.type() != ContinuumBody.Type.STAR) {
-            ty = line(g, "Radius", String.format(Locale.ROOT, "%.2f (Earth = 1)", body.radius()), tx, ty, tw);
-            ty = line(g, "Air", body.params().atmoDensity() > 0 ? "yes" : "none", tx, ty, tw);
-        }
-        var window = LaunchWindows.of(body, ContinuumClientState.now());
-        if (window.applies()) {
-            ty = line(g, "Window", window.label() + (window.changesInMillis() > 0 ?
-                    (window.openNow() ? ", closes in " : ", opens in ") + MapUi.duration(window.changesInMillis()) : ""),
-                    tx, ty, tw);
-        }
-        var passing = body.transientInfo() == null ? null : ContinuumClientState.transientWindow(body.id());
-        if (passing != null) {
-            ty = line(g, "Passing", "leaves in " + MapUi.duration(passing[1] - ContinuumClientState.now()), tx, ty, tw);
-        }
-        int found = 0;
-        for (ContinuumBody.Anomaly a : body.anomalies()) {
-            if (stage.atLeast(a.reveal())) found++;
-        }
-        if (found > 0) ty = line(g, "Anomalies", String.valueOf(found), tx, ty, tw);
-        List<ContinuumBody> moons = ContinuumData.moonsOf(body.id());
-        if (!moons.isEmpty()) ty = line(g, "Moons", String.valueOf(moons.size()), tx, ty, tw);
+        g.drawString(font, body.type().label() + "  -  " + (surveyed ? "surveyed" : "detected"), tx, ty,
+                surveyed ? MapUi.GOOD : MapUi.WARN);
+        ty += 14;
 
-        ty += 4;
+        g.drawString(font, "Readings", tx, ty, MapUi.TITLE);
+        ty += 11;
+        if (!surveyed) {
+            ty = wrapped(g, "Only a scan return so far. Survey it to resolve the instruments.", tx, ty, tw, MapUi.DIM);
+        } else {
+            ty = line(g, "Gravity", ObservatoryReadings.gravity(body), tx, ty, tw);
+            String temperature = ObservatoryReadings.temperature(body, system);
+            if (temperature != null) ty = line(g, "Temp", temperature, tx, ty, tw);
+            ty = line(g, "Air", ObservatoryReadings.atmosphere(body), tx, ty, tw);
+            if (body.params().atmoDensity() > 0.0f) {
+                g.fill(tx + 56, ty - 12, tx + 66, ty - 3, 0xFF000000 | body.params().atmoColor());
+                g.renderOutline(tx + 56, ty - 12, 10, 9, MapUi.PANEL_LINE);
+            }
+        }
+
+        ty += 3;
+        g.drawString(font, "Spectrograph", tx, ty, MapUi.TITLE);
+        ty += 11;
+        List<Item> lines = ObservatoryReadings.spectrum(body);
+        if (lines.isEmpty()) {
+            g.drawString(font, "no lines", tx, ty, MapUi.DIM);
+            ty += 12;
+        } else {
+            int ix = tx;
+            for (Item item : lines) {
+                if (ix + 16 > tx + tw) break;
+                g.renderItem(new ItemStack(item), ix, ty - 1);
+                ix += 17;
+            }
+            ty += 19;
+        }
+
+        if (!body.isMoon() && !body.isCentral() && surveyed) {
+            g.drawString(font, "Sky", tx, ty, MapUi.TITLE);
+            ty += 11;
+            if (ContinuumData.moonsOf(body.id()).isEmpty()) {
+                g.drawString(font, "no moons, no eclipses", tx, ty, MapUi.DIM);
+                ty += 11;
+            } else if (eclipse == null) {
+                ty = wrapped(g, "No eclipse in the next 800 days.", tx, ty, tw, MapUi.DIM);
+            } else {
+                String how = eclipse.total() ? "total" : "annular or partial";
+                // a game day is 24000 ticks: 20 real minutes at normal speed
+                ty = line(g, "Eclipse", String.format(Locale.ROOT, "%s, in %.1f days (about %s)", how, eclipse.inDays(),
+                        MapUi.duration(Math.round(eclipse.inDays() * 1_200_000.0))), tx, ty, tw);
+                ty = wrapped(g, "by " + eclipse.moon(), tx, ty, tw, MapUi.DIM);
+            }
+        }
+
+        // notes: what the observers have written down
         String lore = body.lore(stage);
-        if (lore.isBlank()) lore = body.description();
-        for (FormattedCharSequence l : font.split(FormattedText.of(lore), tw)) {
-            if (ty > y + h - 14) break;
-            g.drawString(font, l, tx, ty, MapUi.DIM);
-            ty += 10;
+        if (!lore.isBlank()) {
+            ty += 3;
+            for (FormattedCharSequence l : font.split(FormattedText.of(lore), tw)) {
+                if (ty > y + h - 12) break;
+                g.drawString(font, l, tx, ty, MapUi.DIM);
+                ty += 10;
+            }
+        }
+    }
+
+    /** A top-down view of the system's orbits with every found world where it is right now. */
+    private void drawOrbits(GuiGraphics g, ContinuumSystem system, ContinuumBody selectedBody, int x, int y, int size) {
+        g.fill(x, y, x + size, y + size, 0xFF05060F);
+        g.renderOutline(x, y, size, size, MapUi.PANEL_LINE);
+        int cx = x + size / 2;
+        int cy = y + size / 2;
+
+        List<ContinuumBody> worlds = new ArrayList<>();
+        float maxAu = 0.5f;
+        for (ContinuumBody b : ContinuumData.bodiesOf(system.id())) {
+            if (b.isCentral() || b.isMoon() || b.transientInfo() != null) continue;
+            if (ContinuumClientState.stage(b.id()) == DiscoveryStage.UNKNOWN) continue;
+            worlds.add(b);
+            maxAu = Math.max(maxAu, b.orbitAu());
+        }
+        double dayMillis = Math.max(0.5, ContinuumConfigs.INSTANCE.launchWindowDayMinutes) * 60_000.0;
+        double days = ContinuumClientState.now() / dayMillis;
+        int outer = size / 2 - 5;
+
+        g.fill(cx - 2, cy - 2, cx + 3, cy + 3, 0xFF000000 | system.starColor());
+        for (ContinuumBody b : worlds) {
+            int r = 7 + (int) ((outer - 7) * Math.sqrt(b.orbitAu() / maxAu));
+            // the orbit
+            for (int i = 0; i < 48; i++) {
+                double a = i * Math.PI * 2.0 / 48.0;
+                g.fill(cx + (int) Math.round(Math.cos(a) * r), cy + (int) Math.round(Math.sin(a) * r),
+                        cx + (int) Math.round(Math.cos(a) * r) + 1, cy + (int) Math.round(Math.sin(a) * r) + 1, 0x40FFFFFF);
+            }
+            double angle = 2.0 * Math.PI * (b.phase() + days / Math.max(0.05, b.periodDays()));
+            int bx = cx + (int) Math.round(Math.cos(angle) * r);
+            int by = cy + (int) Math.round(Math.sin(angle) * r);
+            boolean sel = b == selectedBody || (selectedBody.isMoon() && b.id().equals(selectedBody.parent()));
+            int color = 0xFF000000 | b.params().mid();
+            g.fill(bx - 1, by - 1, bx + 2, by + 2, color);
+            if (sel) g.renderOutline(bx - 3, by - 3, 7, 7, MapUi.TITLE);
         }
     }
 
@@ -185,6 +266,14 @@ public class ContinuumObservatoryScreen extends Screen {
         int vx = x + 56;
         for (FormattedCharSequence l : font.split(FormattedText.of(value), Math.max(40, width - 56))) {
             g.drawString(font, l, vx, y, MapUi.TEXT);
+            y += 10;
+        }
+        return y + 1;
+    }
+
+    private int wrapped(GuiGraphics g, String text, int x, int y, int width, int color) {
+        for (FormattedCharSequence l : font.split(FormattedText.of(text), width)) {
+            g.drawString(font, l, x, y, color);
             y += 10;
         }
         return y + 1;
