@@ -19,7 +19,6 @@ public class ContinuumConfigs {
         INSTANCE = CONFIG_HOLDER.getConfigInstance();
     }
 
-
         public enum RenderQuality {
             LOW,
             MEDIUM,
@@ -178,6 +177,23 @@ public class ContinuumConfigs {
         })
         @Configurable.DecimalRange(min = 0.5, max = 120.0)
         public double launchWindowDayMinutes = 6.0;
+
+        @Configurable
+        @Configurable.Comment({
+                "The longest a world's launch window may take to come round again, in real minutes. A world whose",
+                "year is close to home's would otherwise wait days for its next window; its windows are speeded up",
+                "so none is further away than this. Default: 45"
+        })
+        @Configurable.DecimalRange(min = 5.0, max = 1440.0)
+        public double launchWindowMaxCycleMinutes = 45.0;
+
+        @Configurable
+        @Configurable.Comment({
+                "The shortest a world's launch window cycle may be, in real minutes, so a fast world's window does",
+                "not open and shut in seconds. Default: 8"
+        })
+        @Configurable.DecimalRange(min = 1.0, max = 120.0)
+        public double launchWindowMinCycleMinutes = 8.0;
 
         @Configurable
         @Configurable.Comment({

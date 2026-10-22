@@ -180,7 +180,7 @@ public final class ContinuumTunerScreen extends Screen {
         fields.add(Field.server("description", "Description", Kind.TEXT, 0, 0, 0, ""));
         fields.add(Field.server("lore.detected", "Lore (detected)", Kind.TEXT, 0, 0, 0, ""));
         fields.add(Field.server("lore.surveyed", "Lore (surveyed)", Kind.TEXT, 0, 0, 0, ""));
-        fields.add(Field.server("trip_minutes", "Trip minutes", Kind.NUMBER, 5, 10000, 5, 10.0));
+        fields.add(Field.server("trip_seconds", "Trip (seconds)", Kind.NUMBER, 1, 600000, 1, 600.0));
         fields.add(Field.choice("initial_stage", "Starting stage", "unknown", "unknown", "detected", "surveyed"));
         fields.add(Field.choice("gate.min_tier", "Rocket tier needed", "start", "start", "mid", "late", "endgame"));
         fields.add(Field.server("orbit.radius_au", "Orbit radius (AU)", Kind.NUMBER, 0, 1000, 0.1, 1.0));
@@ -237,6 +237,15 @@ public final class ContinuumTunerScreen extends Screen {
             try {
                 return value.getAsDouble();
             } catch (RuntimeException ignored) {}
+        }
+        if (field.path().equals("trip_seconds")) {
+            // bodies written in minutes show the same trip in seconds until it is edited
+            JsonElement minutes = ContinuumTuner.merged(body().id()).get("trip_minutes");
+            if (minutes != null && minutes.isJsonPrimitive()) {
+                try {
+                    return minutes.getAsDouble() * 60.0;
+                } catch (RuntimeException ignored) {}
+            }
         }
         return ((Number) field.fallback()).doubleValue();
     }

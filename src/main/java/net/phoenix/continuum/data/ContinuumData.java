@@ -217,7 +217,7 @@ public final class ContinuumData {
                 Math.max(GsonHelper.getAsFloat(orbit, "period_days", 100.0f), 0.01f),
                 GsonHelper.getAsFloat(orbit, "phase", 0.0f),
                 GsonHelper.getAsFloat(json, "radius", 1.0f),
-                GsonHelper.getAsInt(json, "trip_minutes", 10),
+                tripMinutes(json),
                 GsonHelper.getAsString(gate, "min_tier", "start"),
                 optionalId(gate, "detected_research"),
                 optionalId(gate, "surveyed_research"),
@@ -237,6 +237,13 @@ public final class ContinuumData {
                 json.has("visibility") && json.get("visibility").isJsonObject() ?
                         json.getAsJsonObject("visibility") : null,
                 parseAnomalies(json));
+    }
+
+    /** Minutes, but a world can say "trip_seconds" instead and fly in seconds (never under one). */
+    private static float tripMinutes(JsonObject json) {
+        float minutes = json.has("trip_seconds") ? GsonHelper.getAsFloat(json, "trip_seconds") / 60.0f :
+                GsonHelper.getAsFloat(json, "trip_minutes", 10.0f);
+        return Math.max(1.0f / 60.0f, minutes);
     }
 
     private static List<ContinuumBody.Anomaly> parseAnomalies(JsonObject json) {

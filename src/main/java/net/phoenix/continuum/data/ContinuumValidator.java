@@ -10,15 +10,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-/** Checks Continuum definitions for the mistakes pack authors actually make, and says where they are. */
 final class ContinuumValidator {
 
-    /** Keys that mean something to the loader itself, valid on every definition. */
     private static final Set<String> META = Set.of("format", "inherits", "abstract", "disabled");
 
     private static final Set<String> BODY_KEYS = Set.of("system", "type", "name", "description", "orbit", "radius",
             "gas_giant", "axial_tilt", "spin_deg_per_sec", "cloud_spin_deg_per_sec", "surface", "atmosphere", "gate",
-            "trip_minutes", "initial_stage", "yields", "lore", "parent", "rings", "style", "discipline", "pdim_cost",
+            "trip_minutes", "trip_seconds", "initial_stage", "yields", "lore", "parent", "rings", "style", "discipline", "pdim_cost",
             "transient", "hole_tilt", "sky_hole_inclination", "sky_hole_lean", "visibility", "grants_research", "anomalies");
 
     private static final Set<String> SYSTEM_KEYS = Set.of("name", "description", "galaxy", "star_color", "star_radius",

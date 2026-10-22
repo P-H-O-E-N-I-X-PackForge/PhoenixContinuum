@@ -16,21 +16,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-/**
- * Server-side edits made with the in-game tuner. Each body with edits has a small file
- * {@code config/phoenix_continuum/tuning/<namespace>/<name>.json} holding only the changed keys. They are merged over
- * the resolved definition on every load, so the original files stay as they were, and deleting a patch (or using
- * Reset in the tuner) puts the body back.
- */
 public final class TuningPatches {
 
-    /** The top-level keys the tuner may change on the server. */
-    public static final Set<String> EDITABLE = Set.of("name", "description", "trip_minutes", "initial_stage", "orbit",
+    public static final Set<String> EDITABLE = Set.of("name", "description", "trip_minutes", "trip_seconds", "initial_stage", "orbit",
             "gate", "yields", "pdim_cost", "discipline", "radius", "gas_giant", "axial_tilt", "spin_deg_per_sec",
             "cloud_spin_deg_per_sec", "surface", "atmosphere", "rings", "style", "hole_tilt", "sky_hole_inclination",
             "sky_hole_lean", "lore", "visibility", "grants_research");
 
-    /** The top-level keys the tuner may change on a system. */
     public static final Set<String> EDITABLE_SYSTEM = Set.of("name", "description", "galaxy", "star_color",
             "star_radius", "star_kind", "initial_stage", "gate", "hole", "visibility",
             "grants_research");
@@ -41,7 +33,6 @@ public final class TuningPatches {
         return FMLPaths.CONFIGDIR.get().resolve("phoenix_continuum").resolve("tuning");
     }
 
-    /** Where system edits live, next to the body ones. */
     public static Path systemRoot() {
         return FMLPaths.CONFIGDIR.get().resolve("phoenix_continuum").resolve("tuning_systems");
     }
@@ -50,12 +41,10 @@ public final class TuningPatches {
         return (system ? systemRoot() : root()).resolve(id.getNamespace()).resolve(id.getPath() + ".json");
     }
 
-    /** Merges every patch file over the matching resolved body. */
     static void applyAll(Map<ResourceLocation, JsonObject> resolvedBodies, ContinuumReport report) {
         applyAll(root(), resolvedBodies, "body", report);
     }
 
-    /** Merges every system patch file over the matching resolved system. */
     static void applySystems(Map<ResourceLocation, JsonObject> resolvedSystems, ContinuumReport report) {
         applyAll(systemRoot(), resolvedSystems, "system", report);
     }
@@ -110,12 +99,6 @@ public final class TuningPatches {
         Files.writeString(file, new GsonBuilder().setPrettyPrinting().create().toJson(patch));
     }
 
-    /**
-     * Sets one value at a dotted path in the body's patch ({@code orbit.radius_au}); a whole array or object can be
-     * given at once. A null value removes that key from the patch.
-     *
-     * @return null on success, otherwise what was wrong
-     */
     public static String set(ResourceLocation id, String path, JsonElement value) {
         return set(id, path, value, false);
     }
@@ -147,7 +130,6 @@ public final class TuningPatches {
         return null;
     }
 
-    /** Removes every server-side edit of a body. */
     public static String reset(ResourceLocation id) {
         return reset(id, false);
     }
