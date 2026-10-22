@@ -181,7 +181,13 @@ void main() {
     }
 
     // the world under your feet: a crisp horizon, and nothing of the sky below it
-    if (Ground > 0.5) col *= mix(0.05, 1.0, smoothstep(-0.010, 0.010, dir.y));
+    if (Ground > 0.5) {
+        float below = 1.0 - smoothstep(-0.010, 0.010, dir.y);
+        // the sky carries on below the horizon, only dimmer: the stars and nebula are still there, with the light of the
+        // sky bleeding down past the edge
+        col *= mix(1.0, 0.5, below);
+        col += mix(HorizonColor, DuskColor, 0.35) * Atmo * 0.16 * exp(max(dir.y, -1.0) / 0.10) * below * (0.2 + 0.8 * dayF);
+    }
 
     fragColor = vec4(col, 1.0);
 }
