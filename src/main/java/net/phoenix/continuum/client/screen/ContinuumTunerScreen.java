@@ -102,10 +102,8 @@ public final class ContinuumTunerScreen extends Screen {
     public ContinuumTunerScreen(Screen parent, ResourceLocation start) {
         super(Component.literal("Continuum tuner"));
         this.parent = parent;
-        for (ContinuumBody body : ContinuumData.allBodies()) {
-            if (body.type() == ContinuumBody.Type.STAR) continue;
-            bodies.add(body);
-        }
+        // every body of every system, stars and black holes included
+        bodies.addAll(ContinuumData.allBodies());
         bodies.sort(Comparator.comparing((ContinuumBody b) -> b.system().toString()).thenComparing(ContinuumBody::name));
         for (int i = 0; i < bodies.size(); i++) {
             if (bodies.get(i).id().equals(start)) bodyIndex = i;
@@ -123,6 +121,16 @@ public final class ContinuumTunerScreen extends Screen {
         
         ContinuumBody current = ContinuumData.body(listed.id());
         return current != null ? current : listed;
+    }
+
+    private void selectBody(ResourceLocation id) {
+        for (int i = 0; i < bodies.size(); i++) {
+            if (bodies.get(i).id().equals(id)) {
+                bodyIndex = i;
+                rebuildFields();
+                return;
+            }
+        }
     }
 
     private void rebuildFields() {
@@ -373,6 +381,7 @@ public final class ContinuumTunerScreen extends Screen {
         int x = left();
         g.drawString(font, "Continuum tuner", x, 8, 0xFFFFFFFF, false);
         String title = "<  " + body.name() + "  (" + body.id() + ")  >";
+        g.drawString(font, "click the name to pick a body", x + 90, 8, 0xFF7F8A99, false);
         g.drawString(font, title, x, 22, 0xFFC8D4E8, false);
         hit(g, mx, my, x, 20, font.width(title) + 4, 12, "body", false);
         if (ContinuumTuner.isTuned(body.id())) g.drawString(font, "tuned", x + LIST_W - 30, 8, 0xFFFFB040, false);
@@ -627,8 +636,18 @@ public final class ContinuumTunerScreen extends Screen {
                 return true;
             }
             if (target.equals("body")) {
-                bodyIndex += mx < x + font.width("<  ") + 6 ? -1 : 1;
-                rebuildFields();
+                int prevEnd = x + font.width("<  ") + 6;
+                int nextStart = x + (int) h[4] - font.width("  >") - 8;
+                if (mx < prevEnd) {
+                    bodyIndex--;
+                    rebuildFields();
+                } else if (mx >= nextStart) {
+                    bodyIndex++;
+                    rebuildFields();
+                } else {
+                    // the name between the arrows opens the picker of every system and body
+                    minecraft.setScreen(new ContinuumBodyPickerScreen(this, bodies, body().id(), this::selectBody));
+                }
                 return true;
             }
             Field field = (Field) target;
