@@ -346,6 +346,7 @@ public final class ContinuumData {
             Map<ResourceLocation, JsonObject> rawSystems = new LinkedHashMap<>();
             Map<ResourceLocation, JsonObject> rawBodies = new LinkedHashMap<>();
             read(manager, SYSTEM_DIR, rawSystems::put, report);
+            applyDisabled(manager, systemJson, bodyJson, report);
             read(manager, BODY_DIR, rawBodies::put, report);
 
             Map<ResourceLocation, JsonObject> systemJson = ContentResolver.resolve("system", rawSystems, report);
@@ -396,6 +397,57 @@ public final class ContinuumData {
             for (ContinuumReport.Issue issue : report.issues()) {
                 if (issue.level() == ContinuumReport.Level.ERROR) LOGGER.error("[Continuum] {}", issue);
                 else LOGGER.warn("[Continuum] {}", issue);
+        /**
+         * Any pack can ship {@code data/<namespace>/continuum/disable.json} with {@code "systems"} and
+         * {@code "bodies"} lists of ids to remove. Every copy in every pack is read, so it does not matter which
+         * pack wins the load order (it is how a modpack drops the built-in example without overriding its files).
+         * Removing a system removes its worlds too.
+         */
+        private static void applyDisabled(ResourceManager manager, Map<ResourceLocation, JsonObject> systemJson,
+                                          Map<ResourceLocation, JsonObject> bodyJson, ContinuumReport report) {
+            Set<ResourceLocation> systemIds = new HashSet<>();
+            Set<ResourceLocation> bodyIds = new HashSet<>();
+            for (String namespace : manager.getNamespaces()) {
+                ResourceLocation file = ResourceLocation.fromNamespaceAndPath(namespace, "continuum/disable.json");
+                for (Resource resource : manager.getResourceStack(file)) {
+                    try (Reader reader = resource.openAsReader()) {
+                        JsonElement element = JsonParser.parseReader(reader);
+                        if (!element.isJsonObject()) {
+                            report.error(file.toString(), "must contain a JSON object");
+                            continue;
+                        }
+                        collectIds(element.getAsJsonObject(), "systems", systemIds, file, report);
+                        collectIds(element.getAsJsonObject(), "bodies", bodyIds, file, report);
+                    } catch (Exception e) {
+                        report.error(file.toString(), "invalid JSON: " + e.getMessage());
+                    }
+                }
+            }
+            if (systemIds.isEmpty() && bodyIds.isEmpty()) return;
+
+            systemJson.keySet().removeAll(systemIds);
+            bodyJson.keySet().removeAll(bodyIds);
+            bodyJson.values().removeIf(body -> {
+                ResourceLocation system = body.has("system") && body.get("system").isJsonPrimitive() ?
+                        ResourceLocation.tryParse(body.get("system").getAsString()) : null;
+                return system != null && systemIds.contains(system);
+            });
+        }
+
+        private static void collectIds(JsonObject json, String key, Set<ResourceLocation> into, ResourceLocation file,
+                                       ContinuumReport report) {
+            if (!json.has(key)) return;
+            if (!json.get(key).isJsonArray()) {
+                report.error(file.toString(), "\"" + key + "\" must be a list of ids");
+                return;
+            }
+            for (JsonElement entry : json.getAsJsonArray(key)) {
+                ResourceLocation id = entry.isJsonPrimitive() ? ResourceLocation.tryParse(entry.getAsString()) : null;
+                if (id == null) report.error(file.toString(), "\"" + key + "\" has an entry that is not an id: " + entry);
+                else into.add(id);
+            }
+        }
+
             }
             ContinuumServerEvents.onDataReloaded();
         }

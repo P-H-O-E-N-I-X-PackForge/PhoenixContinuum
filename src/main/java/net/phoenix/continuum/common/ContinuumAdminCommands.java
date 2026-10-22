@@ -74,6 +74,10 @@ final class ContinuumAdminCommands {
         return stems.containsKey(net.phoenix.continuum.pdim.PdimDimensions.keyFor(body).location());
     }
 
+        return writePdimFiles(source, new java.util.ArrayList<>());
+    }
+
+    private static int writePdimFiles(CommandSourceStack source, java.util.List<java.nio.file.Path> writtenFiles) {
     /**
      * Personal dimensions are ordinary data pack dimensions, one per body, and a dimension can only be added by a
      * restart. This writes the missing files (the usual void world) into the pack folder so one restart enables them.
@@ -100,6 +104,7 @@ final class ContinuumAdminCommands {
         try {
             java.nio.file.Files.createDirectories(root);
             for (var body : ContinuumData.allBodies()) {
+                writtenFiles.add(file);
                 if (hasPersonalDimension(source, body.id())) continue;
                 // the dimension id is phoenix_continuum:pdim/<path of the body id>
                 java.nio.file.Path file = root.resolve(body.id().getPath() + ".json");
@@ -161,8 +166,70 @@ final class ContinuumAdminCommands {
 
     /** The body as the loader resolved it (after inheritance), as the server holds it. */
     private static int dump(CommandSourceStack source, ResourceLocation id) {
+                .toJson(com.google.gson.JsonParser.parseString(json));
+        net.phoenix.continuum.PhoenixContinuum.LOGGER.info("[Continuum] resolved {} {}", id, pretty);
+        source.sendSuccess(() -> Component.literal(pretty), false);
+        return 1;
+    }
+
         String json = ContinuumData.snapshot().bodies().get(id);
         if (json == null) {
+    /**
+     * What generate (or generate clear) replaced, so it can be put back. Kept in memory and tied to the running
+     * server: once the world is closed, the undo is gone.
+     */
+    private record GenerateUndo(net.minecraft.server.MinecraftServer server,
+                                java.util.Map<String, String> previousFiles,
+                                java.util.List<java.nio.file.Path> pdimFilesWritten) {}
+
+    private static GenerateUndo lastGenerate;
+
+    /** Called when the world closes: the undo belongs to it. */
+    static void forgetUndo() {
+        lastGenerate = null;
+    }
+
+    private static java.util.Map<String, String> readTree(java.nio.file.Path root) throws java.io.IOException {
+        java.util.Map<String, String> files = new java.util.LinkedHashMap<>();
+        if (!java.nio.file.Files.exists(root)) return files;
+        try (var walk = java.nio.file.Files.walk(root)) {
+            for (java.nio.file.Path path : (Iterable<java.nio.file.Path>) walk.filter(java.nio.file.Files::isRegularFile)::iterator) {
+                files.put(root.relativize(path).toString(), java.nio.file.Files.readString(path));
+            }
+        }
+        return files;
+    }
+
+    private static void restoreTree(java.nio.file.Path root, java.util.Map<String, String> files)
+                                                                                                    throws java.io.IOException {
+        for (var entry : files.entrySet()) {
+            java.nio.file.Path file = root.resolve(entry.getKey());
+            java.nio.file.Files.createDirectories(file.getParent());
+            java.nio.file.Files.writeString(file, entry.getValue());
+        }
+    }
+
+    private static int undoGenerate(CommandSourceStack source) {
+        GenerateUndo undo = lastGenerate;
+        if (undo == null || undo.server() != source.getServer()) {
+            source.sendFailure(Component.literal("Nothing to undo in this world."));
+            return 0;
+        }
+        try {
+            deleteTree(generatedRoot());
+            restoreTree(generatedRoot(), undo.previousFiles());
+            for (java.nio.file.Path file : undo.pdimFilesWritten()) java.nio.file.Files.deleteIfExists(file);
+        } catch (java.io.IOException e) {
+            source.sendFailure(Component.literal("Could not undo: " + e.getMessage()));
+            return 0;
+        }
+        lastGenerate = null;
+        ContinuumData.reloadNow(source.getServer());
+        source.sendSuccess(() -> Component.literal("Undid the last generate: the systems that were there before are back."),
+                true);
+        return 1;
+    }
+
             source.sendFailure(Component.literal("No body " + id + "."));
             return 0;
         }
@@ -198,7 +265,9 @@ final class ContinuumAdminCommands {
     private static int generateSystems(CommandSourceStack source, int count, @org.jetbrains.annotations.Nullable Long seedArg) {
         long seed = seedArg != null ? seedArg : source.getServer().overworld().getSeed();
         var home = ContinuumData.system(net.phoenix.continuum.common.LaunchWindows.HOME_SYSTEM);
+        java.util.Map<String, String> before;
         var homeAt = home == null ? net.phoenix.continuum.data.SystemGenerator.ContinuumSystemView.ORIGIN :
+            before = readTree(root);
                 new net.phoenix.continuum.data.SystemGenerator.ContinuumSystemView(home.galaxyX(), home.galaxyY(),
                         home.galaxyZ());
         var result = net.phoenix.continuum.data.SystemGenerator.generate(seed, count, homeAt);
@@ -214,11 +283,15 @@ final class ContinuumAdminCommands {
         }
 
         var report = ContinuumData.reloadNow(source.getServer());
-        int pdim = writePdimFiles(source);
+        java.util.List<java.nio.file.Path> pdimFiles = new java.util.ArrayList<>();
+        int pdim = writePdimFiles(source, pdimFiles);
+        lastGenerate = new GenerateUndo(source.getServer(), before, pdimFiles);
         source.sendSuccess(() -> Component.literal("Generated " + result.systems().size() + " systems and " +
                 result.bodies().size() + " worlds from seed " + seed + " (" + report.errors() + " errors). " +
                 (pdim > 0 ? "Their personal dimensions need a server restart to exist. " : "") +
-                "/continuumadmin generate clear removes them.").withStyle(ChatFormatting.GREEN), true);
+                "/continuumadmin generate undo puts back what was there before (until you leave this world); " +
+            lastGenerate = new GenerateUndo(source.getServer(), readTree(generatedRoot()), new java.util.ArrayList<>());
+                "generate clear removes them.").withStyle(ChatFormatting.GREEN), true);
         return result.systems().size();
     }
 
@@ -312,8 +385,15 @@ final class ContinuumAdminCommands {
                         .then(literal("repair").executes(ctx -> damageOutposts(ctx.getSource(), false)))
                         .then(literal("clear").executes(ctx -> clearOutposts(ctx.getSource()))))
                 .then(literal("comet")
+                                                        ResourceLocationArgument.getId(ctx, "body"),
+                                                        IntegerArgumentType.getInteger(ctx, "minutes"))))))
+                        .then(literal("clear")
+                                .then(argument("body", ResourceLocationArgument.id())
+                                        .executes(ctx -> cometClear(ctx.getSource(),
+                                                ResourceLocationArgument.getId(ctx, "body"))))))
                         .then(literal("spawn")
                                 .then(argument("body", ResourceLocationArgument.id())
+                        .then(literal("undo").executes(ctx -> undoGenerate(ctx.getSource())))
                                         .suggests((ctx, builder) -> {
                                             ContinuumData.allBodies().stream()
                                                     .filter(b -> b.transientInfo() != null)

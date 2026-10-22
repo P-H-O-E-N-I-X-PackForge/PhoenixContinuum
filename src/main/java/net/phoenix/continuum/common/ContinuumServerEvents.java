@@ -31,6 +31,11 @@ public final class ContinuumServerEvents {
     }
 
     @SubscribeEvent
+    public static void onServerStopped(net.neoforged.neoforge.event.server.ServerStoppedEvent event) {
+        ContinuumAdminCommands.forgetUndo();
+    }
+
+    @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         ContinuumAdminCommands.register(event.getDispatcher());
     }
