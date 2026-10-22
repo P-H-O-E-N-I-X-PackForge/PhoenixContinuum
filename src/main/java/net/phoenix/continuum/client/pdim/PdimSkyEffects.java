@@ -30,7 +30,6 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
         super(Float.NaN, false, SkyType.NONE, false, false);
     }
 
-    /** The horizon colour of the sky as last drawn, so distant fog fades into it; null until the first frame. */
     private static volatile Vec3 horizonFog = null;
 
     @Override
@@ -71,9 +70,10 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
             RenderSystem.enableDepthTest();
             RenderSystem.depthMask(true);
 
-            // the star crossing the sky: it rises, climbs, sets, and is not there at night. Around a black hole (or a
-            // binary pair) the "sun" is the hole itself, drawn with its own accretion disk.
-            if (sample.hasSun() && system != null && sample.sunDir().y > -0.12f) {
+            // standing on a world: its horizon hides what has set, so the star and the other worlds sink behind it
+            if (sample.hasSun() && !PdimClientState.orbitView()) SceneRenderer.drawHorizonPlane(view, projectionMatrix);
+
+            if (sample.hasSun() && system != null && sample.sunDir().y > -0.25f) {
                 Vector3f sunPos = new Vector3f(sample.sunDir()).mul(98.0f);
                 if (system.hasHole()) {
                     SceneRenderer.drawHole(system, body, view, projectionMatrix, sunPos, 4.5f, ContinuumVisuals.quality(),
@@ -91,24 +91,22 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
             boolean centralBody = body.type() == ContinuumBody.Type.STAR ||
                     body.type() == ContinuumBody.Type.BLACK_HOLE;
             boolean quasar = system != null && system.isQuasar();
-            // skybox holes are drawn larger than on the map screen; a quasar's jets already span the sky, so it grows less
+            
             float radius = body.type() == ContinuumBody.Type.BLACK_HOLE ? (quasar ? 8.5f : 9.0f) :
                     centralBody ? 16.0f : 22.0f;
 
             boolean orbit = PdimClientState.orbitView();
             if (!SceneRenderer.drawCentralBody(body, view, projectionMatrix, position, radius,
                     ContinuumVisuals.quality(), true)) {
-                // standing on the world (the default): the rest of its system is what fills the sky
+                
                 if (!orbit) {
                     try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("pdim.system_bodies")) {
                         PdimSkyBodies.draw(level, partialTick, view, projectionMatrix, body, sample, time);
                     }
                 }
-                // a moon always shows its host planet; a planet only shows itself when the view is from orbit
+                
                 if (orbit || body.isMoon()) {
-                // On a planet the sky shows the planet itself, as before. On a moon you are standing on it, so the sky
-                // shows its host planet instead: held fixed (a moon keeps one face to its planet), sized by the
-                // planet's radius, and lit by wherever the star is, so it waxes and wanes as the day turns.
+
                 ContinuumBody orbBody = body;
                 float orbRadius = radius;
                 Vector3f light = new Vector3f(-300.0f, 220.0f, 260.0f);
@@ -148,7 +146,7 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
                 (primary & 0xFF) / 255.0f * 0.9f};
         float[] secondaryRgb = {((secondary >> 16) & 0xFF) / 255.0f * 0.7f, ((secondary >> 8) & 0xFF) / 255.0f * 0.7f,
                 (secondary & 0xFF) / 255.0f * 0.7f};
-        // the nebula is drawn once into a picture and looked up (see NebulaBake); this may run a strip of that work
+        
         var baked = net.phoenix.continuum.client.render.NebulaBake.get(primaryRgb, secondaryRgb,
                 ContinuumVisuals.backdropOctaves());
 
@@ -174,6 +172,7 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
         sky.safeGetUniform("HorizonColor").set(sample.horizon()[0], sample.horizon()[1], sample.horizon()[2]);
         sky.safeGetUniform("DuskColor").set(sample.dusk()[0], sample.dusk()[1], sample.dusk()[2]);
         sky.safeGetUniform("SunColor").set(sample.sunColor()[0], sample.sunColor()[1], sample.sunColor()[2]);
+        sky.safeGetUniform("Ground").set(sample.hasSun() && !PdimClientState.orbitView() ? 1.0f : 0.0f);
         sky.safeGetUniform("Eclipse").set(sample.eclipse());
         sky.safeGetUniform("Aurora").set(sample.aurora());
         sky.safeGetUniform("AuroraColor").set(sample.auroraColor()[0], sample.auroraColor()[1], sample.auroraColor()[2]);

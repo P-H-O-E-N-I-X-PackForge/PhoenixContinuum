@@ -18,6 +18,7 @@ uniform vec3 HorizonColor;  // daytime sky at the horizon
 uniform vec3 DuskColor;     // twilight glow
 uniform vec3 SunColor;      // the star's colour
 uniform float Eclipse;      // 0..1: how much of the star a world is covering
+uniform float Ground;       // 1 when standing on a world: below the horizon is dark ground, not sky
 uniform float Aurora;       // 0..1: curtains of light toward the north
 uniform vec3 AuroraColor;
 uniform float Storm;        // 0..1: lightning
@@ -178,6 +179,9 @@ void main() {
         float local = pow(max(dot(dir, flashDir), 0.0), 10.0);
         col += vec3(0.72, 0.8, 1.0) * Storm * flash * (0.2 + 1.3 * local) * (1.0 - 0.5 * dayF);
     }
+
+    // the world under your feet: a crisp horizon, and nothing of the sky below it
+    if (Ground > 0.5) col *= mix(0.05, 1.0, smoothstep(-0.010, 0.010, dir.y));
 
     fragColor = vec4(col, 1.0);
 }

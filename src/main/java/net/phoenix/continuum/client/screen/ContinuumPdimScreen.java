@@ -21,19 +21,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Makes or edits a personal dimension. Every setting is here whether the dimension exists yet or not: gravity (a preset
- * or any value), how fast the sky clock runs, a fixed time of day, and whether the sky is the view from the surface of
- * the world or from orbit. Before the dimension exists the choices are held on the screen and sent with "Create and
- * enter"; afterwards each click is applied straight away.
- */
 public class ContinuumPdimScreen extends Screen {
 
     @Override
     public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {}
 
     private static final int W = 320;
-    private static final int H = 300;
+    private static final int H = 344;
 
     private record Preset(String label, float gravity) {}
 
@@ -43,7 +37,6 @@ public class ContinuumPdimScreen extends Screen {
     private final List<Object[]> rects = new ArrayList<>();
     private float scale = 1.0f;
 
-    // what the player is choosing, for a dimension that does not exist yet
     private float pendGravity;
     private float pendSpeed = 1.0f;
     private float pendLocked = -1.0f;
@@ -143,7 +136,6 @@ public class ContinuumPdimScreen extends Screen {
         int have = cost == null ? 0 : PdimCosts.count(Minecraft.getInstance().player, cost);
         boolean canPay = !charged || creative || have >= cost.count();
 
-        // gravity: any value, plus presets
         ty = adjustRow(g, x, ty, String.format(Locale.ROOT, "Gravity  x%.2f", gravity()), "g", mx, my);
         int bw = (W - 20 - 10) / 3;
         for (int i = 0; i < presets.size(); i++) {
@@ -155,7 +147,6 @@ public class ContinuumPdimScreen extends Screen {
         }
         ty += 44;
 
-        // day and night
         float lockedNow = locked();
         ty = adjustRow(g, x, ty, lockedNow >= 0 ? "Day  locked at " + clock(lockedNow) :
                 String.format(Locale.ROOT, "Day speed  x%.2f", speed()), "s", mx, my);
@@ -171,7 +162,6 @@ public class ContinuumPdimScreen extends Screen {
                 "unlock", lockedNow >= 0, false, mx, my);
         ty += 23;
 
-        // where the sky is seen from
         button(g, x + 10, ty, W - 20, orbit() ? "Sky: seen from orbit  (click for the surface)" :
                 "Sky: as if you stand on it  (click for orbit)", "sky", true, false, mx, my);
 
@@ -233,7 +223,6 @@ public class ContinuumPdimScreen extends Screen {
         if (enabled) rects.add(new Object[] { id, x, y, w });
     }
 
-    /** Applies a change: held on the screen until the dimension exists, sent to the server once it does. */
     private void apply(float gravity, float speed, float locked, boolean orbit, boolean fixed) {
         gravity = PdimDimensions.clampGravity(Math.round(gravity * 100f) / 100f);
         speed = PdimDimensions.clampDaySpeed(speed);
