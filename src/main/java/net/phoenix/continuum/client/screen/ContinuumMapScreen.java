@@ -934,11 +934,26 @@ public class ContinuumMapScreen extends Screen {
     /** How tall the body panel is: a fixed block, plus a line pair for each anomaly the team has found here. */
     private static int bodyPanelHeight(ContinuumBody b) {
         DiscoveryStage stage = ContinuumClientState.stage(b.id());
-        int found = 0;
+        int height = 366;
+        boolean any = false;
         for (ContinuumBody.Anomaly anomaly : b.anomalies()) {
-            if (stage.atLeast(anomaly.reveal())) found++;
+            if (!stage.atLeast(anomaly.reveal())) continue;
+            any = true;
+            height += 13 + 10 * anomalyLines(b, anomaly, 186).size();
         }
-        return 366 + (found == 0 ? 0 : 14 + 24 * found);
+        return any ? height + 14 : height;
+    }
+
+    /** An anomaly's description (and its cost, while it is still to do) wrapped to the panel, at most three lines. */
+    private static List<net.minecraft.util.FormattedCharSequence> anomalyLines(ContinuumBody b,
+                                                                              ContinuumBody.Anomaly anomaly, int width) {
+        boolean done = ContinuumClientState.anomalyInvestigated(b.id(), anomaly.id());
+        String text = anomaly.cost() != null && !done ?
+                anomaly.description() + " (costs " + anomaly.cost().count() + " x " + anomaly.cost().item().getPath() + ")" :
+                anomaly.description();
+        List<net.minecraft.util.FormattedCharSequence> lines = Minecraft.getInstance().font
+                .split(net.minecraft.network.chat.FormattedText.of(text), width);
+        return lines.size() <= 3 ? lines : lines.subList(0, 3);
     }
 
     private void drawBodyPanelContent(GuiGraphics graphics, ContinuumBody b) {
@@ -1060,11 +1075,11 @@ public class ContinuumMapScreen extends Screen {
                         done ? MapUi.DIM : TITLE);
                 if (!done) anomalyRects.add(new Object[] { b.id(), anomaly.id(), bx, ty - 1, bw, 14 });
                 ty += 11;
-                String blurb = anomaly.cost() != null && !done ?
-                        anomaly.description() + " (costs " + anomaly.cost().count() + " x " +
-                                anomaly.cost().item().getPath() + ")" : anomaly.description();
-                graphics.drawString(font, font.plainSubstrByWidth(blurb, inner), x + 7, ty + 1, MapUi.DIM);
-                ty += 13;
+                for (var line : anomalyLines(b, anomaly, inner)) {
+                    graphics.drawString(font, line, x + 7, ty + 1, MapUi.DIM);
+                    ty += 10;
+                }
+                ty += 3;
             }
         }
 
