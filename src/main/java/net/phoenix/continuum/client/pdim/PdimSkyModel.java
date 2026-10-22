@@ -32,7 +32,19 @@ public final class PdimSkyModel {
      * @param sunColor  the star's colour
      */
     public record Sample(Vector3f sunDir, boolean hasSun, float atmo, float[] zenith, float[] horizon, float[] dusk,
-                         float[] sunColor) {
+                         float[] sunColor, float aurora, float[] auroraColor, float storm, float lens, float eclipse) {
+
+        public Sample(Vector3f sunDir, boolean hasSun, float atmo, float[] zenith, float[] horizon, float[] dusk,
+                      float[] sunColor) {
+            this(sunDir, hasSun, atmo, zenith, horizon, dusk, sunColor, 0.0f, new float[] {0.2f, 1.0f, 0.5f}, 0.0f,
+                    0.0f, 0.0f);
+        }
+
+        /** The same sky with a world crossing the star: 0 = clear, 1 = the whole star covered. */
+        public Sample withEclipse(float covered) {
+            return new Sample(sunDir, hasSun, atmo, zenith, horizon, dusk, sunColor, aurora, auroraColor, storm, lens,
+                    covered);
+        }
 
         /** Sky colour at the horizon right now, for fog and the clear colour: pale by day, dark at night. */
         public float[] horizonNow() {
@@ -101,7 +113,18 @@ public final class PdimSkyModel {
                 horizon[i] = horizon[i] * 0.8f + sunColor[i] * 0.20f;
             }
         }
-        return new Sample(sunDir, true, atmo, zenith, horizon, dusk, sunColor);
+
+        // weather and sky events that follow from what the world is like
+        var params = body.params();
+        // auroras: curtains of light on an aurora world, and a fainter show on an icy world with some air
+        float aurora = params.style() == net.phoenix.continuum.client.render.PlanetParams.STYLE_AURORA ? 1.0f :
+                clamp(params.polarIce() * 1.4f, 0.0f, 0.55f) * (atmo > 0.15f ? 1.0f : 0.0f);
+        float[] auroraColor = params.emissiveAmount() > 0.0f ? rgb(params.emissive()) : new float[] {0.2f, 1.0f, 0.5f};
+        // storms: a deep, cloudy atmosphere flashes with lightning
+        float storm = atmo > 0.25f ? clamp((params.cloudCover() - 0.5f) * 2.2f, 0.0f, 1.0f) : 0.0f;
+        // around a black hole the sky bends round the hole: stars and nebula are lensed into an Einstein ring
+        float lens = holeSun ? 0.11f : 0.0f;
+        return new Sample(sunDir, true, atmo, zenith, horizon, dusk, sunColor, aurora, auroraColor, storm, lens, 0.0f);
     }
 
     private static float[] rgb(int c) {

@@ -152,6 +152,48 @@
       "values": [
         0.0
       ]
+    },
+    {
+      "name": "Eclipse",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.0
+      ]
+    },
+    {
+      "name": "Aurora",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.0
+      ]
+    },
+    {
+      "name": "AuroraColor",
+      "type": "float",
+      "count": 3,
+      "values": [
+        0.2,
+        1.0,
+        0.5
+      ]
+    },
+    {
+      "name": "Storm",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.0
+      ]
+    },
+    {
+      "name": "Lens",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.0
+      ]
     }
   ],
   "samplers": [

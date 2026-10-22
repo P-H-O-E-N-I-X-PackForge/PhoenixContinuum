@@ -243,6 +243,49 @@ public class ShaderBench {
             double ms = GL33C.glGetQueryObjectui64(tq, GL33C.GL_QUERY_RESULT) / 1.0e6 / 30;
             System.out.printf(Locale.ROOT, "%-24s %10.3f %10.3f%n", label, ms, ms / (w * (double) h / 1.0e6));
         }
+        // sky events: each is one frame of the pdim sky with the event switched on (a picture, no timing)
+        {
+            int skyProg = build(Files.readString(dir.resolve("continuum_sky.vsh")), Files.readString(dir.resolve("continuum_sky.fsh")));
+            JsonObject sj = JsonParser.parseString(Files.readString(dir.resolve("continuum_sky.json"))).getAsJsonObject();
+            // name, sunDir, atmo, eclipse, aurora, storm, lens, time
+            Object[][] scenes = {
+                    {"day", new float[] {0.0f, 0.5f, 0.866f}, 1f, 0f, 0f, 0f, 0f, 3.0f},
+                    {"eclipse_partial", new float[] {0.0f, 0.5f, 0.866f}, 1f, 0.55f, 0f, 0f, 0f, 3.0f},
+                    {"eclipse_total", new float[] {0.0f, 0.5f, 0.866f}, 1f, 0.99f, 0f, 0f, 0f, 3.0f},
+                    {"aurora", new float[] {0.0f, -0.6f, -0.8f}, 1f, 0f, 1f, 0f, 0f, 3.0f},
+                    {"lens", new float[] {0.0f, 0.12f, 0.99f}, 0f, 0f, 0f, 0f, 0.11f, 3.0f},
+                    {"storm_a", new float[] {0.0f, -0.6f, -0.8f}, 1f, 0f, 0f, 1f, 0f, 0.736f},
+                    {"storm_b", new float[] {0.0f, -0.6f, -0.8f}, 1f, 0f, 0f, 1f, 0f, 2.17f},
+                    {"storm_c", new float[] {0.0f, -0.6f, -0.8f}, 1f, 0f, 0f, 1f, 0f, 3.6f},
+            };
+            for (Object[] sc : scenes) {
+                GL33C.glUseProgram(skyProg);
+                applyDefaults(skyProg, sj);
+                float[] sun = (float[]) sc[1];
+                f(skyProg, "Octaves", 5.0f);
+                f(skyProg, "PrimaryColor", 0.42f, 0.2f, 0.85f);
+                f(skyProg, "SecondaryColor", 0.1f, 0.35f, 0.9f);
+                f(skyProg, "UseBake", 1.0f);
+                f(skyProg, "SunDir", sun[0], sun[1], sun[2]);
+                f(skyProg, "Atmo", (Float) sc[2]);
+                f(skyProg, "Eclipse", (Float) sc[3]);
+                f(skyProg, "Aurora", (Float) sc[4]);
+                f(skyProg, "Storm", (Float) sc[5]);
+                f(skyProg, "Lens", (Float) sc[6]);
+                f(skyProg, "Time", (Float) sc[7]);
+                f(skyProg, "ZenithColor", 0.2f, 0.35f, 0.8f);
+                f(skyProg, "HorizonColor", 0.65f, 0.8f, 0.95f);
+                f(skyProg, "DuskColor", 1.0f, 0.5f, 0.25f);
+                f(skyProg, "SunColor", 1.0f, 0.9f, 0.7f);
+                GL33C.glActiveTexture(GL33C.GL_TEXTURE0);
+                GL33C.glBindTexture(GL33C.GL_TEXTURE_2D, bakeTex);
+                GL33C.glBindVertexArray(quadVao);
+                GL33C.glDisable(GL33C.GL_BLEND);
+                GL33C.glClear(GL33C.GL_COLOR_BUFFER_BIT);
+                GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, 6);
+                save(out.resolve("skyevent_" + sc[0] + ".png").toFile(), w, h);
+            }
+        }
         GL33C.glEnable(GL33C.GL_BLEND);
         GL33C.glBlendFunc(GL33C.GL_ONE, GL33C.GL_ONE);
     }

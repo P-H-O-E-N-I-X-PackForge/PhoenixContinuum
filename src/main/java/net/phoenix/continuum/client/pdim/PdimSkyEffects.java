@@ -56,6 +56,9 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
         float time = (float) (System.currentTimeMillis() % 10000000L) / 1000.0f;
 
         PdimSkyModel.Sample sample = PdimSkyModel.sample(level, partialTick, body, system);
+        if (!PdimClientState.orbitView()) {
+            sample = sample.withEclipse(PdimSkyBodies.eclipse(level, partialTick, body, sample));
+        }
         float[] fog = sample.horizonNow();
         horizonFog = new Vec3(fog[0], fog[1], fog[2]);
 
@@ -171,6 +174,11 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
         sky.safeGetUniform("HorizonColor").set(sample.horizon()[0], sample.horizon()[1], sample.horizon()[2]);
         sky.safeGetUniform("DuskColor").set(sample.dusk()[0], sample.dusk()[1], sample.dusk()[2]);
         sky.safeGetUniform("SunColor").set(sample.sunColor()[0], sample.sunColor()[1], sample.sunColor()[2]);
+        sky.safeGetUniform("Eclipse").set(sample.eclipse());
+        sky.safeGetUniform("Aurora").set(sample.aurora());
+        sky.safeGetUniform("AuroraColor").set(sample.auroraColor()[0], sample.auroraColor()[1], sample.auroraColor()[2]);
+        sky.safeGetUniform("Storm").set(sample.storm());
+        sky.safeGetUniform("Lens").set(sample.lens());
 
         sky.apply();
         BufferBuilder bb = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);

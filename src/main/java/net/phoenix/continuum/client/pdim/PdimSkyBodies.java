@@ -33,11 +33,19 @@ final class PdimSkyBodies {
 
     private PdimSkyBodies() {}
 
-    private record Item(ContinuumBody body, Vector3f direction, float skyRadius, Vector3f light) {}
+    private record Item(ContinuumBody body, Vector3f direction, float skyRadius, Vector3f light, boolean moon) {}
 
-    static void draw(ClientLevel level, float partialTick, Matrix4f view, Matrix4f projection, ContinuumBody self,
-                     PdimSkyModel.Sample sample, float time) {
-        if (self == null || self.type() == ContinuumBody.Type.STAR || self.type() == ContinuumBody.Type.BLACK_HOLE) return;
+    /** Where everything is in the sky right now: the frame of the ecliptic and the worlds to draw, biggest first. */
+    private record Plan(Vector3f normal, List<Item> items) {}
+
+    /** The sun's apparent radius as drawn (see PdimSkyEffects: radius 6 at 98), in radians. */
+    private static final float SUN_ANGULAR_RADIUS = (float) Math.atan(6.0 / 98.0);
+
+    private static @org.jetbrains.annotations.Nullable Plan plan(ClientLevel level, float partialTick,
+                                                                  ContinuumBody self, PdimSkyModel.Sample sample) {
+        if (self == null || self.type() == ContinuumBody.Type.STAR || self.type() == ContinuumBody.Type.BLACK_HOLE) {
+            return null;
+        }
 
         float lat = PdimSkyModel.latitude(self);
         Vector3f e1 = new Vector3f(1.0f, 0.0f, 0.0f);
@@ -53,15 +61,6 @@ final class PdimSkyBodies {
         if (home == null) home = self;
         double[] homePos = positionAu(home, days);
         double sunBearing = Math.atan2(-homePos[1], -homePos[0]);   // the way to the star, in the ecliptic
-
-        // The world under your feet blocks what is below the horizon, and if it has rings they arc across the sky.
-        float unit = 40.0f;
-        Vector3f center = new Vector3f(0.0f, -unit, 0.0f);
-        // (the planet under your feet is not drawn, so nothing is hidden below the horizon: a ring or a world that dips
-        // under it keeps going instead of being cut off)
-        if (!self.isMoon() && self.params().ring() != null) {
-            SceneRenderer.drawSkyRing(self.params(), view, projection, center, unit, sample.sunDir(), normal);
-        }
 
         List<Item> items = new ArrayList<>();
         for (ContinuumBody other : ContinuumData.bodiesOf(self.system())) {
@@ -91,10 +90,7 @@ final class PdimSkyBodies {
                 double toStar = Math.atan2(-p[1], -p[0]);
                 light = ecliptic(e1, e2, normal, thetaSun + (toStar - sunBearing), 0.0).mul(400.0f);
             }
-            // Each world sits a little above or below the plane it orbits in, a different amount each, so they spread
-            // across the sky instead of lining up on one arc with the star.
             double seed = other.params().seed();
-            double inclination = 0.32 * Math.sin(seed * 12.9898) + 0.12 * Math.sin(seed * 78.233 + other.orbitAu());
             double angle = thetaSun + (bearing - sunBearing);
             if (fixed) {
                 // pinned to the sky and always shown: spread along the upper arc in the order they orbit the star
@@ -102,22 +98,74 @@ final class PdimSkyBodies {
                 if (frac < 0.0) frac += 1.0;
                 angle = Math.PI * (0.10 + 0.80 * frac);
             }
-            Vector3f direction = ecliptic(e1, e2, normal, angle, inclination);
-            // never sit on the star, or a ringed world reads as the star having rings: slide it off to a clear gap
-            double side = inclination >= 0.0 ? 1.0 : -1.0;
-            double gap = 0.17 + 0.012 * skyRadius;
-            for (int k = 0; k < 12 && sample.hasSun() && angleBetween(direction, sample.sunDir()) < gap; k++) {
-                inclination += side * 0.07;
+
+            Vector3f direction;
+            if (other.isMoon() && !fixed) {
+                // A moon's path wobbles above and below the sun's: for a stretch of its cycle it passes straight across the
+                // star (an eclipse), then misses it for a while, the way eclipse seasons come and go.
+                double wobble = 0.15 * Math.sin(2.0 * Math.PI * days / (Math.max(0.05, other.periodDays()) * 11.0) +
+                        seed * 3.7);
+                direction = ecliptic(e1, e2, normal, angle, wobble);
+            } else {
+                // Each world sits a little above or below the plane it orbits in, a different amount each, so they
+                // spread across the sky instead of lining up on one arc with the star.
+                double inclination = 0.32 * Math.sin(seed * 12.9898) + 0.12 * Math.sin(seed * 78.233 + other.orbitAu());
                 direction = ecliptic(e1, e2, normal, angle, inclination);
+                // never sit on the star, or a ringed world reads as the star having rings: slide it off to a clear gap
+                double side = inclination >= 0.0 ? 1.0 : -1.0;
+                double gap = 0.17 + 0.012 * skyRadius;
+                for (int k = 0; k < 12 && sample.hasSun() && angleBetween(direction, sample.sunDir()) < gap; k++) {
+                    inclination += side * 0.07;
+                    direction = ecliptic(e1, e2, normal, angle, inclination);
+                }
             }
-            items.add(new Item(other, direction, skyRadius, light));
+            items.add(new Item(other, direction, skyRadius, light, other.isMoon()));
         }
 
         items.sort(Comparator.comparingDouble((Item i) -> i.skyRadius()).reversed());
+        if (items.size() > MAX_BODIES) items = new ArrayList<>(items.subList(0, MAX_BODIES));
+        return new Plan(normal, items);
+    }
+
+    /**
+     * How much of the star a world in the sky is covering right now, 0 (none) to 1 (all of it). Only the moons of the
+     * world you stand on ever cross the star. Used to dim the day, bring out the stars and draw the corona.
+     */
+    static float eclipse(ClientLevel level, float partialTick, ContinuumBody self, PdimSkyModel.Sample sample) {
+        if (!sample.hasSun()) return 0.0f;
+        Plan plan = plan(level, partialTick, self, sample);
+        if (plan == null) return 0.0f;
+        float covered = 0.0f;
+        for (Item item : plan.items()) {
+            if (!item.moon()) continue;
+            float bodyR = (float) Math.atan(item.skyRadius() / SKY_DISTANCE);
+            float sep = (float) angleBetween(item.direction(), sample.sunDir());
+            float reach = bodyR + SUN_ANGULAR_RADIUS;
+            if (sep >= reach) continue;
+            float small = Math.min(bodyR, SUN_ANGULAR_RADIUS);
+            float overlap = clamp((reach - sep) / (2.0f * small), 0.0f, 1.0f);
+            // a body smaller than the star leaves a ring of it showing (an annular eclipse) rather than covering it all
+            float area = Math.min(1.0f, (bodyR * bodyR) / (SUN_ANGULAR_RADIUS * SUN_ANGULAR_RADIUS));
+            covered = Math.max(covered, overlap * area);
+        }
+        return covered;
+    }
+
+    static void draw(ClientLevel level, float partialTick, Matrix4f view, Matrix4f projection, ContinuumBody self,
+                     PdimSkyModel.Sample sample, float time) {
+        Plan plan = plan(level, partialTick, self, sample);
+        if (plan == null) return;
+
+        // If the world has rings they arc across the sky. (The planet under your feet is not drawn, so nothing is hidden
+        // below the horizon: a ring or a world that dips under it keeps going instead of being cut off.)
+        float unit = 40.0f;
+        Vector3f center = new Vector3f(0.0f, -unit, 0.0f);
+        if (!self.isMoon() && self.params().ring() != null) {
+            SceneRenderer.drawSkyRing(self.params(), view, projection, center, unit, sample.sunDir(), plan.normal());
+        }
+
         PlanetRenderer.Quality quality = ContinuumVisuals.quality();
-        int drawn = 0;
-        for (Item item : items) {
-            if (drawn++ >= MAX_BODIES) break;
+        for (Item item : plan.items()) {
             var params = item.body().params();
             Vector3f pos = new Vector3f(item.direction()).mul(SKY_DISTANCE);
             Vector3f lightPos = new Vector3f(pos).add(item.light());

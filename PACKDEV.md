@@ -157,6 +157,11 @@ from the start. A mod that provides its own research (PhoenixCore) takes over th
   of reflective panels. It has real depth: far panels show their inner faces lit by the star, seen through gaps in the near
   ones, which are dark against the glare and hide the star and its shafts of light. The first shell is a band in the orbital
   plane, the others are tipped away from it. It also draws in a personal dimension's sky.
+- **Sky events in a personal dimension** (nothing to configure; they follow from the world): the moons of the world you stand
+  on cross the star in eclipse seasons (the day dims, stars come out, a corona and a sunset glow ring the horizon; a moon
+  smaller than the star leaves a ring of it showing); a world with `"style": "aurora"` (or ice and some air) shows
+  curtains of light over the northern horizon at night; a deep, cloudy atmosphere (cloud cover over 0.5) flashes with
+  lightning; and around a black hole the sky bends into an Einstein ring.
 - **Dyson sphere:** `star_kind` of `dyson_sphere` (or `dyson_shell`) shuts the star inside a complete shell: dark plates with
   glowing seams, great rifts where the star shows through, a lit belt of docks in the orbital plane, and the glare ringing
   its edge. It is opaque, so it hides the star.
