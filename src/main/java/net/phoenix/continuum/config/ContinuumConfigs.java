@@ -164,6 +164,23 @@ public class ContinuumConfigs {
 
         @Configurable
         @Configurable.Comment({
+                "Launch windows: how much a world's place on its orbit changes the flight time and the hull wear. A",
+                "world on the side of its star that faces home is up to this much faster and gentler (0.3 = 30%),",
+                "one on the far side that much slower and harsher. 0 turns windows off. Default: 0.3"
+        })
+        @Configurable.DecimalRange(min = 0.0, max = 0.6)
+        public double launchWindowStrength = 0.3;
+
+        @Configurable
+        @Configurable.Comment({
+                "How long one orbital day lasts for launch windows, in real minutes. A world with a 70-day year comes",
+                "round to the same window every 70 of these. Default: 6"
+        })
+        @Configurable.DecimalRange(min = 0.5, max = 120.0)
+        public double launchWindowDayMinutes = 6.0;
+
+        @Configurable
+        @Configurable.Comment({
                 "Chance, per finished production cycle, that something breaks an outpost. A broken outpost",
                 "stops producing (and stops costing upkeep) until a repair run fixes it; what it had already",
                 "stockpiled is kept. 0 turns incidents off. Default: 0.05 (about once per 3 hours of 10 min cycles)"

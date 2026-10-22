@@ -129,6 +129,9 @@ public class ContinuumMapScreen extends Screen {
 
     private int[] planRect;
     private int[] pdimRect;
+    private final List<Object[]> anomalyRects = new ArrayList<>();
+    private int lastMouseX;
+    private int lastMouseY;
     private int[] travelRect;
     private final MissionPlannerPanel planner = new MissionPlannerPanel();
     private final List<Object[]> missionRows = new ArrayList<>();
@@ -228,6 +231,8 @@ public class ContinuumMapScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         MapUi.refreshTheme();
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
         FRAME = MapUi.FRAME;
         PANEL_BG = MapUi.PANEL_BG;
         PANEL_LINE = MapUi.PANEL_LINE;
@@ -874,7 +879,7 @@ public class ContinuumMapScreen extends Screen {
     }
 
     private void drawBodyPanel(GuiGraphics graphics, ContinuumBody b) {
-        float s = Math.max(0.5f, Math.min(1.0f, (height - 44.0f) / 342.0f));
+        float s = Math.max(0.5f, Math.min(1.0f, (height - 44.0f) / bodyPanelHeight(b)));
         if (s >= 0.999f) {
             drawBodyPanelContent(graphics, b);
             return;
@@ -897,11 +902,27 @@ public class ContinuumMapScreen extends Screen {
             pdimRect = new int[] { Math.round(px + (pdimRect[0] - px) * s), Math.round(py + (pdimRect[1] - py) * s),
                     Math.round(pdimRect[2] * s), Math.round(pdimRect[3] * s) };
         }
+        for (Object[] rect : anomalyRects) {
+            rect[2] = Math.round(px + ((int) rect[2] - px) * s);
+            rect[3] = Math.round(py + ((int) rect[3] - py) * s);
+            rect[4] = Math.round((int) rect[4] * s);
+            rect[5] = Math.round((int) rect[5] * s);
+        }
         if (travelRect != null) {
             travelRect = new int[] { Math.round(px + (travelRect[0] - px) * s),
                     Math.round(py + (travelRect[1] - py) * s),
                     Math.round(travelRect[2] * s), Math.round(travelRect[3] * s) };
         }
+    }
+
+    /** How tall the body panel is: a fixed block, plus a line pair for each anomaly the team has found here. */
+    private static int bodyPanelHeight(ContinuumBody b) {
+        DiscoveryStage stage = ContinuumClientState.stage(b.id());
+        int found = 0;
+        for (ContinuumBody.Anomaly anomaly : b.anomalies()) {
+            if (stage.atLeast(anomaly.reveal())) found++;
+        }
+        return 366 + (found == 0 ? 0 : 14 + 24 * found);
     }
 
     private void drawBodyPanelContent(GuiGraphics graphics, ContinuumBody b) {
@@ -911,8 +932,13 @@ public class ContinuumMapScreen extends Screen {
         int y = 34;
         int inner = w - 14;
 
-        int h = 342;
+        List<ContinuumBody.Anomaly> anomalies = new ArrayList<>();
+        for (ContinuumBody.Anomaly anomaly : b.anomalies()) {
+            if (stage.atLeast(anomaly.reveal())) anomalies.add(anomaly);
+        }
+        int h = bodyPanelHeight(b);
         panel(graphics, x, y, w, h);
+        anomalyRects.clear();
         int ty = y + 8;
         graphics.drawString(font, b.name(), x + 7, ty, TITLE);
         ty += 11;
@@ -940,6 +966,18 @@ public class ContinuumMapScreen extends Screen {
         }
         ty = stat(graphics, "Pad tier", ContinuumMissions.tierName(ContinuumMissions.requiredPadTier(b)) + " or better",
                 x + 7, ty);
+        var launchWindow = net.phoenix.continuum.common.LaunchWindows.of(b, ContinuumClientState.now());
+        if (launchWindow.applies() && stage != DiscoveryStage.UNKNOWN) {
+            int pct = Math.round((launchWindow.factor() - 1.0f) * 100.0f);
+            graphics.drawString(font, "Window", x + 7, ty, DIM);
+            graphics.drawString(font, launchWindow.label() + (pct == 0 ? "" : String.format(Locale.ROOT, "  (%+d%%)", pct)),
+                    x + 81, ty, launchWindow.openNow() ? MapUi.GOOD : launchWindow.factor() > 1.1f ? MapUi.BAD : TEXT);
+            ty += 11;
+            if (launchWindow.changesInMillis() > 0) {
+                ty = stat(graphics, launchWindow.openNow() ? "Closes in" : "Opens in",
+                        MapUi.duration(launchWindow.changesInMillis()), x + 7, ty);
+            }
+        }
 
         List<ContinuumBody> moons = ContinuumData.moonsOf(b.id());
         if (!moons.isEmpty()) {
@@ -985,6 +1023,33 @@ public class ContinuumMapScreen extends Screen {
         if (stationLevel > 0) {
             ty = stat(graphics, "Station", "Level " + stationLevel + " of " +
                     net.phoenix.continuum.common.Stations.MAX_LEVEL, x + 7, ty);
+        }
+
+        // anomalies this team has found here: each can be investigated once
+        if (!anomalies.isEmpty()) {
+            graphics.drawString(font, "Anomalies", x + 7, ty + 2, DIM);
+            ty += 14;
+            for (ContinuumBody.Anomaly anomaly : anomalies) {
+                boolean done = ContinuumClientState.anomalyInvestigated(b.id(), anomaly.id());
+                graphics.drawString(font, font.plainSubstrByWidth(anomaly.name(), inner - 70), x + 7, ty + 2,
+                        done ? MapUi.DIM : TEXT);
+                int bw = 60;
+                int bx = x + w - 7 - bw;
+                int mx = (int) lastMouseX;
+                int my = (int) lastMouseY;
+                boolean hover = !done && MapUi.inside(mx, my, bx, ty - 1, bw, 14);
+                graphics.fill(bx, ty - 1, bx + bw, ty + 13, done ? MapUi.BUTTON_OFF : hover ? MapUi.BUTTON_HOVER : MapUi.BUTTON);
+                graphics.renderOutline(bx, ty - 1, bw, 14, done ? MapUi.BUTTON_LINE : MapUi.FRAME);
+                graphics.drawCenteredString(font, done ? "Done" : "Investigate", bx + bw / 2, ty + 2,
+                        done ? MapUi.DIM : TITLE);
+                if (!done) anomalyRects.add(new Object[] { b.id(), anomaly.id(), bx, ty - 1, bw, 14 });
+                ty += 11;
+                String blurb = anomaly.cost() != null && !done ?
+                        anomaly.description() + " (costs " + anomaly.cost().count() + " x " +
+                                anomaly.cost().item().getPath() + ")" : anomaly.description();
+                graphics.drawString(font, font.plainSubstrByWidth(blurb, inner), x + 7, ty + 1, MapUi.DIM);
+                ty += 13;
+            }
         }
 
         drawPdimButton(graphics, b, stage, x, y + h - 56, w);
@@ -1594,6 +1659,16 @@ public class ContinuumMapScreen extends Screen {
                     new net.phoenix.continuum.network.C2SConfluxTravelPacket(inConflux, body.id()));
             Minecraft.getInstance().setScreen(null);
             return true;
+        }
+        if (level == Level.BODY && body != null) {
+            for (Object[] rect : anomalyRects) {
+                if (MapUi.inside(mouseX, mouseY, (int) rect[2], (int) rect[3], (int) rect[4], (int) rect[5])) {
+                    PacketDistributor.sendToServer(new net.phoenix.continuum.network.C2SInvestigatePacket(
+                            (ResourceLocation) rect[0], (String) rect[1]));
+                    ContinuumSounds.click();
+                    return true;
+                }
+            }
         }
         if (pdimRect != null && level == Level.BODY && body != null &&
                 MapUi.inside(mouseX, mouseY, pdimRect[0], pdimRect[1], pdimRect[2], pdimRect[3])) {

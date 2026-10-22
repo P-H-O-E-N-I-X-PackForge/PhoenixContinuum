@@ -93,6 +93,51 @@ public final class ContinuumEvents {
         }
     }
 
+    /** A player investigated an anomaly on a body, and was paid for it. */
+    public static class AnomalyInvestigated extends Event {
+
+        private final MinecraftServer server;
+        private final net.minecraft.server.level.ServerPlayer player;
+        private final UUID team;
+        private final ResourceLocation body;
+        private final String anomaly;
+
+        public AnomalyInvestigated(MinecraftServer server, net.minecraft.server.level.ServerPlayer player, UUID team,
+                                   ResourceLocation body, String anomaly) {
+            this.server = server;
+            this.player = player;
+            this.team = team;
+            this.body = body;
+            this.anomaly = anomaly;
+        }
+
+        public MinecraftServer getServer() {
+            return server;
+        }
+
+        public net.minecraft.server.level.ServerPlayer getPlayer() {
+            return player;
+        }
+
+        public UUID getTeam() {
+            return team;
+        }
+
+        public ResourceLocation getBody() {
+            return body;
+        }
+
+        /** The anomaly's id, as authored in the body's "anomalies" list. */
+        public String getAnomaly() {
+            return anomaly;
+        }
+    }
+
+    public static void postAnomaly(net.minecraft.server.level.ServerPlayer player, UUID team, ResourceLocation body,
+                                   String anomaly) {
+        NeoForge.EVENT_BUS.post(new AnomalyInvestigated(player.server, player, team, body, anomaly));
+    }
+
     public static void postDiscovery(UUID team, ResourceLocation subject, DiscoveryStage stage) {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server == null) return;

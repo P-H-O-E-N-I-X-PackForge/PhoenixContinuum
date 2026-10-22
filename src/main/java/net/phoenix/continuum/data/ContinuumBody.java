@@ -33,7 +33,21 @@ public record ContinuumBody(
                             @Nullable Float holeTilt,
                             @Nullable Float skyHoleInclination,
                             @Nullable Float skyHoleLean,
-                            @Nullable com.google.gson.JsonObject visibility) {
+                            @Nullable com.google.gson.JsonObject visibility,
+                            List<Anomaly> anomalies) {
+
+    /**
+     * Something worth a closer look on a body: found by survey (or detection), investigated once per team, and paid out
+     * in items and/or research when it is. Authored in a body's "anomalies" list.
+     *
+     * @param reveal   the stage a team must have reached to see it
+     * @param rewards  items given (each rolled with its own chance, a count between min and max)
+     * @param research a research node to grant (with Continuum's own research), or null
+     * @param message  shown when it is investigated
+     * @param cost     what investigating it uses up (taken from the player), or null
+     */
+    public record Anomaly(String id, String name, String description, DiscoveryStage reveal, List<Yield> rewards,
+                          @Nullable ResourceLocation research, String message, @Nullable PdimCost cost) {}
 
     public record Transient(int durationMinutes, int cooldownMinutes, float chance, float innerAu, float outerAu) {}
 

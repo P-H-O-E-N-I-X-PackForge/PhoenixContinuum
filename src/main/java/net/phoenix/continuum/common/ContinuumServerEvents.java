@@ -89,6 +89,7 @@ public final class ContinuumServerEvents {
         UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         PacketDistributor.sendToPlayer(player,
                 new S2CContinuumStatePacket(ContinuumStateSnapshot.build(player.server, team)));
+        AnomalyActions.send(player);
     }
 
     public static void engageTeam(MinecraftServer server, UUID team) {

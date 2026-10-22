@@ -47,6 +47,10 @@ public final class ContinuumNetwork {
                 C2SLaunchMissionPacket::handle);
         registrar.playToServer(C2SCollectMissionPacket.TYPE, C2SCollectMissionPacket.STREAM_CODEC,
                 C2SCollectMissionPacket::handle);
+        registrar.playToServer(C2SInvestigatePacket.TYPE, C2SInvestigatePacket.STREAM_CODEC,
+                C2SInvestigatePacket::handle);
+        registrar.playToClient(S2CAnomalyStatePacket.TYPE, S2CAnomalyStatePacket.STREAM_CODEC,
+                S2CAnomalyStatePacket::handle);
         registrar.playToServer(C2STunePacket.TYPE, C2STunePacket.STREAM_CODEC, C2STunePacket::handle);
         registrar.playToServer(C2SCreatePacket.TYPE, C2SCreatePacket.STREAM_CODEC, C2SCreatePacket::handle);
     }

@@ -411,11 +411,16 @@ public final class ContinuumMissions {
         long trip = Math.round(RocketStats.tripMillis(body, flown) * Stations.tripFactor(stationLevel) *
                 affinity.trip());
         if (event == MissionEvent.TAILWIND) trip = Math.max(1000L, Math.round(trip * MissionEvent.TAILWIND_FACTOR));
+        // where the target is on its orbit: a good window is quicker and gentler, a bad one slower and harsher
+        LaunchWindows.Window window = LaunchWindows.of(body, now);
+        trip = Math.max(1000L, Math.round(trip * window.factor()));
 
         int shownProbes = type == Mission.Type.HAUL ? haulProbes : kitRun ? kitsCarried : carried;
         Mission mission = new Mission(UUID.randomUUID(), team, player.getUUID(), player.getGameProfile().getName(),
                 destinationId, type, shownProbes, rewards, now, trip, succeeds,
-                RocketStats.wearCost(body, flown) * Stations.wearFactor(stationLevel) * affinity.wear(), flown,
+                RocketStats.wearCost(body, flown) * Stations.wearFactor(stationLevel) * affinity.wear() *
+                        window.factor(),
+                flown,
                 Mission.State.ACTIVE, events);
         if (complex != null) {
             mission.padDimension = level.dimension().location().toString();
@@ -425,7 +430,8 @@ public final class ContinuumMissions {
         net.phoenix.continuum.api.ContinuumEvents.postMission(
                 net.phoenix.continuum.api.ContinuumEvents.MissionChanged.Kind.LAUNCHED, mission);
         data.log(team, MissionLog.Kind.LAUNCH, destinationId,
-                type.label() + " launched to " + body.name() + " (" + durationText(trip) + " flight)" +
+                type.label() + " launched to " + body.name() + " (" + durationText(trip) + " flight" +
+                        (window.applies() ? ", " + window.label().toLowerCase(java.util.Locale.ROOT) + " window" : "") + ")" +
                         (stranded != null ? ", to rescue the stranded rocket" : "") + ".");
         if (stranded != null) {
             stranded.rescuing = true;

@@ -157,6 +157,16 @@ from the start. A mod that provides its own research (PhoenixCore) takes over th
   of reflective panels. It has real depth: far panels show their inner faces lit by the star, seen through gaps in the near
   ones, which are dark against the glare and hide the star and its shafts of light. The first shell is a band in the orbital
   plane, the others are tipped away from it. It also draws in a personal dimension's sky.
+- **Anomalies:** a body can list things worth a closer look in `"anomalies"`: each has an `id`, `name`, `description`, a
+  `reveal` stage (`"detected"` or `"surveyed"`, default surveyed), an optional `cost` (`{"item": "...", "count": n}`, taken
+  from the player) and a `reward` (`items` with `item`, `count` or `min`/`max`, and `chance`; an optional `research` node
+  to grant; and a `message`). Once a team has reached the reveal stage the body panel on the map lists it with an
+  Investigate button; each can be investigated once per team. Scripts hear about it with
+  `ContinuumEvents.anomaly(event => ...)` (`event.player`, `event.team`, `event.body`, `event.anomaly`).
+- **Launch windows:** where a world is on its orbit changes how long a flight there takes and how hard it is on the hull: up
+  to 30% quicker when the world is on the side of its star facing home, 30% slower on the far side (`launchWindowStrength`
+  in the config; 0 turns it off). One orbital day is `launchWindowDayMinutes` real minutes (default 6), so inner worlds cycle
+  in hours and outer ones in days. The map shows the window, how it changes the flight, and when it next opens or closes.
 - **Sky events in a personal dimension** (nothing to configure; they follow from the world): the moons of the world you stand
   on cross the star in eclipse seasons (the day dims, stars come out, a corona and a sunset glow ring the horizon; a moon
   smaller than the star leaves a ring of it showing); a world with `"style": "aurora"` (or ice and some air) shows

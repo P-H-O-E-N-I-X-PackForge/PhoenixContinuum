@@ -16,15 +16,51 @@ public final class ContinuumKubeEvents {
     public static final EventGroup GROUP = EventGroup.of("ContinuumEvents");
 
     /** {@code ContinuumEvents.visibility(event => event.deny())}: the last word on whether something shows or is reachable. */
-    public static final EventHandler VISIBILITY = GROUP.server("visibility", () -> VisibilityEvent.class);
+    public static final EventHandler VISIBILITY = GROUP.server(
+            "visibility", () -> VisibilityEvent.class);
 
     /** {@code ContinuumEvents.discovery(event => ...)}: a body or system reached a new stage for a team. */
-    public static final EventHandler DISCOVERY = GROUP.server("discovery", () -> DiscoveryEvent.class);
+    public static final EventHandler DISCOVERY = GROUP.server(
+            "discovery", () -> DiscoveryEvent.class);
 
     /** {@code ContinuumEvents.mission(event => ...)}: a mission launched, succeeded or failed. */
     public static final EventHandler MISSION = GROUP.server("mission", () -> MissionEvent.class);
 
+    /** {@code ContinuumEvents.anomaly(event => ...)}: a player investigated an anomaly (see a body's "anomalies"). */
+    public static final EventHandler ANOMALY = GROUP.server("anomaly", () -> AnomalyEvent.class);
+
     private ContinuumKubeEvents() {}
+
+    public static class AnomalyEvent implements KubeEvent {
+
+        private final ContinuumEvents.AnomalyInvestigated event;
+
+        AnomalyEvent(ContinuumEvents.AnomalyInvestigated event) {
+            this.event = event;
+        }
+
+        public MinecraftServer getServer() {
+            return event.getServer();
+        }
+
+        public net.minecraft.server.level.ServerPlayer getPlayer() {
+            return event.getPlayer();
+        }
+
+        public UUID getTeam() {
+            return event.getTeam();
+        }
+
+        /** The body's id, as a string. */
+        public String getBody() {
+            return event.getBody().toString();
+        }
+
+        /** The anomaly's id, as authored. */
+        public String getAnomaly() {
+            return event.getAnomaly();
+        }
+    }
 
     public static class VisibilityEvent implements KubeEvent {
 

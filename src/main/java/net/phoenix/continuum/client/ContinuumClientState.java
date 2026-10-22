@@ -30,6 +30,15 @@ public final class ContinuumClientState {
     private static Map<ResourceLocation, float[]> deposits = Map.of();
     private static java.util.Set<ResourceLocation> hidden = java.util.Set.of();
     private static long clockOffset;
+    private static java.util.Set<String> investigated = java.util.Set.of();
+
+    public static void acceptAnomalies(java.util.Set<String> found) {
+        investigated = new java.util.HashSet<>(found);
+    }
+
+    public static boolean anomalyInvestigated(ResourceLocation body, String id) {
+        return investigated.contains(body + "|" + id);
+    }
 
     private static Map<UUID, Mission.State> lastStates = Map.of();
 

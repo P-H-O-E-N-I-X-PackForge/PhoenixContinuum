@@ -24,6 +24,7 @@ public class ContinuumTeamData extends SavedData {
     private final Map<UUID, Map<ResourceLocation, Outpost>> outposts = new HashMap<>();
 
     private final Map<UUID, Map<ResourceLocation, Integer>> depths = new HashMap<>();
+    private final Map<UUID, java.util.Set<String>> anomalies = new HashMap<>();
     private final Map<UUID, Map<ResourceLocation, Integer>> stations = new HashMap<>();
     private final Map<UUID, java.util.List<MissionLog.Entry>> history = new HashMap<>();
 
@@ -164,7 +165,23 @@ public class ContinuumTeamData extends SavedData {
     public void resetDiscovery(UUID team) {
         stages.remove(team);
         depths.remove(team);
+        anomalies.remove(team);
         setDirty();
+    }
+
+    /** The anomalies a team has investigated, as "body|id". */
+    public java.util.Set<String> investigatedAnomalies(UUID team) {
+        return anomalies.getOrDefault(team, java.util.Set.of());
+    }
+
+    public boolean anomalyInvestigated(UUID team, ResourceLocation body, String id) {
+        return investigatedAnomalies(team).contains(body + "|" + id);
+    }
+
+    public boolean markAnomalyInvestigated(UUID team, ResourceLocation body, String id) {
+        boolean added = anomalies.computeIfAbsent(team, t -> new java.util.HashSet<>()).add(body + "|" + id);
+        if (added) setDirty();
+        return added;
     }
 
     public void log(UUID team, MissionLog.Kind kind, ResourceLocation body, String text) {
@@ -351,6 +368,17 @@ public class ContinuumTeamData extends SavedData {
         }
         tag.put("DepthTeams", depthTeams);
 
+        ListTag anomalyTeams = new ListTag();
+        for (var team : anomalies.entrySet()) {
+            CompoundTag teamTag = new CompoundTag();
+            teamTag.putUUID("Team", team.getKey());
+            ListTag list = new ListTag();
+            for (String key : team.getValue()) list.add(net.minecraft.nbt.StringTag.valueOf(key));
+            teamTag.put("Found", list);
+            anomalyTeams.add(teamTag);
+        }
+        tag.put("AnomalyTeams", anomalyTeams);
+
         ListTag stationTeams = new ListTag();
         for (var team : stations.entrySet()) {
             CompoundTag teamTag = new CompoundTag();
@@ -434,6 +462,13 @@ public class ContinuumTeamData extends SavedData {
                 map.put(ResourceLocation.parse(e.getString("Body")), e.getInt("Depth"));
             }
             data.depths.put(teamTag.getUUID("Team"), map);
+        }
+
+        for (Tag t : tag.getList("AnomalyTeams", Tag.TAG_COMPOUND)) {
+            CompoundTag teamTag = (CompoundTag) t;
+            java.util.Set<String> found = new java.util.HashSet<>();
+            for (Tag f : teamTag.getList("Found", Tag.TAG_STRING)) found.add(f.getAsString());
+            data.anomalies.put(teamTag.getUUID("Team"), found);
         }
 
         for (Tag t : tag.getList("StationTeams", Tag.TAG_COMPOUND)) {

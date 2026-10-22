@@ -238,7 +238,43 @@ public final class ContinuumData {
                 json.has("sky_hole_inclination") ? GsonHelper.getAsFloat(json, "sky_hole_inclination") : null,
                 json.has("sky_hole_lean") ? GsonHelper.getAsFloat(json, "sky_hole_lean") : null,
                 json.has("visibility") && json.get("visibility").isJsonObject() ?
-                        json.getAsJsonObject("visibility") : null);
+                        json.getAsJsonObject("visibility") : null,
+                parseAnomalies(json));
+    }
+
+    private static List<ContinuumBody.Anomaly> parseAnomalies(JsonObject json) {
+        List<ContinuumBody.Anomaly> list = new ArrayList<>();
+        if (!json.has("anomalies") || !json.get("anomalies").isJsonArray()) return list;
+        for (var element : json.getAsJsonArray("anomalies")) {
+            if (!element.isJsonObject()) continue;
+            JsonObject a = element.getAsJsonObject();
+            String id = GsonHelper.getAsString(a, "id", "");
+            if (id.isEmpty()) continue;
+            JsonObject reward = GsonHelper.getAsJsonObject(a, "reward", new JsonObject());
+            List<ContinuumBody.Yield> rewards = new ArrayList<>();
+            if (reward.has("items") && reward.get("items").isJsonArray()) {
+                for (var item : reward.getAsJsonArray("items")) {
+                    if (!item.isJsonObject()) continue;
+                    JsonObject i = item.getAsJsonObject();
+                    ResourceLocation itemId = ResourceLocation.tryParse(GsonHelper.getAsString(i, "item", ""));
+                    if (itemId == null) continue;
+                    int min = Math.max(1, GsonHelper.getAsInt(i, "min", GsonHelper.getAsInt(i, "count", 1)));
+                    int max = Math.max(min, GsonHelper.getAsInt(i, "max", min));
+                    rewards.add(new ContinuumBody.Yield(itemId, min, max, GsonHelper.getAsFloat(i, "chance", 1.0f)));
+                }
+            }
+            ContinuumBody.PdimCost cost = null;
+            if (a.has("cost") && a.get("cost").isJsonObject()) {
+                JsonObject c = a.getAsJsonObject("cost");
+                ResourceLocation costItem = ResourceLocation.tryParse(GsonHelper.getAsString(c, "item", ""));
+                if (costItem != null) cost = new ContinuumBody.PdimCost(costItem, Math.max(1, GsonHelper.getAsInt(c, "count", 1)));
+            }
+            list.add(new ContinuumBody.Anomaly(id, GsonHelper.getAsString(a, "name", id),
+                    GsonHelper.getAsString(a, "description", ""),
+                    DiscoveryStage.parse(GsonHelper.getAsString(a, "reveal", "surveyed"), DiscoveryStage.SURVEYED),
+                    rewards, optionalId(reward, "research"), GsonHelper.getAsString(reward, "message", ""), cost));
+        }
+        return list;
     }
 
     private static @Nullable ContinuumBody.Transient parseTransient(JsonObject json) {
