@@ -32,6 +32,13 @@ in mat3 vRot;
 
 out vec4 fragColor;
 
+// A planet that is big on screen has its terrain (height and its gradient) and clouds drawn once into cube maps by
+// continuum_planet_bake, and looks them up here instead of evaluating the noise for every pixel every frame.
+uniform samplerCube PlanetTerrain;
+uniform samplerCube PlanetClouds;
+uniform float UseBake;
+uniform float UseCloudBake;
+
 float hash(vec3 p) {
     p = fract(p * 0.3183099 + 0.1);
     p *= 17.0;
@@ -144,12 +151,14 @@ vec2 voronoi(vec3 p, out vec3 cell) {
 }
 
 float height(vec3 d) {
+    if (UseBake > 0.5) return textureLod(PlanetTerrain, d, 0.0).x;
     float raw = fbm(d * Scale + vec3(Seed * 17.0), lod(Scale, int(Octaves)));
     return clamp((raw - 0.2) / 0.6, 0.0, 1.0);
 }
 
 // height and its gradient on the sphere, in one pass
 vec4 heightD(vec3 d) {
+    if (UseBake > 0.5) return textureLod(PlanetTerrain, d, 0.0);
     vec4 r = fbmd(d * Scale + vec3(Seed * 17.0), lod(Scale, int(Octaves)));
     float t = (r.x - 0.2) / 0.6;
     float inside = step(0.0, t) * step(t, 1.0);
@@ -390,7 +399,7 @@ void main() {
         float cs = cos(CloudOffset);
         float sn = sin(CloudOffset);
         vec3 cd = vec3(cs * dir.x + sn * dir.z, dir.y, -sn * dir.x + cs * dir.z);
-        float c = fbm(cd * 3.2 + vec3(Seed * 5.0), lod(3.2, 6));
+        float c = UseCloudBake > 0.5 ? textureLod(PlanetClouds, cd, 0.0).r : fbm(cd * 3.2 + vec3(Seed * 5.0), lod(3.2, 6));
         float threshold = 0.78 - CloudCover * 0.4;
         float clouds = smoothstep(threshold, threshold + 0.14, c) * 0.95;
         float cloudLight = max(dot(geoNormal, sun), 0.0) * terminator;

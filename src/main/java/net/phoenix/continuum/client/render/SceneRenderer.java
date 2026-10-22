@@ -108,6 +108,20 @@ public final class SceneRenderer {
         IcosphereMesh mesh = PlanetRenderer.mesh(quality);
 
         ShaderInstance planet = ContinuumShaders.PLANET;
+
+        // A planet that is big on screen reads its terrain and clouds from cube maps drawn once (see PlanetBake) instead
+        // of evaluating the noise per pixel; small ones are cheap enough live. This is done first because baking
+        // changes render state.
+        int terrainTex = 0;
+        int cloudTex = 0;
+        if (!cube && !params.gasGiant() && onScreenRadius(projection, bodyView, radius) >= 40.0f) {
+            terrainTex = PlanetBake.terrain(params.seed(), params.scale(), quality.octaves);
+            if (terrainTex != 0 && params.cloudCover() > 0.001f) cloudTex = PlanetBake.clouds(params.seed());
+            PlanetBake.bind(terrainTex, cloudTex);
+        }
+        planet.safeGetUniform("UseBake").set(terrainTex != 0 ? 1.0f : 0.0f);
+        planet.safeGetUniform("UseCloudBake").set(cloudTex != 0 ? 1.0f : 0.0f);
+
         planet.safeGetUniform("SunDir").set(sunView.x, sunView.y, sunView.z);
         planet.safeGetUniform("Time").set(time());
         planet.safeGetUniform("Seed").set(params.seed());
@@ -131,6 +145,8 @@ public final class SceneRenderer {
                 net.phoenix.continuum.client.ContinuumVisuals.cubeCells(quality) : 0.0f);
         if (cube) CubeMesh.draw(planet, modelView, projection);
         else mesh.draw(planet, modelView, projection);
+        planet.safeGetUniform("UseBake").set(0.0f);
+        planet.safeGetUniform("UseCloudBake").set(0.0f);
 
         if (!cube && atmosphere && params.atmoDensity() > 0.0f) try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("planet.atmosphere")) {
             ShaderInstance shell = ContinuumShaders.ATMOSPHERE;
@@ -176,6 +192,14 @@ public final class SceneRenderer {
             RenderSystem.depthMask(true);
             RenderSystem.disableBlend();
         }
+    }
+
+    /** Roughly how many pixels tall a sphere of this radius at this view-space position is, for the current target. */
+    private static float onScreenRadius(Matrix4f projection, Vector3f viewPos, float radius) {
+        float distance = Math.max(-viewPos.z, 1.0e-3f);
+        var target = Minecraft.getInstance().getMainRenderTarget();
+        float height = current != null ? current.height : target.height;
+        return radius / distance * projection.m11() * 0.5f * height;
     }
 
     /**

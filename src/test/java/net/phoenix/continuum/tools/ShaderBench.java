@@ -125,8 +125,56 @@ public class ShaderBench {
             System.out.printf(Locale.ROOT, "%-16s %10.3f %10.3f%n", name, ms, ms / (w * (double) h / 1.0e6));
         }
         if (filter.isEmpty() || "backdrop".contains(filter)) backdrops(dir, out, w, h, fbo, vao);
-        if ("planet".contains(filter) || filter.isEmpty()) planets(dir, out, w, h);
+        if ("planet".contains(filter) || filter.isEmpty()) planets(dir, out, w, h, fbo, vao);
         GLFW.glfwTerminate();
+    }
+
+    /** Draws a planet's terrain (mode 0) or cloud (mode 1) cube map, as the game does. */
+    static int bakeCube(Path dir, int mode, float seed, float scale, int octaves, int quadVao, int mainFbo, int w, int h,
+                        int internalFormat, int format) throws Exception {
+        int size = 512;
+        int bake = build(Files.readString(dir.resolve("continuum_planet_bake.vsh")), Files.readString(dir.resolve("continuum_planet_bake.fsh")));
+        JsonObject bj = JsonParser.parseString(Files.readString(dir.resolve("continuum_planet_bake.json"))).getAsJsonObject();
+        GL33C.glActiveTexture(GL33C.GL_TEXTURE0 + 5);
+        int tex = GL33C.glGenTextures();
+        GL33C.glBindTexture(34067, tex);
+        for (int face = 0; face < 6; face++) {
+            GL33C.glTexImage2D(34069 + face, 0, internalFormat, size, size, 0, format, GL33C.GL_FLOAT, 0L);
+        }
+        GL33C.glTexParameteri(34067, GL33C.GL_TEXTURE_MIN_FILTER, GL33C.GL_LINEAR);
+        GL33C.glTexParameteri(34067, GL33C.GL_TEXTURE_MAG_FILTER, GL33C.GL_LINEAR);
+        GL33C.glTexParameteri(34067, GL33C.GL_TEXTURE_WRAP_S, GL33C.GL_CLAMP_TO_EDGE);
+        GL33C.glTexParameteri(34067, GL33C.GL_TEXTURE_WRAP_T, GL33C.GL_CLAMP_TO_EDGE);
+        GL33C.glTexParameteri(34067, 32882, GL33C.GL_CLAMP_TO_EDGE);
+        GL33C.glEnable(34895);
+        GL33C.glActiveTexture(GL33C.GL_TEXTURE0);
+        int fbo = GL33C.glGenFramebuffers();
+        GL33C.glBindFramebuffer(GL33C.GL_FRAMEBUFFER, fbo);
+        GL33C.glViewport(0, 0, size, size);
+        GL33C.glDisable(GL33C.GL_BLEND);
+        GL33C.glDisable(GL33C.GL_DEPTH_TEST);
+        GL33C.glBindVertexArray(quadVao);
+        GL33C.glUseProgram(bake);
+        applyDefaults(bake, bj);
+        f(bake, "Mode", mode);
+        f(bake, "Seed", seed);
+        f(bake, "Scale", scale);
+        f(bake, "Octaves", octaves);
+        GL33C.glFinish();
+        int q = GL33C.glGenQueries();
+        GL33C.glBeginQuery(GL33C.GL_TIME_ELAPSED, q);
+        for (int face = 0; face < 6; face++) {
+            GL33C.glFramebufferTexture2D(GL33C.GL_FRAMEBUFFER, GL33C.GL_COLOR_ATTACHMENT0, 34069 + face, tex, 0);
+            f(bake, "Face", face);
+            GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, 6);
+        }
+        GL33C.glEndQuery(GL33C.GL_TIME_ELAPSED);
+        System.out.printf(Locale.ROOT, "%-24s %10.3f   (one-off, 6 x %d)%n", mode == 0 ? "terrain bake" : "cloud bake",
+                GL33C.glGetQueryObjectui64(q, GL33C.GL_QUERY_RESULT) / 1.0e6, size);
+        GL33C.glDeleteFramebuffers(fbo);
+        GL33C.glBindFramebuffer(GL33C.GL_FRAMEBUFFER, mainFbo);
+        GL33C.glViewport(0, 0, w, h);
+        return tex;
     }
 
     /** The nebula backdrops with and without the baked picture: the same frame both ways, and what each costs. */
@@ -200,7 +248,7 @@ public class ShaderBench {
     }
 
     /** The planet shader on a sphere filling the target's height (the worst case), a few looks and octave counts. */
-    static void planets(Path dir, Path out, int w, int h) throws Exception {
+    static void planets(Path dir, Path out, int w, int h, int mainFbo, int quadVao) throws Exception {
         int program = build(Files.readString(dir.resolve("continuum_planet.vsh")), Files.readString(dir.resolve("continuum_planet.fsh")));
         int atmo = build(Files.readString(dir.resolve("continuum_planet.vsh")), Files.readString(dir.resolve("continuum_atmosphere.fsh")));
         if (program == 0 || atmo == 0) return;
@@ -251,6 +299,23 @@ public class ShaderBench {
                 {"chrome", 0f, 6f, 0.2f, 0f, 4f}
         };
         for (Object[] look : looks) {
+          boolean bakeable = (Float) look[1] == 0f;
+          for (int pass = 0; pass < (bakeable ? 2 : 1); pass++) {
+            boolean baked = pass == 1;
+            int terrainTex = 0;
+            int cloudTex = 0;
+            if (baked) {
+                terrainTex = bakeCube(dir, 0, 4.2f, 2.5f, (int) (float) (Float) look[2], quadVao, mainFbo, w, h, 34842, 6408);
+                if ((Float) look[4] > 0f) cloudTex = bakeCube(dir, 1, 4.2f, 1f, 6, quadVao, mainFbo, w, h, 33325, 6403);
+                GL33C.glEnable(GL33C.GL_DEPTH_TEST);
+                GL33C.glDisable(GL33C.GL_BLEND);
+                GL33C.glActiveTexture(GL33C.GL_TEXTURE0 + 5);
+                GL33C.glBindTexture(34067, terrainTex);
+                GL33C.glActiveTexture(GL33C.GL_TEXTURE0 + 6);
+                GL33C.glBindTexture(34067, cloudTex);
+                GL33C.glActiveTexture(GL33C.GL_TEXTURE0);
+                GL33C.glBindVertexArray(vao);
+            }
             GL33C.glUseProgram(program);
             applyDefaults(program, JsonParser.parseString(Files.readString(dir.resolve("continuum_planet.json"))).getAsJsonObject());
             int loc = GL33C.glGetUniformLocation(program, "ModelViewMat");
@@ -270,10 +335,12 @@ public class ShaderBench {
             f(program, "PalMid", 0.5f, 0.45f, 0.3f);
             f(program, "PalHigh", 0.9f, 0.9f, 0.9f);
             f(program, "EmissiveAmount", (Float) look[5] == 2f ? 1f : 0f);
+            f(program, "UseBake", baked ? 1f : 0f);
+            f(program, "UseCloudBake", cloudTex != 0 ? 1f : 0f);
             GL33C.glClearColor(0f, 0f, 0f, 1f);
             GL33C.glClear(GL33C.GL_COLOR_BUFFER_BIT | GL33C.GL_DEPTH_BUFFER_BIT);
             GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, count);
-            save(out.resolve("planet_" + look[0].toString().replace(' ', '_') + ".png").toFile(), w, h);
+            save(out.resolve("planet_" + look[0].toString().replace(' ', '_') + (baked ? "_baked" : "") + ".png").toFile(), w, h);
             for (int i = 0; i < 40; i++) GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, count);
             GL33C.glFinish();
             int frames = 20;
@@ -282,7 +349,8 @@ public class ShaderBench {
             for (int i = 0; i < frames; i++) GL33C.glDrawArrays(GL33C.GL_TRIANGLES, 0, count);
             GL33C.glEndQuery(GL33C.GL_TIME_ELAPSED);
             double ms = GL33C.glGetQueryObjectui64(q, GL33C.GL_QUERY_RESULT) / 1.0e6 / frames;
-            System.out.printf(Locale.ROOT, "%-24s %10.3f %10.3f%n", look[0], ms, ms / (discPx / 1e6));
+            System.out.printf(Locale.ROOT, "%-24s %10.3f %10.3f%n", look[0] + (baked ? " baked" : ""), ms, ms / (discPx / 1e6));
+          }
         }
         // atmosphere shell
         GL33C.glUseProgram(atmo);
