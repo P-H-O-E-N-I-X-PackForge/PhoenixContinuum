@@ -363,6 +363,14 @@ public class ContinuumMapScreen extends Screen {
             SceneRenderer.drawPlanet(params, view, projection, pos, visualRadius(b), sun,
                     clock * params.spinDegPerSec(), clock * params.cloudSpinDegPerSec(), q,
                     stage == DiscoveryStage.SURVEYED);
+
+            // a passing comet trails its tails away from the star, more of them the closer it gets
+            var passing = b.transientInfo() == null ? null : ContinuumClientState.transientWindow(b.id());
+            if (passing != null) {
+                float activity = 0.25f + 0.75f * transientProgress(passing);
+                SceneRenderer.drawCometTail(params.mid(), view, projection, pos, visualRadius(b),
+                        new Vector3f(pos).sub(sun).normalize(), activity, 26.0f, q, false);
+            }
         }
     }
 

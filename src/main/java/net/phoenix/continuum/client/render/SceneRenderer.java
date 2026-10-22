@@ -614,6 +614,43 @@ public final class SceneRenderer {
     }
 
     /**
+     * The tails of a comet at {@code worldPos}: a glowing coma, a straight blue ion tail pushed away from the star and a
+     * curved, warmer dust tail. {@code awayFromStar} is the direction away from the star in world space; {@code activity}
+     * (0..1) is how active the comet is, stronger the closer it is to the star. {@code extent} is the billboard half-size
+     * in nucleus radii, so it sets how long the tails can be.
+     */
+    public static void drawCometTail(int rgb, Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
+                                     Vector3f awayFromStar, float activity, float extent, PlanetRenderer.Quality quality,
+                                     boolean sky) {
+        if (ContinuumShaders.COMET == null) return;
+        float tx;
+        float ty;
+        if (sky) {
+            org.joml.Matrix3f axes = skyAxes(worldPos);
+            tx = awayFromStar.dot(axes.getColumn(0, new Vector3f()));
+            ty = awayFromStar.dot(axes.getColumn(1, new Vector3f()));
+        } else {
+            Vector3f v = view.transformDirection(new Vector3f(awayFromStar));
+            tx = v.x;
+            ty = v.y;
+        }
+        float length = (float) Math.sqrt(tx * tx + ty * ty);
+        if (length < 1.0e-4f) {
+            tx = 1.0f;
+            ty = 0.0f;
+        } else {
+            tx /= length;
+            ty /= length;
+        }
+        final float fx = tx;
+        final float fy = ty;
+        drawStarFx(ContinuumShaders.COMET, rgb, extent, view, projection, worldPos, radius, quality, sky, s -> {
+            s.safeGetUniform("TailDir").set(fx, fy);
+            s.safeGetUniform("Activity").set(activity);
+        });
+    }
+
+    /**
      * A star shut inside a complete shell: dark plates with glowing seams, rifts where the star shows through, a belt of
      * docks round the equator, and the glare of the star ringing the edge. The belt lies in the orbital plane.
      */

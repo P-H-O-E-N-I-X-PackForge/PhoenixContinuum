@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public class ShaderBench {
 
-    static final String[] QUAD = {"wolfrayet", "pulsar", "protostar", "planetary", "megastructure", "dyson", "tidal", "blackhole",
+    static final String[] QUAD = {"wolfrayet", "pulsar", "protostar", "planetary", "megastructure", "dyson", "comet", "tidal", "blackhole",
             "nebula", "galaxy", "backdrop", "sky", "starfield", "glow"};
 
     public static void main(String[] args) throws Exception {
@@ -555,6 +555,13 @@ public class ShaderBench {
                 f(program, "Extent", 16.0f);
                 f(program, "Core", 1.0f);
                 f(program, "Tint", 1.0f, 0.82f, 0.45f);
+            }
+            case "comet" -> {
+                f(program, "Extent", 26.0f);
+                f(program, "Core", 1.0f);
+                f(program, "Tint", 0.9f, 0.8f, 0.6f);
+                f(program, "TailDir", 0.85f, 0.35f);
+                f(program, "Activity", 0.8f);
             }
             case "dyson" -> {
                 f(program, "Extent", 7.0f);

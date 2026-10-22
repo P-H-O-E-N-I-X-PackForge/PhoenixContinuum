@@ -3,6 +3,7 @@ package net.phoenix.continuum.client.pdim;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.phoenix.continuum.client.ContinuumClientState;
 import net.phoenix.continuum.client.ContinuumVisuals;
+import net.phoenix.continuum.client.render.PlanetParams;
 import net.phoenix.continuum.client.render.PlanetRenderer;
 import net.phoenix.continuum.client.render.SceneRenderer;
 import net.phoenix.continuum.data.ContinuumBody;
@@ -36,7 +37,7 @@ final class PdimSkyBodies {
     private record Item(ContinuumBody body, Vector3f direction, float skyRadius, Vector3f light, boolean moon) {}
 
     /** Where everything is in the sky right now: the frame of the ecliptic and the worlds to draw, biggest first. */
-    private record Plan(Vector3f normal, List<Item> items) {}
+    private record Plan(Vector3f e1, Vector3f e2, Vector3f normal, List<Item> items) {}
 
     /** The sun's apparent radius as drawn (see PdimSkyEffects: radius 6 at 98), in radians. */
     private static final float SUN_ANGULAR_RADIUS = (float) Math.atan(6.0 / 98.0);
@@ -124,7 +125,7 @@ final class PdimSkyBodies {
 
         items.sort(Comparator.comparingDouble((Item i) -> i.skyRadius()).reversed());
         if (items.size() > MAX_BODIES) items = new ArrayList<>(items.subList(0, MAX_BODIES));
-        return new Plan(normal, items);
+        return new Plan(e1, e2, normal, items);
     }
 
     /**
@@ -175,8 +176,39 @@ final class PdimSkyBodies {
                     item.skyRadius() >= 4.0f);
         }
 
+        drawComets(self, view, projection, plan, sample, time);
+
         // the horizon sphere only wrote depth to hide things behind it; the world is drawn after the sky, so remove it
         com.mojang.blaze3d.systems.RenderSystem.clear(256, net.minecraft.client.Minecraft.ON_OSX);
+    }
+
+    /**
+     * Comets passing through the system while their visit lasts: a small nucleus with its tails, crossing the sky slowly
+     * over the whole visit (they are the same comets the map shows, announced in chat).
+     */
+    private static void drawComets(ContinuumBody self, Matrix4f view, Matrix4f projection, Plan plan,
+                                   PdimSkyModel.Sample sample, float time) {
+        for (ContinuumBody comet : ContinuumData.bodiesOf(self.system())) {
+            if (comet.transientInfo() == null || comet.params().style() == PlanetParams.STYLE_TIDAL) continue;
+            long[] window = ContinuumClientState.transientWindow(comet.id());
+            if (window == null) continue;
+            float progress = clamp((ContinuumClientState.now() - window[0]) / (float) Math.max(1L, window[1] - window[0]),
+                    0.0f, 1.0f);
+
+            // it climbs across the upper sky over the visit, on its own tilt
+            double seed = comet.params().seed();
+            double angle = Math.PI * (0.18 + 0.64 * progress);
+            Vector3f direction = ecliptic(plan.e1(), plan.e2(), plan.normal(), angle, 0.22 + 0.2 * Math.sin(seed * 5.1));
+            Vector3f pos = new Vector3f(direction).mul(SKY_DISTANCE);
+            float radius = 1.1f;
+            Vector3f away = new Vector3f(pos).sub(new Vector3f(sample.sunDir()).mul(98.0f)).normalize();
+
+            SceneRenderer.drawPlanet(comet.params(), view, projection, pos, radius,
+                    new Vector3f(pos).add(new Vector3f(sample.sunDir()).mul(400.0f)), time * 3.0f, 0.0f,
+                    PlanetRenderer.Quality.LOW, false);
+            SceneRenderer.drawCometTail(comet.params().mid(), view, projection, pos, radius, away,
+                    0.35f + 0.65f * progress, 34.0f, ContinuumVisuals.quality(), true);
+        }
     }
 
     /** A body's place in the system plane, in AU, at the given game day. */
