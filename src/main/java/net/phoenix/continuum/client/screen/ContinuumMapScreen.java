@@ -373,7 +373,6 @@ public class ContinuumMapScreen extends Screen {
                     clock * params.spinDegPerSec(), clock * params.cloudSpinDegPerSec(), q,
                     stage == DiscoveryStage.SURVEYED);
 
-            // a passing comet trails its tails away from the star, more of them the closer it gets
             var passing = b.transientInfo() == null ? null : ContinuumClientState.transientWindow(b.id());
             if (passing != null && b.isComet()) {
                 float activity = 0.25f + 0.75f * transientProgress(passing);
@@ -451,12 +450,44 @@ public class ContinuumMapScreen extends Screen {
         return 2.6f + 3.0f * (float) Math.sqrt(au);
     }
 
+    /** Where each world's orbit is drawn: its own distance, pushed out so a big world does not sit on its neighbours. */
+    private final java.util.Map<ResourceLocation, Float> orbitRadii = new java.util.HashMap<>();
+
+    private float orbitRadiusOf(ContinuumBody b) {
+        Float spaced = orbitRadii.get(b.id());
+        return spaced != null ? spaced : orbitWorldRadius(b.orbitAu());
+    }
+
+    private void spaceOrbits(ContinuumSystem sys, List<ContinuumBody> all) {
+        orbitRadii.clear();
+        List<ContinuumBody> planets = new ArrayList<>();
+        for (ContinuumBody b : all) {
+            if (b.isMoon() || b.isCentral() || b.transientInfo() != null || ContinuumClientState.isHidden(b.id())) {
+                continue;
+            }
+            planets.add(b);
+        }
+        planets.sort(java.util.Comparator.comparing(ContinuumBody::orbitAu));
+
+        float previousOrbit = 0.0f;
+        float previousRadius = sys.starRadius() * 1.4f;
+        for (ContinuumBody b : planets) {
+            float own = visualRadius(b);
+            // far enough out that this world and the one inside it (and their moons' room) do not overlap
+            float radius = Math.max(orbitWorldRadius(b.orbitAu()), previousOrbit + previousRadius + own + 0.3f);
+            orbitRadii.put(b.id(), radius);
+            previousOrbit = radius;
+            previousRadius = own;
+        }
+    }
+
     private float orbitAngle(ContinuumBody b) {
         return (float) (2.0 * Math.PI * (b.phase() + animDays / b.periodDays()));
     }
 
     private void layoutSystem(ContinuumSystem sys) {
         List<ContinuumBody> all = ContinuumData.bodiesOf(sys.id());
+        spaceOrbits(sys, all);
         for (ContinuumBody b : all) {
             if (b.isMoon() || ContinuumClientState.isHidden(b.id())) continue;
             if (b.isCentral()) {
@@ -464,7 +495,7 @@ public class ContinuumMapScreen extends Screen {
                 continue;
             }
             float angle = orbitAngle(b);
-            float radius = orbitWorldRadius(b.orbitAu());
+            float radius = orbitRadiusOf(b);
 
             var window = b.transientInfo() == null ? null : ContinuumClientState.transientWindow(b.id());
             if (window != null) {
@@ -493,7 +524,6 @@ public class ContinuumMapScreen extends Screen {
                 (float) Math.max(1L, window[1] - window[0])));
     }
 
-    /** Where a passing body is at a point of its visit: it falls from its outer orbit in towards its inner one. */
     private static Vector3f transientWorld(ContinuumBody b, float progress) {
         float radius = orbitWorldRadius(b.transientInfo().outerAu() +
                 (b.transientInfo().innerAu() - b.transientInfo().outerAu()) * progress);
@@ -501,7 +531,6 @@ public class ContinuumMapScreen extends Screen {
         return new Vector3f((float) Math.cos(angle) * radius, 0.0f, (float) Math.sin(angle) * radius);
     }
 
-    /** A supernova remnant: a shell centred on a point of the system that swells over the visit and fades. */
     private void drawRemnantEvent(ContinuumBody b, Matrix4f view, Matrix4f projection) {
         var window = ContinuumClientState.transientWindow(b.id());
         if (window == null) return;
@@ -624,7 +653,7 @@ public class ContinuumMapScreen extends Screen {
                 radius = visualRadius(parent) * 1.6f + 0.35f + 5.0f * (float) Math.sqrt(b.orbitAu());
                 alpha *= 0.7f;
             } else {
-                radius = orbitWorldRadius(b.orbitAu());
+                radius = orbitRadiusOf(b);
             }
 
             float[] previous = null;
@@ -931,7 +960,6 @@ public class ContinuumMapScreen extends Screen {
         }
     }
 
-    /** How tall the body panel is: a fixed block, plus a line pair for each anomaly the team has found here. */
     private static int bodyPanelHeight(ContinuumBody b) {
         DiscoveryStage stage = ContinuumClientState.stage(b.id());
         int height = 366;
@@ -944,7 +972,6 @@ public class ContinuumMapScreen extends Screen {
         return any ? height + 14 : height;
     }
 
-    /** An anomaly's description (and its cost, while it is still to do) wrapped to the panel, at most three lines. */
     private static List<net.minecraft.util.FormattedCharSequence> anomalyLines(ContinuumBody b,
                                                                               ContinuumBody.Anomaly anomaly, int width) {
         boolean done = ContinuumClientState.anomalyInvestigated(b.id(), anomaly.id());
@@ -1056,7 +1083,6 @@ public class ContinuumMapScreen extends Screen {
                     net.phoenix.continuum.common.Stations.MAX_LEVEL, x + 7, ty);
         }
 
-        // anomalies this team has found here: each can be investigated once
         if (!anomalies.isEmpty()) {
             graphics.drawString(font, "Anomalies", x + 7, ty + 2, DIM);
             ty += 14;
