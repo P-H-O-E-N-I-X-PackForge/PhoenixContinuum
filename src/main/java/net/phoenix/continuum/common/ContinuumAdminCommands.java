@@ -167,6 +167,73 @@ final class ContinuumAdminCommands {
             return 0;
         }
         String pretty = new com.google.gson.GsonBuilder().setPrettyPrinting().create()
+    private static final int MAX_GENERATED = 64;
+
+    private static java.nio.file.Path generatedRoot() {
+        return net.phoenix.continuum.data.ContinuumPackFolder.folder().resolve("data")
+                .resolve(net.phoenix.continuum.data.SystemGenerator.NAMESPACE);
+    }
+
+    private static void deleteTree(java.nio.file.Path root) throws java.io.IOException {
+        if (!java.nio.file.Files.exists(root)) return;
+        try (var walk = java.nio.file.Files.walk(root)) {
+            for (java.nio.file.Path path : (Iterable<java.nio.file.Path>) walk.sorted(
+                    java.util.Comparator.reverseOrder())::iterator) {
+                java.nio.file.Files.delete(path);
+            }
+        }
+    }
+
+    private static void writeAll(java.nio.file.Path dir,
+                                 java.util.Map<ResourceLocation, com.google.gson.JsonObject> entries)
+                                                                                                      throws java.io.IOException {
+        com.google.gson.Gson gson = new com.google.gson.GsonBuilder().setPrettyPrinting().create();
+        java.nio.file.Files.createDirectories(dir);
+        for (var entry : entries.entrySet()) {
+            java.nio.file.Files.writeString(dir.resolve(entry.getKey().getPath() + ".json"),
+                    gson.toJson(entry.getValue()));
+        }
+    }
+
+    private static int generateSystems(CommandSourceStack source, int count, @org.jetbrains.annotations.Nullable Long seedArg) {
+        long seed = seedArg != null ? seedArg : source.getServer().overworld().getSeed();
+        var home = ContinuumData.system(net.phoenix.continuum.common.LaunchWindows.HOME_SYSTEM);
+        var homeAt = home == null ? net.phoenix.continuum.data.SystemGenerator.ContinuumSystemView.ORIGIN :
+                new net.phoenix.continuum.data.SystemGenerator.ContinuumSystemView(home.galaxyX(), home.galaxyY(),
+                        home.galaxyZ());
+        var result = net.phoenix.continuum.data.SystemGenerator.generate(seed, count, homeAt);
+
+        java.nio.file.Path root = generatedRoot();
+        try {
+            deleteTree(root);
+            writeAll(root.resolve("continuum").resolve("systems"), result.systems());
+            writeAll(root.resolve("continuum").resolve("bodies"), result.bodies());
+        } catch (java.io.IOException e) {
+            source.sendFailure(Component.literal("Could not write the generated files: " + e.getMessage()));
+            return 0;
+        }
+
+        var report = ContinuumData.reloadNow(source.getServer());
+        int pdim = writePdimFiles(source);
+        source.sendSuccess(() -> Component.literal("Generated " + result.systems().size() + " systems and " +
+                result.bodies().size() + " worlds from seed " + seed + " (" + report.errors() + " errors). " +
+                (pdim > 0 ? "Their personal dimensions need a server restart to exist. " : "") +
+                "/continuumadmin generate clear removes them.").withStyle(ChatFormatting.GREEN), true);
+        return result.systems().size();
+    }
+
+    private static int clearGenerated(CommandSourceStack source) {
+        try {
+            deleteTree(generatedRoot());
+        } catch (java.io.IOException e) {
+            source.sendFailure(Component.literal("Could not remove the generated files: " + e.getMessage()));
+            return 0;
+        }
+        ContinuumData.reloadNow(source.getServer());
+        source.sendSuccess(() -> Component.literal("Removed the generated systems."), true);
+        return 1;
+    }
+
                 .toJson(com.google.gson.JsonParser.parseString(json));
         net.phoenix.continuum.PhoenixContinuum.LOGGER.info("[Continuum] resolved {} {}", id, pretty);
         source.sendSuccess(() -> Component.literal(pretty), false);
@@ -257,6 +324,16 @@ final class ContinuumAdminCommands {
                                                 ResourceLocationArgument.getId(ctx, "body"), -1))
                                         .then(argument("minutes", IntegerArgumentType.integer(1, 10080))
                                                 .executes(ctx -> cometSpawn(ctx.getSource(),
+                .then(literal("generate")
+                        .then(literal("clear").executes(ctx -> clearGenerated(ctx.getSource())))
+                        .then(argument("count", IntegerArgumentType.integer(1, MAX_GENERATED))
+                                .executes(ctx -> generateSystems(ctx.getSource(),
+                                        IntegerArgumentType.getInteger(ctx, "count"), null))
+                                .then(argument("seed", com.mojang.brigadier.arguments.LongArgumentType.longArg())
+                                        .executes(ctx -> generateSystems(ctx.getSource(),
+                                                IntegerArgumentType.getInteger(ctx, "count"),
+                                                com.mojang.brigadier.arguments.LongArgumentType.getLong(ctx,
+                                                        "seed"))))))
                                                         ResourceLocationArgument.getId(ctx, "body"),
                                                         IntegerArgumentType.getInteger(ctx, "minutes"))))))
                         .then(literal("clear")
