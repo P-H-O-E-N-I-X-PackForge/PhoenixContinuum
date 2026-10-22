@@ -18,6 +18,8 @@ import net.minecraftforge.registries.RegistryObject;
 import net.phoenix.continuum.block.LaunchPadBlock;
 import net.phoenix.continuum.block.LaunchPadBlockEntity;
 import net.phoenix.continuum.block.ObservatoryBlock;
+import net.phoenix.continuum.block.SwarmReceiverBlock;
+import net.phoenix.continuum.block.SwarmReceiverBlockEntity;
 import net.phoenix.continuum.common.RocketStats;
 import net.phoenix.continuum.integration.gtceu.GregTech;
 import net.phoenix.continuum.item.ContinuumProbeItem;
@@ -152,6 +154,13 @@ public final class ContinuumRegistry {
     public static final BlockRef<ObservatoryBlock> OBSERVATORY = block("continuum_observatory",
             () -> new ObservatoryBlock(
                     BlockBehaviour.Properties.copy(Blocks.POLISHED_DEEPSLATE).strength(3.0f, 9.0f).noOcclusion()));
+
+    public static final BlockRef<SwarmReceiverBlock> SWARM_RECEIVER = block("continuum_swarm_receiver",
+            () -> new SwarmReceiverBlock(BlockBehaviour.Properties.copy(Blocks.POLISHED_BLACKSTONE).strength(4.0f, 12.0f)));
+
+    public static final RegistryObject<BlockEntityType<SwarmReceiverBlockEntity>> SWARM_RECEIVER_ENTITY = BLOCK_ENTITIES
+            .register("continuum_swarm_receiver", () -> BlockEntityType.Builder
+                    .of(SwarmReceiverBlockEntity::new, SWARM_RECEIVER.get()).build(null));
 
     public static final RegistryObject<BlockEntityType<LaunchPadBlockEntity>> LAUNCH_PAD_ENTITY = BLOCK_ENTITIES
             .register("continuum_launch_pad",

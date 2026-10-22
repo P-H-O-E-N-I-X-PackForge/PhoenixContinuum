@@ -162,6 +162,22 @@ public class LaunchPadMachine8 extends MultiblockControllerMachine implements La
     }
 
     @Override
+    public long chargeEnergy(long amount) {
+        long remaining = amount;
+        for (var part : getParts()) {
+            if (remaining <= 0) break;
+            if (!(part instanceof EnergyHatchPartMachine hatch)) continue;
+
+            long room = hatch.energyContainer.getEnergyCapacity() - hatch.energyContainer.getEnergyStored();
+            long put = Math.min(remaining, room);
+            if (put <= 0) continue;
+            hatch.energyContainer.changeEnergy(put);
+            remaining -= put;
+        }
+        return amount - remaining;
+    }
+
+    @Override
     public boolean drainEnergy(long amount) {
         if (amount <= 0) return true;
         if (storedEnergy() < amount) return false;

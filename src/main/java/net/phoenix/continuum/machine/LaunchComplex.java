@@ -37,6 +37,9 @@ public interface LaunchComplex {
 
     boolean drainEnergy(long amount);
 
+    /** Puts energy in (swarm power); returns how much was kept. */
+    long chargeEnergy(long amount);
+
     /** The formed launch complexes whose power outposts draw their upkeep from. */
     static List<LaunchComplex> complexesOf(UUID team) {
         return LaunchComplexes.of(team);

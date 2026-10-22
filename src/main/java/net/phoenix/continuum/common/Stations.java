@@ -6,6 +6,15 @@ public final class Stations {
 
     public static final int MAX_LEVEL = 3;
 
+    public static int maxLevel(net.phoenix.continuum.data.ContinuumBody body) {
+        return Swarms.maxLevel(body);
+    }
+
+    public static int probesPerLevel(net.phoenix.continuum.data.ContinuumBody body) {
+        var cfg = net.phoenix.continuum.config.ContinuumConfigs.INSTANCE;
+        return Math.max(1, Swarms.isSwarm(body) ? cfg.swarmProbesPerLevel : cfg.stationProbesPerLevel);
+    }
+
     public static float tripFactor(int level) {
         return 1.0f - 0.10f * clamp(level);
     }

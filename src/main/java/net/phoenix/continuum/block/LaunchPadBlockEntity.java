@@ -187,6 +187,16 @@ public class LaunchPadBlockEntity extends BlockEntity implements LaunchComplex {
     }
 
     @Override
+    public long chargeEnergy(long amount) {
+        if (amount <= 0) return 0;
+        int room = energy.getMaxEnergyStored() - energy.getEnergyStored();
+        int taken = (int) Math.min(amount, room);
+        if (taken > 0) energy.set(energy.getEnergyStored() + taken);
+        if (taken > 0) setChanged();
+        return taken;
+    }
+
+    @Override
     public int count(Predicate<ItemStack> matches) {
         return 0;
     }

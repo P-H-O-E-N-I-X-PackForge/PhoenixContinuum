@@ -358,6 +358,34 @@ public class ContinuumConfigs {
         public int basicOutpostUpkeepFEPerProbe = 20_000;
 
         @Configurable
+        @Configurable.Comment({
+                "Dyson swarms: an orbital station at a star. How many levels a swarm can have. Default: 10"
+        })
+        @Configurable.Range(min = 1, max = 100)
+        public int swarmMaxLevel = 10;
+
+        @Configurable
+        @Configurable.Comment({ "Probes one swarm level costs to build. Default: 8" })
+        @Configurable.Range(min = 1, max = 64)
+        public int swarmProbesPerLevel = 8;
+
+        @Configurable
+        @Configurable.Comment({
+                "Power one swarm level produces per tick (EU with GregTech, FE without), times the star's size",
+                "(0.5 to 4). Default: 256"
+        })
+        @Configurable.Range(min = 0, max = 100000000)
+        public int swarmPowerPerLevel = 256;
+
+        @Configurable
+        @Configurable.Comment({
+                "Without GregTech: the most FE per tick one Swarm Receiver block can pass on. A team needs",
+                "several receivers for a big swarm. Default: 4000"
+        })
+        @Configurable.Range(min = 1, max = 100000000)
+        public int swarmReceiverMaxFEPerTick = 4000;
+
+        @Configurable
         @Configurable.Comment({ "The most extraction probes one mission can carry.", "Default: 16" })
         @Configurable.Range(min = 1, max = 64)
         public int maxProbesPerMission = 16;

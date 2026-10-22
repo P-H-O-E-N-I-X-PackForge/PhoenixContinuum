@@ -305,14 +305,17 @@ public final class ContinuumMissions {
         switch (type) {
             case STATION -> {
                 if (stage != DiscoveryStage.SURVEYED) return "Stations can only be built at a surveyed body.";
-                if (stationLevel >= Stations.MAX_LEVEL) return "The station at " + body.name() + " is fully built.";
+                if (stationLevel >= Stations.maxLevel(body)) {
+                    return "The " + (Swarms.isSwarm(body) ? "swarm" : "station") + " at " + body.name() +
+                            " is fully built.";
+                }
                 for (Mission other : data.missions(team)) {
                     if (other.type == Mission.Type.STATION && other.destination.equals(destinationId) &&
                             !other.state.finished()) {
                         return "A station crew is already on its way to " + body.name() + ".";
                     }
                 }
-                carried = Math.max(1, cfg.stationProbesPerLevel);
+                carried = Stations.probesPerLevel(body);
                 if (stock.probes() < carried) return notEnoughProbes(carried, stock);
             }
             case RESCUE -> {
@@ -712,6 +715,12 @@ public final class ContinuumMissions {
                 case STATION -> {
                     int built = data.stationLevel(mission.team, mission.destination) + 1;
                     data.setStationLevel(mission.team, mission.destination, built);
+                    ContinuumBody station = ContinuumData.body(mission.destination);
+                    if (Swarms.isSwarm(station)) {
+                        yield "Dyson swarm at " + name + " is now level " +
+                                Math.min(built, Stations.maxLevel(station)) + ": " + Swarms.describe(station,
+                                        Math.min(built, Stations.maxLevel(station))) + ".";
+                    }
                     yield "Orbital station at " + name + " is now level " + Math.min(built, Stations.MAX_LEVEL) +
                             ". " + Stations.describe(built);
                 }

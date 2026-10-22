@@ -59,6 +59,7 @@ public final class ContinuumServerEvents {
         tickCounter = 0;
 
         ContinuumMissions.resolveDue(event.getServer());
+        Swarms.tick(event.getServer());
 
         if (++upkeepCounter >= 60) {
             upkeepCounter = 0;
