@@ -117,6 +117,22 @@
         0.8,
         0.6
       ]
+    },
+    {
+      "name": "Completion",
+      "type": "float",
+      "count": 1,
+      "values": [
+        1.0
+      ]
+    },
+    {
+      "name": "Overlay",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.0
+      ]
     }
   ]
 }

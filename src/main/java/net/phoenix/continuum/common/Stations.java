@@ -12,7 +12,8 @@ public final class Stations {
 
     public static int probesPerLevel(net.phoenix.continuum.data.ContinuumBody body) {
         var cfg = net.phoenix.continuum.config.ContinuumConfigs.INSTANCE;
-        return Math.max(1, Swarms.isSwarm(body) ? cfg.swarmProbesPerLevel : cfg.stationProbesPerLevel);
+        return Math.max(1, Swarms.isPenrose(body) ? cfg.penroseProbesPerLevel :
+                Swarms.isSwarm(body) ? cfg.swarmProbesPerLevel : cfg.stationProbesPerLevel);
     }
 
     public static float tripFactor(int level) {

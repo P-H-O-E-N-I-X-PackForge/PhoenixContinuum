@@ -234,8 +234,8 @@ final class MissionPlannerPanel {
                 mode == Mission.Type.RESCUE, mx, my);
 
         modeRects[Mission.Type.STATION.ordinal()] = button(g, font, x + 10, y + 104, 312, 16,
-                swarm ? (stationLevel > 0 ? "Grow Dyson swarm  (level " + stationLevel + " of " + stationMax + ")" :
-                        "Build Dyson swarm") :
+                swarm ? (stationLevel > 0 ? "Grow " + Swarms.kindName(body) + "  (level " + stationLevel + " of " +
+                        stationMax + ")" : "Build " + Swarms.kindName(body)) :
                         stationLevel > 0 ? "Upgrade orbital station  (level " + stationLevel + " of " + stationMax +
                                 ")" : "Build orbital station",
                 canStation, mode == Mission.Type.STATION, mx, my);

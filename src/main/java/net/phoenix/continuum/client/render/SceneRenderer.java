@@ -619,6 +619,42 @@ public final class SceneRenderer {
                 s -> s.safeGetUniform("DiskNormal").set(normal.x, normal.y, normal.z));
     }
 
+    /**
+     * A swarm's shell, drawn over the star or black hole it is built at: plates going up as levels are added. It
+     * needs the level of the player's own team, so it is only drawn where the central body is known.
+     */
+    public static void drawSwarmShell(net.phoenix.continuum.data.ContinuumSystem system, int rgb, Matrix4f view,
+                                      Matrix4f projection, Vector3f worldPos, float radius,
+                                      PlanetRenderer.Quality quality, boolean sky) {
+        if (system == null || system.isDysonSphere()) return;
+        net.phoenix.continuum.data.ContinuumBody central = null;
+        for (var b : net.phoenix.continuum.data.ContinuumData.bodiesOf(system.id())) {
+            if (b.isCentral()) {
+                central = b;
+                break;
+            }
+        }
+        drawSwarmShell(central, rgb, view, projection, worldPos, radius, quality, sky);
+    }
+
+    public static void drawSwarmShell(@Nullable net.phoenix.continuum.data.ContinuumBody central, int rgb,
+                                      Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
+                                      PlanetRenderer.Quality quality, boolean sky) {
+        if (central == null || !net.phoenix.continuum.common.Swarms.isSwarm(central)) return;
+        int level = net.phoenix.continuum.client.ContinuumClientState.stationLevel(central.id());
+        if (level <= 0) return;
+        final float completion = Math.min(1.0f,
+                level / (float) Math.max(1, net.phoenix.continuum.common.Swarms.maxLevel(central)));
+        // a Penrose swarm is a cooler, bluer metal than the hot light of a Dyson one
+        int tint = net.phoenix.continuum.common.Swarms.isPenrose(central) ? 0x9a78ff : rgb;
+        final Vector3f normal = planeNormal(view, worldPos, sky);
+        drawStarFx(ContinuumShaders.DYSON, tint, 7.0f, view, projection, worldPos, radius, quality, sky, s -> {
+            s.safeGetUniform("DiskNormal").set(normal.x, normal.y, normal.z);
+            s.safeGetUniform("Completion").set(completion);
+            s.safeGetUniform("Overlay").set(1.0f);
+        });
+    }
+
     public static void drawTidalDisruption(int rgb, float progress, Vector3f starWorld, Vector3f starNextWorld,
                                            Matrix4f view, Matrix4f projection, Vector3f holePos, float radius,
                                            PlanetRenderer.Quality quality) {
@@ -813,10 +849,14 @@ public final class SceneRenderer {
         switch (body.type()) {
             case BLACK_HOLE -> {
                 drawHole(owner, body, view, projection, worldPos, radius, quality, sky);
+                drawSwarmShell(body, owner != null ? owner.starColor() : 0xffd9a0, view, projection, worldPos, radius,
+                        quality, sky);
                 return true;
             }
             case STAR -> {
                 drawSystemStar(owner, owner != null ? owner.starColor() : 0xffd9a0, view, projection, worldPos, radius,
+                        quality, sky);
+                drawSwarmShell(body, owner != null ? owner.starColor() : 0xffd9a0, view, projection, worldPos, radius,
                         quality, sky);
                 return true;
             }

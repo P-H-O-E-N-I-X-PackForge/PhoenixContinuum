@@ -717,7 +717,8 @@ public final class ContinuumMissions {
                     data.setStationLevel(mission.team, mission.destination, built);
                     ContinuumBody station = ContinuumData.body(mission.destination);
                     if (Swarms.isSwarm(station)) {
-                        yield "Dyson swarm at " + name + " is now level " +
+                        yield Swarms.kindName(station).substring(0, 1).toUpperCase(java.util.Locale.ROOT) +
+                                Swarms.kindName(station).substring(1) + " at " + name + " is now level " +
                                 Math.min(built, Stations.maxLevel(station)) + ": " + Swarms.describe(station,
                                         Math.min(built, Stations.maxLevel(station))) + ".";
                     }

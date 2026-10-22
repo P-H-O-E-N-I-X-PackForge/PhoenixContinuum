@@ -269,6 +269,8 @@ public final class SystemGenerator {
         int count = 1 + rng.nextInt(Math.max(1, star.maxPlanets()));
         if (hasStarBody(star)) {
             out.put(new ResourceLocation(NAMESPACE, slug + "_star"), centralStar(systemId, systemName, star, distance));
+        } else if ("black_hole".equals(star.kind())) {
+            out.put(new ResourceLocation(NAMESPACE, slug + "_hole"), centralHole(systemId, systemName, star, distance));
         }
         float habitable = (float) Math.sqrt(star.luminosity());
         float orbit = Math.max(0.12f, habitable * (0.25f + rng.nextFloat() * 0.35f));
@@ -329,6 +331,37 @@ public final class SystemGenerator {
         lore.addProperty("detected", "A star, bright enough to read by from here.");
         lore.addProperty("surveyed", systemName + " burns steadily. A swarm of collectors in orbit would catch " +
                 "a great deal of it.");
+        body.add("lore", lore);
+        return body;
+    }
+
+    private static JsonObject centralHole(ResourceLocation system, String systemName, Star star, float distance) {
+        JsonObject body = new JsonObject();
+        body.addProperty("format", 1);
+        body.addProperty("system", system.toString());
+        body.addProperty("type", "black_hole");
+        body.addProperty("name", systemName + " (black hole)");
+        body.addProperty("description", "The black hole itself. Rockets need singularity shielding to go near it.");
+        JsonObject orbit = new JsonObject();
+        orbit.addProperty("radius_au", 0.0);
+        orbit.addProperty("period_days", 1);
+        orbit.addProperty("phase", 0.0);
+        body.add("orbit", orbit);
+        body.addProperty("radius", round(star.radius(), 2));
+        body.addProperty("trip_minutes", Math.min(60, tripMinutes(distance, 0.0f) + 12));
+        body.addProperty("initial_stage", "unknown");
+        JsonObject gate = new JsonObject();
+        gate.addProperty("min_tier", "late");
+        body.add("gate", gate);
+        JsonArray yields = new JsonArray();
+        yields.add(yieldOf("minecraft:amethyst_shard", 4, 12, 1.0f));
+        yields.add(yieldOf("minecraft:echo_shard", 1, 3, 0.5f));
+        yields.add(yieldOf("minecraft:netherite_scrap", 1, 2, 0.3f));
+        body.add("yields", yields);
+        JsonObject lore = new JsonObject();
+        lore.addProperty("detected", "Something dark that bends the light around it.");
+        lore.addProperty("surveyed", systemName + " spins fast enough that a swarm of collectors could draw the " +
+                "energy out of its rotation.");
         body.add("lore", lore);
         return body;
     }

@@ -65,7 +65,7 @@ public class SwarmReceiverBlock extends Block implements EntityBlock {
             } else {
                 long perTick = ContinuumSwarmPower.outputPerTick(serverPlayer.server,
                         ContinuumHost.teamOf(player.getUUID()));
-                message = perTick <= 0 ? "Your team has no Dyson swarm yet. Build orbital stations at a star." :
+                message = perTick <= 0 ? "Your team has no swarm yet. Build orbital stations at a star (Dyson) or a black hole (Penrose)." :
                         String.format(Locale.ROOT, "Your swarms produce %,d FE/t, shared by your receivers and pads.",
                                 perTick) + (level.getBlockEntity(pos) instanceof SwarmReceiverBlockEntity receiver ?
                                         String.format(Locale.ROOT, " This receiver holds %,d FE.", receiver.stored()) :

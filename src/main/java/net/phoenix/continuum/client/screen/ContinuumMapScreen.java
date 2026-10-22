@@ -351,6 +351,7 @@ public class ContinuumMapScreen extends Screen {
         } else {
             SceneRenderer.drawHole(sys, view, projection, sun, sys.starRadius(), quality(), false);
         }
+        SceneRenderer.drawSwarmShell(sys, sys.starColor(), view, projection, sun, sys.starRadius(), quality(), false);
 
         for (ContinuumBody b : ContinuumData.bodiesOf(sys.id())) {
             if (b.isCentral()) continue;
@@ -1079,7 +1080,8 @@ public class ContinuumMapScreen extends Screen {
         }
         int stationLevel = ContinuumClientState.stationLevel(b.id());
         if (stationLevel > 0) {
-            ty = stat(graphics, net.phoenix.continuum.common.Swarms.isSwarm(b) ? "Swarm" : "Station",
+            ty = stat(graphics, net.phoenix.continuum.common.Swarms.isPenrose(b) ? "Penrose swarm" :
+                    net.phoenix.continuum.common.Swarms.isSwarm(b) ? "Dyson swarm" : "Station",
                     "Level " + stationLevel + " of " + net.phoenix.continuum.common.Stations.maxLevel(b), x + 7, ty);
         }
 

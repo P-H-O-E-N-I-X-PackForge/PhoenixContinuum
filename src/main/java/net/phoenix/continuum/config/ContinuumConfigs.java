@@ -365,6 +365,26 @@ public class ContinuumConfigs {
         public int swarmMaxLevel = 10;
 
         @Configurable
+        @Configurable.Comment({
+                "Penrose swarms: an orbital station at a black hole, drawing on its spin and radiation.",
+                "How many levels one can have. Default: 10"
+        })
+        @Configurable.Range(min = 1, max = 100)
+        public int penroseMaxLevel = 10;
+
+        @Configurable
+        @Configurable.Comment({ "Probes one Penrose swarm level costs to build. Default: 12" })
+        @Configurable.Range(min = 1, max = 64)
+        public int penroseProbesPerLevel = 12;
+
+        @Configurable
+        @Configurable.Comment({
+                "A Penrose swarm level makes this many times what a Dyson swarm level makes. Default: 4.0"
+        })
+        @Configurable.DecimalRange(min = 0.0, max = 1000.0)
+        public double penrosePowerMultiplier = 4.0;
+
+        @Configurable
         @Configurable.Comment({ "Probes one swarm level costs to build. Default: 8" })
         @Configurable.Range(min = 1, max = 64)
         public int swarmProbesPerLevel = 8;
