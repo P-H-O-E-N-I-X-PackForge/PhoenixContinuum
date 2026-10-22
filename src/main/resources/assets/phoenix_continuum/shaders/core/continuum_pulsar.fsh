@@ -71,7 +71,7 @@ void main() {
         float s = dot(q, dirp);                          // distance along the beam on screen
         float dd = dot(q, vec2(-dirp.y, dirp.x));        // distance across it
         float toward = max(bb.z, 0.0);                   // how directly it points at the camera
-        float len = Extent * 0.85 * plen;                // a beam pointing at us is foreshortened to nothing
+        float len = max(Extent * 0.85 * plen, 0.05);     // a beam pointing at us is foreshortened to (almost) nothing; never 0, see the protostar
         float width = max(0.22 + 0.11 * max(s, 0.0), minW);
         float along = smoothstep(0.9, 2.2, s) * (1.0 - smoothstep(len * 0.55, len, s));
         float beam = exp(-(dd * dd) / (width * width)) * along * (0.3 + 1.3 * toward * toward);

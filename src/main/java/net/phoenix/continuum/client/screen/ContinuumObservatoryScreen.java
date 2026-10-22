@@ -83,15 +83,26 @@ public class ContinuumObservatoryScreen extends Screen {
     @Override
     public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {}
 
+    /** The layout is drawn at a fixed size and scaled to fit the window, so a small window is smaller rather than squashed. */
+    private static final int VW = 470;
+    private static final int VH = 300;
+    private float scale = 1.0f;
+
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         MapUi.refreshTheme();
         g.fill(0, 0, width, height, 0xCC000000);
 
-        int w = Math.min(width - 16, 440);
-        int h = Math.min(height - 16, 270);
-        int x = (width - w) / 2;
-        int y = (height - h) / 2;
+        scale = Math.max(0.4f, Math.min(1.0f, Math.min((width - 16.0f) / VW, (height - 16.0f) / VH)));
+        int vw = Math.round(width / scale);
+        int vh = Math.round(height / scale);
+        g.pose().pushPose();
+        g.pose().scale(scale, scale, 1.0f);
+        draw(g, Math.round(mouseX / scale), Math.round(mouseY / scale), (vw - VW) / 2, (vh - VH) / 2, VW, VH);
+        g.pose().popPose();
+    }
+
+    private void draw(GuiGraphics g, int mouseX, int mouseY, int x, int y, int w, int h) {
         g.fill(x, y, x + w, y + h, MapUi.PANEL_SOLID);
         g.renderOutline(x, y, w, h, MapUi.PANEL_LINE);
         g.drawString(font, "Observatory", x + 8, y + 7, MapUi.TITLE);
@@ -140,7 +151,7 @@ public class ContinuumObservatoryScreen extends Screen {
 
         // ---- the picture, and the system's orbits under it ----
         int px = x + listW + 16;
-        int size = Math.max(90, Math.min(132, Math.min(w - listW - 24 - 150, h - 150)));
+        int size = 132;
         if (body.isCentral()) {
             preview.drawSystem(g, system, px, y + 22, size);
         } else {
@@ -280,7 +291,9 @@ public class ContinuumObservatoryScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(double screenX, double screenY, int button) {
+        double mouseX = screenX / scale;
+        double mouseY = screenY / scale;
         if (button == 0) {
             for (int[] r : rowRects) {
                 if (MapUi.inside(mouseX, mouseY, r[0], r[1], r[2], r[3])) {
@@ -290,7 +303,7 @@ public class ContinuumObservatoryScreen extends Screen {
             }
             if (preview.mouseClicked(mouseX, mouseY)) return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(screenX, screenY, button);
     }
 
     @Override
@@ -301,13 +314,13 @@ public class ContinuumObservatoryScreen extends Screen {
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (preview.mouseDragged(dragX, dragY)) return true;
+        if (preview.mouseDragged(dragX / scale, dragY / scale)) return true;
         return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (preview.mouseScrolled(mouseX, mouseY, scrollY)) return true;
+        if (preview.mouseScrolled(mouseX / scale, mouseY / scale, scrollY)) return true;
         scroll = Math.max(0, scroll - (int) Math.signum(scrollY) * 2);
         return true;
     }

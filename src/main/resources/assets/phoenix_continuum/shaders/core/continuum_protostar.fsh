@@ -127,7 +127,9 @@ void main() {
     float s = dot(q, mn);
     float dj = dot(q, mj);
     float as = abs(s);
-    float len = Extent * 0.85 * sinI;
+    // (never zero: smoothstep(len*0.5, len, x) has no defined result when both edges are 0, which is exactly face-on, and
+    // some GPUs turn that into NaN and blank the whole disk)
+    float len = max(Extent * 0.85 * sinI, 0.05);
     float width = max(0.16 + 0.07 * as, minW);
     float along = smoothstep(1.2, 2.6, as) * (1.0 - smoothstep(len * 0.5, len, as));
     float knots = pow(0.5 + 0.5 * cos(as * 1.5 - Time * 1.3), 4.0);
