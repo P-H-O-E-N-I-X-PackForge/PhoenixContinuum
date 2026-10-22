@@ -122,14 +122,14 @@ public final class ContinuumTunerScreen extends Screen {
             return;
         }
 
-        fields.add(new Field("radius", "Radius", Kind.NUMBER, 0.25, 8, 0.25, 1.0));
+        fields.add(new Field("radius", "Radius", Kind.NUMBER, 0.25, 12, 0.25, 1.0));
         fields.add(new Field("gas_giant", "Gas giant", Kind.BOOL, 0, 1, 1, false));
         fields.add(new Field("axial_tilt", "Axial tilt", Kind.NUMBER, -90, 90, 5, 0.0));
-        fields.add(new Field("spin_deg_per_sec", "Spin", Kind.NUMBER, 0, 30, 1, 4.0));
-        fields.add(new Field("cloud_spin_deg_per_sec", "Cloud spin", Kind.NUMBER, 0, 30, 1, 6.0));
-        fields.add(new Field("surface.seed", "Seed", Kind.NUMBER, 0, 999, 1, 1.0));
-        fields.add(new Field("surface.scale", "Terrain scale", Kind.NUMBER, 0.5, 8, 0.25, 2.5));
-        fields.add(new Field("surface.bump", "Bumpiness", Kind.NUMBER, 0, 1.5, 0.1, 0.7));
+        fields.add(new Field("spin_deg_per_sec", "Spin", Kind.NUMBER, 0, 60, 1, 4.0));
+        fields.add(new Field("cloud_spin_deg_per_sec", "Cloud spin", Kind.NUMBER, 0, 60, 1, 6.0));
+        fields.add(new Field("surface.seed", "Seed", Kind.NUMBER, 0, 9999, 1, 1.0));
+        fields.add(new Field("surface.scale", "Terrain scale", Kind.NUMBER, 0.5, 10, 0.25, 2.5));
+        fields.add(new Field("surface.bump", "Bumpiness", Kind.NUMBER, 0, 2, 0.1, 0.7));
         fields.add(new Field("surface.ocean_level", "Ocean level", Kind.NUMBER, 0, 1, 0.05, 0.0));
         fields.add(new Field("surface.polar_ice", "Polar ice", Kind.NUMBER, 0, 1, 0.05, 0.0));
         fields.add(new Field("surface.cloud_cover", "Cloud cover", Kind.NUMBER, 0, 1, 0.05, 0.0));
@@ -139,10 +139,10 @@ public final class ContinuumTunerScreen extends Screen {
         fields.add(new Field("surface.ocean_deep", "Deep ocean colour", Kind.COLOR, 0, 0, 0, "#03123a"));
         fields.add(new Field("surface.ocean_shallow", "Shallow ocean colour", Kind.COLOR, 0, 0, 0, "#1a6f8f"));
         fields.add(new Field("atmosphere.color", "Atmosphere colour", Kind.COLOR, 0, 0, 0, "#6aa8ff"));
-        fields.add(new Field("atmosphere.density", "Atmosphere density", Kind.NUMBER, 0, 1, 0.05, 0.0));
+        fields.add(new Field("atmosphere.density", "Atmosphere density", Kind.NUMBER, 0, 1.5, 0.05, 0.0));
         if (json.has("rings")) {
-            fields.add(new Field("rings.inner", "Ring inner radius", Kind.NUMBER, 1, 4, 0.1, 1.4));
-            fields.add(new Field("rings.outer", "Ring outer radius", Kind.NUMBER, 1.5, 6, 0.1, 2.4));
+            fields.add(new Field("rings.inner", "Ring inner radius", Kind.NUMBER, 1, 6, 0.1, 1.4));
+            fields.add(new Field("rings.outer", "Ring outer radius", Kind.NUMBER, 1, 8, 0.1, 2.4));
             fields.add(new Field("rings.tilt", "Ring tilt", Kind.NUMBER, -90, 90, 5, 0.0));
             fields.add(new Field("rings.opacity", "Ring opacity", Kind.NUMBER, 0, 1, 0.1, 0.85));
             fields.add(new Field("rings.color", "Ring colour", Kind.COLOR, 0, 0, 0, "#d8c8a0"));
@@ -160,24 +160,24 @@ public final class ContinuumTunerScreen extends Screen {
         fields.add(Field.header("Server (applies for everyone, saved in config/phoenix_continuum/tuning)"));
         fields.add(Field.server("name", "Name", Kind.TEXT, 0, 0, 0, ""));
         fields.add(Field.server("description", "Description", Kind.TEXT, 0, 0, 0, ""));
-        fields.add(Field.server("trip_minutes", "Trip minutes", Kind.NUMBER, 5, 120, 5, 10.0));
+        fields.add(Field.server("trip_minutes", "Trip minutes", Kind.NUMBER, 5, 600, 5, 10.0));
         fields.add(Field.choice("initial_stage", "Starting stage", "unknown", "unknown", "detected", "surveyed"));
         fields.add(Field.choice("gate.min_tier", "Rocket tier needed", "start", "start", "mid", "late", "endgame"));
-        fields.add(Field.server("orbit.radius_au", "Orbit radius (AU)", Kind.NUMBER, 0, 30, 0.1, 1.0));
-        fields.add(Field.server("orbit.period_days", "Orbit period (days)", Kind.NUMBER, 1, 1500, 5, 100.0));
+        fields.add(Field.server("orbit.radius_au", "Orbit radius (AU)", Kind.NUMBER, 0, 60, 0.1, 1.0));
+        fields.add(Field.server("orbit.period_days", "Orbit period (days)", Kind.NUMBER, 1, 6000, 5, 100.0));
         fields.add(Field.server("orbit.phase", "Orbit phase", Kind.NUMBER, 0, 1, 0.05, 0.0));
         if (json.has("pdim_cost")) {
             fields.add(Field.server("pdim_cost.item", "Personal dimension cost item", Kind.TEXT, 0, 0, 0,
                     "minecraft:ender_pearl"));
-            fields.add(Field.server("pdim_cost.count", "Personal dimension cost count", Kind.NUMBER, 0, 16, 1, 2.0));
+            fields.add(Field.server("pdim_cost.count", "Personal dimension cost count", Kind.NUMBER, 0, 64, 1, 2.0));
         }
         fields.add(Field.header("Yields"));
         int count = json.has("yields") && json.get("yields").isJsonArray() ? json.getAsJsonArray("yields").size() : 0;
         for (int i = 0; i < count; i++) {
             fields.add(Field.server("yields." + i + ".item", "  #" + (i + 1) + " item", Kind.TEXT, 0, 0, 0,
                     "minecraft:stone"));
-            fields.add(Field.server("yields." + i + ".min", "  #" + (i + 1) + " min", Kind.NUMBER, 1, 64, 1, 1.0));
-            fields.add(Field.server("yields." + i + ".max", "  #" + (i + 1) + " max", Kind.NUMBER, 1, 64, 1, 1.0));
+            fields.add(Field.server("yields." + i + ".min", "  #" + (i + 1) + " min", Kind.NUMBER, 1, 256, 1, 1.0));
+            fields.add(Field.server("yields." + i + ".max", "  #" + (i + 1) + " max", Kind.NUMBER, 1, 256, 1, 1.0));
             fields.add(Field.server("yields." + i + ".chance", "  #" + (i + 1) + " chance", Kind.NUMBER, 0, 1, 0.1,
                     1.0));
         }
