@@ -1473,35 +1473,17 @@ public class ContinuumMapScreen extends Screen {
         graphics.drawString(font, crumb, 10, 19, DIM);
 
         if (!planner.isOpen()) {
-            if (level != Level.GALAXY) {
-                graphics.fill(width - 62, 8, width - 10, 22, MapUi.CHROME);
-                graphics.renderOutline(width - 62, 8, 52, 14, PANEL_LINE);
-                graphics.drawCenteredString(font, "< Back", width - 36, 11, TEXT);
-            }
-            int archiveX = level != Level.GALAXY ? width - 126 : width - 62;
-            graphics.fill(archiveX, 8, archiveX + 52, 22, MapUi.CHROME);
-            graphics.renderOutline(archiveX, 8, 52, 14, PANEL_LINE);
-            graphics.drawCenteredString(font, "Archive", archiveX + 26, 11, TEXT);
-            int fleetX = archiveX - 58;
-            graphics.fill(fleetX, 8, fleetX + 52, 22, MapUi.CHROME);
-            graphics.renderOutline(fleetX, 8, 52, 14, PANEL_LINE);
-            graphics.drawCenteredString(font, "Fleet", fleetX + 26, 11, TEXT);
-            if (level != Level.GALAXY) {
-                int orbitX = fleetX - 82;
-                graphics.fill(orbitX, 8, orbitX + 76, 22, orbitsPaused ? 0xAA3a3380 : MapUi.CHROME);
-                graphics.renderOutline(orbitX, 8, 76, 14, orbitsPaused ? FRAME : PANEL_LINE);
-                graphics.drawCenteredString(font, orbitsPaused ? "Orbits: held" : "Orbits: moving", orbitX + 38, 11,
-                        orbitsPaused ? TITLE : TEXT);
-            }
-            int themeX = (level != Level.GALAXY ? fleetX - 82 : fleetX) - 58;
-            graphics.fill(themeX, 8, themeX + 52, 22, MapUi.CHROME);
-            graphics.renderOutline(themeX, 8, 52, 14, PANEL_LINE);
-            graphics.drawCenteredString(font, "Theme", themeX + 26, 11, TEXT);
-            if (level != Level.GALAXY && ContinuumTunerScreen.allowed()) {
-                int tuneX = themeX - 58;
-                graphics.fill(tuneX, 8, tuneX + 52, 22, MapUi.CHROME);
-                graphics.renderOutline(tuneX, 8, 52, 14, PANEL_LINE);
-                graphics.drawCenteredString(font, "Tune", tuneX + 26, 11, TEXT);
+            for (ChromeButton button : chromeButtons()) {
+                boolean held = button.id().equals("orbits") && orbitsPaused;
+                graphics.fill(button.x(), 8, button.x() + button.w(), 22, held ? 0xAA3a3380 : MapUi.CHROME);
+                graphics.renderOutline(button.x(), 8, button.w(), 14, held ? FRAME : PANEL_LINE);
+                // the label shrinks to the button, which itself shrinks when the screen is narrow
+                float scale = Math.min(1.0f, (button.w() - 4) / (float) Math.max(1, font.width(button.label())));
+                graphics.pose().pushPose();
+                graphics.pose().translate(button.x() + button.w() / 2.0f, 15.0f - 4.0f * scale, 0.0f);
+                graphics.pose().scale(scale, scale, 1.0f);
+                graphics.drawCenteredString(font, button.label(), 0, 0, held ? TITLE : TEXT);
+                graphics.pose().popPose();
             }
         }
 
@@ -1680,49 +1662,75 @@ public class ContinuumMapScreen extends Screen {
         if (button == 0 && pressed) {
             pressed = false;
             if (dragged < 4.0 && phase == Phase.NONE) {
-                int archiveX = level != Level.GALAXY ? width - 126 : width - 62;
-                if (MapUi.inside(mouseX, mouseY, archiveX, 8, 52, 14)) {
+                ChromeButton clicked = chromeButtonAt(mouseX, mouseY);
+                if (clicked != null) {
                     ContinuumSounds.click();
-                    Minecraft.getInstance().setScreen(new ContinuumArchiveScreen(this));
-                } else if (MapUi.inside(mouseX, mouseY, archiveX - 58, 8, 52, 14)) {
+                    runChromeButton(clicked.id());
+                } else if (clickPlanner(mouseX, mouseY)) {
                     ContinuumSounds.click();
-                    Minecraft.getInstance().setScreen(new ContinuumFleetScreen(this, pad));
-                } else if (level != Level.GALAXY && MapUi.inside(mouseX, mouseY, archiveX - 58 - 82, 8, 76, 14)) {
-                    ContinuumSounds.click();
-                    orbitsPaused = !orbitsPaused;
-                } else if (level != Level.GALAXY && ContinuumTunerScreen.allowed() &&
-                        MapUi.inside(mouseX, mouseY, themeButtonX() - 58, 8, 52, 14)) {
-                    ContinuumSounds.click();
-                    openTuner();
-                } else
-                    if (MapUi.inside(mouseX, mouseY, (level != Level.GALAXY ? archiveX - 58 - 82 : archiveX - 58) - 58,
-                            8, 52, 14)) {
-                                ContinuumSounds.click();
-                                Minecraft.getInstance().setScreen(
-                                        new net.phoenixvine.wiki.theme.PhoenixThemeEditorScreen(this, "Continuum"));
-                            } else
-                        if (level != Level.GALAXY && mouseX >= width - 62 && mouseX <= width - 10 && mouseY >= 8 &&
-                                mouseY <= 22) {
-                                    ContinuumSounds.click();
-                                    goBack();
-                                } else
-                            if (clickPlanner(mouseX, mouseY)) {
-                                ContinuumSounds.click();
-                            } else {
-                                Pick pick = pickAt(mouseX, mouseY);
-                                if (pick != null) {
-                                    ContinuumSounds.click();
-                                    open(pick);
-                                }
-                            }
+                } else {
+                    Pick pick = pickAt(mouseX, mouseY);
+                    if (pick != null) {
+                        ContinuumSounds.click();
+                        open(pick);
+                    }
+                }
             }
         }
         return true;
     }
 
-    private int themeButtonX() {
-        int archiveX = level != Level.GALAXY ? width - 126 : width - 62;
-        return (level != Level.GALAXY ? archiveX - 58 - 82 : archiveX - 58) - 58;
+    private record ChromeButton(String id, String label, int x, int w) {}
+
+    /**
+     * The row of buttons along the top, right to left. On a narrow screen (a small window, or a big gui scale) they
+     * shrink together, leaving room for the title and the crumb on the left.
+     */
+    private List<ChromeButton> chromeButtons() {
+        List<Object[]> wanted = new ArrayList<>();
+        boolean inside = level != Level.GALAXY;
+        if (inside) wanted.add(new Object[] { "back", "< Back", 52 });
+        wanted.add(new Object[] { "archive", "Archive", 52 });
+        wanted.add(new Object[] { "fleet", "Fleet", 52 });
+        if (inside) wanted.add(new Object[] { "orbits", orbitsPaused ? "Orbits: held" : "Orbits: moving", 76 });
+        wanted.add(new Object[] { "theme", "Theme", 52 });
+        if (inside && ContinuumTunerScreen.allowed()) wanted.add(new Object[] { "tune", "Tune", 52 });
+
+        int gap = 6;
+        int total = gap * (wanted.size() - 1);
+        for (Object[] w : wanted) total += (int) w[2];
+        int reserved = Math.min(170, width / 3);
+        float fit = Math.min(1.0f, Math.max(0.3f, (width - 20 - reserved) / (float) total));
+
+        List<ChromeButton> out = new ArrayList<>();
+        int x = width - 10;
+        for (Object[] w : wanted) {
+            int bw = Math.max(20, Math.round((int) w[2] * fit));
+            x -= bw;
+            out.add(new ChromeButton((String) w[0], (String) w[1], x, bw));
+            x -= Math.max(2, Math.round(gap * fit));
+        }
+        return out;
+    }
+
+    private @Nullable ChromeButton chromeButtonAt(double mouseX, double mouseY) {
+        for (ChromeButton button : chromeButtons()) {
+            if (MapUi.inside(mouseX, mouseY, button.x(), 8, button.w(), 14)) return button;
+        }
+        return null;
+    }
+
+    private void runChromeButton(String id) {
+        switch (id) {
+            case "back" -> goBack();
+            case "archive" -> Minecraft.getInstance().setScreen(new ContinuumArchiveScreen(this));
+            case "fleet" -> Minecraft.getInstance().setScreen(new ContinuumFleetScreen(this, pad));
+            case "orbits" -> orbitsPaused = !orbitsPaused;
+            case "theme" -> Minecraft.getInstance().setScreen(
+                    new net.phoenixvine.wiki.theme.PhoenixThemeEditorScreen(this, "Continuum"));
+            case "tune" -> openTuner();
+            default -> {}
+        }
     }
 
     /** The tuner for what is open: the body on a body, the system on a system. */

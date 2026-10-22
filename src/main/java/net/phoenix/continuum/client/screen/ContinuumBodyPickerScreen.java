@@ -62,8 +62,9 @@ public final class ContinuumBodyPickerScreen extends Screen {
             // central body first, then each planet followed by its moons
             list.sort(Comparator.comparing((ContinuumBody b) -> !b.isCentral()).thenComparing(ContinuumBody::orbitAu));
         }
-        ContinuumBody currentBody = ContinuumData.body(current);
+        ContinuumBody currentBody = current == null ? null : ContinuumData.body(current);
         selectedSystem = currentBody != null && bySystem.containsKey(currentBody.system()) ? currentBody.system() :
+                current != null && bySystem.containsKey(current) ? current :
                 systemOrder.isEmpty() ? null : systemOrder.get(0);
     }
 
@@ -218,10 +219,12 @@ public final class ContinuumBodyPickerScreen extends Screen {
                 bodyScroll = 0;
                 search.setValue("");
             } else if (h[0].equals("star")) {
+                // back first, so whatever the pick opens is what the player is left looking at
+                minecraft.setScreen(parent);
                 onPickSystem.accept((ResourceLocation) h[1]);
             } else {
-                onPick.accept((ResourceLocation) h[1]);
                 minecraft.setScreen(parent);
+                onPick.accept((ResourceLocation) h[1]);
             }
             return true;
         }

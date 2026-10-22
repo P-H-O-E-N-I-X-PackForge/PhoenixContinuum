@@ -106,6 +106,22 @@ public final class ContinuumSystemScreen extends Screen {
         }
     }
 
+    private void openPicker() {
+        ResourceLocation current = systems.isEmpty() ? null : systems.get(Math.floorMod(index, systems.size())).id();
+        minecraft.setScreen(new ContinuumBodyPickerScreen(this, new ArrayList<>(ContinuumData.allBodies()), current,
+                id -> minecraft.setScreen(new ContinuumTunerScreen(this, id)), this::selectSystem));
+    }
+
+    private void selectSystem(ResourceLocation id) {
+        for (int i = 0; i < systems.size(); i++) {
+            if (systems.get(i).id().equals(id)) {
+                index = i;
+                beginTune();
+                return;
+            }
+        }
+    }
+
     private void beginTune() {
         creating = false;
         ContinuumSystem system = systems.get(Math.floorMod(index, systems.size()));
@@ -473,8 +489,16 @@ public final class ContinuumSystemScreen extends Screen {
             }
             switch (act) {
                 case "system" -> {
-                    index += mx < x + font.width("<  ") + 6 ? -1 : 1;
-                    beginTune();
+                    if (mx < x + font.width("<  ") + 6) {
+                        index--;
+                        beginTune();
+                    } else if (mx >= x + (int) h[4] - font.width("  >") - 8) {
+                        index++;
+                        beginTune();
+                    } else {
+                        // the name between the arrows opens the picker of every system and body
+                        openPicker();
+                    }
                 }
                 case "dec" -> setNumber(row, number(row) - row.step() * (hasShiftDown() ? 10 : 1));
                 case "inc" -> setNumber(row, number(row) + row.step() * (hasShiftDown() ? 10 : 1));
