@@ -173,9 +173,10 @@ public final class ContinuumRegistry {
                     .displayItems((parameters, output) -> {
                         for (RegistryObject<Item> entry : ITEMS.getEntries()) output.accept(entry.get());
                         if (GregTech.loaded()) {
-                            ItemStack complex = net.phoenix.continuum.integration.gtceu.ContinuumGt
-                                    .launchComplexStack();
-                            if (!complex.isEmpty()) output.accept(complex);
+                            for (ItemStack machine : net.phoenix.continuum.integration.gtceu.ContinuumGt
+                                    .machineStacks()) {
+                                output.accept(machine);
+                            }
                         }
                     })
                     .build());

@@ -12,6 +12,9 @@ public final class ContinuumMachines {
     /** Set when GregTech asks addons to register their machines; the recipes that make it run after that. */
     public static MultiblockMachineDefinition LAUNCH_COMPLEX;
 
+    /** The multiblock that receives Dyson swarm power. */
+    public static MultiblockMachineDefinition SWARM_RECEIVER;
+
     public static void init() {
         GTCEuCompat.bootstrap().registerMachines();
     }

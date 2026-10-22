@@ -16,6 +16,8 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.phoenix.continuum.machine.ContinuumMachines;
 import net.phoenix.continuum.machine.LaunchComplexShape;
 import net.phoenix.continuum.machine.LaunchPadMachine8;
+import net.phoenix.continuum.machine.SwarmReceiverMachine8;
+import net.phoenix.continuum.machine.SwarmReceiverShape;
 
 /** GregTech 8.x: the multiblock pattern builder, and a registrate that is handed the mod bus. */
 public final class GtmBootstrap8 implements GtmBootstrap {
@@ -37,6 +39,36 @@ public final class GtmBootstrap8 implements GtmBootstrap {
                 .workableCasingModel(GTCEu.id("block/casings/solid/machine_casing_solid_steel"),
                         GTCEu.id("block/multiblock/pyrolyse_oven"))
                 .register();
+
+        ContinuumMachines.SWARM_RECEIVER = ContinuumGt.REGISTRATE
+                .multiblock("continuum_swarm_array", SwarmReceiverMachine8::new)
+                .langValue("Swarm Receiver Array")
+                .rotationState(RotationState.NON_Y_AXIS)
+                .appearanceBlock(GTBlocks.CASING_STEEL_SOLID)
+                .tooltips(SwarmReceiverShape.TOOLTIPS)
+                .pattern(GtmBootstrap8::swarmPattern)
+                .workableCasingModel(GTCEu.id("block/casings/solid/machine_casing_solid_steel"),
+                        GTCEu.id("block/multiblock/pyrolyse_oven"))
+                .register();
+    }
+
+    private static IBlockPattern swarmPattern(MultiblockMachineDefinition definition) {
+        var builder = MultiblockPatternBuilder.start(RelativeDirection.FRONT, RelativeDirection.UP,
+                RelativeDirection.RIGHT);
+        for (String[] slice : SwarmReceiverShape.SLICES) builder = builder.slice(slice);
+
+        var casing = Predicates.blocks(GTBlocks.CASING_STEEL_SOLID.get());
+        var frame = Predicates.blocks(ForgeRegistries.BLOCKS.getValue(new ResourceLocation("gtceu", "steel_frame")));
+
+        return builder
+                .where('S', Predicates.controller(definition))
+                .where('B', casing)
+                .where('H', Predicates.blocks(GTBlocks.CASING_STEEL_SOLID.get())
+                        .or(Predicates.abilities(PartAbility.OUTPUT_ENERGY).setMinGlobalLimited(1)
+                                .setMaxGlobalLimited(2)))
+                .where('F', frame)
+                .where('A', Predicates.air())
+                .build();
     }
 
     private static IBlockPattern pattern(MultiblockMachineDefinition definition) {

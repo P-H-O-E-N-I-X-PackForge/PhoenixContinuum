@@ -33,8 +33,11 @@ public final class ContinuumGt {
         return MetaMachine.getMachine(level, pos) instanceof LaunchComplex complex ? complex : null;
     }
 
-    public static ItemStack launchComplexStack() {
-        return ContinuumMachines.LAUNCH_COMPLEX == null ? ItemStack.EMPTY : ContinuumMachines.LAUNCH_COMPLEX.asStack();
+    public static java.util.List<ItemStack> machineStacks() {
+        java.util.List<ItemStack> stacks = new java.util.ArrayList<>();
+        if (ContinuumMachines.LAUNCH_COMPLEX != null) stacks.add(ContinuumMachines.LAUNCH_COMPLEX.asStack());
+        if (ContinuumMachines.SWARM_RECEIVER != null) stacks.add(ContinuumMachines.SWARM_RECEIVER.asStack());
+        return stacks;
     }
 
     public static long voltage(int tier) {
