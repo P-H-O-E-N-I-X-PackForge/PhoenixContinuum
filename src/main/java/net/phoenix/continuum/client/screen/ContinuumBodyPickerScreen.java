@@ -34,6 +34,7 @@ public final class ContinuumBodyPickerScreen extends Screen {
 
     private final Screen parent;
     private final Consumer<ResourceLocation> onPick;
+    private final Consumer<ResourceLocation> onPickSystem;
     private final Map<ResourceLocation, List<ContinuumBody>> bySystem = new LinkedHashMap<>();
     private final List<ResourceLocation> systemOrder = new ArrayList<>();
     private ResourceLocation selectedSystem;
@@ -44,10 +45,11 @@ public final class ContinuumBodyPickerScreen extends Screen {
     private final List<Object[]> hits = new ArrayList<>();
 
     public ContinuumBodyPickerScreen(Screen parent, List<ContinuumBody> candidates, ResourceLocation current,
-                                     Consumer<ResourceLocation> onPick) {
+                                     Consumer<ResourceLocation> onPick, Consumer<ResourceLocation> onPickSystem) {
         super(Component.literal("Pick a body"));
         this.parent = parent;
         this.onPick = onPick;
+        this.onPickSystem = onPickSystem;
         this.current = current;
 
         for (ContinuumBody body : candidates) {
@@ -101,6 +103,7 @@ public final class ContinuumBodyPickerScreen extends Screen {
         String query = search == null ? "" : search.getValue().trim().toLowerCase(Locale.ROOT);
         if (query.isEmpty()) {
             if (selectedSystem == null) return out;
+            out.add(new Object[] { selectedSystem, 0 });
             List<ContinuumBody> list = bySystem.get(selectedSystem);
             // a moon goes under its planet
             List<ContinuumBody> planets = new ArrayList<>();
@@ -120,6 +123,9 @@ public final class ContinuumBodyPickerScreen extends Screen {
             return out;
         }
         for (ResourceLocation system : systemOrder) {
+            if ((systemName(system) + " " + system + " star").toLowerCase(Locale.ROOT).contains(query)) {
+                out.add(new Object[] { system, 0 });
+            }
             for (ContinuumBody b : bySystem.get(system)) {
                 String hay = (b.name() + " " + b.id() + " " + systemName(system)).toLowerCase(Locale.ROOT);
                 if (hay.contains(query)) out.add(new Object[] { b, 0 });
@@ -164,9 +170,22 @@ public final class ContinuumBodyPickerScreen extends Screen {
         int bodiesW = width - bodiesX - 16;
         for (int i = 0; i < rows && i + bodyScroll < bodyRows.size(); i++) {
             Object[] row = bodyRows.get(i + bodyScroll);
+            int y = top + i * ROW;
+            if (row[0] instanceof ResourceLocation systemId) {
+                // the system's own star (or black hole): tuned on the system screen
+                boolean hover = mx >= bodiesX && mx < bodiesX + bodiesW && my >= y && my < y + ROW;
+                if (hover) g.fill(bodiesX, y, bodiesX + bodiesW, y + ROW, 0x20FFFFFF);
+                ContinuumSystem system = ContinuumData.system(systemId);
+                int starColor = system == null ? 0xFFD9A0 : system.starColor();
+                g.fill(bodiesX + 3, y + 3, bodiesX + 9, y + 9, 0xFF000000 | starColor);
+                g.drawString(font, font.plainSubstrByWidth(systemName(systemId) + " (the star)",
+                        Math.max(40, bodiesW - 150)), bodiesX + 14, y + 3, 0xFFFFE8B0, false);
+                g.drawString(font, "System", bodiesX + bodiesW - 140, y + 3, 0xFF7F8A99, false);
+                hits.add(new Object[] { "star", systemId, bodiesX, y, bodiesW, ROW });
+                continue;
+            }
             ContinuumBody body = (ContinuumBody) row[0];
             int indent = (int) row[1] * 14;
-            int y = top + i * ROW;
             boolean isCurrent = body.id().equals(current);
             boolean hover = mx >= bodiesX && mx < bodiesX + bodiesW && my >= y && my < y + ROW;
             if (isCurrent) g.fill(bodiesX, y, bodiesX + bodiesW, y + ROW, 0x40406080);
@@ -198,6 +217,8 @@ public final class ContinuumBodyPickerScreen extends Screen {
                 selectedSystem = (ResourceLocation) h[1];
                 bodyScroll = 0;
                 search.setValue("");
+            } else if (h[0].equals("star")) {
+                onPickSystem.accept((ResourceLocation) h[1]);
             } else {
                 onPick.accept((ResourceLocation) h[1]);
                 minecraft.setScreen(parent);

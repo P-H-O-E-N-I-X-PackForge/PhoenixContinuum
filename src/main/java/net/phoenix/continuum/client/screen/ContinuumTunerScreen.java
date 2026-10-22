@@ -666,7 +666,8 @@ public final class ContinuumTunerScreen extends Screen {
                     rebuildFields();
                 } else {
                     // the name between the arrows opens the picker of every system and body
-                    minecraft.setScreen(new ContinuumBodyPickerScreen(this, bodies, body().id(), this::selectBody));
+                    minecraft.setScreen(new ContinuumBodyPickerScreen(this, bodies, body().id(), this::selectBody,
+                            id -> minecraft.setScreen(new ContinuumSystemScreen(this, id))));
                 }
                 return true;
             }

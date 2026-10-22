@@ -1497,6 +1497,12 @@ public class ContinuumMapScreen extends Screen {
             graphics.fill(themeX, 8, themeX + 52, 22, MapUi.CHROME);
             graphics.renderOutline(themeX, 8, 52, 14, PANEL_LINE);
             graphics.drawCenteredString(font, "Theme", themeX + 26, 11, TEXT);
+            if (level != Level.GALAXY && ContinuumTunerScreen.allowed()) {
+                int tuneX = themeX - 58;
+                graphics.fill(tuneX, 8, tuneX + 52, 22, MapUi.CHROME);
+                graphics.renderOutline(tuneX, 8, 52, 14, PANEL_LINE);
+                graphics.drawCenteredString(font, "Tune", tuneX + 26, 11, TEXT);
+            }
         }
 
         String hint = "drag: rotate   scroll: zoom   click: open   right-click / Esc: back   [Q] quality: " +
@@ -1684,6 +1690,10 @@ public class ContinuumMapScreen extends Screen {
                 } else if (level != Level.GALAXY && MapUi.inside(mouseX, mouseY, archiveX - 58 - 82, 8, 76, 14)) {
                     ContinuumSounds.click();
                     orbitsPaused = !orbitsPaused;
+                } else if (level != Level.GALAXY && ContinuumTunerScreen.allowed() &&
+                        MapUi.inside(mouseX, mouseY, themeButtonX() - 58, 8, 52, 14)) {
+                    ContinuumSounds.click();
+                    openTuner();
                 } else
                     if (MapUi.inside(mouseX, mouseY, (level != Level.GALAXY ? archiveX - 58 - 82 : archiveX - 58) - 58,
                             8, 52, 14)) {
@@ -1708,6 +1718,20 @@ public class ContinuumMapScreen extends Screen {
             }
         }
         return true;
+    }
+
+    private int themeButtonX() {
+        int archiveX = level != Level.GALAXY ? width - 126 : width - 62;
+        return (level != Level.GALAXY ? archiveX - 58 - 82 : archiveX - 58) - 58;
+    }
+
+    /** The tuner for what is open: the body on a body, the system on a system. */
+    private void openTuner() {
+        if (level == Level.BODY && body != null) {
+            Minecraft.getInstance().setScreen(new ContinuumTunerScreen(this, body.id()));
+        } else if (system != null) {
+            Minecraft.getInstance().setScreen(new ContinuumSystemScreen(this, system.id()));
+        }
     }
 
     private boolean clickPlanner(double mouseX, double mouseY) {

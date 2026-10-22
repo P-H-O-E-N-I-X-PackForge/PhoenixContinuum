@@ -68,18 +68,23 @@ void main() {
     }
 
     float rs = (vox ? max(abs(q.x), abs(q.y)) : length(q)) / Core;
-    if (rs < 0.98) {
-        fragColor = vec4(0.0);
-        return;
-    }
+    bool onStar = rs < 0.98;
     float layers = Detail;
     float minW = vox ? 0.55 / Voxel : 0.0;
 
     vec3 n = normalize(DiskNormal);
-    float cosI = clamp(abs(n.z), 0.16, 1.0);
+    float cosI = clamp(abs(n.z), 0.06, 1.0);
     float sinI = sqrt(max(1.0 - n.z * n.z, 0.0));
     vec2 mn = length(n.xy) > 1e-3 ? normalize(n.xy) : vec2(0.0, 1.0);   // the disk's minor axis on screen
     vec2 mj = vec2(-mn.y, mn.x);
+
+    // over the star's face only the half of the disk nearer the camera than the star is drawn (the far half is behind
+    // it), so the rings pass in front of the star as the view tilts through edge-on instead of stopping at its edge
+    float side = n.z >= 0.0 ? 1.0 : -1.0;
+    if (onStar && dot(q, mn) * side >= 0.0) {
+        fragColor = vec4(0.0);
+        return;
+    }
 
     // disk-plane coordinates in star radii
     vec2 e = vec2(dot(q, mj), dot(q, mn) / cosI);
@@ -93,7 +98,7 @@ void main() {
 
     // ---- the star's glow ---------------------------------------------------------------------------------------
     float d = max(rs - 1.0, 0.0);
-    col += hot * (0.75 * exp(-d * 1.6) + 0.22 / (1.0 + d * d * 1.8));
+    if (!onStar) col += hot * (0.75 * exp(-d * 1.6) + 0.22 / (1.0 + d * d * 1.8));
 
     // ---- the disk -----------------------------------------------------------------------------------------------
     float body = smoothstep(inner - 0.25, inner + 0.7, re) * (1.0 - smoothstep(outer * 0.72, outer, re));
@@ -133,7 +138,7 @@ void main() {
     float width = max(0.16 + 0.07 * as, minW);
     float along = smoothstep(1.2, 2.6, as) * (1.0 - smoothstep(len * 0.5, len, as));
     float knots = pow(0.5 + 0.5 * cos(as * 1.5 - Time * 1.3), 4.0);
-    col += vec3(0.7, 0.9, 1.0) * exp(-(dj * dj) / (width * width)) * along * (0.25 + 1.1 * knots) * 0.9;
+    if (!onStar) col += vec3(0.7, 0.9, 1.0) * exp(-(dj * dj) / (width * width)) * along * (0.25 + 1.1 * knots) * 0.9;
 
     col = 1.0 - exp(-col * 1.2);
 
