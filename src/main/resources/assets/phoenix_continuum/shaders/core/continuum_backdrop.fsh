@@ -31,16 +31,18 @@ float noise(vec3 p) {
         f.z);
 }
 
-float fbm(vec3 p) {
+float fbm(vec3 p, float limit) {
     float v = 0.0, a = 0.5;
     for (int i = 0; i < 5; i++) {
-        if (float(i) >= Octaves) break;
+        if (float(i) >= min(Octaves, limit)) break;
         v += a * noise(p);
         p = p * 2.03 + vec3(7.3, 5.9, 11.1);
         a *= 0.5;
     }
     return v;
 }
+
+float fbm(vec3 p) { return fbm(p, 6.0); }
 
 void main() {
     // view ray for this pixel, turned by the camera yaw for a little parallax
@@ -51,7 +53,7 @@ void main() {
 
     float drift = Time * 0.0004;
     vec3 q = dir * 1.6 + drift;
-    float warp = fbm(q + 1.4 * vec3(fbm(q + 3.1), fbm(q + 7.7), fbm(q + 1.3)));
+    float warp = fbm(q + 1.4 * vec3(fbm(q + 3.1, 3.0), fbm(q + 7.7, 3.0), fbm(q + 1.3, 3.0)));
 
     // haze everywhere, filaments where the noise peaks
     float haze = 0.30 + 0.70 * smoothstep(0.15, 0.85, warp);

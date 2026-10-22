@@ -185,6 +185,19 @@
         0.3,
         0.8
       ]
+    },
+    {
+      "name": "UseBake",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.0
+      ]
+    }
+  ],
+  "samplers": [
+    {
+      "name": "NebulaTex"
     }
   ]
 }

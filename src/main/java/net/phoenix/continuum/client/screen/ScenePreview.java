@@ -22,10 +22,6 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-/**
- * A small live 3D view of a planet or a star, drawn with the same renderer as the map into an offscreen target and
- * placed in a rectangle of a screen. Drag inside the rectangle to turn it, scroll to zoom. Close it with the screen.
- */
 public final class ScenePreview {
 
     private static final int PIXELS = 512;
@@ -39,7 +35,6 @@ public final class ScenePreview {
     private boolean dragging;
     private long last = Util.getMillis();
 
-    // where it was last drawn, for hit tests
     private int x;
     private int y;
     private int size;
@@ -71,7 +66,8 @@ public final class ScenePreview {
     public boolean mouseDragged(double dx, double dy) {
         if (!dragging) return false;
         yaw += (float) dx * 0.6f;
-        pitch = Math.max(-80.0f, Math.min(80.0f, pitch + (float) dy * 0.6f));
+        // no stop at straight up or down: keep turning over the pole instead of hitting a wall there
+        pitch = ((pitch + (float) dy * 0.6f + 180.0f) % 360.0f + 360.0f) % 360.0f - 180.0f;
         return true;
     }
 
@@ -81,7 +77,6 @@ public final class ScenePreview {
         return true;
     }
 
-    /** Draws a planet or moon. */
     public void drawPlanet(GuiGraphics g, PlanetParams params, int x, int y, int size) {
         begin(x, y, size);
         float dt = tick();
@@ -92,7 +87,6 @@ public final class ScenePreview {
         finish(g, drawn);
     }
 
-    /** Draws a system's star or black hole. */
     public void drawSystem(GuiGraphics g, ContinuumSystem system, int x, int y, int size) {
         begin(x, y, size);
         tick();

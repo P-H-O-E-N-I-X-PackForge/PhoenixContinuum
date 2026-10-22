@@ -56,19 +56,16 @@ public final class ContinuumData {
         ContinuumTuner.reapply();
     }
 
-    /** The body definition as the server sent it (resolved JSON), or null. */
     public static @Nullable JsonObject rawBody(ResourceLocation id) {
         String json = rawBodies.get(id);
         return json == null ? null : JsonParser.parseString(json).getAsJsonObject();
     }
 
-    /** The system definition as the server sent it (resolved JSON), or null. */
     public static @Nullable JsonObject rawSystem(ResourceLocation id) {
         String json = rawSystems.get(id);
         return json == null ? null : JsonParser.parseString(json).getAsJsonObject();
     }
 
-    /** Client side only: swaps a parsed body in place, for live tuning. */
     static void replaceBody(ResourceLocation id, ContinuumBody body) {
         Map<ResourceLocation, ContinuumBody> copy = new LinkedHashMap<>(bodies);
         copy.put(id, body);
@@ -140,7 +137,18 @@ public final class ContinuumData {
                 optionalId(gate, "surveyed_research"),
                 parseHole(GsonHelper.getAsJsonObject(json, "hole", new JsonObject())),
                 json.has("visibility") && json.get("visibility").isJsonObject() ?
-                        json.getAsJsonObject("visibility") : null);
+                        json.getAsJsonObject("visibility") : null,
+                parseCompanion(json));
+    }
+
+    private static ContinuumSystem.Companion parseCompanion(JsonObject json) {
+        if (!json.has("companion") || !json.get("companion").isJsonObject()) return null;
+        JsonObject c = json.getAsJsonObject("companion");
+        return new ContinuumSystem.Companion(GsonHelper.getAsString(c, "kind", "star"), color(c, "color", 0xffd9a0),
+                Math.max(0.1f, GsonHelper.getAsFloat(c, "radius", 0.8f)),
+                Math.max(1.5f, GsonHelper.getAsFloat(c, "separation", 8.0f)),
+                Math.max(0.1f, Math.min(1.0f, GsonHelper.getAsFloat(c, "mass_ratio", 0.8f))),
+                Math.max(2.0f, GsonHelper.getAsFloat(c, "period_seconds", 40.0f)));
     }
 
     private static ContinuumSystem.HoleStyle parseHole(JsonObject hole) {
@@ -209,7 +217,7 @@ public final class ContinuumData {
                 Math.max(GsonHelper.getAsFloat(orbit, "period_days", 100.0f), 0.01f),
                 GsonHelper.getAsFloat(orbit, "phase", 0.0f),
                 GsonHelper.getAsFloat(json, "radius", 1.0f),
-                GsonHelper.getAsInt(json, "trip_minutes", 10),
+                tripMinutes(json),
                 GsonHelper.getAsString(gate, "min_tier", "start"),
                 optionalId(gate, "detected_research"),
                 optionalId(gate, "surveyed_research"),
@@ -227,7 +235,50 @@ public final class ContinuumData {
                 json.has("sky_hole_inclination") ? GsonHelper.getAsFloat(json, "sky_hole_inclination") : null,
                 json.has("sky_hole_lean") ? GsonHelper.getAsFloat(json, "sky_hole_lean") : null,
                 json.has("visibility") && json.get("visibility").isJsonObject() ?
-                        json.getAsJsonObject("visibility") : null);
+                        json.getAsJsonObject("visibility") : null,
+                parseAnomalies(json));
+    }
+
+    /** Minutes, but a world can say "trip_seconds" instead and fly in seconds (never under one). */
+    private static float tripMinutes(JsonObject json) {
+        float minutes = json.has("trip_seconds") ? GsonHelper.getAsFloat(json, "trip_seconds") / 60.0f :
+                GsonHelper.getAsFloat(json, "trip_minutes", 10.0f);
+        return Math.max(1.0f / 60.0f, minutes);
+    }
+
+    private static List<ContinuumBody.Anomaly> parseAnomalies(JsonObject json) {
+        List<ContinuumBody.Anomaly> list = new ArrayList<>();
+        if (!json.has("anomalies") || !json.get("anomalies").isJsonArray()) return list;
+        for (var element : json.getAsJsonArray("anomalies")) {
+            if (!element.isJsonObject()) continue;
+            JsonObject a = element.getAsJsonObject();
+            String id = GsonHelper.getAsString(a, "id", "");
+            if (id.isEmpty()) continue;
+            JsonObject reward = GsonHelper.getAsJsonObject(a, "reward", new JsonObject());
+            List<ContinuumBody.Yield> rewards = new ArrayList<>();
+            if (reward.has("items") && reward.get("items").isJsonArray()) {
+                for (var item : reward.getAsJsonArray("items")) {
+                    if (!item.isJsonObject()) continue;
+                    JsonObject i = item.getAsJsonObject();
+                    ResourceLocation itemId = ResourceLocation.tryParse(GsonHelper.getAsString(i, "item", ""));
+                    if (itemId == null) continue;
+                    int min = Math.max(1, GsonHelper.getAsInt(i, "min", GsonHelper.getAsInt(i, "count", 1)));
+                    int max = Math.max(min, GsonHelper.getAsInt(i, "max", min));
+                    rewards.add(new ContinuumBody.Yield(itemId, min, max, GsonHelper.getAsFloat(i, "chance", 1.0f)));
+                }
+            }
+            ContinuumBody.PdimCost cost = null;
+            if (a.has("cost") && a.get("cost").isJsonObject()) {
+                JsonObject c = a.getAsJsonObject("cost");
+                ResourceLocation costItem = ResourceLocation.tryParse(GsonHelper.getAsString(c, "item", ""));
+                if (costItem != null) cost = new ContinuumBody.PdimCost(costItem, Math.max(1, GsonHelper.getAsInt(c, "count", 1)));
+            }
+            list.add(new ContinuumBody.Anomaly(id, GsonHelper.getAsString(a, "name", id),
+                    GsonHelper.getAsString(a, "description", ""),
+                    DiscoveryStage.parse(GsonHelper.getAsString(a, "reveal", "surveyed"), DiscoveryStage.SURVEYED),
+                    rewards, optionalId(reward, "research"), GsonHelper.getAsString(reward, "message", ""), cost));
+        }
+        return list;
     }
 
     private static @Nullable ContinuumBody.Transient parseTransient(JsonObject json) {
@@ -281,7 +332,6 @@ public final class ContinuumData {
     private record Parsed(Map<ResourceLocation, ContinuumSystem> systems, Map<ResourceLocation, ContinuumBody> bodies,
                           Map<ResourceLocation, String> rawSystems, Map<ResourceLocation, String> rawBodies) {}
 
-    /** Reloads only Continuum's data from the server's current resource packs, and pushes it to everyone. */
     public static ContinuumReport reloadNow(net.minecraft.server.MinecraftServer server) {
         Loader loader = new Loader();
         Parsed parsed = loader.prepare(server.getResourceManager(),
@@ -303,6 +353,8 @@ public final class ContinuumData {
 
             Map<ResourceLocation, JsonObject> systemJson = ContentResolver.resolve("system", rawSystems, report);
             Map<ResourceLocation, JsonObject> bodyJson = ContentResolver.resolve("body", rawBodies, report);
+            applyDisabled(manager, systemJson, bodyJson, report);
+            addGenerated(systemJson, bodyJson, report);
             TuningPatches.applyAll(bodyJson, report);
             TuningPatches.applySystems(systemJson, report);
 
@@ -351,6 +403,73 @@ public final class ContinuumData {
                 else LOGGER.warn("[Continuum] {}", issue);
             }
             ContinuumServerEvents.onDataReloaded();
+        }
+
+        /**
+         * Any pack can ship {@code data/<namespace>/continuum/disable.json} with {@code "systems"} and
+         * {@code "bodies"} lists of ids to remove. Every copy in every pack is read, so it does not matter which
+         * pack wins the load order (it is how a modpack drops the built-in example without overriding its files).
+         * Removing a system removes its worlds too.
+         */
+        private static void applyDisabled(ResourceManager manager, Map<ResourceLocation, JsonObject> systemJson,
+                                          Map<ResourceLocation, JsonObject> bodyJson, ContinuumReport report) {
+            Set<ResourceLocation> systemIds = new HashSet<>();
+            Set<ResourceLocation> bodyIds = new HashSet<>();
+            for (String namespace : manager.getNamespaces()) {
+                ResourceLocation file = new ResourceLocation(namespace, "continuum/disable.json");
+                for (Resource resource : manager.getResourceStack(file)) {
+                    try (Reader reader = resource.openAsReader()) {
+                        JsonElement element = JsonParser.parseReader(reader);
+                        if (!element.isJsonObject()) {
+                            report.error(file.toString(), "must contain a JSON object");
+                            continue;
+                        }
+                        collectIds(element.getAsJsonObject(), "systems", systemIds, file, report);
+                        collectIds(element.getAsJsonObject(), "bodies", bodyIds, file, report);
+                    } catch (Exception e) {
+                        report.error(file.toString(), "invalid JSON: " + e.getMessage());
+                    }
+                }
+            }
+            if (systemIds.isEmpty() && bodyIds.isEmpty()) return;
+
+            systemJson.keySet().removeAll(systemIds);
+            bodyJson.keySet().removeAll(bodyIds);
+            bodyJson.values().removeIf(body -> {
+                ResourceLocation system = body.has("system") && body.get("system").isJsonPrimitive() ?
+                        ResourceLocation.tryParse(body.get("system").getAsString()) : null;
+                return system != null && systemIds.contains(system);
+            });
+        }
+
+        /** This world's seeded galaxy, if it has one: generated again from its seed on every load. */
+        private static void addGenerated(Map<ResourceLocation, JsonObject> systemJson,
+                                         Map<ResourceLocation, JsonObject> bodyJson, ContinuumReport report) {
+            try {
+                ResourceLocation homeId = new ResourceLocation("phoenix_continuum", "home");
+                JsonObject homeJson = systemJson.get(homeId);
+                ContinuumSystem home = homeJson == null ? null : parseSystem(homeId, homeJson);
+                var generated = net.phoenix.continuum.common.GeneratedGalaxy.currentResult(home);
+                if (generated == null) return;
+                generated.systems().forEach(systemJson::putIfAbsent);
+                generated.bodies().forEach(bodyJson::putIfAbsent);
+            } catch (Exception e) {
+                report.error("generated galaxy", "could not be added: " + e.getMessage());
+            }
+        }
+
+        private static void collectIds(JsonObject json, String key, Set<ResourceLocation> into, ResourceLocation file,
+                                       ContinuumReport report) {
+            if (!json.has(key)) return;
+            if (!json.get(key).isJsonArray()) {
+                report.error(file.toString(), "\"" + key + "\" must be a list of ids");
+                return;
+            }
+            for (JsonElement entry : json.getAsJsonArray(key)) {
+                ResourceLocation id = entry.isJsonPrimitive() ? ResourceLocation.tryParse(entry.getAsString()) : null;
+                if (id == null) report.error(file.toString(), "\"" + key + "\" has an entry that is not an id: " + entry);
+                else into.add(id);
+            }
         }
 
         private static void read(ResourceManager manager, String dir,

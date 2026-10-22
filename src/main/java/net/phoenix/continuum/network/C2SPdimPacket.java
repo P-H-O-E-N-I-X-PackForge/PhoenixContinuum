@@ -12,7 +12,8 @@ public class C2SPdimPacket {
     public enum Action {
         ENTER,
         LEAVE,
-        ADJUST
+        ADJUST,
+        DELETE
     }
 
     private final Action action;
@@ -20,12 +21,22 @@ public class C2SPdimPacket {
     private final float gravity;
     private final float daySpeed;
     private final float lockedTime;
+    private final boolean orbitView;
+    private final boolean fixedSky;
 
-    public C2SPdimPacket(Action action, ResourceLocation body, float gravity) {
-        this(action, body, gravity, 1.0f, -1.0f);
+    public C2SPdimPacket(Action action, ResourceLocation body, float gravity, boolean orbitView) {
+        this(action, body, gravity, 1.0f, -1.0f, orbitView);
     }
 
-    public C2SPdimPacket(Action action, ResourceLocation body, float gravity, float daySpeed, float lockedTime) {
+    public C2SPdimPacket(Action action, ResourceLocation body, float gravity, float daySpeed, float lockedTime,
+                         boolean orbitView) {
+        this(action, body, gravity, daySpeed, lockedTime, orbitView, false);
+    }
+
+    public C2SPdimPacket(Action action, ResourceLocation body, float gravity, float daySpeed, float lockedTime,
+                         boolean orbitView, boolean fixedSky) {
+        this.orbitView = orbitView;
+        this.fixedSky = fixedSky;
         this.action = action;
         this.body = body;
         this.gravity = gravity;
@@ -39,6 +50,8 @@ public class C2SPdimPacket {
         this.gravity = buf.readFloat();
         this.daySpeed = buf.readFloat();
         this.lockedTime = buf.readFloat();
+        this.orbitView = buf.readBoolean();
+        this.fixedSky = buf.readBoolean();
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -47,6 +60,8 @@ public class C2SPdimPacket {
         buf.writeFloat(gravity);
         buf.writeFloat(daySpeed);
         buf.writeFloat(lockedTime);
+        buf.writeBoolean(orbitView);
+        buf.writeBoolean(fixedSky);
     }
 
     public static void handle(C2SPdimPacket msg, java.util.function.Supplier<NetworkEvent.Context> ctx) {
@@ -56,8 +71,18 @@ public class C2SPdimPacket {
 
             String error = switch (msg.action) {
                 case LEAVE -> PdimActions.leave(player);
-                case ADJUST -> PdimActions.adjust(player, msg.body, msg.gravity, msg.daySpeed, msg.lockedTime);
-                default -> PdimActions.createAndEnter(player, msg.body, msg.gravity);
+                case DELETE -> PdimActions.delete(player, msg.body) ? null : "You have no personal dimension there.";
+                case ADJUST -> PdimActions.adjust(player, msg.body, msg.gravity, msg.daySpeed, msg.lockedTime,
+                        msg.orbitView, msg.fixedSky);
+                default -> {
+                    String made = PdimActions.createAndEnter(player, msg.body, msg.gravity, msg.orbitView);
+                    // the sky clock chosen on the create screen
+                    if (made == null && (msg.daySpeed != 1.0f || msg.lockedTime >= 0.0f || msg.fixedSky)) {
+                        PdimActions.adjust(player, msg.body, msg.gravity, msg.daySpeed, msg.lockedTime, msg.orbitView,
+                                msg.fixedSky);
+                    }
+                    yield made;
+                }
             };
             if (error != null) player.displayClientMessage(Component.literal(error), true);
         });

@@ -80,6 +80,16 @@ public final class Mission {
 
     public long distressUntil;
 
+    /** A name the launching team gave the flight (empty for none), and the names of the crew who went with it. */
+    public String expedition = "";
+    public List<String> crew = new ArrayList<>();
+
+    /** "\"Dawn Runner\" (crew: Alice, Bob)" or "" for an unnamed flight. */
+    public String expeditionTag() {
+        if (expedition.isEmpty()) return "";
+        return "\"" + expedition + "\"" + (crew.isEmpty() ? "" : " (crew: " + String.join(", ", crew) + ")");
+    }
+
     public boolean rescuing;
 
     public boolean stranded() {
@@ -145,6 +155,12 @@ public final class Mission {
             tag.putString("PadDimension", padDimension);
             tag.putLong("PadPos", padPos);
         }
+        if (!expedition.isEmpty()) tag.putString("Expedition", expedition);
+        if (!crew.isEmpty()) {
+            ListTag crewList = new ListTag();
+            for (String member : crew) crewList.add(net.minecraft.nbt.StringTag.valueOf(member));
+            tag.put("Crew", crewList);
+        }
         if (distressUntil > 0) {
             tag.putLong("DistressUntil", distressUntil);
             tag.putBoolean("Rescuing", rescuing);
@@ -169,6 +185,8 @@ public final class Mission {
             mission.padDimension = tag.getString("PadDimension");
             mission.padPos = tag.getLong("PadPos");
         }
+        mission.expedition = tag.getString("Expedition");
+        for (Tag t : tag.getList("Crew", Tag.TAG_STRING)) mission.crew.add(t.getAsString());
         mission.distressUntil = tag.getLong("DistressUntil");
         mission.rescuing = tag.getBoolean("Rescuing");
         return mission;

@@ -38,7 +38,7 @@ public final class MapCamera {
 
     public void rotate(float dYaw, float dPitch) {
         targetYaw += dYaw;
-        targetPitch = Math.max(-85.0f, Math.min(85.0f, targetPitch + dPitch));
+        targetPitch = Math.max(-90.0f, Math.min(90.0f, targetPitch + dPitch));
     }
 
     public void zoom(float amount) {

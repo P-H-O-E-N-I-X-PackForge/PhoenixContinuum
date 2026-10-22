@@ -18,7 +18,7 @@ public record ContinuumBody(
                             float periodDays,
                             float phase,
                             float radius,
-                            int tripMinutes,
+                            float tripMinutes,
                             String minTier,
                             @Nullable ResourceLocation detectedResearch,
                             @Nullable ResourceLocation surveyedResearch,
@@ -33,7 +33,11 @@ public record ContinuumBody(
                             @Nullable Float holeTilt,
                             @Nullable Float skyHoleInclination,
                             @Nullable Float skyHoleLean,
-                            @Nullable com.google.gson.JsonObject visibility) {
+                            @Nullable com.google.gson.JsonObject visibility,
+                            List<Anomaly> anomalies) {
+
+    public record Anomaly(String id, String name, String description, DiscoveryStage reveal, List<Yield> rewards,
+                          @Nullable ResourceLocation research, String message, @Nullable PdimCost cost) {}
 
     public record Transient(int durationMinutes, int cooldownMinutes, float chance, float innerAu, float outerAu) {}
 
@@ -72,5 +76,23 @@ public record ContinuumBody(
 
     public boolean isMoon() {
         return parent != null;
+    }
+
+    public boolean isComet() {
+        return transientInfo != null && params.style() != PlanetParams.STYLE_TIDAL &&
+                params.style() != PlanetParams.STYLE_ROGUE && params.style() != PlanetParams.STYLE_REMNANT;
+    }
+
+    public boolean isRogue() {
+        return transientInfo != null && params.style() == PlanetParams.STYLE_ROGUE;
+    }
+
+    public boolean isRemnant() {
+        return transientInfo != null && params.style() == PlanetParams.STYLE_REMNANT;
+    }
+
+    public String visitorKind() {
+        return isRogue() ? "rogue planet" : isRemnant() ? "supernova remnant" :
+                params.style() == PlanetParams.STYLE_TIDAL ? "stellar collision" : "comet";
     }
 }

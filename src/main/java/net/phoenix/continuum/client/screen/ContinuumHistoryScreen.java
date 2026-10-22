@@ -70,7 +70,7 @@ public class ContinuumHistoryScreen extends Screen {
     private static int color(MissionLog.Kind kind) {
         return switch (kind) {
             case LAUNCH -> MapUi.TEXT;
-            case LANDED, RESCUED, STATION, COMET -> MapUi.GOOD;
+            case LANDED, RESCUED, STATION, COMET, ANOMALY -> MapUi.GOOD;
             case COLLECTED -> MapUi.DIM;
             case STRANDED -> MapUi.WARN;
             case FAILED, LOST -> MapUi.BAD;
@@ -88,6 +88,7 @@ public class ContinuumHistoryScreen extends Screen {
             case COLLECTED -> "COLLECTED";
             case STATION -> "STATION";
             case COMET -> "COMET";
+            case ANOMALY -> "ANOMALY";
         };
     }
 

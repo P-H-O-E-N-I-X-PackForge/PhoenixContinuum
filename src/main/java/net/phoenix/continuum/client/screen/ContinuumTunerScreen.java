@@ -28,11 +28,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Live tuning of how a world looks: edit a body's visual parameters and see the map change at once. It only changes
- * this client; nothing is sent to the server. Export writes the full definition as a file (and to the clipboard) to
- * drop into the pack folder. Open with {@code /continuum tune [body]}. Operators (or the single-player owner) only.
- */
 @OnlyIn(Dist.CLIENT)
 public final class ContinuumTunerScreen extends Screen {
 
@@ -46,10 +41,6 @@ public final class ContinuumTunerScreen extends Screen {
         BUTTON
     }
 
-    /**
-     * @param server  whether an edit goes to the server (for everyone, saved) instead of staying on this client
-     * @param choices the options of a CHOICE, in cycle order
-     */
     private record Field(String path, String label, Kind kind, double min, double max, double step, Object fallback,
                          boolean server, List<String> choices) {
 
@@ -78,6 +69,32 @@ public final class ContinuumTunerScreen extends Screen {
     private static final int ROW = 15;
     private static final int LIST_W = 330;
 
+    // the screen is laid out for this much room; with a bigger gui scale (a smaller screen in gui units) it is drawn
+    // scaled down to fit, and the mouse is scaled to match
+    private static final int MIN_W = LIST_W + 230;
+    private static final int MIN_H = 430;
+    private float uiScale = 1.0f;
+    private int vw;
+    private int vh;
+
+    /** Text fields that are sentences rather than ids: these open the roomy editor. */
+    private static final java.util.Set<String> LONG_TEXT = java.util.Set.of("name", "description", "lore.detected",
+            "lore.surveyed");
+
+    private static final int SV_SIZE = 100;
+    private static final int HUE_W = 14;
+    private static final int HUE_GAP = 6;
+    private static final int PICKER_PAD = 8;
+
+    private Field pickerField;
+    private float pickerHue;
+    private float pickerSat = 1.0f;
+    private float pickerVal = 1.0f;
+    private int pickerX;
+    private int pickerY;
+    private boolean draggingSV;
+    private boolean draggingHue;
+
     private final Screen parent;
     private final List<ContinuumBody> bodies = new ArrayList<>();
     private int bodyIndex;
@@ -93,10 +110,8 @@ public final class ContinuumTunerScreen extends Screen {
     public ContinuumTunerScreen(Screen parent, ResourceLocation start) {
         super(Component.literal("Continuum tuner"));
         this.parent = parent;
-        for (ContinuumBody body : ContinuumData.allBodies()) {
-            if (body.type() == ContinuumBody.Type.STAR) continue;
-            bodies.add(body);
-        }
+        // every body of every system, stars and black holes included
+        bodies.addAll(ContinuumData.allBodies());
         bodies.sort(Comparator.comparing((ContinuumBody b) -> b.system().toString()).thenComparing(ContinuumBody::name));
         for (int i = 0; i < bodies.size(); i++) {
             if (bodies.get(i).id().equals(start)) bodyIndex = i;
@@ -111,9 +126,19 @@ public final class ContinuumTunerScreen extends Screen {
 
     private ContinuumBody body() {
         ContinuumBody listed = bodies.get(Math.floorMod(bodyIndex, bodies.size()));
-        // the data is replaced when the server reloads, so look the current definition up again
+        
         ContinuumBody current = ContinuumData.body(listed.id());
         return current != null ? current : listed;
+    }
+
+    private void selectBody(ResourceLocation id) {
+        for (int i = 0; i < bodies.size(); i++) {
+            if (bodies.get(i).id().equals(id)) {
+                bodyIndex = i;
+                rebuildFields();
+                return;
+            }
+        }
     }
 
     private void rebuildFields() {
@@ -125,35 +150,35 @@ public final class ContinuumTunerScreen extends Screen {
         JsonObject json = ContinuumTuner.merged(body.id());
 
         if (body.type() == ContinuumBody.Type.BLACK_HOLE) {
-            fields.add(new Field("hole_tilt", "Disk tilt (map view)  0 edge-on, 1 face-on", Kind.NUMBER, 0, 1, 0.05, 0.075));
-            fields.add(new Field("sky_hole_inclination", "Disk inclination (sky), degrees", Kind.NUMBER, 0, 90, 1, 45.0));
-            fields.add(new Field("sky_hole_lean", "Disk lean (sky), degrees", Kind.NUMBER, -90, 90, 1, 15.0));
+            fields.add(new Field("hole_tilt", "Disk tilt (map view)  0 edge-on, 1 face-on", Kind.NUMBER, 0, 1, 0.1, 0.075));
+            fields.add(new Field("sky_hole_inclination", "Disk inclination (sky), degrees", Kind.NUMBER, 0, 90, 5, 45.0));
+            fields.add(new Field("sky_hole_lean", "Disk lean (sky), degrees", Kind.NUMBER, -90, 90, 5, 15.0));
             return;
         }
 
-        fields.add(new Field("radius", "Radius", Kind.NUMBER, 0.1, 12, 0.1, 1.0));
+        fields.add(new Field("radius", "Radius (Earth = 1)", Kind.NUMBER, 0.1, 200, 0.1, 1.0));
         fields.add(new Field("gas_giant", "Gas giant", Kind.BOOL, 0, 1, 1, false));
-        fields.add(new Field("axial_tilt", "Axial tilt", Kind.NUMBER, -90, 90, 1, 0.0));
-        fields.add(new Field("spin_deg_per_sec", "Spin", Kind.NUMBER, 0, 60, 0.5, 4.0));
-        fields.add(new Field("cloud_spin_deg_per_sec", "Cloud spin", Kind.NUMBER, 0, 60, 0.5, 6.0));
-        fields.add(new Field("surface.seed", "Seed", Kind.NUMBER, 0, 9999, 1, 1.0));
-        fields.add(new Field("surface.scale", "Terrain scale", Kind.NUMBER, 0.5, 10, 0.1, 2.5));
-        fields.add(new Field("surface.bump", "Bumpiness", Kind.NUMBER, 0, 2, 0.05, 0.7));
-        fields.add(new Field("surface.ocean_level", "Ocean level", Kind.NUMBER, 0, 1, 0.02, 0.0));
-        fields.add(new Field("surface.polar_ice", "Polar ice", Kind.NUMBER, 0, 1, 0.02, 0.0));
-        fields.add(new Field("surface.cloud_cover", "Cloud cover", Kind.NUMBER, 0, 1, 0.02, 0.0));
+        fields.add(new Field("axial_tilt", "Axial tilt", Kind.NUMBER, -180, 180, 5, 0.0));
+        fields.add(new Field("spin_deg_per_sec", "Spin", Kind.NUMBER, -360, 360, 1, 4.0));
+        fields.add(new Field("cloud_spin_deg_per_sec", "Cloud spin", Kind.NUMBER, -360, 360, 1, 6.0));
+        fields.add(new Field("surface.seed", "Seed", Kind.NUMBER, 0, 999999, 1, 1.0));
+        fields.add(new Field("surface.scale", "Terrain scale", Kind.NUMBER, 0.1, 60, 0.25, 2.5));
+        fields.add(new Field("surface.bump", "Bumpiness", Kind.NUMBER, 0, 6, 0.1, 0.7));
+        fields.add(new Field("surface.ocean_level", "Ocean level", Kind.NUMBER, 0, 1, 0.05, 0.0));
+        fields.add(new Field("surface.polar_ice", "Polar ice", Kind.NUMBER, 0, 1, 0.05, 0.0));
+        fields.add(new Field("surface.cloud_cover", "Cloud cover", Kind.NUMBER, 0, 1, 0.05, 0.0));
         fields.add(new Field("surface.low", "Low ground colour", Kind.COLOR, 0, 0, 0, "#444444"));
         fields.add(new Field("surface.mid", "Mid ground colour", Kind.COLOR, 0, 0, 0, "#888888"));
         fields.add(new Field("surface.high", "High ground colour", Kind.COLOR, 0, 0, 0, "#cccccc"));
         fields.add(new Field("surface.ocean_deep", "Deep ocean colour", Kind.COLOR, 0, 0, 0, "#03123a"));
         fields.add(new Field("surface.ocean_shallow", "Shallow ocean colour", Kind.COLOR, 0, 0, 0, "#1a6f8f"));
         fields.add(new Field("atmosphere.color", "Atmosphere colour", Kind.COLOR, 0, 0, 0, "#6aa8ff"));
-        fields.add(new Field("atmosphere.density", "Atmosphere density", Kind.NUMBER, 0, 1.5, 0.02, 0.0));
+        fields.add(new Field("atmosphere.density", "Atmosphere density", Kind.NUMBER, 0, 4, 0.05, 0.0));
         if (json.has("rings")) {
-            fields.add(new Field("rings.inner", "Ring inner radius", Kind.NUMBER, 1, 6, 0.05, 1.4));
-            fields.add(new Field("rings.outer", "Ring outer radius", Kind.NUMBER, 1, 8, 0.05, 2.4));
-            fields.add(new Field("rings.tilt", "Ring tilt", Kind.NUMBER, -90, 90, 1, 0.0));
-            fields.add(new Field("rings.opacity", "Ring opacity", Kind.NUMBER, 0, 1, 0.05, 0.85));
+            fields.add(new Field("rings.inner", "Ring inner radius", Kind.NUMBER, 1, 30, 0.1, 1.4));
+            fields.add(new Field("rings.outer", "Ring outer radius", Kind.NUMBER, 1, 60, 0.1, 2.4));
+            fields.add(new Field("rings.tilt", "Ring tilt", Kind.NUMBER, -90, 90, 5, 0.0));
+            fields.add(new Field("rings.opacity", "Ring opacity", Kind.NUMBER, 0, 1, 0.1, 0.85));
             fields.add(new Field("rings.color", "Ring colour", Kind.COLOR, 0, 0, 0, "#d8c8a0"));
             fields.add(new Field("rings.color2", "Ring colour 2", Kind.COLOR, 0, 0, 0, "#8a7a60"));
         }
@@ -169,32 +194,32 @@ public final class ContinuumTunerScreen extends Screen {
         fields.add(Field.header("Server (applies for everyone, saved in config/phoenix_continuum/tuning)"));
         fields.add(Field.server("name", "Name", Kind.TEXT, 0, 0, 0, ""));
         fields.add(Field.server("description", "Description", Kind.TEXT, 0, 0, 0, ""));
-        fields.add(Field.server("trip_minutes", "Trip minutes", Kind.NUMBER, 1, 600, 1, 10.0));
+        fields.add(Field.server("lore.detected", "Lore (detected)", Kind.TEXT, 0, 0, 0, ""));
+        fields.add(Field.server("lore.surveyed", "Lore (surveyed)", Kind.TEXT, 0, 0, 0, ""));
+        fields.add(Field.server("trip_seconds", "Trip (seconds)", Kind.NUMBER, 1, 600000, 1, 600.0));
         fields.add(Field.choice("initial_stage", "Starting stage", "unknown", "unknown", "detected", "surveyed"));
         fields.add(Field.choice("gate.min_tier", "Rocket tier needed", "start", "start", "mid", "late", "endgame"));
-        fields.add(Field.server("orbit.radius_au", "Orbit radius (AU)", Kind.NUMBER, 0, 60, 0.05, 1.0));
-        fields.add(Field.server("orbit.period_days", "Orbit period (days)", Kind.NUMBER, 0.05, 6000, 1, 100.0));
-        fields.add(Field.server("orbit.phase", "Orbit phase", Kind.NUMBER, 0, 1, 0.02, 0.0));
+        fields.add(Field.server("orbit.radius_au", "Orbit radius (AU)", Kind.NUMBER, 0, 1000, 0.1, 1.0));
+        fields.add(Field.server("orbit.period_days", "Orbit period (days)", Kind.NUMBER, 1, 200000, 5, 100.0));
+        fields.add(Field.server("orbit.phase", "Orbit phase", Kind.NUMBER, 0, 1, 0.05, 0.0));
         if (json.has("pdim_cost")) {
             fields.add(Field.server("pdim_cost.item", "Personal dimension cost item", Kind.TEXT, 0, 0, 0,
                     "minecraft:ender_pearl"));
-            fields.add(Field.server("pdim_cost.count", "Personal dimension cost count", Kind.NUMBER, 0, 64, 1, 2.0));
+            fields.add(Field.server("pdim_cost.count", "Personal dimension cost count", Kind.NUMBER, 0, 4096, 1, 2.0));
         }
         fields.add(Field.header("Yields"));
         int count = json.has("yields") && json.get("yields").isJsonArray() ? json.getAsJsonArray("yields").size() : 0;
         for (int i = 0; i < count; i++) {
             fields.add(Field.server("yields." + i + ".item", "  #" + (i + 1) + " item", Kind.TEXT, 0, 0, 0,
                     "minecraft:stone"));
-            fields.add(Field.server("yields." + i + ".min", "  #" + (i + 1) + " min", Kind.NUMBER, 1, 256, 1, 1.0));
-            fields.add(Field.server("yields." + i + ".max", "  #" + (i + 1) + " max", Kind.NUMBER, 1, 256, 1, 1.0));
-            fields.add(Field.server("yields." + i + ".chance", "  #" + (i + 1) + " chance", Kind.NUMBER, 0, 1, 0.05,
+            fields.add(Field.server("yields." + i + ".min", "  #" + (i + 1) + " min", Kind.NUMBER, 1, 4096, 1, 1.0));
+            fields.add(Field.server("yields." + i + ".max", "  #" + (i + 1) + " max", Kind.NUMBER, 1, 4096, 1, 1.0));
+            fields.add(Field.server("yields." + i + ".chance", "  #" + (i + 1) + " chance", Kind.NUMBER, 0, 1, 0.1,
                     1.0));
         }
         fields.add(Field.button("yield+", "Add a yield"));
         if (count > 0) fields.add(Field.button("yield-", "Remove the last yield"));
     }
-
-    // ------------------------------------------------------------------ values
 
     private JsonElement read(Field field) {
         JsonElement cursor = ContinuumTuner.merged(body().id());
@@ -229,6 +254,15 @@ public final class ContinuumTunerScreen extends Screen {
                 return value.getAsDouble();
             } catch (RuntimeException ignored) {}
         }
+        if (field.path().equals("trip_seconds")) {
+            // bodies written in minutes show the same trip in seconds until it is edited
+            JsonElement minutes = ContinuumTuner.merged(body().id()).get("trip_minutes");
+            if (minutes != null && minutes.isJsonPrimitive()) {
+                try {
+                    return minutes.getAsDouble() * 60.0;
+                } catch (RuntimeException ignored) {}
+            }
+        }
         return ((Number) field.fallback()).doubleValue();
     }
 
@@ -258,7 +292,6 @@ public final class ContinuumTunerScreen extends Screen {
         status = "Sent to the server.";
     }
 
-    /** Server edits: an array element is sent as the whole updated array, anything else by its path. */
     private void sendServer(Field field, JsonElement value) {
         String[] parts = field.path().split("[.]");
         if (parts[0].equals("yields") && parts.length == 3) {
@@ -306,14 +339,13 @@ public final class ContinuumTunerScreen extends Screen {
 
     private void setNumber(Field field, double value) {
         double clamped = Math.max(field.min(), Math.min(field.max(), value));
-        clamped = Math.round(clamped / Math.min(field.step(), 0.001) ) * Math.min(field.step(), 0.001);
+        clamped = field.min() + Math.round((clamped - field.min()) / field.step()) * field.step();
+        clamped = Math.max(field.min(), Math.min(field.max(), Math.round(clamped * 10000.0) / 10000.0));
         set(field, new JsonPrimitive(field.step() >= 1 ? (Number) (long) Math.round(clamped) : (Number) clamped));
     }
 
-    // ------------------------------------------------------------------ layout
-
     private int left() {
-        return Math.max(8, (width - LIST_W - 210) / 2);
+        return Math.max(8, (vw - LIST_W - 210) / 2);
     }
 
     private int top() {
@@ -321,7 +353,7 @@ public final class ContinuumTunerScreen extends Screen {
     }
 
     private int rows() {
-        return Math.max(4, (height - top() - 40) / ROW);
+        return Math.max(4, (vh - top() - 40) / ROW);
     }
 
     @Override
@@ -338,11 +370,21 @@ public final class ContinuumTunerScreen extends Screen {
     public void renderBackground(GuiGraphics g) {}
 
     @Override
-    public void render(GuiGraphics g, int mx, int my, float partialTick) {
-        g.fill(0, 0, width, height, 0xF00A0E14);
+    public void render(GuiGraphics g, int rawMx, int rawMy, float partialTick) {
+        uiScale = Math.min(1.0f, Math.min(width / (float) MIN_W, height / (float) MIN_H));
+        vw = Math.round(width / uiScale);
+        vh = Math.round(height / uiScale);
+        g.pose().pushPose();
+        g.pose().scale(uiScale, uiScale, 1.0f);
+        renderContent(g, (int) (rawMx / uiScale), (int) (rawMy / uiScale), partialTick);
+        g.pose().popPose();
+    }
+
+    private void renderContent(GuiGraphics g, int mx, int my, float partialTick) {
+        g.fill(0, 0, vw, vh, 0xF00A0E14);
         hits.clear();
         if (bodies.isEmpty()) {
-            g.drawCenteredString(font, "No bodies loaded.", width / 2, height / 2, 0xFFFFFFFF);
+            g.drawCenteredString(font, "No bodies loaded.", vw / 2, vh / 2, 0xFFFFFFFF);
             return;
         }
 
@@ -355,6 +397,7 @@ public final class ContinuumTunerScreen extends Screen {
         int x = left();
         g.drawString(font, "Continuum tuner", x, 8, 0xFFFFFFFF, false);
         String title = "<  " + body.name() + "  (" + body.id() + ")  >";
+        g.drawString(font, "click the name to pick a body", x + 90, 8, 0xFF7F8A99, false);
         g.drawString(font, title, x, 22, 0xFFC8D4E8, false);
         hit(g, mx, my, x, 20, font.width(title) + 4, 12, "body", false);
         if (ContinuumTuner.isTuned(body.id())) g.drawString(font, "tuned", x + LIST_W - 30, 8, 0xFFFFB040, false);
@@ -401,8 +444,8 @@ public final class ContinuumTunerScreen extends Screen {
                     g.drawCenteredString(font, text, vx + 12 + 36, y + 4, 0xFFFFFFFF);
                     hit(g, mx, my, vx + 12, y + 1, 72, 13, field, "edit");
                     button(g, mx, my, vx + 84, y + 1, 12, "+", field, "inc");
-                    int barX = vx + 104;
-                    int barW = 110;
+                    int barX = vx + 100;
+                    int barW = LIST_W - 10 - (barX - x);
                     g.fill(barX, y + 6, barX + barW, y + 9, 0xFF2A3340);
                     double t = (value - field.min()) / (field.max() - field.min());
                     g.fill(barX, y + 6, barX + (int) (barW * Math.max(0, Math.min(1, t))), y + 9, 0xFF4F8FCF);
@@ -415,6 +458,7 @@ public final class ContinuumTunerScreen extends Screen {
                     g.renderOutline(vx, y + 2, 22, 11, 0xFF3A4452);
                     g.drawString(font, hex, vx + 28, y + 4, 0xFFFFFFFF, false);
                     hit(g, mx, my, vx, y + 1, 100, 13, field, "edit");
+                    hit(g, mx, my, vx, y + 1, 22, 13, field, "swatch");
                 }
                 case BOOL -> {
                     boolean on = bool(field);
@@ -425,7 +469,6 @@ public final class ContinuumTunerScreen extends Screen {
             }
         }
 
-        // preview of the surface, and the actions
         int px = x + LIST_W + 12;
         g.drawString(font, "Preview", px, top() - 12, 0xFFAEBBCF, false);
         if (body.type() != ContinuumBody.Type.BLACK_HOLE) {
@@ -440,13 +483,125 @@ public final class ContinuumTunerScreen extends Screen {
         action(g, mx, my, px, ay, 200, "Export definition", "export");
         action(g, mx, my, px, ay + 20, 200, "Reset local edits", "reset");
         action(g, mx, my, px, ay + 40, 200, "Reset server edits", "resetServer");
-        action(g, mx, my, px, ay + 60, 200, "Close", "close");
-        g.drawString(font, "Visual edits: this client only", px, ay + 84, 0xFF7F8A99, false);
-        g.drawString(font, "until pushed. Gold rows go to the", px, ay + 94, 0xFF7F8A99, false);
-        g.drawString(font, "server and are saved as patches.", px, ay + 104, 0xFF7F8A99, false);
-        if (!status.isEmpty()) g.drawString(font, font.plainSubstrByWidth(status, 200), px, ay + 120, 0xFF66DDFF, false);
+        action(g, mx, my, px, ay + 60, 200, "Sky view...", "sky");
+        action(g, mx, my, px, ay + 80, 200, "Close", "close");
+        g.drawString(font, "Visual edits: this client only", px, ay + 104, 0xFF7F8A99, false);
+        g.drawString(font, "until pushed. Gold rows go to the", px, ay + 114, 0xFF7F8A99, false);
+        g.drawString(font, "server and are saved as patches.", px, ay + 124, 0xFF7F8A99, false);
+        if (!status.isEmpty()) g.drawString(font, font.plainSubstrByWidth(status, 200), px, ay + 140, 0xFF66DDFF, false);
 
         super.render(g, mx, my, partialTick);
+        if (pickerField != null) renderPicker(g);
+    }
+
+    private void openPicker(Field field, int x, int y) {
+        commitEdit();
+        pickerField = field;
+        int rgb = parseColor(color(field));
+        float[] hsv = java.awt.Color.RGBtoHSB((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF, null);
+        pickerHue = hsv[0];
+        pickerSat = hsv[1];
+        pickerVal = hsv[2];
+        int totalW = SV_SIZE + HUE_GAP + HUE_W + PICKER_PAD * 2;
+        int totalH = SV_SIZE + PICKER_PAD * 2 + 20;
+        pickerX = Math.max(4, Math.min(x, vw - totalW - 4));
+        pickerY = Math.max(4, Math.min(y + 16, vh - totalH - 4));
+    }
+
+    private void closePicker() {
+        pickerField = null;
+        draggingSV = false;
+        draggingHue = false;
+    }
+
+    private void applyPicker() {
+        if (pickerField == null) return;
+        int rgb = java.awt.Color.HSBtoRGB(pickerHue, pickerSat, pickerVal) & 0xFFFFFF;
+        set(pickerField, new JsonPrimitive(String.format(Locale.ROOT, "#%06x", rgb)));
+    }
+
+    /** The same picker PhoenixWiki's theme editor has: a saturation/value square, a hue strip and a hex readout. */
+    private void renderPicker(GuiGraphics g) {
+        g.pose().pushPose();
+        g.pose().translate(0f, 0f, 400f);
+        g.flush();
+
+        int totalW = SV_SIZE + HUE_GAP + HUE_W + PICKER_PAD * 2;
+        int totalH = SV_SIZE + PICKER_PAD * 2 + 20;
+        g.fill(pickerX, pickerY, pickerX + totalW, pickerY + totalH, 0xF00A0A0E);
+        g.renderOutline(pickerX, pickerY, totalW, totalH, 0xFF3A4452);
+
+        int svX = pickerX + PICKER_PAD;
+        int svY = pickerY + PICKER_PAD;
+        int cell = 2;
+        for (int px = 0; px < SV_SIZE; px += cell) {
+            float sat = px / (float) (SV_SIZE - 1);
+            for (int py = 0; py < SV_SIZE; py += cell) {
+                float val = 1f - py / (float) (SV_SIZE - 1);
+                int rgb = java.awt.Color.HSBtoRGB(pickerHue, sat, val);
+                g.fill(svX + px, svY + py, svX + px + cell, svY + py + cell, 0xFF000000 | (rgb & 0xFFFFFF));
+            }
+        }
+        g.renderOutline(svX, svY, SV_SIZE, SV_SIZE, 0xFF3A4452);
+        int cursorX = svX + Math.round(pickerSat * (SV_SIZE - 1));
+        int cursorY = svY + Math.round((1f - pickerVal) * (SV_SIZE - 1));
+        g.renderOutline(cursorX - 3, cursorY - 3, 6, 6, pickerVal > 0.5f ? 0xFF000000 : 0xFFFFFFFF);
+
+        int hueX = svX + SV_SIZE + HUE_GAP;
+        for (int py = 0; py < SV_SIZE; py++) {
+            int rgb = java.awt.Color.HSBtoRGB(py / (float) (SV_SIZE - 1), 1f, 1f);
+            g.fill(hueX, svY + py, hueX + HUE_W, svY + py + 1, 0xFF000000 | (rgb & 0xFFFFFF));
+        }
+        g.renderOutline(hueX, svY, HUE_W, SV_SIZE, 0xFF3A4452);
+        int markerY = svY + Math.round(pickerHue * (SV_SIZE - 1));
+        g.fill(hueX - 2, markerY - 1, hueX + HUE_W + 2, markerY, 0xFFFFFFFF);
+        g.fill(hueX - 2, markerY, hueX + HUE_W + 2, markerY + 1, 0xFF000000);
+
+        int previewY = svY + SV_SIZE + 4;
+        int rgbNow = java.awt.Color.HSBtoRGB(pickerHue, pickerSat, pickerVal);
+        int previewW = totalW - PICKER_PAD * 2;
+        g.fill(svX, previewY, svX + previewW, previewY + 12, 0xFF000000 | (rgbNow & 0xFFFFFF));
+        g.renderOutline(svX, previewY, previewW, 12, 0xFF3A4452);
+        int textColor = (0.299f * ((rgbNow >> 16) & 0xFF) + 0.587f * ((rgbNow >> 8) & 0xFF) +
+                0.114f * (rgbNow & 0xFF)) > 140 ? 0xFF000000 : 0xFFFFFFFF;
+        g.drawCenteredString(font, String.format(Locale.ROOT, "#%06X", rgbNow & 0xFFFFFF), svX + previewW / 2,
+                previewY + 2, textColor);
+
+        g.flush();
+        g.pose().popPose();
+    }
+
+    private boolean clickPicker(double mx, double my) {
+        int totalW = SV_SIZE + HUE_GAP + HUE_W + PICKER_PAD * 2;
+        int totalH = SV_SIZE + PICKER_PAD * 2 + 20;
+        if (mx < pickerX || mx >= pickerX + totalW || my < pickerY || my >= pickerY + totalH) {
+            closePicker();
+            return true;
+        }
+        int svX = pickerX + PICKER_PAD;
+        int svY = pickerY + PICKER_PAD;
+        int hueX = svX + SV_SIZE + HUE_GAP;
+        if (mx >= svX && mx < svX + SV_SIZE && my >= svY && my < svY + SV_SIZE) {
+            draggingSV = true;
+            dragPicker(mx, my);
+        } else if (mx >= hueX && mx < hueX + HUE_W && my >= svY && my < svY + SV_SIZE) {
+            draggingHue = true;
+            dragPicker(mx, my);
+        }
+        return true;
+    }
+
+    private void dragPicker(double mx, double my) {
+        int svX = pickerX + PICKER_PAD;
+        int svY = pickerY + PICKER_PAD;
+        if (draggingSV) {
+            pickerSat = Math.max(0f, Math.min(1f, (float) (mx - svX) / (SV_SIZE - 1)));
+            pickerVal = 1f - Math.max(0f, Math.min(1f, (float) (my - svY) / (SV_SIZE - 1)));
+            applyPicker();
+        } else if (draggingHue) {
+            pickerHue = Math.max(0f, Math.min(1f, (float) (my - svY) / (SV_SIZE - 1)));
+            applyPicker();
+        }
     }
 
     private void button(GuiGraphics g, int mx, int my, int x, int y, int w, String label, Object target, String act) {
@@ -477,10 +632,11 @@ public final class ContinuumTunerScreen extends Screen {
         }
     }
 
-    // ------------------------------------------------------------------ input
-
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
+        mx /= uiScale;
+        my /= uiScale;
+        if (pickerField != null) return clickPicker(mx, my);
         if (preview.mouseClicked(mx, my)) return true;
         if (editor.isVisible() && editor.mouseClicked(mx, my, button)) return true;
         commitEdit();
@@ -498,8 +654,19 @@ public final class ContinuumTunerScreen extends Screen {
                 return true;
             }
             if (target.equals("body")) {
-                bodyIndex += mx < x + font.width("<  ") + 6 ? -1 : 1;
-                rebuildFields();
+                int prevEnd = x + font.width("<  ") + 6;
+                int nextStart = x + (int) h[4] - font.width("  >") - 8;
+                if (mx < prevEnd) {
+                    bodyIndex--;
+                    rebuildFields();
+                } else if (mx >= nextStart) {
+                    bodyIndex++;
+                    rebuildFields();
+                } else {
+                    // the name between the arrows opens the picker of every system and body
+                    minecraft.setScreen(new ContinuumBodyPickerScreen(this, bodies, body().id(), this::selectBody,
+                            id -> minecraft.setScreen(new ContinuumSystemScreen(this, id))));
+                }
                 return true;
             }
             Field field = (Field) target;
@@ -523,7 +690,16 @@ public final class ContinuumTunerScreen extends Screen {
                         default -> {}
                     }
                 }
-                case "edit" -> beginEdit(field, x, y);
+                case "swatch" -> openPicker(field, x, y);
+                case "edit" -> {
+                    if (field.kind() == Kind.TEXT && LONG_TEXT.contains(field.path())) {
+                        Field textField = field;
+                        minecraft.setScreen(new ContinuumTextScreen(this, field.label().trim(), text(field),
+                                value -> set(textField, new JsonPrimitive(value))));
+                    } else {
+                        beginEdit(field, x, y);
+                    }
+                }
                 default -> {}
             }
             return true;
@@ -533,8 +709,16 @@ public final class ContinuumTunerScreen extends Screen {
 
     @Override
     public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
+        mx /= uiScale;
+        my /= uiScale;
+        dx /= uiScale;
+        dy /= uiScale;
+        if (draggingSV || draggingHue) {
+            dragPicker(mx, my);
+            return true;
+        }
         if (preview.mouseDragged(dx, dy)) return true;
-        // dragging along a bar scrubs the value
+        
         for (Object[] h : hits) {
             if (!"bar".equals(h[1])) continue;
             int x = (int) h[2];
@@ -550,6 +734,8 @@ public final class ContinuumTunerScreen extends Screen {
 
     @Override
     public boolean mouseReleased(double mx, double my, int button) {
+        draggingSV = false;
+        draggingHue = false;
         preview.mouseReleased();
         return super.mouseReleased(mx, my, button);
     }
@@ -562,6 +748,8 @@ public final class ContinuumTunerScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mx, double my, double scrollY) {
+        mx /= uiScale;
+        my /= uiScale;
         if (preview.mouseScrolled(mx, my, scrollY)) return true;
         scroll -= (int) Math.signum(scrollY) * 2;
         return true;
@@ -596,7 +784,7 @@ public final class ContinuumTunerScreen extends Screen {
                 setNumber(editing, Double.parseDouble(text));
             }
         } catch (NumberFormatException ignored) {
-            // leave the value as it was
+            
         }
         editor.setVisible(false);
         editing = null;
@@ -604,6 +792,10 @@ public final class ContinuumTunerScreen extends Screen {
 
     @Override
     public boolean keyPressed(int key, int scan, int mods) {
+        if (pickerField != null) {
+            if (key == GLFW.GLFW_KEY_ESCAPE) closePicker();
+            return true;
+        }
         if (editor.isVisible()) {
             if (key == GLFW.GLFW_KEY_ENTER || key == GLFW.GLFW_KEY_KP_ENTER) {
                 commitEdit();
@@ -622,6 +814,7 @@ public final class ContinuumTunerScreen extends Screen {
     private void runAction(String action) {
         switch (action) {
             case "close" -> onClose();
+            case "sky" -> minecraft.setScreen(new ContinuumSkyScreen(this, body()));
             case "reset" -> {
                 ContinuumTuner.reset(body().id());
                 SurfaceMap.invalidate(body().id());

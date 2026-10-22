@@ -144,6 +144,69 @@
         0.9,
         0.7
       ]
+    },
+    {
+      "name": "UseBake",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.0
+      ]
+    },
+    {
+      "name": "Eclipse",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.0
+      ]
+    },
+    {
+      "name": "Aurora",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.0
+      ]
+    },
+    {
+      "name": "AuroraColor",
+      "type": "float",
+      "count": 3,
+      "values": [
+        0.2,
+        1.0,
+        0.5
+      ]
+    },
+    {
+      "name": "Storm",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.0
+      ]
+    },
+    {
+      "name": "Lens",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.0
+      ]
+    },
+    {
+      "name": "Ground",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.0
+      ]
+    }
+  ],
+  "samplers": [
+    {
+      "name": "NebulaTex"
     }
   ]
 }

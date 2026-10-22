@@ -31,11 +31,11 @@ float noise(vec3 x) {
         f.z);
 }
 
-float fbm(vec3 p) {
+float fbm(vec3 p, float limit) {
     float amplitude = 0.5;
     float sum = 0.0;
     for (int i = 0; i < 6; i++) {
-        if (float(i) >= Octaves) break;
+        if (float(i) >= min(Octaves, limit)) break;
         sum += amplitude * noise(p);
         p = p * 2.03 + vec3(13.1, 7.7, 3.3);
         amplitude *= 0.5;
@@ -48,12 +48,16 @@ void main() {
     if (r >= 1.0) discard;
 
     vec3 p = vec3(vLocal * 2.0, Seed * 7.3 + Time * 0.012);
-    vec3 q = vec3(fbm(p + vec3(0.0, 1.7, 9.2)), fbm(p + vec3(8.3, 2.8, 4.1)), 0.0);
-    float n = fbm(p + q * 1.8);
+    // octaves finer than a pixel only shimmer, so a puff that is small on screen uses fewer; the warp is smooth, so it
+    // never needs more than four
+    float px = max(length(fwidth(vLocal * 2.0)), 1e-4);
+    float lod = clamp(ceil(log2(0.6 / px) + 1.0), 2.0, 6.0);
+    vec3 q = vec3(fbm(p + vec3(0.0, 1.7, 9.2), min(lod, 4.0)), fbm(p + vec3(8.3, 2.8, 4.1), min(lod, 4.0)), 0.0);
+    float n = fbm(p + q * 1.8, lod);
 
     float falloff = 1.0 - smoothstep(0.1, 1.0, r);
     float body = pow(clamp(n * 1.7 - 0.38, 0.0, 1.0), 1.3) * falloff;
-    float ridge = 1.0 - abs(fbm(p * 2.0 + q * 2.5) * 2.0 - 1.0);
+    float ridge = 1.0 - abs(fbm(p * 2.0 + q * 2.5, max(lod - 1.0, 2.0)) * 2.0 - 1.0);
     float filament = pow(ridge, 6.0) * 0.35 * falloff;
 
     float d = (body + filament) * Density;

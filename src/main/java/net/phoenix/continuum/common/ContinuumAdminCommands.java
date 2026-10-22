@@ -39,7 +39,6 @@ final class ContinuumAdminCommands {
         return net.minecraft.commands.SharedSuggestionProvider.suggestResource(ids, builder);
     }
 
-    /** Shows, hides or (null) clears the override for the sender's team on a body or a whole system. */
     private static int setVisibility(CommandSourceStack source, ResourceLocation id, Boolean visible)
                                                                                                       throws CommandSyntaxException {
         if (ContinuumData.body(id) == null && ContinuumData.system(id) == null) {
@@ -74,11 +73,12 @@ final class ContinuumAdminCommands {
         return stems.containsKey(net.phoenix.continuum.pdim.PdimDimensions.keyFor(body).location());
     }
 
-    /**
-     * Personal dimensions are ordinary data pack dimensions, one per body, and a dimension can only be added by a
-     * restart. This writes the missing files (the usual void world) into the pack folder so one restart enables them.
-     */
     private static int writePdimFiles(CommandSourceStack source) {
+        return writePdimFiles(source, new java.util.ArrayList<>(), null);
+    }
+
+    private static int writePdimFiles(CommandSourceStack source, java.util.List<java.nio.file.Path> writtenFiles,
+                                      @org.jetbrains.annotations.Nullable String onlyNamespace) {
         java.nio.file.Path root = net.phoenix.continuum.data.ContinuumPackFolder.folder().resolve("data")
                 .resolve("phoenix_continuum").resolve("dimension").resolve("pdim");
         String template = """
@@ -100,11 +100,13 @@ final class ContinuumAdminCommands {
         try {
             java.nio.file.Files.createDirectories(root);
             for (var body : ContinuumData.allBodies()) {
+                if (onlyNamespace != null && !body.id().getNamespace().equals(onlyNamespace)) continue;
                 if (hasPersonalDimension(source, body.id())) continue;
-                // the dimension id is phoenix_continuum:pdim/<path of the body id>
+                
                 java.nio.file.Path file = root.resolve(body.id().getPath() + ".json");
                 java.nio.file.Files.createDirectories(file.getParent());
                 java.nio.file.Files.writeString(file, template);
+                writtenFiles.add(file);
                 written++;
             }
         } catch (java.io.IOException e) {
@@ -159,7 +161,6 @@ final class ContinuumAdminCommands {
         return 1;
     }
 
-    /** The body as the loader resolved it (after inheritance), as the server holds it. */
     private static int dump(CommandSourceStack source, ResourceLocation id) {
         String json = ContinuumData.snapshot().bodies().get(id);
         if (json == null) {
@@ -170,6 +171,136 @@ final class ContinuumAdminCommands {
                 .toJson(com.google.gson.JsonParser.parseString(json));
         net.phoenix.continuum.PhoenixContinuum.LOGGER.info("[Continuum] resolved {} {}", id, pretty);
         source.sendSuccess(() -> Component.literal(pretty), false);
+        return 1;
+    }
+
+    private static final int MAX_GENERATED = 64;
+
+    /**
+     * What a generate (or clear) replaced, so it can be put back. Kept in memory and tied to the running server: once
+     * the world is closed, the undo is gone.
+     */
+    private record GenerateUndo(net.minecraft.server.MinecraftServer server, GeneratedGalaxy.Setup previous) {}
+
+    private static GenerateUndo lastGenerate;
+
+    /** Called when the world closes: the undo belongs to it. */
+    static void forgetUndo() {
+        lastGenerate = null;
+    }
+
+    private static java.nio.file.Path pdimDirectory() {
+        return net.phoenix.continuum.data.ContinuumPackFolder.folder().resolve("data").resolve("phoenix_continuum")
+                .resolve("dimension").resolve("pdim");
+    }
+
+    private static void deleteTree(java.nio.file.Path root) throws java.io.IOException {
+        if (!java.nio.file.Files.exists(root)) return;
+        try (var walk = java.nio.file.Files.walk(root)) {
+            for (java.nio.file.Path path : (Iterable<java.nio.file.Path>) walk.sorted(
+                    java.util.Comparator.reverseOrder())::iterator) {
+                java.nio.file.Files.delete(path);
+            }
+        }
+    }
+
+    /**
+     * Personal dimensions are registered from files, once, when the world loads, so the generated worlds need their
+     * files before a restart, and another world's leftovers should not keep costing a dimension each. This writes the
+     * files this world's generated worlds need and removes generated ones it does not. Returns how many changed.
+     */
+    static int reconcileGeneratedDimensions(net.minecraft.server.MinecraftServer server) {
+        String namespace = net.phoenix.continuum.data.SystemGenerator.NAMESPACE;
+        int changed = writePdimFiles(server.createCommandSourceStack(), new java.util.ArrayList<>(), namespace);
+
+        java.util.Set<String> wanted = new java.util.HashSet<>();
+        for (var body : ContinuumData.allBodies()) {
+            if (body.id().getNamespace().equals(namespace)) wanted.add(body.id().getPath() + ".json");
+        }
+        java.nio.file.Path dir = pdimDirectory();
+        if (java.nio.file.Files.isDirectory(dir)) {
+            try (var files = java.nio.file.Files.list(dir)) {
+                for (java.nio.file.Path file : (Iterable<java.nio.file.Path>) files::iterator) {
+                    String name = file.getFileName().toString();
+                    if (name.startsWith("gen_") && !wanted.contains(name)) {
+                        java.nio.file.Files.delete(file);
+                        changed++;
+                    }
+                }
+            } catch (java.io.IOException e) {
+                net.phoenix.continuum.PhoenixContinuum.LOGGER.warn("Could not tidy generated dimension files: {}",
+                        e.getMessage());
+            }
+        }
+        return changed;
+    }
+
+    /** At world start: load this world's galaxy (it is generated from its saved seed) and settle the dimension files. */
+    static void onServerStarted(net.minecraft.server.MinecraftServer server) {
+        try {
+            // an earlier version wrote generated systems into the shared pack folder; they belong to a world now
+            deleteTree(net.phoenix.continuum.data.ContinuumPackFolder.folder().resolve("data")
+                    .resolve(net.phoenix.continuum.data.SystemGenerator.NAMESPACE));
+        } catch (java.io.IOException e) {
+            net.phoenix.continuum.PhoenixContinuum.LOGGER.warn("Could not remove the old generated pack files: {}",
+                    e.getMessage());
+        }
+        if (GeneratedGalaxy.get(server).setup().active()) ContinuumData.reloadNow(server);
+        int changed = reconcileGeneratedDimensions(server);
+        if (changed > 0) {
+            net.phoenix.continuum.PhoenixContinuum.LOGGER.warn("[Continuum] {} generated dimension file(s) changed " +
+                    "for this world: restart the server once for the generated worlds' personal dimensions.", changed);
+        }
+    }
+
+    private static long generatedBodyCount() {
+        return ContinuumData.allBodies().stream()
+                .filter(body -> body.id().getNamespace().equals(net.phoenix.continuum.data.SystemGenerator.NAMESPACE))
+                .count();
+    }
+
+    private static int generateSystems(CommandSourceStack source, int count,
+                                       @org.jetbrains.annotations.Nullable Long seedArg) {
+        var server = source.getServer();
+        long seed = seedArg != null ? seedArg : server.overworld().getSeed();
+        GeneratedGalaxy data = GeneratedGalaxy.get(server);
+        lastGenerate = new GenerateUndo(server, data.setup());
+        data.set(new GeneratedGalaxy.Setup(true, seed, count));
+
+        var report = ContinuumData.reloadNow(server);
+        int changed = reconcileGeneratedDimensions(server);
+        source.sendSuccess(() -> Component.literal("Generated " + count + " systems and " + generatedBodyCount() +
+                " worlds from seed " + seed + " for this world (" + report.errors() + " errors). " +
+                (changed > 0 ? "Their personal dimensions need a server restart to exist. " : "") +
+                "/continuumadmin generate undo puts back what was there before (until you leave this world); " +
+                "generate clear removes them.").withStyle(ChatFormatting.GREEN), true);
+        return count;
+    }
+
+    private static int clearGenerated(CommandSourceStack source) {
+        var server = source.getServer();
+        GeneratedGalaxy data = GeneratedGalaxy.get(server);
+        lastGenerate = new GenerateUndo(server, data.setup());
+        data.set(GeneratedGalaxy.Setup.NONE);
+        ContinuumData.reloadNow(server);
+        reconcileGeneratedDimensions(server);
+        source.sendSuccess(() -> Component.literal("Removed this world's generated systems. generate undo brings " +
+                "them back (until you leave this world)."), true);
+        return 1;
+    }
+
+    private static int undoGenerate(CommandSourceStack source) {
+        GenerateUndo undo = lastGenerate;
+        if (undo == null || undo.server() != source.getServer()) {
+            source.sendFailure(Component.literal("Nothing to undo in this world."));
+            return 0;
+        }
+        GeneratedGalaxy.get(source.getServer()).set(undo.previous());
+        lastGenerate = null;
+        ContinuumData.reloadNow(source.getServer());
+        int changed = reconcileGeneratedDimensions(source.getServer());
+        source.sendSuccess(() -> Component.literal("Undid the last generate: this world's systems are as they were." +
+                (changed > 0 ? " Restart the server to match the personal dimensions." : "")), true);
         return 1;
     }
 
@@ -217,6 +348,12 @@ final class ContinuumAdminCommands {
                                         .executes(ctx -> discipline(ctx.getSource(),
                                                 StringArgumentType.getString(ctx, "name"))))))
                 .then(literal("discover")
+                        .then(literal("all")
+                                .then(argument("stage", StringArgumentType.word())
+                                        .suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider
+                                                .suggest(List.of("unknown", "detected", "surveyed"), builder))
+                                        .executes(ctx -> discoverAll(ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "stage")))))
                         .then(argument("target", ResourceLocationArgument.id())
                                 .suggests((ctx, builder) -> {
                                     ContinuumData.systems().forEach(s -> builder.suggest(s.id().toString()));
@@ -263,6 +400,17 @@ final class ContinuumAdminCommands {
                                 .then(argument("body", ResourceLocationArgument.id())
                                         .executes(ctx -> cometClear(ctx.getSource(),
                                                 ResourceLocationArgument.getId(ctx, "body"))))))
+                .then(literal("generate")
+                        .then(literal("clear").executes(ctx -> clearGenerated(ctx.getSource())))
+                        .then(literal("undo").executes(ctx -> undoGenerate(ctx.getSource())))
+                        .then(argument("count", IntegerArgumentType.integer(1, MAX_GENERATED))
+                                .executes(ctx -> generateSystems(ctx.getSource(),
+                                        IntegerArgumentType.getInteger(ctx, "count"), null))
+                                .then(argument("seed", com.mojang.brigadier.arguments.LongArgumentType.longArg())
+                                        .executes(ctx -> generateSystems(ctx.getSource(),
+                                                IntegerArgumentType.getInteger(ctx, "count"),
+                                                com.mojang.brigadier.arguments.LongArgumentType.getLong(ctx,
+                                                        "seed"))))))
                 .then(literal("show").then(argument("target", ResourceLocationArgument.id())
                         .suggests((ctx, builder) -> suggestTargets(builder))
                         .executes(ctx -> setVisibility(ctx.getSource(),
@@ -475,6 +623,32 @@ final class ContinuumAdminCommands {
         source.sendSuccess(() -> Component.literal(target + " is now " + stage.name().toLowerCase(Locale.ROOT) + "."),
                 false);
         return 1;
+    }
+
+    /** Sets every system and body to one stage for your team (the tedious way to test is one command per target). */
+    private static int discoverAll(CommandSourceStack source, String stageName) throws CommandSyntaxException {
+        DiscoveryStage stage = DiscoveryStage.parse(stageName, null);
+        if (stage == null) {
+            source.sendFailure(Component.literal("Stage must be unknown, detected or surveyed."));
+            return 0;
+        }
+
+        UUID team = team(source);
+        ContinuumTeamData data = ContinuumTeamData.get(source.getServer());
+        int count = 0;
+        for (var system : ContinuumData.systems()) {
+            data.force(team, system.id(), stage);
+            count++;
+        }
+        for (var body : ContinuumData.allBodies()) {
+            data.force(team, body.id(), stage);
+            count++;
+        }
+        ContinuumServerEvents.engageTeam(source.getServer(), team);
+        int total = count;
+        source.sendSuccess(() -> Component.literal("All " + total + " systems and bodies are now " +
+                stage.name().toLowerCase(Locale.ROOT) + "."), false);
+        return total;
     }
 
     private static int grantOutpost(CommandSourceStack source, ResourceLocation body, int probes)

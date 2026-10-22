@@ -36,6 +36,11 @@ public class ContinuumKubeJSPlugin extends KubeJSPlugin {
                 ContinuumKubeEvents.DISCOVERY.post(ScriptType.SERVER, new ContinuumKubeEvents.DiscoveryEvent(event));
             }
         });
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, ContinuumEvents.AnomalyInvestigated.class, event -> {
+            if (ContinuumKubeEvents.ANOMALY.hasListeners()) {
+                ContinuumKubeEvents.ANOMALY.post(ScriptType.SERVER, new ContinuumKubeEvents.AnomalyEvent(event));
+            }
+        });
         MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, ContinuumEvents.MissionChanged.class, event -> {
             if (ContinuumKubeEvents.MISSION.hasListeners()) {
                 ContinuumKubeEvents.MISSION.post(ScriptType.SERVER, new ContinuumKubeEvents.MissionEvent(event));

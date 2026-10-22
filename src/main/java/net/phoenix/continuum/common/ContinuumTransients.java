@@ -106,8 +106,12 @@ public final class ContinuumTransients extends SavedData {
     }
 
     private void announceArrival(MinecraftServer server, ContinuumBody body, long millis) {
-        broadcast(server, body, "A comet, " + body.name() + ", is passing through " + systemName(body) +
-                ". It will be gone in " + ContinuumMissions.durationText(millis) +
+        String lead = switch (body.visitorKind()) {
+            case "rogue planet" -> "A rogue planet, " + body.name() + ", is drifting through " + systemName(body) + ".";
+            case "supernova remnant" -> "A supernova remnant, " + body.name() + ", is blooming in " + systemName(body) + ".";
+            default -> "A comet, " + body.name() + ", is passing through " + systemName(body) + ".";
+        };
+        broadcast(server, body, lead + " It will be gone in " + ContinuumMissions.durationText(millis) +
                 ": send an extraction run before it leaves.", ChatFormatting.GOLD);
     }
 

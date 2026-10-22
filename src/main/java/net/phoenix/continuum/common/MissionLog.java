@@ -20,7 +20,8 @@ public final class MissionLog {
         LOST,
         COLLECTED,
         STATION,
-        COMET;
+        COMET,
+        ANOMALY;
 
         public boolean problem() {
             return this == FAILED || this == STRANDED || this == LOST;

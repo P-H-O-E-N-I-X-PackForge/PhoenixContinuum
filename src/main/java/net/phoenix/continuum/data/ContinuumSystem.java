@@ -16,7 +16,26 @@ public record ContinuumSystem(
                               @Nullable ResourceLocation detectedResearch,
                               @Nullable ResourceLocation surveyedResearch,
                               HoleStyle hole,
-                              @Nullable com.google.gson.JsonObject visibility) {
+                              @Nullable com.google.gson.JsonObject visibility,
+                              @Nullable Companion companion) {
+
+    /**
+     * A second star orbiting the first round their common centre, drawn as its own kind (a plain star, a dyson swarm, a
+     * dyson sphere, ...).
+     *
+     * @param radius     its size relative to the primary
+     * @param separation distance between the two, in primary radii
+     * @param massRatio  its mass over the primary's (the lighter one orbits further out)
+     */
+    public record Companion(String kind, int color, float radius, float separation, float massRatio,
+                            float periodSeconds) {}
+
+    /** This system with its companion dropped and its star replaced: how each half of a pair is drawn on its own. */
+    public ContinuumSystem withStar(String kind, int color) {
+        return new ContinuumSystem(id, name, description, galaxyX, galaxyY, galaxyZ, color, starRadius, kind,
+                initialStage, detectedResearch, surveyedResearch, hole, visibility, null);
+    }
+
 
     public record HoleStyle(float diskSize, float diskIntensity, float feeding, float tilt, int hotColor, int coolColor,
                             float separation, float massRatio, float periodSeconds, float skyInclination,
@@ -66,6 +85,15 @@ public record ContinuumSystem(
 
     public boolean isPulsar() {
         return "pulsar".equals(starKind);
+    }
+
+    /** A star shut inside a complete shell ("dyson_sphere"). */
+    public boolean isDysonSphere() {
+        return "dyson_sphere".equals(starKind) || "dyson_shell".equals(starKind);
+    }
+
+    public boolean isMegastructure() {
+        return "dyson_swarm".equals(starKind) || "megastructure".equals(starKind);
     }
 
     public boolean isProtostar() {

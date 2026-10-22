@@ -30,7 +30,6 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
         super(Float.NaN, false, SkyType.NONE, false, false);
     }
 
-    /** The horizon colour of the sky as last drawn, so distant fog fades into it; null until the first frame. */
     private static volatile Vec3 horizonFog = null;
 
     @Override
@@ -53,26 +52,43 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
         Matrix4f view = new Matrix4f(poseStack.last().pose());
         float time = (float) (System.currentTimeMillis() % 10000000L) / 1000.0f;
 
-        PdimSkyModel.Sample sample = PdimSkyModel.sample(level, partialTick, body, system);
+        PdimSkyView live = PdimSkyView.live(level, partialTick);
+        PdimSkyModel.Sample sample = drawScene(view, projectionMatrix, live, body, system, time);
         float[] fog = sample.horizonNow();
         horizonFog = new Vec3(fog[0], fog[1], fog[2]);
+        return true;
+    }
 
-        drawNebula(view, projectionMatrix, time, body, system, sample);
+    /**
+     * Draws the sky as seen from {@code body}: nebula, horizon, star, the other worlds. Used by the live sky and by the
+     * tuner's sky view. Returns the sample it drew with (the sun, the air colours, the eclipse).
+     */
+    public static PdimSkyModel.Sample drawScene(Matrix4f view, Matrix4f projection, PdimSkyView view0,
+                                                ContinuumBody body, ContinuumSystem system, float time) {
+        PdimSkyModel.Sample sample = PdimSkyModel.sample(view0, body, system);
+        if (!view0.orbit()) {
+            sample = sample.withEclipse(PdimSkyBodies.eclipse(view0, body, sample));
+        }
+
+        try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("pdim.sky")) {
+            drawNebula(view, projection, time, body, system, sample, view0.orbit());
+        }
 
         if (body != null && ContinuumShaders.ready()) {
             RenderSystem.enableCull();
             RenderSystem.enableDepthTest();
             RenderSystem.depthMask(true);
 
-            // the star crossing the sky: it rises, climbs, sets, and is not there at night. Around a black hole (or a
-            // binary pair) the "sun" is the hole itself, drawn with its own accretion disk.
-            if (sample.hasSun() && system != null && sample.sunDir().y > -0.12f) {
+            // standing on a world: its horizon hides what has set, so the star and the other worlds sink behind it
+            if (sample.hasSun() && !view0.orbit()) SceneRenderer.drawHorizonPlane(view, projection);
+
+            if (sample.hasSun() && system != null && sample.sunDir().y > -0.25f) {
                 Vector3f sunPos = new Vector3f(sample.sunDir()).mul(98.0f);
                 if (system.hasHole()) {
-                    SceneRenderer.drawHole(system, body, view, projectionMatrix, sunPos, 4.5f, ContinuumVisuals.quality(),
+                    SceneRenderer.drawHole(system, body, view, projection, sunPos, 4.5f, ContinuumVisuals.quality(),
                             true);
                 } else {
-                    SceneRenderer.drawSystemStar(system, system.starColor(), view, projectionMatrix, sunPos, 6.0f,
+                    SceneRenderer.drawSystemStar(system, system.starColor(), view, projection, sunPos, 6.0f,
                             ContinuumVisuals.quality(), true);
                 }
                 RenderSystem.enableCull();
@@ -84,15 +100,22 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
             boolean centralBody = body.type() == ContinuumBody.Type.STAR ||
                     body.type() == ContinuumBody.Type.BLACK_HOLE;
             boolean quasar = system != null && system.isQuasar();
-            // skybox holes are drawn larger than on the map screen; a quasar's jets already span the sky, so it grows less
+            
             float radius = body.type() == ContinuumBody.Type.BLACK_HOLE ? (quasar ? 8.5f : 9.0f) :
                     centralBody ? 16.0f : 22.0f;
 
-            if (!SceneRenderer.drawCentralBody(body, view, projectionMatrix, position, radius,
+            boolean orbit = view0.orbit();
+            if (!SceneRenderer.drawCentralBody(body, view, projection, position, radius,
                     ContinuumVisuals.quality(), true)) {
-                // On a planet the sky shows the planet itself, as before. On a moon you are standing on it, so the sky
-                // shows its host planet instead: held fixed (a moon keeps one face to its planet), sized by the
-                // planet's radius, and lit by wherever the star is, so it waxes and wanes as the day turns.
+                
+                if (!orbit) {
+                    try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("pdim.system_bodies")) {
+                        PdimSkyBodies.draw(view0, view, projection, body, sample, time);
+                    }
+                }
+                
+                if (orbit || body.isMoon()) {
+
                 ContinuumBody orbBody = body;
                 float orbRadius = radius;
                 Vector3f light = new Vector3f(-300.0f, 220.0f, 260.0f);
@@ -105,9 +128,10 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
                     }
                 }
                 var params = orbBody.params();
-                SceneRenderer.drawPlanet(params, view, projectionMatrix, position, orbRadius, light,
+                SceneRenderer.drawPlanet(params, view, projection, position, orbRadius, light,
                         time * params.spinDegPerSec() * 0.5f, time * params.cloudSpinDegPerSec() * 0.5f,
                         ContinuumVisuals.quality(), true);
+                }
             }
         }
 
@@ -115,11 +139,11 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(true);
-        return true;
+        return sample;
     }
 
     private static void drawNebula(Matrix4f view, Matrix4f projection, float time, ContinuumBody body,
-                                   ContinuumSystem system, PdimSkyModel.Sample sample) {
+                                   ContinuumSystem system, PdimSkyModel.Sample sample, boolean orbit) {
         ShaderInstance sky = ContinuumShaders.SKY;
         if (sky == null) return;
 
@@ -127,10 +151,20 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
                 body.params().high() : 0x5a3aa8;
         int secondary = system != null ? system.starColor() : 0x2a5ad0;
 
+        float[] primaryRgb = {((primary >> 16) & 0xFF) / 255.0f * 0.9f, ((primary >> 8) & 0xFF) / 255.0f * 0.9f,
+                (primary & 0xFF) / 255.0f * 0.9f};
+        float[] secondaryRgb = {((secondary >> 16) & 0xFF) / 255.0f * 0.7f, ((secondary >> 8) & 0xFF) / 255.0f * 0.7f,
+                (secondary & 0xFF) / 255.0f * 0.7f};
+        
+        var baked = net.phoenix.continuum.client.render.NebulaBake.get(primaryRgb, secondaryRgb,
+                ContinuumVisuals.backdropOctaves());
+
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
         RenderSystem.disableBlend();
         RenderSystem.setShader(() -> sky);
+        sky.safeGetUniform("UseBake").set(baked != null ? 1.0f : 0.0f);
+        if (baked != null) sky.setSampler("NebulaTex", baked);
 
         sky.safeGetUniform("InvViewMat").set(new Matrix4f(view).invert());
         sky.safeGetUniform("InvProjMat").set(new Matrix4f(projection).invert());
@@ -147,6 +181,12 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
         sky.safeGetUniform("HorizonColor").set(sample.horizon()[0], sample.horizon()[1], sample.horizon()[2]);
         sky.safeGetUniform("DuskColor").set(sample.dusk()[0], sample.dusk()[1], sample.dusk()[2]);
         sky.safeGetUniform("SunColor").set(sample.sunColor()[0], sample.sunColor()[1], sample.sunColor()[2]);
+        sky.safeGetUniform("Ground").set(sample.hasSun() && !orbit ? 1.0f : 0.0f);
+        sky.safeGetUniform("Eclipse").set(sample.eclipse());
+        sky.safeGetUniform("Aurora").set(sample.aurora());
+        sky.safeGetUniform("AuroraColor").set(sample.auroraColor()[0], sample.auroraColor()[1], sample.auroraColor()[2]);
+        sky.safeGetUniform("Storm").set(sample.storm());
+        sky.safeGetUniform("Lens").set(sample.lens());
 
         sky.apply();
         BufferBuilder bb = net.phoenix.continuum.client.render.Vtx.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);

@@ -30,6 +30,16 @@ public final class ContinuumServerEvents {
     }
 
     @SubscribeEvent
+    public static void onServerStarted(net.minecraftforge.event.server.ServerStartedEvent event) {
+        ContinuumAdminCommands.onServerStarted(event.getServer());
+    }
+
+    @SubscribeEvent
+    public static void onServerStopped(net.minecraftforge.event.server.ServerStoppedEvent event) {
+        ContinuumAdminCommands.forgetUndo();
+    }
+
+    @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         ContinuumAdminCommands.register(event.getDispatcher());
     }
@@ -89,6 +99,7 @@ public final class ContinuumServerEvents {
         UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         net.phoenix.continuum.network.ContinuumNetwork.sendToPlayer(player,
                 new S2CContinuumStatePacket(ContinuumStateSnapshot.build(player.server, team)));
+        AnomalyActions.send(player);
     }
 
     public static void engageTeam(MinecraftServer server, UUID team) {

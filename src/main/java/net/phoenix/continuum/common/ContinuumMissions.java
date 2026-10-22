@@ -167,13 +167,24 @@ public final class ContinuumMissions {
 
     public static @Nullable String launchMany(ServerPlayer player, ResourceLocation destinationId, BlockPos pad,
                                               Mission.Type type, int probes, int count) {
+        return launchMany(player, destinationId, pad, type, probes, count, "", List.of());
+    }
+
+    /** At most this many crew fly with a launch, besides the player who sends it. */
+    public static final int MAX_CREW = 3;
+    /** Each crew member lowers a flight's chance of failing by this much. */
+    public static final float CREW_RISK_REDUCTION = 0.03f;
+
+    public static @Nullable String launchMany(ServerPlayer player, ResourceLocation destinationId, BlockPos pad,
+                                              Mission.Type type, int probes, int count, String expeditionName,
+                                              List<String> crewNames) {
         boolean convoy = type == Mission.Type.EXTRACT || type == Mission.Type.DEPLOY || type == Mission.Type.RESCUE;
         int wanted = convoy ? Math.max(1, Math.min(count, ContinuumConfigs.INSTANCE.maxRocketsPerLaunch)) : 1;
 
         int launched = 0;
         String error = null;
         for (int i = 0; i < wanted; i++) {
-            error = launch(player, destinationId, pad, type, probes);
+            error = launch(player, destinationId, pad, type, probes, expeditionName, crewNames);
             if (error != null) break;
             launched++;
         }
@@ -191,6 +202,35 @@ public final class ContinuumMissions {
 
     public static @Nullable String launch(ServerPlayer player, ResourceLocation destinationId, BlockPos pad,
                                           Mission.Type type, int probes) {
+        return launch(player, destinationId, pad, type, probes, "", List.of());
+    }
+
+    /** The crew a launch really takes: online teammates (not the player), no repeats, at most {@link #MAX_CREW}. */
+    private static List<String> validCrew(ServerPlayer player, List<String> wanted) {
+        List<String> crew = new ArrayList<>();
+        UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
+        for (String name : wanted) {
+            if (crew.size() >= MAX_CREW) break;
+            ServerPlayer member = player.server.getPlayerList().getPlayerByName(name);
+            if (member == null || member == player || crew.contains(member.getGameProfile().getName())) continue;
+            if (!net.phoenix.continuum.api.ContinuumHost.teams().onTeam(member, team)) continue;
+            crew.add(member.getGameProfile().getName());
+        }
+        return crew;
+    }
+
+    private static String cleanName(String raw) {
+        StringBuilder out = new StringBuilder();
+        for (char c : raw.trim().toCharArray()) {
+            if (c >= 32 && c != 127 && c != '"' && c != '\u00a7') out.append(c);
+            if (out.length() >= 24) break;
+        }
+        return out.toString().trim();
+    }
+
+    public static @Nullable String launch(ServerPlayer player, ResourceLocation destinationId, BlockPos pad,
+                                          Mission.Type type, int probes, String expeditionName,
+                                          List<String> crewNames) {
         var cfg = ContinuumConfigs.INSTANCE;
         MinecraftServer server = player.server;
 
@@ -206,7 +246,7 @@ public final class ContinuumMissions {
 
         long[] passing = null;
         if (body.transientInfo() != null) {
-            if (type != Mission.Type.EXTRACT) return "Only extraction runs can catch a passing comet.";
+            if (type != Mission.Type.EXTRACT) return "Only extraction runs can catch a passing " + body.visitorKind() + ".";
             passing = ContinuumTransients.get(server).window(destinationId, System.currentTimeMillis());
             if (passing == null) return body.name() + " has passed beyond reach.";
         }
@@ -385,7 +425,10 @@ public final class ContinuumMissions {
             data.setDirty();
         }
 
-        float failureChance = RocketStats.failureChance(flown, stage);
+        List<String> crew = validCrew(player, crewNames);
+        String expedition = cleanName(expeditionName);
+        // a crew improves the odds: more hands to catch what goes wrong on the way
+        float failureChance = Math.max(0.0f, RocketStats.failureChance(flown, stage) - CREW_RISK_REDUCTION * crew.size());
         boolean succeeds = player.getRandom().nextFloat() >= failureChance;
 
         boolean kitRun = type == Mission.Type.REPAIR || type == Mission.Type.RESCUE;
@@ -411,21 +454,31 @@ public final class ContinuumMissions {
         long trip = Math.round(RocketStats.tripMillis(body, flown) * Stations.tripFactor(stationLevel) *
                 affinity.trip());
         if (event == MissionEvent.TAILWIND) trip = Math.max(1000L, Math.round(trip * MissionEvent.TAILWIND_FACTOR));
+        // where the target is on its orbit: a good window is quicker and gentler, a bad one slower and harsher
+        LaunchWindows.Window window = LaunchWindows.of(body, now);
+        trip = Math.max(1000L, Math.round(trip * window.factor()));
 
         int shownProbes = type == Mission.Type.HAUL ? haulProbes : kitRun ? kitsCarried : carried;
         Mission mission = new Mission(UUID.randomUUID(), team, player.getUUID(), player.getGameProfile().getName(),
                 destinationId, type, shownProbes, rewards, now, trip, succeeds,
-                RocketStats.wearCost(body, flown) * Stations.wearFactor(stationLevel) * affinity.wear(), flown,
+                RocketStats.wearCost(body, flown) * Stations.wearFactor(stationLevel) * affinity.wear() *
+                        window.factor(),
+                flown,
                 Mission.State.ACTIVE, events);
         if (complex != null) {
             mission.padDimension = level.dimension().location().toString();
             mission.padPos = pad.asLong();
         }
+        mission.expedition = expedition;
+        mission.crew = crew;
         data.addMission(mission);
         net.phoenix.continuum.api.ContinuumEvents.postMission(
                 net.phoenix.continuum.api.ContinuumEvents.MissionChanged.Kind.LAUNCHED, mission);
         data.log(team, MissionLog.Kind.LAUNCH, destinationId,
-                type.label() + " launched to " + body.name() + " (" + durationText(trip) + " flight)" +
+                (mission.expedition.isEmpty() ? type.label() : "Expedition " + mission.expeditionTag() + " (" +
+                        type.label().toLowerCase(java.util.Locale.ROOT) + ")") +
+                        " launched to " + body.name() + " (" + durationText(trip) + " flight" +
+                        (window.applies() ? ", " + window.label().toLowerCase(java.util.Locale.ROOT) + " window" : "") + ")" +
                         (stranded != null ? ", to rescue the stranded rocket" : "") + ".");
         if (stranded != null) {
             stranded.rescuing = true;
@@ -682,7 +735,8 @@ public final class ContinuumMissions {
                     mission.type == Mission.Type.STATION ? MissionLog.Kind.STATION :
                             mission.type == Mission.Type.RESCUE ? MissionLog.Kind.RESCUED : MissionLog.Kind.LANDED,
                     mission.destination,
-                    Component.literal(message + eventText(mission)).withStyle(ChatFormatting.GREEN));
+                    Component.literal((mission.expedition.isEmpty() ? "" : "Expedition " + mission.expeditionTag() +
+                            ": ") + message + eventText(mission)).withStyle(ChatFormatting.GREEN));
         } else {
             mission.state = Mission.State.FAILED;
             net.phoenix.continuum.api.ContinuumEvents.postMission(

@@ -3,6 +3,7 @@ package net.phoenix.continuum;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Blocks;
 import net.phoenix.continuum.block.LaunchPadBlock;
+import net.phoenix.continuum.block.ObservatoryBlock;
 import net.phoenix.continuum.common.RocketStats;
 import net.phoenix.continuum.item.ContinuumProbeItem;
 import net.phoenix.continuum.item.ContinuumRefitKitItem;
@@ -90,6 +91,18 @@ public final class ContinuumRegistry {
             .blockstate((ctx, prov) -> prov.simpleBlock(ctx.getEntry(), prov.models().cubeBottomTop(ctx.getName(),
                     prov.mcLoc("block/chiseled_polished_blackstone"), prov.mcLoc("block/polished_blackstone"),
                     prov.mcLoc("block/polished_blackstone"))))
+            .item(BlockItem::new)
+            .build()
+            .register();
+
+    public static final BlockEntry<ObservatoryBlock> OBSERVATORY = REGISTRATE
+            .block("continuum_observatory", ObservatoryBlock::new)
+            .initialProperties(() -> Blocks.POLISHED_DEEPSLATE)
+            .properties(p -> p.strength(3.0f, 9.0f).noOcclusion())
+            .lang("Observatory")
+            .blockstate((ctx, prov) -> prov.simpleBlock(ctx.getEntry(), prov.models().cubeBottomTop(ctx.getName(),
+                    prov.mcLoc("block/polished_deepslate"), prov.mcLoc("block/polished_deepslate"),
+                    prov.mcLoc("block/lapis_block"))))
             .item(BlockItem::new)
             .build()
             .register();

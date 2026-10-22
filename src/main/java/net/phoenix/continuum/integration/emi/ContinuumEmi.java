@@ -86,6 +86,12 @@ public final class ContinuumEmi {
 
     private record Line(Component text, Tone tone, boolean shadow) {}
 
+    private static String flightTime(float minutes) {
+        if (minutes < 1.0f) return Math.round(minutes * 60.0f) + " s";
+        return minutes == Math.floor(minutes) ? Math.round(minutes) + " min" :
+                String.format(Locale.ROOT, "%.1f min", minutes);
+    }
+
     private static Line title(String text) {
         return new Line(Component.literal(text), Tone.TITLE, true);
     }
@@ -168,7 +174,7 @@ public final class ContinuumEmi {
             List<Line> lines = new java.util.ArrayList<>();
             lines.add(title(body.name()));
             lines.add(dim(body.type().label() + " in " + where + "  -  tier " + body.minTier()));
-            lines.add(text(String.format(Locale.ROOT, "%d min flight   hull %s", body.tripMinutes(),
+            lines.add(text(String.format(Locale.ROOT, "%s flight   hull %s", flightTime(body.tripMinutes()),
                     RocketStats.tierName(RocketStats.requiredTier(body)))));
             if (body.transientInfo() != null) {
                 lines.add(warn(String.format(Locale.ROOT, "A passing comet: here for about %.1f h, now and then",

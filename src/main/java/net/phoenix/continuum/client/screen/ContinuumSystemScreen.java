@@ -8,6 +8,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.phoenix.continuum.data.ContinuumBody;
 import net.phoenix.continuum.data.ContinuumData;
 import net.phoenix.continuum.data.ContinuumSystem;
 import net.phoenix.continuum.data.TuningPatches;
@@ -26,11 +27,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Systems, on a screen of their own: tune one system at a time with a live 3D view of its star, or start a new one. Edits
- * are made on a working copy; "Apply" sends the changes to the server (saved as a patch for everyone) and "Create" writes
- * a new system into the pack folder.
- */
 @OnlyIn(Dist.CLIENT)
 public final class ContinuumSystemScreen extends Screen {
 
@@ -67,11 +63,19 @@ public final class ContinuumSystemScreen extends Screen {
     }
 
     private static final String[] STAR_KINDS = { "star", "red_giant", "brown_dwarf", "rapid_rotator", "wolf_rayet",
-            "pulsar", "protostar", "planetary_nebula", "black_hole", "quasar", "binary_black_hole" };
+            "pulsar", "protostar", "planetary_nebula", "black_hole", "quasar", "binary_black_hole", "dyson_swarm", "dyson_sphere" };
     private static final String[] STAGES = { "unknown", "detected", "surveyed" };
 
     private static final int ROW = 15;
     private static final int LIST_W = 340;
+
+    // the screen is laid out for this much room; with a bigger gui scale (a smaller screen in gui units) it is drawn
+    // scaled down to fit, and the mouse is scaled to match
+    private static final int MIN_W = LIST_W + 230;
+    private static final int MIN_H = 430;
+    private float uiScale = 1.0f;
+    private int vw;
+    private int vh;
 
     private final Screen parent;
     private final List<ContinuumSystem> systems = new ArrayList<>();
@@ -89,7 +93,6 @@ public final class ContinuumSystemScreen extends Screen {
     private @Nullable ContinuumSystem previewSystem;
     private final List<Object[]> hits = new ArrayList<>();
 
-    /** @param start the system to tune first, or null to start with a new one */
     public ContinuumSystemScreen(Screen parent, @Nullable ResourceLocation start) {
         super(Component.literal("Continuum systems"));
         this.parent = parent;
@@ -105,7 +108,21 @@ public final class ContinuumSystemScreen extends Screen {
         }
     }
 
-    // ------------------------------------------------------------------ the working copy
+    private void openPicker() {
+        ResourceLocation current = systems.isEmpty() ? null : systems.get(Math.floorMod(index, systems.size())).id();
+        minecraft.setScreen(new ContinuumBodyPickerScreen(this, new ArrayList<>(ContinuumData.allBodies()), current,
+                id -> minecraft.setScreen(new ContinuumTunerScreen(this, id)), this::selectSystem));
+    }
+
+    private void selectSystem(ResourceLocation id) {
+        for (int i = 0; i < systems.size(); i++) {
+            if (systems.get(i).id().equals(id)) {
+                index = i;
+                beginTune();
+                return;
+            }
+        }
+    }
 
     private void beginTune() {
         creating = false;
@@ -188,8 +205,6 @@ public final class ContinuumSystemScreen extends Screen {
         JsonElement e = draft.get("star_kind");
         return e != null && e.isJsonPrimitive() ? e.getAsString() : "star";
     }
-
-    // ------------------------------------------------------------------ values
 
     private @Nullable JsonElement read(Row row) {
         JsonElement cursor = draft;
@@ -278,8 +293,6 @@ public final class ContinuumSystemScreen extends Screen {
         return previewSystem;
     }
 
-    // ------------------------------------------------------------------ actions
-
     private void apply() {
         if (creating) {
             ContinuumNetwork.sendToServer(new C2SCreatePacket(true, draftId, draft.toString()));
@@ -304,8 +317,6 @@ public final class ContinuumSystemScreen extends Screen {
         status = "Asked the server to drop its edits of this system.";
     }
 
-    // ------------------------------------------------------------------ drawing
-
     @Override
     protected void init() {
         editor = new EditBox(font, 0, 0, 90, 13, Component.empty());
@@ -315,7 +326,7 @@ public final class ContinuumSystemScreen extends Screen {
     }
 
     private int left() {
-        return Math.max(8, (width - LIST_W - 230) / 2);
+        return Math.max(8, (vw - LIST_W - 230) / 2);
     }
 
     private int top() {
@@ -323,15 +334,25 @@ public final class ContinuumSystemScreen extends Screen {
     }
 
     private int visibleRows() {
-        return Math.max(4, (height - top() - 24) / ROW);
+        return Math.max(4, (vh - top() - 24) / ROW);
     }
 
     @Override
     public void renderBackground(GuiGraphics g) {}
 
     @Override
-    public void render(GuiGraphics g, int mx, int my, float partialTick) {
-        g.fill(0, 0, width, height, 0xF00A0E14);
+    public void render(GuiGraphics g, int rawMx, int rawMy, float partialTick) {
+        uiScale = Math.min(1.0f, Math.min(width / (float) MIN_W, height / (float) MIN_H));
+        vw = Math.round(width / uiScale);
+        vh = Math.round(height / uiScale);
+        g.pose().pushPose();
+        g.pose().scale(uiScale, uiScale, 1.0f);
+        renderContent(g, (int) (rawMx / uiScale), (int) (rawMy / uiScale), partialTick);
+        g.pose().popPose();
+    }
+
+    private void renderContent(GuiGraphics g, int mx, int my, float partialTick) {
+        g.fill(0, 0, vw, vh, 0xF00A0E14);
         hits.clear();
         int x = left();
         g.drawString(font, creating ? "New system" : "Tune a system", x, 8, 0xFFFFFFFF, false);
@@ -412,8 +433,13 @@ public final class ContinuumSystemScreen extends Screen {
             action(g, mx, my, px, ay + 40, 200, "Reset server edits", "resetServer");
         }
         action(g, mx, my, px, ay + 60, 200, creating ? "Tune an existing system" : "New system...", "mode");
-        action(g, mx, my, px, ay + 80, 200, "Back", "close");
-        if (!status.isEmpty()) g.drawString(font, font.plainSubstrByWidth(status, 220), px, ay + 104, 0xFF66DDFF, false);
+        int backY = ay + 80;
+        if (!creating) {
+            action(g, mx, my, px, ay + 80, 200, "Sky view...", "sky");
+            backY = ay + 100;
+        }
+        action(g, mx, my, px, backY, 200, "Back", "close");
+        if (!status.isEmpty()) g.drawString(font, font.plainSubstrByWidth(status, 220), px, backY + 24, 0xFF66DDFF, false);
 
         super.render(g, mx, my, partialTick);
     }
@@ -445,10 +471,10 @@ public final class ContinuumSystemScreen extends Screen {
         hits.add(new Object[] { "action:" + act, null, x, y, w, 16 });
     }
 
-    // ------------------------------------------------------------------ input
-
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
+        mx /= uiScale;
+        my /= uiScale;
         if (preview.mouseClicked(mx, my)) return true;
         if (editor.isVisible() && editor.mouseClicked(mx, my, button)) return true;
         commitEdit();
@@ -467,8 +493,16 @@ public final class ContinuumSystemScreen extends Screen {
             }
             switch (act) {
                 case "system" -> {
-                    index += mx < x + font.width("<  ") + 6 ? -1 : 1;
-                    beginTune();
+                    if (mx < x + font.width("<  ") + 6) {
+                        index--;
+                        beginTune();
+                    } else if (mx >= x + (int) h[4] - font.width("  >") - 8) {
+                        index++;
+                        beginTune();
+                    } else {
+                        // the name between the arrows opens the picker of every system and body
+                        openPicker();
+                    }
                 }
                 case "dec" -> setNumber(row, number(row) - row.step() * (hasShiftDown() ? 10 : 1));
                 case "inc" -> setNumber(row, number(row) + row.step() * (hasShiftDown() ? 10 : 1));
@@ -483,6 +517,23 @@ public final class ContinuumSystemScreen extends Screen {
             return true;
         }
         return super.mouseClicked(mx, my, button);
+    }
+
+    /** The sky from the system's innermost world, drawn with the star as it is in the draft (applied or not). */
+    private void openSky() {
+        ContinuumSystem system = draftSystem();
+        if (system == null || creating) return;
+        ContinuumBody from = null;
+        for (ContinuumBody b : ContinuumData.bodiesOf(system.id())) {
+            if (b.isCentral() || b.transientInfo() != null || b.isMoon()) continue;
+            from = b;
+            break;
+        }
+        if (from == null) {
+            status = "This system has no worlds to look from yet.";
+            return;
+        }
+        minecraft.setScreen(new ContinuumSkyScreen(this, from, system));
     }
 
     private void runAction(String id) {
@@ -501,6 +552,7 @@ public final class ContinuumSystemScreen extends Screen {
                 if (creating && !systems.isEmpty()) beginTune();
                 else beginCreate();
             }
+            case "sky" -> openSky();
             case "close" -> onClose();
             default -> {}
         }
@@ -508,6 +560,10 @@ public final class ContinuumSystemScreen extends Screen {
 
     @Override
     public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
+        mx /= uiScale;
+        my /= uiScale;
+        dx /= uiScale;
+        dy /= uiScale;
         if (preview.mouseDragged(dx, dy)) return true;
         for (Object[] h : hits) {
             if (!"bar".equals(h[0])) continue;
@@ -530,6 +586,8 @@ public final class ContinuumSystemScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mx, double my, double delta) {
+        mx /= uiScale;
+        my /= uiScale;
         if (preview.mouseScrolled(mx, my, delta)) return true;
         scroll -= (int) Math.signum(delta) * 2;
         return true;

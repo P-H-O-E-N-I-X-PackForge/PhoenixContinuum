@@ -24,6 +24,11 @@ public final class ContinuumCommand {
                         .then(literal("test").executes(ctx -> open(ContinuumTestScreen::new)))
                         .then(literal("map").executes(ctx -> open(ContinuumMapScreen::new)))
                         .then(literal("goals").executes(ctx -> goals()))
+                        .then(literal("profile")
+                                .then(literal("start").executes(ctx -> profile("start")))
+                                .then(literal("stop").executes(ctx -> profile("stop")))
+                                .then(literal("report").executes(ctx -> profile("report")))
+                                .then(literal("reset").executes(ctx -> profile("reset"))))
                         .then(literal("tune")
                                 .executes(ctx -> tune(null))
                                 .then(argument("body", net.minecraft.commands.arguments.ResourceLocationArgument.id())
@@ -33,6 +38,32 @@ public final class ContinuumCommand {
                                                         builder))
                                         .executes(ctx -> tune(net.minecraft.commands.arguments.ResourceLocationArgument
                                                 .getId((com.mojang.brigadier.context.CommandContext) ctx, "body"))))));
+    }
+
+    private static int profile(String what) {
+        Minecraft mc = Minecraft.getInstance();
+        switch (what) {
+            case "start" -> net.phoenix.continuum.client.ContinuumProfiler.start();
+            case "stop" -> {
+                for (String line : net.phoenix.continuum.client.ContinuumProfiler.report()) {
+                    net.phoenix.continuum.PhoenixContinuum.LOGGER.info("[profile] {}", line);
+                }
+                net.phoenix.continuum.client.ContinuumProfiler.stop();
+            }
+            case "reset" -> net.phoenix.continuum.client.ContinuumProfiler.reset();
+            default -> {}
+        }
+        if (mc.player == null) return 1;
+        if (what.equals("start")) {
+            mc.player.displayClientMessage(net.minecraft.network.chat.Component.literal(
+                    "Profiling Continuum drawing. Open the map or a personal dimension; the heaviest passes are listed on screen. "
+                            + "/continuum profile report prints them, stop ends it."), false);
+        } else if (what.equals("report") || what.equals("stop")) {
+            for (String line : net.phoenix.continuum.client.ContinuumProfiler.report()) {
+                mc.player.displayClientMessage(net.minecraft.network.chat.Component.literal(line), false);
+            }
+        }
+        return 1;
     }
 
     private static int goals() {

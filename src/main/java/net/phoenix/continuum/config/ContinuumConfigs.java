@@ -19,7 +19,6 @@ public class ContinuumConfigs {
         INSTANCE = CONFIG_HOLDER.getConfigInstance();
     }
 
-
         public enum RenderQuality {
             LOW,
             MEDIUM,
@@ -161,6 +160,40 @@ public class ContinuumConfigs {
         })
         @Configurable.DecimalRange(min = 0.0, max = 1.0)
         public double missionEventChance = 0.3;
+
+        @Configurable
+        @Configurable.Comment({
+                "Launch windows: how much a world's place on its orbit changes the flight time and the hull wear. A",
+                "world on the side of its star that faces home is up to this much faster and gentler (0.3 = 30%),",
+                "one on the far side that much slower and harsher. 0 turns windows off. Default: 0.3"
+        })
+        @Configurable.DecimalRange(min = 0.0, max = 0.6)
+        public double launchWindowStrength = 0.3;
+
+        @Configurable
+        @Configurable.Comment({
+                "How long one orbital day lasts for launch windows, in real minutes. A world with a 70-day year comes",
+                "round to the same window every 70 of these. Default: 6"
+        })
+        @Configurable.DecimalRange(min = 0.5, max = 120.0)
+        public double launchWindowDayMinutes = 6.0;
+
+        @Configurable
+        @Configurable.Comment({
+                "The longest a world's launch window may take to come round again, in real minutes. A world whose",
+                "year is close to home's would otherwise wait days for its next window; its windows are speeded up",
+                "so none is further away than this. Default: 45"
+        })
+        @Configurable.DecimalRange(min = 5.0, max = 1440.0)
+        public double launchWindowMaxCycleMinutes = 45.0;
+
+        @Configurable
+        @Configurable.Comment({
+                "The shortest a world's launch window cycle may be, in real minutes, so a fast world's window does",
+                "not open and shut in seconds. Default: 8"
+        })
+        @Configurable.DecimalRange(min = 1.0, max = 120.0)
+        public double launchWindowMinCycleMinutes = 8.0;
 
         @Configurable
         @Configurable.Comment({

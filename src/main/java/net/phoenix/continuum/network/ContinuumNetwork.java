@@ -61,6 +61,10 @@ public final class ContinuumNetwork {
                 Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(id++, C2SCollectMissionPacket.class, C2SCollectMissionPacket::encode, C2SCollectMissionPacket::new, C2SCollectMissionPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(id++, C2SInvestigatePacket.class, C2SInvestigatePacket::encode, C2SInvestigatePacket::new, C2SInvestigatePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(id++, S2CAnomalyStatePacket.class, S2CAnomalyStatePacket::encode, S2CAnomalyStatePacket::new, S2CAnomalyStatePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(id++, C2STunePacket.class, C2STunePacket::encode, C2STunePacket::new, C2STunePacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(id++, C2SCreatePacket.class, C2SCreatePacket::encode, C2SCreatePacket::new, C2SCreatePacket::handle,

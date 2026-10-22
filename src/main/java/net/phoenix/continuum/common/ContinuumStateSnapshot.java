@@ -35,7 +35,15 @@ public record ContinuumStateSnapshot(long serverNow, Map<ResourceLocation, Disco
 
     public record MissionView(UUID id, ResourceLocation destination, Mission.Type type, int probes,
                               long startMillis, long durationMillis, Mission.State state, float wearAfter,
-                              String launcherName, List<String> events, long distressUntil, boolean rescuing) {
+                              String launcherName, List<String> events, long distressUntil, boolean rescuing,
+                              String expedition, List<String> crew) {
+
+        public MissionView(UUID id, ResourceLocation destination, Mission.Type type, int probes, long startMillis,
+                           long durationMillis, Mission.State state, float wearAfter, String launcherName,
+                           List<String> events, long distressUntil, boolean rescuing) {
+            this(id, destination, type, probes, startMillis, durationMillis, state, wearAfter, launcherName, events,
+                    distressUntil, rescuing, "", List.of());
+        }
 
         public boolean stranded() {
             return distressUntil > 0;
@@ -75,7 +83,7 @@ public record ContinuumStateSnapshot(long serverNow, Map<ResourceLocation, Disco
             views.add(new MissionView(mission.id, mission.destination, mission.type, mission.probes,
                     mission.startMillis, mission.durationMillis, mission.state, wearAfter, mission.launcherName,
                     mission.state.finished() ? List.copyOf(mission.events) : List.of(), mission.distressUntil,
-                    mission.rescuing));
+                    mission.rescuing, mission.expedition, List.copyOf(mission.crew)));
         }
         List<OutpostView> outposts = new ArrayList<>();
         data.outposts(team).forEach((body, outpost) -> outposts.add(new OutpostView(body, outpost.probes(),
@@ -134,6 +142,9 @@ public record ContinuumStateSnapshot(long serverNow, Map<ResourceLocation, Disco
             for (String event : mission.events()) buf.writeUtf(event, 32);
             buf.writeLong(mission.distressUntil());
             buf.writeBoolean(mission.rescuing());
+            buf.writeUtf(mission.expedition(), 32);
+            buf.writeVarInt(mission.crew().size());
+            for (String member : mission.crew()) buf.writeUtf(member, 32);
         }
         buf.writeVarInt(outposts.size());
         for (OutpostView outpost : outposts) {
@@ -205,8 +216,13 @@ public record ContinuumStateSnapshot(long serverNow, Map<ResourceLocation, Disco
             for (int e = 0; e < eventCount; e++) events.add(buf.readUtf(32));
             long distressUntil = buf.readLong();
             boolean rescuing = buf.readBoolean();
+            String expedition = buf.readUtf(32);
+            List<String> crew = new ArrayList<>();
+            int crewCount = buf.readVarInt();
+            for (int c = 0; c < crewCount; c++) crew.add(buf.readUtf(32));
             missions.add(new MissionView(id, destination, Mission.Type.values()[typeOrdinal], probes, start, duration,
-                    Mission.State.values()[ordinal], wearAfter, launcher, events, distressUntil, rescuing));
+                    Mission.State.values()[ordinal], wearAfter, launcher, events, distressUntil, rescuing, expedition,
+                    crew));
         }
         List<OutpostView> outposts = new ArrayList<>();
         int outpostCount = buf.readVarInt();

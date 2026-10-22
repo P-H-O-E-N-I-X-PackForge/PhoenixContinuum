@@ -99,10 +99,11 @@ void main() {
         float thick = 0.22 + 0.9 * s;
         float profile = exp(-pow((r - shellR) / thick, 2.0));
         float life = pow(1.0 - s, 1.5) * smoothstep(0.0, 0.08, s);
+        halo += life * smoothstep(shellR, shellR * 0.35, r);     // glow filling the bubble behind the shell
+        if (profile * life < 0.0006) continue;                   // too faint to see: skip its noise
         float clump = pfbm(ang + float(k) * 1.9, shellR * 0.4, 7.0, layers);
         vec3 shellCol = mix(vec3(0.25, 1.0, 0.85), vec3(1.0, 0.30, 0.42), smoothstep(0.5, 1.0, s) * 0.75);
         col += shellCol * profile * life * (0.12 + 2.6 * pow(clump, 2.2)) * 1.2;
-        halo += life * smoothstep(shellR, shellR * 0.35, r);     // glow filling the bubble behind the shell
     }
     col += vec3(0.10, 0.70, 0.60) * halo * 0.035;
 

@@ -68,18 +68,23 @@ void main() {
     }
 
     float rs = (vox ? max(abs(q.x), abs(q.y)) : length(q)) / Core;
-    if (rs < 0.98) {
-        fragColor = vec4(0.0);
-        return;
-    }
+    bool onStar = rs < 0.98;
     float layers = Detail;
     float minW = vox ? 0.55 / Voxel : 0.0;
 
     vec3 n = normalize(DiskNormal);
-    float cosI = clamp(abs(n.z), 0.16, 1.0);
+    float cosI = clamp(abs(n.z), 0.06, 1.0);
     float sinI = sqrt(max(1.0 - n.z * n.z, 0.0));
     vec2 mn = length(n.xy) > 1e-3 ? normalize(n.xy) : vec2(0.0, 1.0);   // the disk's minor axis on screen
     vec2 mj = vec2(-mn.y, mn.x);
+
+    // over the star's face only the half of the disk nearer the camera than the star is drawn (the far half is behind
+    // it), so the rings pass in front of the star as the view tilts through edge-on instead of stopping at its edge
+    float side = n.z >= 0.0 ? 1.0 : -1.0;
+    if (onStar && dot(q, mn) * side >= 0.0) {
+        fragColor = vec4(0.0);
+        return;
+    }
 
     // disk-plane coordinates in star radii
     vec2 e = vec2(dot(q, mj), dot(q, mn) / cosI);
@@ -93,7 +98,7 @@ void main() {
 
     // ---- the star's glow ---------------------------------------------------------------------------------------
     float d = max(rs - 1.0, 0.0);
-    col += hot * (0.75 * exp(-d * 1.6) + 0.22 / (1.0 + d * d * 1.8));
+    if (!onStar) col += hot * (0.75 * exp(-d * 1.6) + 0.22 / (1.0 + d * d * 1.8));
 
     // ---- the disk -----------------------------------------------------------------------------------------------
     float body = smoothstep(inner - 0.25, inner + 0.7, re) * (1.0 - smoothstep(outer * 0.72, outer, re));
@@ -111,10 +116,13 @@ void main() {
     }
 
     // clumps and vortices drift round at Keplerian speed; the spiral is a faint standing pattern
-    float a = ang - Time * 0.3 * pow(max(re, 1.0), -1.5);
-    float clump = pfbm(a, re * 0.55, 8.0, layers);
-    float spiral = 0.78 + 0.22 * cos(2.0 * (ang - 1.1 * log(max(re, 1.0))));
-    float dust = (0.5 + 0.9 * clump) * spiral;
+    float dust = 0.0;
+    if (body > 0.0005) {   // nothing of the disk is here otherwise, so skip its noise
+        float a = ang - Time * 0.3 * pow(max(re, 1.0), -1.5);
+        float clump = pfbm(a, re * 0.55, 8.0, layers);
+        float spiral = 0.78 + 0.22 * cos(2.0 * (ang - 1.1 * log(max(re, 1.0))));
+        dust = (0.5 + 0.9 * clump) * spiral;
+    }
 
     vec3 diskCol = mix(hot, vec3(0.85, 0.45, 0.22), smoothstep(inner, outer * 0.6, re));
     float diskI = body * falloff * gapMask * dust * (1.0 + 0.5 * min(rim, 1.0));
@@ -124,11 +132,13 @@ void main() {
     float s = dot(q, mn);
     float dj = dot(q, mj);
     float as = abs(s);
-    float len = Extent * 0.85 * sinI;
+    // (never zero: smoothstep(len*0.5, len, x) has no defined result when both edges are 0, which is exactly face-on, and
+    // some GPUs turn that into NaN and blank the whole disk)
+    float len = max(Extent * 0.85 * sinI, 0.05);
     float width = max(0.16 + 0.07 * as, minW);
     float along = smoothstep(1.2, 2.6, as) * (1.0 - smoothstep(len * 0.5, len, as));
     float knots = pow(0.5 + 0.5 * cos(as * 1.5 - Time * 1.3), 4.0);
-    col += vec3(0.7, 0.9, 1.0) * exp(-(dj * dj) / (width * width)) * along * (0.25 + 1.1 * knots) * 0.9;
+    if (!onStar) col += vec3(0.7, 0.9, 1.0) * exp(-(dj * dj) / (width * width)) * along * (0.25 + 1.1 * knots) * 0.9;
 
     col = 1.0 - exp(-col * 1.2);
 

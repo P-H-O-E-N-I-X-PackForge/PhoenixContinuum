@@ -81,20 +81,31 @@ void main() {
     float rn = re / R0;                                           // 1 at the ring
 
     // ---- the ring: clumpy, with a cool inner edge and a warm outer edge -------------------------------------------
-    float clump = pfbm(ang, rn * 3.0, 6.0, layers);
-    float ring = exp(-pow((rn - 1.0) / (0.10 + 0.06 * clump), 2.0)) * (0.5 + 1.3 * clump);
+    // (each term below is skipped where its envelope is too small to see, so most pixels skip most of the noise)
+    float clump = 0.0;
+    float ring = 0.0;
+    if (abs(rn - 1.0) < 0.6) {
+        clump = pfbm(ang, rn * 3.0, 6.0, layers);
+        ring = exp(-pow((rn - 1.0) / (0.10 + 0.06 * clump), 2.0)) * (0.5 + 1.3 * clump);
+    }
     vec3 ringCol = mix(vec3(0.25, 1.0, 0.85), vec3(1.0, 0.42, 0.22), smoothstep(0.98, 1.22, rn));
 
     // ---- glow filling the inside of the shell, and cometary knots streaming back to the star ----------------------
-    float fill = smoothstep(1.0, 0.2, rn) * (0.16 + 0.22 * pfbm(ang + 2.1, rn * 2.0, 5.0, layers));
-    float knots = pow(pnoise(vec2(ang * 40.0 / (2.0 * PI), rn * 1.7), 40.0), 3.0) * smoothstep(0.3, 0.85, rn) * (1.0 - smoothstep(0.98, 1.35, rn));
+    float fill = 0.0;
+    if (rn < 1.0) fill = smoothstep(1.0, 0.2, rn) * (0.16 + 0.22 * pfbm(ang + 2.1, rn * 2.0, 5.0, layers));
+    float knots = 0.0;
+    if (rn > 0.3 && rn < 1.35) {
+        knots = pow(pnoise(vec2(ang * 40.0 / (2.0 * PI), rn * 1.7), 40.0), 3.0) * smoothstep(0.3, 0.85, rn) * (1.0 - smoothstep(0.98, 1.35, rn));
+    }
 
     // ---- faint outer shell ----------------------------------------------------------------------------------------
-    float halo = exp(-pow((rn - 1.6) / 0.34, 2.0)) * (0.15 + 0.8 * pfbm(ang + 1.3, rn * 2.0, 5.0, layers));
+    float halo = 0.0;
+    if (abs(rn - 1.6) < 1.1) halo = exp(-pow((rn - 1.6) / 0.34, 2.0)) * (0.15 + 0.8 * pfbm(ang + 1.3, rn * 2.0, 5.0, layers));
 
     // ---- two dim lobes out of the ring's poles ----------------------------------------------------------------------
     vec2 lp = vec2(p.x / (0.55 * R0), (abs(p.y) - 1.2 * R0) / (0.75 * R0));
-    float lobe = exp(-dot(lp, lp)) * (0.3 + 0.7 * pfbm(ang, rn * 1.5, 5.0, layers));
+    float lobe = 0.0;
+    if (dot(lp, lp) < 10.0) lobe = exp(-dot(lp, lp)) * (0.3 + 0.7 * pfbm(ang, rn * 1.5, 5.0, layers));
 
     vec3 col = ringCol * ring * 1.35;
     col += vec3(0.20, 0.85, 0.75) * fill;
