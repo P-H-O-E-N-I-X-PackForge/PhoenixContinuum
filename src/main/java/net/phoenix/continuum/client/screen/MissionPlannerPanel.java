@@ -27,9 +27,10 @@ import java.util.Locale;
 
 final class MissionPlannerPanel {
 
-    record Result(boolean consumed, @Nullable Mission.Type launchType, int probes, int count) {
+    record Result(boolean consumed, @Nullable Mission.Type launchType, int probes, int count, boolean openExpedition) {
 
-        static final Result CONSUMED = new Result(true, null, 0, 1);
+        static final Result CONSUMED = new Result(true, null, 0, 1, false);
+        static final Result EXPEDITION = new Result(true, null, 0, 1, true);
     }
 
     private static final int W = 332;
@@ -51,6 +52,7 @@ final class MissionPlannerPanel {
     private int[] minusRect;
     private int[] plusRect;
     private int[] launchRect;
+    private int[] expeditionRect;
     private int[] cancelRect;
 
     boolean isOpen() {
@@ -207,6 +209,10 @@ final class MissionPlannerPanel {
         rockets = convoy ? Math.max(1, Math.min(rockets, maxRockets)) : 1;
 
         g.drawString(font, "Plan mission  -  " + body.name(), x + 10, y + 9, MapUi.TITLE);
+        expeditionRect = button(g, font, x + W - 118, y + 6, 108, 14,
+                font.plainSubstrByWidth(net.phoenix.continuum.client.ExpeditionDraft.isSet() ?
+                        net.phoenix.continuum.client.ExpeditionDraft.summary() : "Name and crew", 98),
+                true, net.phoenix.continuum.client.ExpeditionDraft.isSet(), mx, my);
 
         modeRects[Mission.Type.SURVEY.ordinal()] = button(g, font, x + 10, y + 24, 150, 16,
                 deepSurvey ? "Deep survey (" + mapped + "/" + deposits + ")" : "Survey", canSurvey,
@@ -275,8 +281,10 @@ final class MissionPlannerPanel {
 
         boolean hasRocket = !rocket.isEmpty();
 
+        // where the target is on its orbit: a good launch window is quicker and gentler, a bad one slower and harsher
+        var launchWindow = net.phoenix.continuum.common.LaunchWindows.of(body, now);
         long tripMs = hasRocket ? Math.round(RocketStats.tripMillis(body, rocket) * Stations.tripFactor(stationLevel) *
-                affTrip) : 0L;
+                affTrip * launchWindow.factor()) : 0L;
         boolean refused = hasRocket && RocketStats.interlockRefuses(rocket);
 
         String shield = RocketStats.requiredShield(body);
@@ -290,10 +298,14 @@ final class MissionPlannerPanel {
             ty = wrapped(g, font, "No rocket " + loaded + ".", x + 10, ty, 0xFFff9a9a) + 2;
         } else {
             float wear = RocketStats.wear(rocket);
-            float cost = RocketStats.wearCost(body, rocket) * Stations.wearFactor(stationLevel) * affWear;
-            float risk = RocketStats.failureChance(rocket, stage);
+            float cost = RocketStats.wearCost(body, rocket) * Stations.wearFactor(stationLevel) * affWear *
+                    launchWindow.factor();
+            float risk = Math.max(0.0f, RocketStats.failureChance(rocket, stage) -
+                    net.phoenix.continuum.common.ContinuumMissions.CREW_RISK_REDUCTION *
+                            net.phoenix.continuum.client.ExpeditionDraft.crewCount());
 
-            ty = row(g, font, "Trip time", MapUi.duration(tripMs) + (stationLevel > 0 ? "  (station)" : ""), x + 10,
+            ty = row(g, font, "Trip time", MapUi.duration(tripMs) + (stationLevel > 0 ? "  (station)" : "") +
+                    (launchWindow.applies() ? "  (" + launchWindow.label().toLowerCase(Locale.ROOT) + " window)" : ""), x + 10,
                     ty, MapUi.TEXT);
             ty = row(g, font, "Rocket wear",
                     Math.round(wear * 100) + "% -> " + Math.round(Math.min(1.0f, wear + cost) * 100) + "%", x + 10, ty,
@@ -495,6 +507,7 @@ final class MissionPlannerPanel {
     Result click(double screenX, double screenY) {
         double mx = screenX / scale;
         double my = screenY / scale;
+        if (hit(mx, my, expeditionRect)) return Result.EXPEDITION;
         for (Mission.Type type : Mission.Type.values()) {
             if (hit(mx, my, modeRects[type.ordinal()])) {
                 mode = type;
@@ -522,7 +535,7 @@ final class MissionPlannerPanel {
             boolean carries = mode == Mission.Type.EXTRACT || mode == Mission.Type.DEPLOY;
             boolean convoyLaunch = mode == Mission.Type.EXTRACT || mode == Mission.Type.DEPLOY ||
                     mode == Mission.Type.RESCUE;
-            return new Result(true, mode, carries ? probes : 0, convoyLaunch ? rockets : 1);
+            return new Result(true, mode, carries ? probes : 0, convoyLaunch ? rockets : 1, false);
         }
         if (hit(mx, my, cancelRect)) {
             open = false;

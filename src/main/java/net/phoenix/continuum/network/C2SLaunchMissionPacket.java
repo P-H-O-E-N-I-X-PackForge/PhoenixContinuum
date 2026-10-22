@@ -30,9 +30,18 @@ public class C2SLaunchMissionPacket implements CustomPacketPayload {
     private final Mission.Type type;
     private final int probes;
     private final int count;
+    private final String expedition;
+    private final java.util.List<String> crew;
 
     public C2SLaunchMissionPacket(ResourceLocation destination, BlockPos pad, Mission.Type type, int probes,
                                   int count) {
+        this(destination, pad, type, probes, count, "", java.util.List.of());
+    }
+
+    public C2SLaunchMissionPacket(ResourceLocation destination, BlockPos pad, Mission.Type type, int probes,
+                                  int count, String expedition, java.util.List<String> crew) {
+        this.expedition = expedition;
+        this.crew = crew;
         this.destination = destination;
         this.pad = pad;
         this.type = type;
@@ -46,6 +55,10 @@ public class C2SLaunchMissionPacket implements CustomPacketPayload {
         this.type = Mission.Type.values()[Math.max(0, Math.min(buf.readByte(), Mission.Type.values().length - 1))];
         this.probes = buf.readVarInt();
         this.count = buf.readVarInt();
+        this.expedition = buf.readUtf(32);
+        int crewCount = Math.min(buf.readVarInt(), 8);
+        this.crew = new java.util.ArrayList<>();
+        for (int i = 0; i < crewCount; i++) crew.add(buf.readUtf(32));
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -54,6 +67,9 @@ public class C2SLaunchMissionPacket implements CustomPacketPayload {
         buf.writeByte(type.ordinal());
         buf.writeVarInt(probes);
         buf.writeVarInt(count);
+        buf.writeUtf(expedition, 32);
+        buf.writeVarInt(crew.size());
+        for (String member : crew) buf.writeUtf(member, 32);
     }
 
     public static void handle(C2SLaunchMissionPacket msg, IPayloadContext ctx) {
@@ -62,7 +78,7 @@ public class C2SLaunchMissionPacket implements CustomPacketPayload {
             if (player == null) return;
 
             String error = ContinuumMissions.launchMany(player, msg.destination, msg.pad, msg.type, msg.probes,
-                    msg.count);
+                    msg.count, msg.expedition, msg.crew);
             PacketDistributor.sendToPlayer(player,
                     new S2CMissionLaunchedPacket(error == null, msg.destination, msg.pad, error == null ? "" : error));
             if (error == null) {

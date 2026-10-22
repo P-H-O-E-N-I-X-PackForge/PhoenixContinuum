@@ -61,7 +61,9 @@ public class ContinuumFleetScreen extends Screen {
 
     private static String label(ContinuumStateSnapshot.MissionView mission) {
         String name = bodyName(mission.destination());
-        return switch (mission.type()) {
+        // a named expedition goes by its name
+        String prefix = mission.expedition().isEmpty() ? "" : "\"" + mission.expedition() + "\"  ";
+        return prefix + switch (mission.type()) {
             case SURVEY -> "Survey  -  " + name;
             case EXTRACT -> "Extraction x" + mission.probes() + "  -  " + name;
             case DEPLOY -> "Outpost x" + mission.probes() + "  -  " + name;

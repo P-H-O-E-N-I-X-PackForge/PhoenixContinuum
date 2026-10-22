@@ -163,6 +163,9 @@ from the start. A mod that provides its own research (PhoenixCore) takes over th
   to grant; and a `message`). Once a team has reached the reveal stage the body panel on the map lists it with an
   Investigate button; each can be investigated once per team. Scripts hear about it with
   `ContinuumEvents.anomaly(event => ...)` (`event.player`, `event.team`, `event.body`, `event.anomaly`).
+- **Named expeditions:** the mission planner has a "Name and crew" button: a flight can be given a name and up to three online
+  teammates as crew. It appears under that name in the fleet and the log ("Expedition "Dawn Runner" (crew: ...)"), and each
+  crew member lowers the flight's chance of failing by 3%.
 - **Launch windows:** where a world is on its orbit changes how long a flight there takes and how hard it is on the hull: up
   to 30% quicker when the world is on the side of its star facing home, 30% slower on the far side (`launchWindowStrength`
   in the config; 0 turns it off). One orbital day is `launchWindowDayMinutes` real minutes (default 6), so inner worlds cycle

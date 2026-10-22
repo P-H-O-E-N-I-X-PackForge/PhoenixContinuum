@@ -1599,10 +1599,15 @@ public class ContinuumMapScreen extends Screen {
             if (button == 0) {
                 MissionPlannerPanel.Result result = planner.click(mouseX, mouseY);
                 if (result.consumed()) ContinuumSounds.click();
+                if (result.openExpedition()) {
+                    Minecraft.getInstance().setScreen(new ContinuumExpeditionScreen(this));
+                    return true;
+                }
                 if (result.launchType() != null && body != null && pad != null) {
                     PacketDistributor.sendToServer(
                             new C2SLaunchMissionPacket(body.id(), pad, result.launchType(), result.probes(),
-                                    result.count()));
+                                    result.count(), net.phoenix.continuum.client.ExpeditionDraft.name,
+                                    new ArrayList<>(net.phoenix.continuum.client.ExpeditionDraft.crew)));
                 }
             }
             pressed = false;
