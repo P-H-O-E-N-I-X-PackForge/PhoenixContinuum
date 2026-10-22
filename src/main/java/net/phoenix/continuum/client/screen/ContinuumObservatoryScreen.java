@@ -114,7 +114,7 @@ public class ContinuumObservatoryScreen extends Screen {
         }
 
         // ---- the list ----
-        int listW = 124;
+        int listW = 132;
         int listTop = y + 22;
         int visible = (h - 30) / ROW;
         scroll = Math.max(0, Math.min(scroll, Math.max(0, entries.size() - visible)));
@@ -158,8 +158,7 @@ public class ContinuumObservatoryScreen extends Screen {
             var params = surveyed ? body.params() : body.params().ghost();
             preview.drawPlanet(g, params, px, y + 22, size);
         }
-        g.drawString(font, "drag to turn, scroll to zoom", px, y + 26 + size, MapUi.DIM);
-        int diagramTop = y + 38 + size;
+        int diagramTop = y + 30 + size;
         int diagram = Math.min(size, y + h - 8 - diagramTop);
         if (diagram >= 64) drawOrbits(g, system, body, px, diagramTop, diagram);
 
@@ -181,10 +180,14 @@ public class ContinuumObservatoryScreen extends Screen {
             ty = line(g, "Gravity", ObservatoryReadings.gravity(body), tx, ty, tw);
             String temperature = ObservatoryReadings.temperature(body, system);
             if (temperature != null) ty = line(g, "Temp", temperature, tx, ty, tw);
-            ty = line(g, "Air", ObservatoryReadings.atmosphere(body), tx, ty, tw);
+            int airY = ty;
+            String air = ObservatoryReadings.atmosphere(body);
+            ty = line(g, "Air", air, tx, ty, tw);
             if (body.params().atmoDensity() > 0.0f) {
-                g.fill(tx + 56, ty - 12, tx + 66, ty - 3, 0xFF000000 | body.params().atmoColor());
-                g.renderOutline(tx + 56, ty - 12, 10, 9, MapUi.PANEL_LINE);
+                // the colour of the air, after the word
+                int sx = tx + 56 + font.width(air) + 5;
+                g.fill(sx, airY, sx + 9, airY + 8, 0xFF000000 | body.params().atmoColor());
+                g.renderOutline(sx - 1, airY - 1, 11, 10, MapUi.PANEL_LINE);
             }
         }
 
