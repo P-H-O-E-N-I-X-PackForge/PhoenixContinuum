@@ -108,7 +108,17 @@ public final class ContentCreator {
             }
         }
 
-        ContinuumData.reloadNow(server);
+        ContinuumReport report = ContinuumData.reloadNow(server);
+        if (ContinuumData.body(id) == null) {
+            // written, but the loader turned it down: say why, instead of a "created" that the lists never show
+            StringBuilder why = new StringBuilder();
+            for (ContinuumReport.Issue issue : report.issues()) {
+                if (issue.toString().contains(id.toString())) why.append(' ').append(issue);
+            }
+            return Result.fail("The body " + id + " was written but did not load." + (why.length() == 0 ?
+                    " If " + id.getNamespace() + " is a new namespace for the pack folder, restart the game once;" +
+                            " otherwise see /continuumadmin validate." : why.toString()));
+        }
         return new Result(true, "Created the body " + id + "." +
                 (needsRestart ? " Its personal dimension appears after a restart." : ""));
     }

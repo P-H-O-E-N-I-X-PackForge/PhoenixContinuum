@@ -68,8 +68,6 @@ public class ContinuumMapScreen extends Screen {
     private enum Phase {
         NONE,
         OUT,
-        /** The screen is black and what comes next is being prepared (worlds baked), so it fades in finished. */
-        WAIT,
         IN
     }
 
@@ -82,7 +80,8 @@ public class ContinuumMapScreen extends Screen {
     private static final float FOV = 40.0f;
     private static final float OUT_SECONDS = 0.42f;
     private static final float IN_SECONDS = 0.6f;
-    private static final float WAIT_MAX_SECONDS = 1.0f;
+    /** How long the worlds of the new view are baked at full speed at the start of the fade in. */
+    private static final float BURST_SECONDS = 0.2f;
     private static final float DAYS_PER_SECOND = 4.0f;
 
     private static int FRAME = 0xFF7a5cff;
@@ -105,7 +104,6 @@ public class ContinuumMapScreen extends Screen {
     private int sceneHeight = -1;
 
     private Phase phase = Phase.NONE;
-    private int quietFrames;
     private float phaseTime;
     private float fade;
     private int zoomDirection;
@@ -1585,24 +1583,13 @@ public class ContinuumMapScreen extends Screen {
     }
 
     private void updateTransition(float dt) {
-        // a bake in the middle of the move would hitch it, so nothing new is baked until it has landed
-        // a bake in the middle of the move would hitch it, but in the black between two views it is free
-        net.phoenix.continuum.client.render.PlanetBake.pause(phase == Phase.OUT || phase == Phase.IN);
-        net.phoenix.continuum.client.render.PlanetBake.burst(phase == Phase.WAIT);
+        // A long frame (a collection, a chunk upload) must not skip the fade: it would pop from half to all in one frame.
+        dt = Math.min(dt, 1.0f / 30.0f);
+        // a bake in the middle of the move would hitch it, so none run until the screen has faded to black; then the
+        // worlds that are about to show are baked a face each, every frame, while the fade is still nearly black
+        net.phoenix.continuum.client.render.PlanetBake.pause(phase == Phase.OUT);
+        net.phoenix.continuum.client.render.PlanetBake.burst(phase == Phase.IN && phaseTime < BURST_SECONDS);
         if (phase == Phase.NONE) return;
-
-        if (phase == Phase.WAIT) {
-            phaseTime += dt;
-            fade = 1.0f;
-            // ready when nothing asked for last frame was still waiting (two frames running), or after a moment
-            int waiting = net.phoenix.continuum.client.render.PlanetBake.takeDenied();
-            quietFrames = waiting == 0 ? quietFrames + 1 : 0;
-            if ((quietFrames >= 2 && phaseTime > 0.08f) || phaseTime >= WAIT_MAX_SECONDS) {
-                phase = Phase.IN;
-                phaseTime = 0.0f;
-            }
-            return;
-        }
 
         phaseTime += dt;
         float t = Math.min(phaseTime / (phase == Phase.OUT ? OUT_SECONDS : IN_SECONDS), 1.0f);
@@ -1613,13 +1600,16 @@ public class ContinuumMapScreen extends Screen {
             if (t >= 1.0f) {
                 if (onSwitch != null) onSwitch.run();
                 onSwitch = null;
-                phase = Phase.WAIT;
+                phase = Phase.IN;
                 phaseTime = 0.0f;
-                quietFrames = 0;
-                net.phoenix.continuum.client.render.PlanetBake.takeDenied();
+                fade = 1.0f;
             }
         } else {
-            fade = 1.0f - eased;
+            // the first moments stay black while the burst bakes, then it fades in smoothly
+            float shown = Math.max(0.0f, (phaseTime - BURST_SECONDS * 0.5f) / (IN_SECONDS - BURST_SECONDS * 0.5f));
+            float shownEased = Math.min(1.0f, shown);
+            shownEased = shownEased * shownEased * (3.0f - 2.0f * shownEased);
+            fade = 1.0f - shownEased;
             if (t >= 1.0f) {
                 phase = Phase.NONE;
                 fade = 0.0f;

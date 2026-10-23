@@ -36,6 +36,13 @@ public final class ContinuumPackFolder {
         Path root = folder();
         try {
             Files.createDirectories(root.resolve("data"));
+            // A pack only counts for the namespaces it has when the game loads its data, and a folder made later is
+            // not seen until a restart. These are where bodies and systems are made in game (the tuner's, and the
+            // generated galaxy's), so they must be there from the start.
+            for (String namespace : new String[] { "phoenix_continuum", "phoenix_continuum_gen" }) {
+                Files.createDirectories(root.resolve("data").resolve(namespace).resolve("continuum").resolve("bodies"));
+                Files.createDirectories(root.resolve("data").resolve(namespace).resolve("continuum").resolve("systems"));
+            }
             Path meta = root.resolve("pack.mcmeta");
             if (!Files.exists(meta)) {
                 Files.writeString(meta, "{\"pack\":{\"pack_format\":" + DATA_PACK_FORMAT +
