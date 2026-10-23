@@ -10,7 +10,6 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.phoenix.continuum.client.ContinuumClientHooks;
 import net.phoenix.continuum.common.SwarmReport;
 
-/** Opens the swarm power screen of a receiver. */
 public class S2COpenPowerPacket implements CustomPacketPayload {
 
     public static final Type<S2COpenPowerPacket> TYPE = new Type<>(

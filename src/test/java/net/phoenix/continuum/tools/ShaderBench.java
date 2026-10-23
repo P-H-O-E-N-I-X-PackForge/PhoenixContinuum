@@ -553,10 +553,10 @@ public class ShaderBench {
                 f(program, "Core", 1.0f);
                 f(program, "Tint", 1.0f, 0.85f, 0.4f);
                 switch (name) {
-                    case "protostar1" -> f(program, "DiskNormal", 0.0f, 1.0f, 0.0f);      // exactly edge-on
-                    case "protostar2" -> f(program, "DiskNormal", 0.0f, 0.0f, 1.0f);      // exactly face-on
-                    case "protostar3" -> f(program, "DiskNormal", 0.0f, 0.03f, 0.9995f);  // nearly face-on
-                    default -> f(program, "DiskNormal", 0.0f, 0.99f, 0.14f);              // nearly edge-on
+                    case "protostar1" -> f(program, "DiskNormal", 0.0f, 1.0f, 0.0f);      
+                    case "protostar2" -> f(program, "DiskNormal", 0.0f, 0.0f, 1.0f);      
+                    case "protostar3" -> f(program, "DiskNormal", 0.0f, 0.03f, 0.9995f);  
+                    default -> f(program, "DiskNormal", 0.0f, 0.99f, 0.14f);              
                 }
             }
             case "comet" -> {

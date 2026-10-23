@@ -236,11 +236,6 @@ public final class SceneRenderer {
         }
     }
 
-    /**
-     * The horizon of the world you stand on, as a flat plane just under the camera that writes depth and no colour: the star,
-     * the other worlds and the rings sink behind it as they set, instead of vanishing at some height in mid-air. Draw it before
-     * the things that should set, and clear depth afterwards (the world is drawn after the sky).
-     */
     public static void drawHorizonPlane(Matrix4f view, Matrix4f projection) {
         ShaderInstance flat = net.minecraft.client.renderer.GameRenderer.getPositionShader();
         if (flat == null) return;
@@ -535,7 +530,7 @@ public final class SceneRenderer {
         RenderSystem.enableBlend();
         RenderSystem.blendFunc(com.mojang.blaze3d.platform.GlStateManager.SourceFactor.ONE,
                 com.mojang.blaze3d.platform.GlStateManager.DestFactor.ONE);
-        // (in a skybox too: the horizon plane of a surface world hides what has set, see drawHorizonPlane)
+        
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(false);
         RenderSystem.disableCull();
@@ -619,10 +614,6 @@ public final class SceneRenderer {
                 s -> s.safeGetUniform("DiskNormal").set(normal.x, normal.y, normal.z));
     }
 
-    /**
-     * A swarm's shell, drawn over the star or black hole it is built at: plates going up as levels are added. It
-     * needs the level of the player's own team, so it is only drawn where the central body is known.
-     */
     public static void drawSwarmShell(net.phoenix.continuum.data.ContinuumSystem system, int rgb, Matrix4f view,
                                       Matrix4f projection, Vector3f worldPos, float radius,
                                       PlanetRenderer.Quality quality, boolean sky) {
@@ -644,12 +635,12 @@ public final class SceneRenderer {
         int swarmLevel = net.phoenix.continuum.client.ContinuumClientState.stationLevel(central.id());
         int shellLevel = net.phoenix.continuum.client.ContinuumClientState.shellLevel(central.id());
         if (swarmLevel <= 0 && shellLevel <= 0) return;
-        // a shell is plates closing the star in; a swarm is panels scattered on nested orbits
+        
         boolean shell = shellLevel > 0;
         final float completion = shell ?
                 (float) net.phoenix.continuum.common.Swarms.shellCompletion(central, shellLevel) :
                 Math.min(1.0f, swarmLevel / (float) Math.max(1, net.phoenix.continuum.common.Swarms.maxLevel(central)));
-        // a Penrose structure is a cooler, bluer metal than the hot light of a Dyson one
+        
         int tint = net.phoenix.continuum.common.Swarms.isPenrose(central) ? 0x9a78ff : rgb;
         final Vector3f normal = planeNormal(view, worldPos, sky);
         drawStarFx(shell ? ContinuumShaders.DYSON : ContinuumShaders.MEGASTRUCTURE, tint, shell ? 7.0f : 16.0f, view,

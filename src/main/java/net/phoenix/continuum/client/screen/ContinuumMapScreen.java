@@ -81,7 +81,7 @@ public class ContinuumMapScreen extends Screen {
     private static final float FOV = 40.0f;
     private static final float OUT_SECONDS = 0.42f;
     private static final float IN_SECONDS = 0.6f;
-    /** How long the worlds of the new view are baked at full speed at the start of the fade in. */
+    
     private static final float BURST_SECONDS = 0.2f;
     private static final float DAYS_PER_SECOND = 4.0f;
 
@@ -454,7 +454,6 @@ public class ContinuumMapScreen extends Screen {
         return 2.6f + 3.0f * (float) Math.sqrt(au);
     }
 
-    /** Where each world's orbit is drawn: its own distance, pushed out so a big world does not sit on its neighbours. */
     private final java.util.Map<ResourceLocation, Float> orbitRadii = new java.util.HashMap<>();
 
     private float orbitRadiusOf(ContinuumBody b) {
@@ -477,7 +476,7 @@ public class ContinuumMapScreen extends Screen {
         float previousRadius = sys.starRadius() * 1.4f;
         for (ContinuumBody b : planets) {
             float own = visualRadius(b);
-            // far enough out that this world and the one inside it (and their moons' room) do not overlap
+            
             float radius = Math.max(orbitWorldRadius(b.orbitAu()), previousOrbit + previousRadius + own + 0.3f);
             orbitRadii.put(b.id(), radius);
             previousOrbit = radius;
@@ -1176,7 +1175,6 @@ public class ContinuumMapScreen extends Screen {
         if (enabled) planRect = new int[] { bx, y, bw, 18 };
     }
 
-    /** What a swarm or shell of this level makes, as the panel shows it (worked out from the synced levels). */
     private static String swarmOutput(ContinuumBody b, int level, boolean shell) {
         long power = Math.round(shell ? net.phoenix.continuum.common.Swarms.shellPower(b, level) :
                 net.phoenix.continuum.common.Swarms.swarmPower(b, level));
@@ -1528,7 +1526,7 @@ public class ContinuumMapScreen extends Screen {
                 boolean held = button.id().equals("orbits") && orbitsPaused;
                 graphics.fill(button.x(), 8, button.x() + button.w(), 22, held ? 0xAA3a3380 : MapUi.CHROME);
                 graphics.renderOutline(button.x(), 8, button.w(), 14, held ? FRAME : PANEL_LINE);
-                // the label shrinks to the button, which itself shrinks when the screen is narrow
+                
                 float scale = Math.min(1.0f, (button.w() - 4) / (float) Math.max(1, font.width(button.label())));
                 graphics.pose().pushPose();
                 graphics.pose().translate(button.x() + button.w() / 2.0f, 15.0f - 4.0f * scale, 0.0f);
@@ -1584,10 +1582,9 @@ public class ContinuumMapScreen extends Screen {
     }
 
     private void updateTransition(float dt) {
-        // A long frame (a collection, a chunk upload) must not skip the fade: it would pop from half to all in one frame.
+        
         dt = Math.min(dt, 1.0f / 30.0f);
-        // a bake in the middle of the move would hitch it, so none run until the screen has faded to black; then the
-        // worlds that are about to show are baked a face each, every frame, while the fade is still nearly black
+
         net.phoenix.continuum.client.render.PlanetBake.pause(phase == Phase.OUT);
         net.phoenix.continuum.client.render.PlanetBake.burst(phase == Phase.IN && phaseTime < BURST_SECONDS);
         if (phase == Phase.NONE) return;
@@ -1606,7 +1603,7 @@ public class ContinuumMapScreen extends Screen {
                 fade = 1.0f;
             }
         } else {
-            // the first moments stay black while the burst bakes, then it fades in smoothly
+            
             float shown = Math.max(0.0f, (phaseTime - BURST_SECONDS * 0.5f) / (IN_SECONDS - BURST_SECONDS * 0.5f));
             float shownEased = Math.min(1.0f, shown);
             shownEased = shownEased * shownEased * (3.0f - 2.0f * shownEased);
@@ -1744,10 +1741,6 @@ public class ContinuumMapScreen extends Screen {
 
     private record ChromeButton(String id, String label, int x, int w) {}
 
-    /**
-     * The row of buttons along the top, right to left. On a narrow screen (a small window, or a big gui scale) they
-     * shrink together, leaving room for the title and the crumb on the left.
-     */
     private List<ChromeButton> chromeButtons() {
         List<Object[]> wanted = new ArrayList<>();
         boolean inside = level != Level.GALAXY;
@@ -1795,7 +1788,6 @@ public class ContinuumMapScreen extends Screen {
         }
     }
 
-    /** The tuner for what is open: the body on a body, the system on a system. */
     private void openTuner() {
         if (level == Level.BODY && body != null) {
             Minecraft.getInstance().setScreen(new ContinuumTunerScreen(this, body.id()));

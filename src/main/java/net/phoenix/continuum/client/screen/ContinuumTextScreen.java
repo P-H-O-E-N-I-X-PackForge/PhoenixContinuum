@@ -12,10 +12,6 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.function.Consumer;
 
-/**
- * A roomy editor for long text (names, descriptions, lore): a wrapping multi-line box with a character count and
- * Save / Cancel, in place of the one-line box the tuner list has room for.
- */
 @OnlyIn(Dist.CLIENT)
 public final class ContinuumTextScreen extends Screen {
 
@@ -56,7 +52,7 @@ public final class ContinuumTextScreen extends Screen {
     }
 
     private void save() {
-        // a line break in a name or description is never wanted, so a paragraph pasted in becomes one line
+        
         onSave.accept(box.getValue().replace("\r", "").replace('\n', ' ').trim());
         minecraft.setScreen(parent);
     }

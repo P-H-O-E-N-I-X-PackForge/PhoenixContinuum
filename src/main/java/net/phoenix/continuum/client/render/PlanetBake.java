@@ -15,7 +15,7 @@ import java.util.Map;
 public final class PlanetBake {
 
     private static final int SIZE = 512;
-    // a system can show more worlds than this at once; the more that fit, the less the cache has to throw away and redo
+    
     private static final int MAX_TERRAIN = 12;
     private static final int MAX_CLOUDS = 16;
     
@@ -41,7 +41,6 @@ public final class PlanetBake {
         }
     }
 
-    /** A bake in progress: its texture and how many of the six faces are done. */
     private static final class Pending {
         final int tex;
         int face;
@@ -56,22 +55,16 @@ public final class PlanetBake {
     private static boolean burst;
     private static int denied;
 
-    /**
-     * While bursting, every world asked for gets a face baked each frame, with no waiting between bakes. The map does
-     * this while its screen is black between two views, so what it is about to show is ready before it fades in.
-     */
     public static void burst(boolean value) {
         burst = value;
     }
 
-    /** How many worlds were asked for since the last call and were not ready (still waiting to be baked). */
     public static int takeDenied() {
         int count = denied;
         denied = 0;
         return count;
     }
 
-    /** While paused nothing new is baked (the map pauses it while its camera is in flight, so no frame hitches). */
     public static void pause(boolean value) {
         paused = value;
     }
@@ -129,7 +122,7 @@ public final class PlanetBake {
                 GL11.glDeleteTextures(oldest.tex);
                 oldestFirst.remove();
             }
-            // worlds that were left before they finished must not pile up
+            
             while (pending.size() >= 16) {
                 Iterator<Pending> stale = pending.values().iterator();
                 GL11.glDeleteTextures(stale.next().tex);
@@ -139,7 +132,6 @@ public final class PlanetBake {
             pending.put(key, bake);
         }
 
-        // one face a frame, so a world coming into view never costs a frame the whole cube
         bakeFace(shader, bake.tex, mode, seed, scale, octaves, bake.face);
         bake.face++;
         lastBake = System.nanoTime();
@@ -175,7 +167,7 @@ public final class PlanetBake {
         int previousFbo = GL11.glGetInteger(36006);
         int[] viewport = new int[4];
         GL11.glGetIntegerv(GL11.GL_VIEWPORT, viewport);
-        // the bake is in the middle of a frame that is drawing something else, so what it changes has to go back
+        
         boolean blend = GL11.glIsEnabled(GL11.GL_BLEND);
         boolean depthTest = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
         boolean cull = GL11.glIsEnabled(GL11.GL_CULL_FACE);

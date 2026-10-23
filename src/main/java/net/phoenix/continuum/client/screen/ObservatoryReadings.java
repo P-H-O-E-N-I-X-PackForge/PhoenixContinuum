@@ -14,20 +14,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * What only the observatory can tell you about a world: instrument readings worked out from its orbit, its star and its sky
- * rather than anything the map shows. The map is for planning flights; this is for knowing the place.
- */
 final class ObservatoryReadings {
 
     private ObservatoryReadings() {}
 
-    /** Gravity at the surface as a multiple of Earth's. */
     static String gravity(ContinuumBody body) {
         return String.format(Locale.ROOT, "x%.2f", PdimDimensions.naturalGravity(body));
     }
 
-    /** A rough equilibrium temperature from the star's colour, size and the world's distance, with a little greenhouse. */
     static @Nullable String temperature(ContinuumBody body, ContinuumSystem system) {
         if (body.isCentral() || body.type() == ContinuumBody.Type.STAR || body.type() == ContinuumBody.Type.BLACK_HOLE) {
             return null;
@@ -54,7 +48,6 @@ final class ObservatoryReadings {
         return d < 0.2f ? "thin" : d < 0.5f ? "moderate" : d < 0.8f ? "thick" : "crushing";
     }
 
-    /** The materials a spectrograph picks out of the world (not how much: that takes a survey). */
     static List<Item> spectrum(ContinuumBody body) {
         List<Item> items = new ArrayList<>();
         for (ContinuumBody.Yield yield : body.yields()) {
@@ -65,9 +58,6 @@ final class ObservatoryReadings {
         return items;
     }
 
-    // ---- sky forecast: the same geometry the personal-dimension sky uses (PdimSkyBodies), so what is predicted is what you see ----
-
-    /** The sun's apparent radius as drawn in a personal dimension's sky, in radians. */
     private static final double SUN_RADIUS = Math.atan(6.0 / 98.0);
 
     private static double[] position(ContinuumBody body, double days) {
@@ -76,13 +66,8 @@ final class ObservatoryReadings {
         return new double[] {Math.cos(angle) * body.orbitAu(), Math.sin(angle) * body.orbitAu()};
     }
 
-    /** A forecast eclipse: after how many game days, and by which moon. */
     record Eclipse(double inDays, String moon, boolean total) {}
 
-    /**
-     * The next eclipse of the star by one of this world's moons, seen from its surface, looking at most {@code horizonDays}
-     * ahead of {@code nowDays} (game days). Null if it has no moons or none eclipses within the horizon.
-     */
     static @Nullable Eclipse nextEclipse(ContinuumBody world, double nowDays, double horizonDays) {
         List<ContinuumBody> moons = ContinuumData.moonsOf(world.id());
         if (moons.isEmpty()) return null;

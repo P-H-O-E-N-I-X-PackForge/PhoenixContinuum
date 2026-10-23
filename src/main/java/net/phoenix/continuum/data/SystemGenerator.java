@@ -13,11 +13,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 
-/**
- * Builds a set of star systems and their worlds from a seed, as the same JSON a pack author would write. Nothing here
- * touches the game: the same seed and count always give the same galaxy, which is what lets a server tie its galaxy to
- * its world seed.
- */
 public final class SystemGenerator {
 
     public static final String NAMESPACE = "phoenix_continuum_gen";
@@ -87,7 +82,6 @@ public final class SystemGenerator {
         return new Result(systems, bodies);
     }
 
-    /** Where the home system is, so nothing generated lands on top of it. */
     public record ContinuumSystemView(float x, float y, float z) {
 
         public static final ContinuumSystemView ORIGIN = new ContinuumSystemView(0.0f, 0.0f, 0.0f);
@@ -183,8 +177,6 @@ public final class SystemGenerator {
         return lead + " " + tails[rng.nextInt(tails.length)];
     }
 
-    // ---- world kinds ----
-
     private enum Kind {
         SCORCHED, LAVA, BARREN, TEMPERATE, OCEAN, DESERT, JUNGLE, TOXIC, RUST, ICY, ICE_OCEAN, DARK, CRYSTAL, CHROME,
         SHATTERED, AURORA, STORM_WORLD,
@@ -195,11 +187,10 @@ public final class SystemGenerator {
         }
     }
 
-    /** How common each kind is in each band of distance from the star (relative to where the habitable zone is). */
     private static final Map<Kind, float[]> WEIGHTS = new EnumMap<>(Kind.class);
 
     static {
-        //                                    inner   warm    cold    far
+        
         weights(Kind.SCORCHED,     new float[] { 22, 3, 0, 0 });
         weights(Kind.LAVA,         new float[] { 20, 4, 0, 0 });
         weights(Kind.BARREN,       new float[] { 22, 8, 10, 14 });
@@ -231,7 +222,6 @@ public final class SystemGenerator {
         return ratio < 0.6f ? 0 : ratio < 1.8f ? 1 : ratio < 4.0f ? 2 : 3;
     }
 
-    /** What kind of world sits at this distance, with some memory of what the system already has. */
     private static Kind classify(Random rng, float ratio, Star star, Map<Kind, Integer> already, int giants) {
         int band = band(ratio);
         Kind[] kinds = Kind.values();
@@ -249,7 +239,7 @@ public final class SystemGenerator {
                     default -> 1.0f;
                 };
             }
-            // a system does not repeat itself: each time a kind has been used it is less likely again
+            
             w *= (float) Math.pow(0.35, already.getOrDefault(kind, 0));
             if (kind.giant() && giants >= 2) w *= 0.15f;
             weight[i] = w;
@@ -296,7 +286,6 @@ public final class SystemGenerator {
         }
     }
 
-    /** Ordinary stars are bodies too (a place to survey and build a Dyson swarm); the exotic ones are scenery. */
     private static boolean hasStarBody(Star star) {
         return switch (star.kind()) {
             case "star", "red_giant", "rapid_rotator", "wolf_rayet" -> true;
@@ -366,7 +355,6 @@ public final class SystemGenerator {
         return body;
     }
 
-    /** How a kind of world looks and what it gives. Colours are picked from the palettes, so two worlds differ. */
     private record Profile(String[][] palettes, float scaleMin, float scaleMax, float bump, float oceanMin,
                            float oceanMax, String oceanDeep, String oceanShallow, float iceMin, float iceMax,
                            float cloudMin, float cloudMax, int[] atmosphere, float densityMin, float densityMax,
@@ -569,7 +557,6 @@ public final class SystemGenerator {
         body.addProperty("parent", parent.toString());
         body.addProperty("name", name);
 
-        // moons are not all the same grey rock
         int variant = rng.nextInt(5);
         String description = switch (variant) {
             case 1 -> "A small ice-covered moon.";

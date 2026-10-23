@@ -8,7 +8,6 @@ import net.minecraft.world.item.TooltipFlag;
 
 import java.util.List;
 
-/** A section of a Dyson shell or Penrose sphere. Rockets carry them to a star or black hole to close it in. */
 public class ContinuumShellSegmentItem extends Item {
 
     public ContinuumShellSegmentItem(Properties properties) {

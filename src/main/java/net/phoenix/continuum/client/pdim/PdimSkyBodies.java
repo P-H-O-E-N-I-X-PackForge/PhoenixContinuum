@@ -113,10 +113,8 @@ public final class PdimSkyBodies {
         return new Plan(e1, e2, normal, items);
     }
 
-    /** A world in the sky, described for a list: where it is and how big it looks. */
     public record SkyBody(ContinuumBody body, float elevationDeg, float azimuthDeg, float apparentDeg, boolean moon) {}
 
-    /** What is in the sky of {@code self}, nearest the sun last, with the direction and size each appears at. */
     public static List<SkyBody> describe(PdimSkyView view0, ContinuumBody self, PdimSkyModel.Sample sample) {
         Plan plan = plan(view0, self, sample);
         List<SkyBody> out = new ArrayList<>();
@@ -132,7 +130,6 @@ public final class PdimSkyBodies {
         return out;
     }
 
-    /** Where a world is on its orbit, in AU from the star, at a day count. */
     public static double[] orbitPosition(ContinuumBody body, double days) {
         return positionAu(body, days);
     }

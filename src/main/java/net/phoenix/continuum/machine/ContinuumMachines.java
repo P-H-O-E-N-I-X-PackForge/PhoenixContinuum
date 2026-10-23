@@ -16,7 +16,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.phoenix.continuum.integration.gtceu.ContinuumGt;
 
-/** The GregTech launch complex and swarm receiver. Only touched when GregTech is installed. */
 public final class ContinuumMachines {
 
     private ContinuumMachines() {}
@@ -32,7 +31,6 @@ public final class ContinuumMachines {
                     GTCEu.id("block/multiblock/pyrolyse_oven"))
             .register();
 
-    /** The multiblock that receives Dyson swarm power. */
     public static final MachineEntry<MultiblockMachineDefinition> SWARM_RECEIVER = ContinuumGt.REGISTRATE
             .multiblock("continuum_swarm_array", SwarmReceiverMachine::new)
             .langValue("Swarm Receiver Array")

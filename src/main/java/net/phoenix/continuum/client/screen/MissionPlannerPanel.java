@@ -176,7 +176,7 @@ final class MissionPlannerPanel {
             canStation = false;
             canShell = false;
         }
-        // a swarm is grown with Swarm Collector Pods and a shell built with Shell Segments, not probes
+        
         boolean shellMode = mode == Mission.Type.SHELL;
         boolean specialStation = swarm && (shellMode || mode == Mission.Type.STATION);
         int stationProbes = specialStation ? Swarms.payloadPerLevel(body, shellMode) : Stations.probesPerLevel(body);

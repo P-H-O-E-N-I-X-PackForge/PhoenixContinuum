@@ -23,7 +23,7 @@ public class PhoenixContinuum {
     public PhoenixContinuum(IEventBus modEventBus, ModContainer container) {
         ContinuumConfigs.init();
         ContinuumRegistry.register(modEventBus);
-        // with GregTech: the launch complex multiblock and its recipes; without it: the energy-powered Launch Pad
+        
         if (GregTech.loaded()) {
             net.phoenix.continuum.integration.gtceu.ContinuumGt.init(modEventBus);
         } else {

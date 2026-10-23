@@ -27,16 +27,9 @@ import net.phoenix.continuum.machine.LaunchComplex;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Our rocket item, standing large in the shaft of every formed Launch Complex and turning slowly, so the multiblock
- * looks like a launch site and not just a gantry. It finds the complexes by looking through the loaded chunks around
- * the camera every couple of seconds, so it needs nothing from GregTech's own rendering and works the same on every
- * GregTech version.
- */
 @EventBusSubscriber(modid = PhoenixContinuum.MOD_ID, value = Dist.CLIENT)
 public final class LaunchComplexRocket {
 
-    /** The item sprite is one block; the shaft is one block wide and about three clear blocks tall. */
     private static final float SCALE = 3.0f;
     private static final float DEGREES_PER_TICK = 1.2f;
     private static final int SCAN_EVERY = 40;
@@ -81,10 +74,6 @@ public final class LaunchComplexRocket {
         return found;
     }
 
-    /**
-     * The base of the shaft: three blocks out from the controller towards the structure, the one direction where the
-     * ring of frames closing the shaft's top is around an empty column.
-     */
     private static BlockPos shaftOf(Level level, BlockPos controller) {
         for (Direction d : Direction.Plane.HORIZONTAL) {
             BlockPos column = controller.relative(d, 3);
@@ -123,7 +112,7 @@ public final class LaunchComplexRocket {
             if (complex == null || !complex.isFormed()) continue;
             BlockPos base = site.base();
             pose.pushPose();
-            // the sprite is centred on its middle: lift it by half its scaled height so it stands on the slab
+            
             pose.translate(base.getX() + 0.5 - camera.x, base.getY() + SCALE * 0.5 - camera.y,
                     base.getZ() + 0.5 - camera.z);
             pose.mulPose(com.mojang.math.Axis.YP.rotationDegrees(angle));

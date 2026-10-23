@@ -93,7 +93,7 @@ class SystemGeneratorTest {
         for (long seed : new long[] { 1L, 2L, 3L, 4L, 5L }) {
             for (JsonObject body : SystemGenerator.generate(seed, 60, HOME).bodies().values()) {
                 if (!"planet".equals(body.get("type").getAsString())) continue;
-                // each kind of world has its own description, so it names the kind
+                
                 counts.merge(body.get("description").getAsString(), 1, Integer::sum);
                 planets++;
             }

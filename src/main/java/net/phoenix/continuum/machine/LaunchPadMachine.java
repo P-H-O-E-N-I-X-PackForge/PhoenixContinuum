@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Predicate;
 
-/** The launch complex controller. */
 public class LaunchPadMachine extends MultiblockControllerMachine implements LaunchComplex {
 
     private UUID registeredTeam;

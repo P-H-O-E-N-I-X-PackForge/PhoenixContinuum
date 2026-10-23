@@ -12,7 +12,6 @@ import net.minecraft.world.level.saveddata.SavedData;
 import java.util.HashMap;
 import java.util.Map;
 
-/** The energy held in each Swarm Receiver Array's capacitor, by dimension and position. */
 public final class SwarmStorage extends SavedData {
 
     private static final String ID = "phoenix_continuum_swarm_storage";
@@ -59,10 +58,6 @@ public final class SwarmStorage extends SavedData {
         return tag;
     }
 
-    /**
-     * Puts power into the capacitor and fills the hatches from it. {@code fill} takes what the hatches have room for
-     * and returns how much it kept. Returns how much of the offered power the array kept.
-     */
     public static long exchange(MinecraftServer server, Level level, BlockPos pos, long offered,
                                 java.util.function.LongUnaryOperator fill) {
         SwarmStorage data = get(server);
@@ -70,13 +65,12 @@ public final class SwarmStorage extends SavedData {
                 Math.max(0.0, net.phoenix.continuum.config.ContinuumConfigs.INSTANCE.swarmArrayCapacitorEU));
         long held = Math.min(data.get(level, pos), capacity);
 
-        // the capacitor feeds the hatches first, then the swarm's own power tops it up (or goes straight to them)
         long available = held + offered;
         long delivered = fill.applyAsLong(available);
         long left = available - delivered;
         long kept = Math.min(left, capacity);
         data.set(level, pos, kept);
-        // what the capacitor could not hold is lost, and only the part of it that came from the swarm counts as kept
+        
         long fromSwarm = Math.max(0L, Math.min(offered, delivered + kept - held));
         return fromSwarm;
     }

@@ -34,10 +34,6 @@ import java.util.function.Supplier;
 
 import static net.phoenix.continuum.PhoenixContinuum.MOD_ID;
 
-/**
- * Continuum items and blocks. These use plain deferred registers, so Continuum starts without GregTech (and without
- * Registrate); the GregTech launch complex is registered on its own when GregTech is there.
- */
 public final class ContinuumRegistry {
 
     private ContinuumRegistry() {}
@@ -49,7 +45,6 @@ public final class ContinuumRegistry {
     private static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB,
             MOD_ID);
 
-    /** A registered item that can be used wherever an item, or a supplier of one, is wanted. */
     public static final class ItemRef<T extends Item> implements Supplier<T>, ItemLike {
 
         private final DeferredHolder<Item, T> object;
@@ -183,7 +178,6 @@ public final class ContinuumRegistry {
                     })
                     .build());
 
-    /** Every item and block item Continuum registers itself (the GregTech machines are Registrate's). */
     public static java.util.List<ItemStack> allStacks() {
         java.util.List<ItemStack> stacks = new java.util.ArrayList<>();
         for (var entry : ITEMS.getEntries()) stacks.add(new ItemStack(entry.get()));
@@ -194,7 +188,7 @@ public final class ContinuumRegistry {
         ITEMS.register(modEventBus);
         BLOCKS.register(modEventBus);
         BLOCK_ENTITIES.register(modEventBus);
-        // with GregTech the tab is Registrate's default tab (see ContinuumGt), which the machines are put in
+        
         if (!GregTech.loaded()) TABS.register(modEventBus);
     }
 }

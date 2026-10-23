@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/** What a receiver tells the player who uses it: their team's swarms, and what this receiver holds. */
 public record SwarmReport(String title, String unit, long stored, long capacity, long maxOut, long teamPerTick,
                           String note, List<Swarms.Entry> entries) {
 

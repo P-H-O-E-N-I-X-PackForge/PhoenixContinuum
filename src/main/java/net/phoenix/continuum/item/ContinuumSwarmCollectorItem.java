@@ -8,7 +8,6 @@ import net.minecraft.world.item.TooltipFlag;
 
 import java.util.List;
 
-/** One orbiting power collector. Rockets carry them to a star or black hole to grow a swarm there. */
 public class ContinuumSwarmCollectorItem extends Item {
 
     public ContinuumSwarmCollectorItem(Properties properties) {

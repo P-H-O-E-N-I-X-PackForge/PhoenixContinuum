@@ -4,7 +4,6 @@ import net.minecraft.network.chat.Component;
 
 import java.util.List;
 
-/** The launch complex's footprint and tooltips, the same on every GregTech version. */
 public final class LaunchComplexShape {
 
     private LaunchComplexShape() {}

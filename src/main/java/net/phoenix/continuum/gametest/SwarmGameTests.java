@@ -69,12 +69,10 @@ public class SwarmGameTests {
         var storage = net.phoenix.continuum.common.SwarmStorage.get(server);
         storage.set(level, pos, 0);
 
-        // the hatches take 300 of 1000 offered: the other 700 wait in the capacitor, and all 1000 count as kept
         long kept = net.phoenix.continuum.common.SwarmStorage.exchange(server, level, pos, 1000, available -> 300);
         helper.assertTrue(kept == 1000, "all of the swarm's power should be kept, was " + kept);
         helper.assertTrue(storage.get(level, pos) == 700, "700 should be stored, is " + storage.get(level, pos));
 
-        // with no swarm power the capacitor keeps feeding the hatches
         kept = net.phoenix.continuum.common.SwarmStorage.exchange(server, level, pos, 0, available -> 500);
         helper.assertTrue(kept == 0, "nothing new was offered, kept " + kept);
         helper.assertTrue(storage.get(level, pos) == 200, "200 should be left, is " + storage.get(level, pos));
@@ -130,7 +128,6 @@ public class SwarmGameTests {
         var data = ContinuumTeamData.get(server);
         var cfg = ContinuumConfigs.INSTANCE;
 
-        // a swarm makes power from its first level; a shell nothing until it is mostly built
         data.setStationLevel(team, star.id(), 1);
         helper.assertTrue(ContinuumSwarmPower.outputPerTick(server, team) > 0, "a level 1 swarm makes power");
         data.setStationLevel(team, star.id(), 0);
@@ -138,7 +135,6 @@ public class SwarmGameTests {
         helper.assertTrue(ContinuumSwarmPower.outputPerTick(server, team) == 0,
                 "a shell at 10% makes nothing (it needs " + cfg.shellMinCompletion + ")");
 
-        // ... but a finished shell beats a finished swarm
         data.setShellLevel(team, star.id(), Swarms.shellMaxLevel(star));
         long shell = ContinuumSwarmPower.outputPerTick(server, team);
         data.setStationLevel(team, star.id(), Swarms.maxLevel(star));
@@ -146,12 +142,10 @@ public class SwarmGameTests {
         helper.assertTrue(shell > swarm, "a finished shell (" + shell + ") should out-produce a finished swarm ("
                 + swarm + ")");
 
-        // the two cannot share a star: the later one replaces the earlier
         helper.assertTrue(data.shellLevel(team, star.id()) == 0, "building the swarm took the shell apart");
         data.setShellLevel(team, star.id(), 5);
         helper.assertTrue(data.stationLevel(team, star.id()) == 0, "the shell took the swarm apart");
 
-        // a shell shades the outposts in its system
         var planet = ContinuumData.bodiesOf(star.system()).stream().filter(b -> !b.isCentral()).findFirst()
                 .orElse(null);
         double shadow = Swarms.shadow(data, team, planet);

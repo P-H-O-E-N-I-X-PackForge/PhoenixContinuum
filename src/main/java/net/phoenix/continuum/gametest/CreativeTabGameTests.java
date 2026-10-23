@@ -7,7 +7,6 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.phoenix.continuum.PhoenixContinuum;
 
-/** The creative screen builds every tab's contents; a duplicate item in a tab makes that throw (and crashes the client). */
 @GameTestHolder(PhoenixContinuum.MOD_ID)
 @PrefixGameTestTemplate(false)
 public class CreativeTabGameTests {

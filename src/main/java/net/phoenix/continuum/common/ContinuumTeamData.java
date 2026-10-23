@@ -202,7 +202,6 @@ public class ContinuumTeamData extends SavedData {
         return stations.getOrDefault(team, Map.of());
     }
 
-    /** The stations that add a mission slot: swarms at stars do not. */
     public int stationCount(UUID team) {
         int count = 0;
         for (ResourceLocation body : stations.getOrDefault(team, Map.of()).keySet()) {
@@ -225,7 +224,6 @@ public class ContinuumTeamData extends SavedData {
         return shells.getOrDefault(team, Map.of());
     }
 
-    /** A shell and a swarm cannot share a star: the first shell level takes the swarm apart. */
     public void setShellLevel(UUID team, ResourceLocation body, int level) {
         if (level <= 0) {
             Map<ResourceLocation, Integer> mine = shells.get(team);

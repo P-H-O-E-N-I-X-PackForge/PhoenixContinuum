@@ -8,18 +8,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * The power a team's Dyson swarms produce, and who receives it.
- *
- * <p>
- * A swarm is an orbital station built at a star. Every second the power of all of a team's swarms is offered to that
- * team's {@link Sink}s, then to its launch complexes. Anything that wants to turn swarm power into energy of its own
- * (a receiver block, a GregTech multiblock, another mod's machine) registers a sink for the team that owns it.
- * Power nobody takes is lost: swarms do not store it.
- */
 public final class ContinuumSwarmPower {
 
-    /** Takes swarm power; returns how much of the offered amount it kept. */
     @FunctionalInterface
     public interface Sink {
 
@@ -42,7 +32,6 @@ public final class ContinuumSwarmPower {
         if (set.isEmpty()) SINKS.remove(team);
     }
 
-    /** What the team's swarms produce, per tick, in EU with GregTech and FE without. */
     public static long outputPerTick(MinecraftServer server, UUID team) {
         return Swarms.powerPerTick(server, team);
     }

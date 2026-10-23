@@ -74,12 +74,11 @@ public class GeneratedWorldGameTests {
         run(server, "continuumadmin generate 5 9");
         var system = ContinuumData.systems().stream()
                 .filter(sys -> sys.id().getNamespace().equals(SystemGenerator.NAMESPACE)).findFirst().orElse(null);
-        // the tuner's New body screen offers every world as a template, generated ones included
+        
         var template = ContinuumData.allBodies().stream().filter(b -> b.type() == ContinuumBody.Type.PLANET
                 && b.id().getNamespace().equals(SystemGenerator.NAMESPACE)).findFirst().orElse(null);
         helper.assertTrue(system != null && template != null, "a generated system and a template to start from");
 
-        // what the tuner's New body screen sends
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath("phoenix_continuum", "gametest_tuner_made");
         JsonObject orbit = new JsonObject();
         orbit.addProperty("radius_au", 2.5);

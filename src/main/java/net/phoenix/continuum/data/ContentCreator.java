@@ -105,7 +105,7 @@ public final class ContentCreator {
 
         ContinuumReport report = ContinuumData.reloadNow(server);
         if (ContinuumData.body(id) == null) {
-            // written, but the loader turned it down: say why, instead of a "created" that the lists never show
+            
             StringBuilder why = new StringBuilder();
             for (ContinuumReport.Issue issue : report.issues()) {
                 if (issue.toString().contains(id.toString())) why.append(' ').append(issue);

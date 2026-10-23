@@ -68,8 +68,6 @@ public final class ContinuumSystemScreen extends Screen {
     private static final int ROW = 15;
     private static final int LIST_W = 340;
 
-    // the screen is laid out for this much room; with a bigger gui scale (a smaller screen in gui units) it is drawn
-    // scaled down to fit, and the mouse is scaled to match
     private static final int MIN_W = LIST_W + 230;
     private static final int MIN_H = 430;
     private float uiScale = 1.0f;
@@ -108,7 +106,6 @@ public final class ContinuumSystemScreen extends Screen {
         }
     }
 
-    /** Systems made while this screen is open appear in its list as soon as they are synced. */
     private void listAgainIfChanged() {
         if (dataVersion == ContinuumData.version()) return;
         dataVersion = ContinuumData.version();
@@ -517,7 +514,7 @@ public final class ContinuumSystemScreen extends Screen {
                         index++;
                         beginTune();
                     } else {
-                        // the name between the arrows opens the picker of every system and body
+                        
                         openPicker();
                     }
                 }
@@ -536,7 +533,6 @@ public final class ContinuumSystemScreen extends Screen {
         return super.mouseClicked(mx, my, button);
     }
 
-    /** The sky from the system's innermost world, drawn with the star as it is in the draft (applied or not). */
     private void openSky() {
         ContinuumSystem system = draftSystem();
         if (system == null || creating) return;
