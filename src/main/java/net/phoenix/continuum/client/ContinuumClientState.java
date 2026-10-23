@@ -96,9 +96,13 @@ public final class ContinuumClientState {
     private static ItemStack stockRocket = ItemStack.EMPTY;
     private static int stockProbes;
     private static int stockKits;
+    private static int stockCollectors;
+    private static int stockSegments;
 
     public static void acceptPadStock(BlockPos pad, boolean buses, ItemStack rocket, int probes, int kits,
-                                      int rockets) {
+                                      int rockets, int collectors, int segments) {
+        stockCollectors = collectors;
+        stockSegments = segments;
         stockRockets = rockets;
         stockPad = pad;
         stockFromBuses = buses;
@@ -117,6 +121,14 @@ public final class ContinuumClientState {
 
     public static int padProbes() {
         return stockProbes;
+    }
+
+    public static int padCollectors() {
+        return stockCollectors;
+    }
+
+    public static int padSegments() {
+        return stockSegments;
     }
 
     public static int padKits() {

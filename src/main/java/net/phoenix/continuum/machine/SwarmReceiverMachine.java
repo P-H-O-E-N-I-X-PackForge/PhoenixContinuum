@@ -10,7 +10,8 @@ import net.phoenix.continuum.api.ContinuumSwarmPower;
 import java.util.UUID;
 
 /** The Swarm Receiver Array for GregTech 7.x. {@code SwarmReceiverMachine8} is the GregTech 8 twin of this class. */
-public class SwarmReceiverMachine extends MultiblockControllerMachine implements ContinuumSwarmPower.Sink {
+public class SwarmReceiverMachine extends MultiblockControllerMachine implements ContinuumSwarmPower.Sink,
+        com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine {
 
     private UUID registeredTeam;
 
@@ -42,6 +43,33 @@ public class SwarmReceiverMachine extends MultiblockControllerMachine implements
         unregister();
         registeredTeam = ContinuumHost.teamOf(getOwnerUUID());
         ContinuumSwarmPower.register(registeredTeam, this);
+    }
+
+    @Override
+    public net.minecraft.world.InteractionResult onUse(net.minecraft.world.level.block.state.BlockState state,
+                                                       net.minecraft.world.level.Level level,
+                                                       net.minecraft.core.BlockPos pos,
+                                                       net.minecraft.world.entity.player.Player player,
+                                                       net.minecraft.world.InteractionHand hand,
+                                                       net.minecraft.world.phys.BlockHitResult hit) {
+        if (!isFormed() || player.isShiftKeyDown()) return net.minecraft.world.InteractionResult.PASS;
+        if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer && level.getServer() != null) {
+            var server = level.getServer();
+            UUID owner = getOwnerUUID();
+            UUID team = ContinuumHost.teamOf(owner != null ? owner : player.getUUID());
+            long stored = net.phoenix.continuum.common.SwarmStorage.get(server).get(level, pos);
+            long capacity = (long) Math.min(9.0E18,
+                    Math.max(0.0, net.phoenix.continuum.config.ContinuumConfigs.INSTANCE.swarmArrayCapacitorEU));
+            String note = "Fills its output hatches from the capacitor" +
+                    (net.phoenix.continuum.integration.tesla.TeslaLink.loaded() ?
+                            ", after the Tesla Network storage, which comes first." : ".") +
+                    " Sneak and use for the GregTech screen.";
+            net.phoenix.continuum.network.ContinuumNetwork.sendToPlayer(serverPlayer,
+                    new net.phoenix.continuum.network.S2COpenPowerPacket(
+                            net.phoenix.continuum.common.SwarmReport.build(server, team, "Swarm Receiver Array", stored,
+                                    capacity, 0, note)));
+        }
+        return net.minecraft.world.InteractionResult.sidedSuccess(level.isClientSide);
     }
 
     @Override

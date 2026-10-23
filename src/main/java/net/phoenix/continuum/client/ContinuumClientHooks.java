@@ -37,6 +37,10 @@ public final class ContinuumClientHooks {
         }
     }
 
+    public static void openPower(net.phoenix.continuum.common.SwarmReport report) {
+        Minecraft.getInstance().setScreen(new net.phoenix.continuum.client.screen.ContinuumPowerScreen(report));
+    }
+
     /** Opens the observatory screen (the observatory block was used on this client). */
     public static void openObservatory() {
         Minecraft.getInstance().setScreen(new net.phoenix.continuum.client.screen.ContinuumObservatoryScreen());

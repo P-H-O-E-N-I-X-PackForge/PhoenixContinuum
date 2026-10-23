@@ -15,5 +15,7 @@
   "item.phoenix_continuum.continuum_probe": "Extraction Probe",
   "item.phoenix_continuum.continuum_repair_kit": "Rocket Repair Kit",
   "item.phoenix_continuum.continuum_rocket": "Continuum Rocket",
+  "item.phoenix_continuum.continuum_shell_segment": "Shell Segment",
+  "item.phoenix_continuum.continuum_swarm_collector": "Swarm Collector Pod",
   "itemGroup.phoenix_continuum.creative_tab": "Phoenix Continuum"
 }

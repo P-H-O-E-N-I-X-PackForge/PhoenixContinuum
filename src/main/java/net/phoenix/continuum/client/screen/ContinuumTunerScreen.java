@@ -97,6 +97,7 @@ public final class ContinuumTunerScreen extends Screen {
 
     private final Screen parent;
     private final List<ContinuumBody> bodies = new ArrayList<>();
+    private int dataVersion = ContinuumData.version();
     private int bodyIndex;
     private final List<Field> fields = new ArrayList<>();
     private int scroll;
@@ -117,6 +118,20 @@ public final class ContinuumTunerScreen extends Screen {
             if (bodies.get(i).id().equals(start)) bodyIndex = i;
         }
         rebuildFields();
+    }
+
+    /** Bodies made while this screen is open (or edited elsewhere) appear in its list as soon as they are synced. */
+    private void listAgainIfChanged() {
+        if (dataVersion == ContinuumData.version()) return;
+        dataVersion = ContinuumData.version();
+        ResourceLocation current = bodies.isEmpty() ? null : body().id();
+        bodies.clear();
+        bodies.addAll(ContinuumData.allBodies());
+        bodies.sort(Comparator.comparing((ContinuumBody b) -> b.system().toString()).thenComparing(ContinuumBody::name));
+        for (int i = 0; i < bodies.size(); i++) {
+            if (bodies.get(i).id().equals(current)) bodyIndex = i;
+        }
+        if (!bodies.isEmpty()) bodyIndex = Math.floorMod(bodyIndex, bodies.size());
     }
 
     public static boolean allowed() {
@@ -371,6 +386,7 @@ public final class ContinuumTunerScreen extends Screen {
 
     @Override
     public void render(GuiGraphics g, int rawMx, int rawMy, float partialTick) {
+        listAgainIfChanged();
         uiScale = Math.min(1.0f, Math.min(width / (float) MIN_W, height / (float) MIN_H));
         vw = Math.round(width / uiScale);
         vh = Math.round(height / uiScale);

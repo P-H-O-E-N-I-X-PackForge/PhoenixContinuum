@@ -44,6 +44,10 @@ public final class ContinuumMissions {
             .getItem() instanceof ContinuumProbeItem;
     private static final java.util.function.Predicate<ItemStack> IS_KIT = s -> s
             .getItem() instanceof ContinuumRepairKitItem;
+    private static final java.util.function.Predicate<ItemStack> IS_COLLECTOR = s -> s
+            .getItem() instanceof net.phoenix.continuum.item.ContinuumSwarmCollectorItem;
+    private static final java.util.function.Predicate<ItemStack> IS_SEGMENT = s -> s
+            .getItem() instanceof net.phoenix.continuum.item.ContinuumShellSegmentItem;
 
     private interface Stock {
 
@@ -60,6 +64,10 @@ public final class ContinuumMissions {
         void takeProbes(int count);
 
         void takeKits(int count);
+
+        int count(java.util.function.Predicate<ItemStack> matches);
+
+        void take(java.util.function.Predicate<ItemStack> matches, int count);
 
         String place();
     }
@@ -100,6 +108,16 @@ public final class ContinuumMissions {
         @Override
         public void takeKits(int count) {
             complex.take(IS_KIT, count);
+        }
+
+        @Override
+        public int count(java.util.function.Predicate<ItemStack> matches) {
+            return complex.count(matches);
+        }
+
+        @Override
+        public void take(java.util.function.Predicate<ItemStack> matches, int count) {
+            complex.take(matches, count);
         }
 
         @Override
@@ -147,22 +165,35 @@ public final class ContinuumMissions {
         }
 
         @Override
+        public int count(java.util.function.Predicate<ItemStack> matches) {
+            return countItems(player, matches);
+        }
+
+        @Override
+        public void take(java.util.function.Predicate<ItemStack> matches, int count) {
+            removeItems(player, matches, count);
+        }
+
+        @Override
         public String place() {
             return "in your inventory";
         }
     }
 
-    public record PadStockView(boolean buses, ItemStack rocket, int probes, int kits, int rockets) {}
+    public record PadStockView(boolean buses, ItemStack rocket, int probes, int kits, int rockets, int collectors,
+                               int segments) {}
 
     public static PadStockView padStock(ServerPlayer player, BlockPos pad) {
         var level = player.level();
         LaunchComplex complex = level.isLoaded(pad) ? LaunchSites.at(level, pad) : null;
         if (complex != null && complex.isFormed() && complex.hasBuses()) {
             BusStock stock = new BusStock(complex);
-            return new PadStockView(true, stock.peekRocket(), stock.probes(), stock.kits(), stock.rockets());
+            return new PadStockView(true, stock.peekRocket(), stock.probes(), stock.kits(), stock.rockets(),
+                    stock.count(IS_COLLECTOR), stock.count(IS_SEGMENT));
         }
         PlayerStock stock = new PlayerStock(player);
-        return new PadStockView(false, stock.peekRocket(), stock.probes(), stock.kits(), stock.rockets());
+        return new PadStockView(false, stock.peekRocket(), stock.probes(), stock.kits(), stock.rockets(),
+                stock.count(IS_COLLECTOR), stock.count(IS_SEGMENT));
     }
 
     public static @Nullable String launchMany(ServerPlayer player, ResourceLocation destinationId, BlockPos pad,
@@ -300,6 +331,7 @@ public final class ContinuumMissions {
         long now = System.currentTimeMillis();
         int carried = 0;
         int kitsCarried = 0;
+        java.util.function.Predicate<ItemStack> special = null;
         Outpost outpost = null;
         Mission stranded = null;
         switch (type) {
@@ -315,8 +347,9 @@ public final class ContinuumMissions {
                         return "A shell crew is already on its way to " + body.name() + ".";
                     }
                 }
-                carried = Stations.shellProbesPerLevel();
-                if (stock.probes() < carried) return notEnoughProbes(carried, stock);
+                carried = Swarms.payloadPerLevel(body, true);
+                special = IS_SEGMENT;
+                if (stock.count(IS_SEGMENT) < carried) return notEnoughPayload(carried, true, stock);
             }
             case STATION -> {
                 if (Swarms.isSwarm(body) && data.shellLevel(team, destinationId) > 0) {
@@ -333,8 +366,14 @@ public final class ContinuumMissions {
                         return "A station crew is already on its way to " + body.name() + ".";
                     }
                 }
-                carried = Stations.probesPerLevel(body);
-                if (stock.probes() < carried) return notEnoughProbes(carried, stock);
+                if (Swarms.isSwarm(body)) {
+                    carried = Swarms.payloadPerLevel(body, false);
+                    special = IS_COLLECTOR;
+                    if (stock.count(IS_COLLECTOR) < carried) return notEnoughPayload(carried, false, stock);
+                } else {
+                    carried = Stations.probesPerLevel(body);
+                    if (stock.probes() < carried) return notEnoughProbes(carried, stock);
+                }
             }
             case RESCUE -> {
                 stranded = strandedAt(data, team, destinationId);
@@ -438,7 +477,10 @@ public final class ContinuumMissions {
 
         ItemStack flown = stock.takeRocket();
         if (flown.isEmpty()) return "The rocket was taken before the launch could start.";
-        if (carried > 0) stock.takeProbes(carried);
+        if (carried > 0) {
+            if (special != null) stock.take(special, carried);
+            else stock.takeProbes(carried);
+        }
         if (kitsCarried > 0) stock.takeKits(kitsCarried);
 
         int haulProbes = 0;
@@ -519,6 +561,17 @@ public final class ContinuumMissions {
         return PadTiers.name(tier);
     }
 
+    private static String notEnoughPayload(int needed, boolean shell, Stock stock) {
+        return "You need " + Swarms.payloadName(shell, needed) + " " + stock.place() + ".";
+    }
+
+    private static String lostPayload(Mission mission) {
+        ContinuumBody body = ContinuumData.body(mission.destination);
+        if (mission.type == Mission.Type.SHELL) return Swarms.payloadName(true, mission.probes);
+        if (Swarms.isSwarm(body)) return Swarms.payloadName(false, mission.probes);
+        return mission.probes + " probe" + (mission.probes == 1 ? "" : "s");
+    }
+
     private static String notEnoughProbes(int needed, Stock stock) {
         return "You need " + needed + " extraction probe" + (needed == 1 ? "" : "s") + " " + stock.place() + ".";
     }
@@ -531,6 +584,29 @@ public final class ContinuumMissions {
             if (stack.getItem() instanceof ContinuumRocketItem) return stack;
         }
         return ItemStack.EMPTY;
+    }
+
+    private static int countItems(ServerPlayer player, java.util.function.Predicate<ItemStack> matches) {
+        int total = 0;
+        for (var list : List.of(player.getInventory().items, player.getInventory().offhand)) {
+            for (ItemStack stack : list) {
+                if (matches.test(stack)) total += stack.getCount();
+            }
+        }
+        return total;
+    }
+
+    private static void removeItems(ServerPlayer player, java.util.function.Predicate<ItemStack> matches, int count) {
+        int remaining = count;
+        for (var list : List.of(player.getInventory().items, player.getInventory().offhand)) {
+            for (ItemStack stack : list) {
+                if (remaining <= 0) return;
+                if (!matches.test(stack)) continue;
+                int take = Math.min(remaining, stack.getCount());
+                stack.shrink(take);
+                remaining -= take;
+            }
+        }
     }
 
     private static int countRockets(ServerPlayer player) {
@@ -781,7 +857,8 @@ public final class ContinuumMissions {
 
             String lost = switch (mission.type) {
                 case SURVEY -> "";
-                case EXTRACT, DEPLOY, STATION, SHELL -> " The " + probesText + " were lost.";
+                case EXTRACT, DEPLOY -> " The " + probesText + " were lost.";
+                case STATION, SHELL -> " The " + lostPayload(mission) + " were lost.";
                 case HAUL -> " The haul was lost.";
                 case REPAIR -> " The repair kits were lost and the outpost is still broken.";
                 case RESCUE -> " The repair kits were lost and the stranded rocket is still waiting.";

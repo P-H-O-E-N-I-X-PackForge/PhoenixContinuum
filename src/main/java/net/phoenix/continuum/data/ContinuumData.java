@@ -43,7 +43,15 @@ public final class ContinuumData {
         return new Snapshot(rawSystems, rawBodies);
     }
 
+    private static int version;
+
+    /** Goes up whenever the loaded systems and bodies change, so a screen that listed them can list them again. */
+    public static int version() {
+        return version;
+    }
+
     public static void acceptSync(Snapshot snapshot) {
+        version++;
         Map<ResourceLocation, ContinuumSystem> newSystems = new LinkedHashMap<>();
         Map<ResourceLocation, ContinuumBody> newBodies = new LinkedHashMap<>();
         snapshot.systems().forEach((id, json) -> parse(id, json, o -> newSystems.put(id, parseSystem(id, o))));
@@ -394,6 +402,7 @@ public final class ContinuumData {
             bodies = parsed.bodies();
             rawSystems = parsed.rawSystems();
             rawBodies = parsed.rawBodies();
+            version++;
             ContinuumReport report = ContinuumReport.last();
             net.phoenix.continuum.common.visibility.ContinuumVisibility.clearCache();
             LOGGER.info("[PhoenixCore/Continuum] Loaded {} systems and {} bodies ({} errors, {} warnings)",

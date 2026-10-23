@@ -373,9 +373,14 @@ public class ContinuumConfigs {
         public int penroseMaxLevel = 10;
 
         @Configurable
-        @Configurable.Comment({ "Probes one Penrose swarm level costs to build. Default: 12" })
+        @Configurable.Comment({ "Swarm Collector Pods a rocket carries to grow one Penrose swarm level. Default: 6" })
         @Configurable.Range(min = 1, max = 64)
-        public int penroseProbesPerLevel = 12;
+        public int penroseCollectorsPerLevel = 6;
+
+        @Configurable
+        @Configurable.Comment({ "Shell Segments a rocket carries to build one Penrose sphere level. Default: 3" })
+        @Configurable.Range(min = 1, max = 64)
+        public int penroseSegmentsPerLevel = 3;
 
         @Configurable
         @Configurable.Comment({
@@ -393,9 +398,9 @@ public class ContinuumConfigs {
         public int shellMaxLevel = 10;
 
         @Configurable
-        @Configurable.Comment({ "Probes one shell level costs to build (a swarm level costs less). Default: 16" })
+        @Configurable.Comment({ "Shell Segments a rocket carries to build one Dyson shell level. Default: 2" })
         @Configurable.Range(min = 1, max = 64)
-        public int shellProbesPerLevel = 16;
+        public int shellSegmentsPerLevel = 2;
 
         @Configurable
         @Configurable.Comment({
@@ -422,9 +427,9 @@ public class ContinuumConfigs {
         public double shellOutpostShadow = 0.5;
 
         @Configurable
-        @Configurable.Comment({ "Probes one swarm level costs to build. Default: 8" })
+        @Configurable.Comment({ "Swarm Collector Pods a rocket carries to grow one Dyson swarm level. Default: 4" })
         @Configurable.Range(min = 1, max = 64)
-        public int swarmProbesPerLevel = 8;
+        public int swarmCollectorsPerLevel = 4;
 
         @Configurable
         @Configurable.Comment({

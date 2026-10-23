@@ -79,6 +79,7 @@ public final class ContinuumSystemScreen extends Screen {
 
     private final Screen parent;
     private final List<ContinuumSystem> systems = new ArrayList<>();
+    private int dataVersion = ContinuumData.version();
     private int index;
     private boolean creating;
     private ResourceLocation draftId;
@@ -105,6 +106,19 @@ public final class ContinuumSystemScreen extends Screen {
                 if (systems.get(i).id().equals(start)) index = i;
             }
             beginTune();
+        }
+    }
+
+    /** Systems made while this screen is open appear in its list as soon as they are synced. */
+    private void listAgainIfChanged() {
+        if (dataVersion == ContinuumData.version()) return;
+        dataVersion = ContinuumData.version();
+        ResourceLocation current = systems.isEmpty() ? null : systems.get(Math.floorMod(index, systems.size())).id();
+        systems.clear();
+        systems.addAll(ContinuumData.systems());
+        systems.sort(Comparator.comparing(ContinuumSystem::name));
+        for (int i = 0; i < systems.size(); i++) {
+            if (systems.get(i).id().equals(current)) index = i;
         }
     }
 
@@ -342,6 +356,7 @@ public final class ContinuumSystemScreen extends Screen {
 
     @Override
     public void render(GuiGraphics g, int rawMx, int rawMy, float partialTick) {
+        listAgainIfChanged();
         uiScale = Math.min(1.0f, Math.min(width / (float) MIN_W, height / (float) MIN_H));
         vw = Math.round(width / uiScale);
         vh = Math.round(height / uiScale);

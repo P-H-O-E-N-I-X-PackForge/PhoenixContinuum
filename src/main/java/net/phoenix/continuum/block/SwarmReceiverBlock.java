@@ -59,19 +59,10 @@ public class SwarmReceiverBlock extends Block implements EntityBlock {
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
                                  BlockHitResult hit) {
         if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
-            String message;
-            if (!PadTiers.basic()) {
-                message = "With GregTech installed the swarm is received by the Swarm Receiver multiblock, not this block.";
-            } else {
-                long perTick = ContinuumSwarmPower.outputPerTick(serverPlayer.server,
-                        ContinuumHost.teamOf(player.getUUID()));
-                message = perTick <= 0 ? "Your team has no swarm yet. Build orbital stations at a star (Dyson) or a black hole (Penrose)." :
-                        String.format(Locale.ROOT, "Your swarms produce %,d FE/t, shared by your receivers and pads.",
-                                perTick) + (level.getBlockEntity(pos) instanceof SwarmReceiverBlockEntity receiver ?
-                                        String.format(Locale.ROOT, " This receiver holds %,d FE.", receiver.stored()) :
-                                        "");
+            if (level.getBlockEntity(pos) instanceof SwarmReceiverBlockEntity receiver) {
+                net.phoenix.continuum.network.ContinuumNetwork.sendToPlayer(serverPlayer,
+                        new net.phoenix.continuum.network.S2COpenPowerPacket(receiver.report(serverPlayer.server)));
             }
-            serverPlayer.sendSystemMessage(Component.literal(message).withStyle(ChatFormatting.AQUA));
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }

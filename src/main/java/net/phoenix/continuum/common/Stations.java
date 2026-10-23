@@ -10,14 +10,9 @@ public final class Stations {
         return Swarms.maxLevel(body);
     }
 
+    /** The probes an ordinary station level costs. Swarms and shells carry their own items instead. */
     public static int probesPerLevel(net.phoenix.continuum.data.ContinuumBody body) {
-        var cfg = net.phoenix.continuum.config.ContinuumConfigs.INSTANCE;
-        return Math.max(1, Swarms.isPenrose(body) ? cfg.penroseProbesPerLevel :
-                Swarms.isSwarm(body) ? cfg.swarmProbesPerLevel : cfg.stationProbesPerLevel);
-    }
-
-    public static int shellProbesPerLevel() {
-        return Swarms.shellProbesPerLevel();
+        return Math.max(1, net.phoenix.continuum.config.ContinuumConfigs.INSTANCE.stationProbesPerLevel);
     }
 
     public static float tripFactor(int level) {

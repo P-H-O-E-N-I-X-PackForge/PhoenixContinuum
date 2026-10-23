@@ -35,6 +35,8 @@ public final class ContinuumNetwork {
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(id++, S2COpenMapPacket.class, S2COpenMapPacket::encode, S2COpenMapPacket::new, S2COpenMapPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(id++, S2COpenPowerPacket.class, S2COpenPowerPacket::encode, S2COpenPowerPacket::new, S2COpenPowerPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(id++, S2CMissionLaunchedPacket.class, S2CMissionLaunchedPacket::encode, S2CMissionLaunchedPacket::new, S2CMissionLaunchedPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(id++, S2CPadStockPacket.class, S2CPadStockPacket::encode, S2CPadStockPacket::new, S2CPadStockPacket::handle,

@@ -32,12 +32,34 @@ final class ContinuumAdminCommands {
 
     private ContinuumAdminCommands() {}
 
+    /**
+     * Completions for bodies (and optionally systems) that can be searched: what is typed is matched against any part of
+     * the id and against the name, and the name is shown beside each id.
+     */
+    private static java.util.concurrent.CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> suggestBodies(
+            com.mojang.brigadier.suggestion.SuggestionsBuilder builder,
+            java.util.function.Predicate<net.phoenix.continuum.data.ContinuumBody> filter, boolean withSystems) {
+        String typed = builder.getRemaining().toLowerCase(Locale.ROOT);
+        if (withSystems) {
+            for (var system : ContinuumData.systems()) offer(builder, typed, system.id(), system.name());
+        }
+        for (var body : ContinuumData.allBodies()) {
+            if (filter.test(body)) offer(builder, typed, body.id(), body.name());
+        }
+        return builder.buildFuture();
+    }
+
+    private static void offer(com.mojang.brigadier.suggestion.SuggestionsBuilder builder, String typed,
+                              ResourceLocation id, String name) {
+        String full = id.toString();
+        if (typed.isEmpty() || full.contains(typed) || name.toLowerCase(Locale.ROOT).contains(typed)) {
+            builder.suggest(full, Component.literal(name));
+        }
+    }
+
     private static java.util.concurrent.CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> suggestTargets(
             com.mojang.brigadier.suggestion.SuggestionsBuilder builder) {
-        java.util.List<ResourceLocation> ids = new java.util.ArrayList<>();
-        ContinuumData.systems().forEach(system -> ids.add(system.id()));
-        ContinuumData.allBodies().forEach(body -> ids.add(body.id()));
-        return net.minecraft.commands.SharedSuggestionProvider.suggestResource(ids, builder);
+        return suggestBodies(builder, body -> true, true);
     }
 
     private static int setVisibility(CommandSourceStack source, ResourceLocation id, Boolean visible)
@@ -356,11 +378,7 @@ final class ContinuumAdminCommands {
                                         .executes(ctx -> discoverAll(ctx.getSource(),
                                                 StringArgumentType.getString(ctx, "stage")))))
                         .then(argument("target", ResourceLocationArgument.id())
-                                .suggests((ctx, builder) -> {
-                                    ContinuumData.systems().forEach(s -> builder.suggest(s.id().toString()));
-                                    ContinuumData.allBodies().forEach(b -> builder.suggest(b.id().toString()));
-                                    return builder.buildFuture();
-                                })
+                                .suggests((ctx, builder) -> suggestBodies(builder, b -> true, true))
                                 .then(argument("stage", StringArgumentType.word())
                                         .suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider
                                                 .suggest(List.of("unknown", "detected", "surveyed"), builder))
@@ -370,10 +388,7 @@ final class ContinuumAdminCommands {
                 .then(literal("outpost")
                         .then(literal("grant")
                                 .then(argument("body", ResourceLocationArgument.id())
-                                        .suggests((ctx, builder) -> {
-                                            ContinuumData.allBodies().forEach(b -> builder.suggest(b.id().toString()));
-                                            return builder.buildFuture();
-                                        })
+                                        .suggests((ctx, builder) -> suggestBodies(builder, b -> true, false))
                                         .then(argument("probes", IntegerArgumentType.integer(1, 64))
                                                 .executes(ctx -> grantOutpost(ctx.getSource(),
                                                         ResourceLocationArgument.getId(ctx, "body"),
@@ -399,12 +414,7 @@ final class ContinuumAdminCommands {
                 .then(literal("comet")
                         .then(literal("spawn")
                                 .then(argument("body", ResourceLocationArgument.id())
-                                        .suggests((ctx, builder) -> {
-                                            ContinuumData.allBodies().stream()
-                                                    .filter(b -> b.transientInfo() != null)
-                                                    .forEach(b -> builder.suggest(b.id().toString()));
-                                            return builder.buildFuture();
-                                        })
+                                        .suggests((ctx, builder) -> suggestBodies(builder, b -> b.transientInfo() != null, false))
                                         .executes(ctx -> cometSpawn(ctx.getSource(),
                                                 ResourceLocationArgument.getId(ctx, "body"), -1))
                                         .then(argument("minutes", IntegerArgumentType.integer(1, 10080))
@@ -439,9 +449,7 @@ final class ContinuumAdminCommands {
                         .executes(ctx -> setVisibility(ctx.getSource(),
                                 ResourceLocationArgument.getId(ctx, "target"), null))))
                 .then(literal("explain").then(argument("body", ResourceLocationArgument.id())
-                        .suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider
-                                .suggestResource(ContinuumData.allBodies().stream()
-                                        .map(net.phoenix.continuum.data.ContinuumBody::id), builder))
+                        .suggests((ctx, builder) -> suggestBodies(builder, b -> true, false))
                         .executes(ctx -> explain(ctx.getSource(), ResourceLocationArgument.getId(ctx, "body")))))
                 .then(literal("validate").executes(ctx -> validate(ctx.getSource(), false))
                         .then(literal("all").executes(ctx -> validate(ctx.getSource(), true))))
@@ -449,25 +457,21 @@ final class ContinuumAdminCommands {
                 .then(literal("pdimfiles").executes(ctx -> writePdimFiles(ctx.getSource())))
                 .then(literal("dump")
                         .then(argument("body", ResourceLocationArgument.id())
-                                .suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider
-                                        .suggestResource(ContinuumData.allBodies().stream()
-                                                .map(net.phoenix.continuum.data.ContinuumBody::id), builder))
+                                .suggests((ctx, builder) -> suggestBodies(builder, b -> true, false))
                                 .executes(ctx -> dump(ctx.getSource(),
                                         ResourceLocationArgument.getId(ctx, "body")))))
                 .then(literal("reset").executes(ctx -> reset(ctx.getSource())))
                 .then(literal("missions")
                         .then(literal("send")
                                 .then(argument("body", ResourceLocationArgument.id())
-                                        .suggests((ctx, builder) -> {
-                                            ContinuumData.allBodies().forEach(b -> builder.suggest(b.id().toString()));
-                                            return builder.buildFuture();
-                                        })
+                                        .suggests((ctx, builder) -> suggestBodies(builder, b -> true, false))
                                         .then(argument("type", StringArgumentType.word())
                                                 .suggests((ctx,
                                                            builder) -> net.minecraft.commands.SharedSuggestionProvider
                                                                    .suggest(List.of("survey", "extract", "deploy",
                                                                            "haul", "repair",
-                                                                           "rescue", "station"), builder))
+                                                                           "rescue", "station", "swarm", "shell"),
+                                                                   builder))
                                                 .then(argument("seconds", IntegerArgumentType.integer(1, 604800))
                                                         .executes(ctx -> sendMission(ctx.getSource(),
                                                                 ResourceLocationArgument.getId(ctx, "body"),
@@ -502,10 +506,7 @@ final class ContinuumAdminCommands {
                                                                                         "count")))))))))
                         .then(literal("strand")
                                 .then(argument("body", ResourceLocationArgument.id())
-                                        .suggests((ctx, builder) -> {
-                                            ContinuumData.allBodies().forEach(b -> builder.suggest(b.id().toString()));
-                                            return builder.buildFuture();
-                                        })
+                                        .suggests((ctx, builder) -> suggestBodies(builder, b -> true, false))
                                         .then(argument("seconds", IntegerArgumentType.integer(1, 604800))
                                                 .executes(ctx -> strandMission(ctx.getSource(),
                                                         ResourceLocationArgument.getId(ctx, "body"),
@@ -677,11 +678,7 @@ final class ContinuumAdminCommands {
                                                                                                                       boolean allowZero,
                                                                                                                       SwarmAction action) {
         return argument("body", ResourceLocationArgument.id())
-                .suggests((ctx, builder) -> {
-                    ContinuumData.allBodies().stream().filter(b -> Swarms.isSwarm(b))
-                            .forEach(b -> builder.suggest(b.id().toString()));
-                    return builder.buildFuture();
-                })
+                .suggests((ctx, builder) -> suggestBodies(builder, b -> Swarms.isSwarm(b), false))
                 .then(argument("levels", IntegerArgumentType.integer(allowZero ? 0 : 1, 1000))
                         .executes(ctx -> action.run(ctx.getSource(), ResourceLocationArgument.getId(ctx, "body"),
                                 IntegerArgumentType.getInteger(ctx, "levels"))));
@@ -807,7 +804,8 @@ final class ContinuumAdminCommands {
         }
         Mission.Type type;
         try {
-            type = Mission.Type.valueOf(typeName.toUpperCase(Locale.ROOT));
+            type = Mission.Type.valueOf("swarm".equalsIgnoreCase(typeName) ? "STATION" :
+                    typeName.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             source.sendFailure(Component.literal("Unknown mission type " + typeName));
             return 0;
@@ -818,9 +816,9 @@ final class ContinuumAdminCommands {
         long now = System.currentTimeMillis();
         int probes = switch (type) {
             case EXTRACT, DEPLOY -> 3;
-            case STATION -> Math.max(1,
+            case STATION -> Swarms.isSwarm(body) ? Swarms.payloadPerLevel(body, false) : Math.max(1,
                     net.phoenix.continuum.config.ContinuumConfigs.INSTANCE.stationProbesPerLevel);
-            case SHELL -> Swarms.shellProbesPerLevel();
+            case SHELL -> Swarms.payloadPerLevel(body, true);
             case HAUL -> 4;
             case REPAIR, RESCUE -> 1;
             case SURVEY -> 0;
