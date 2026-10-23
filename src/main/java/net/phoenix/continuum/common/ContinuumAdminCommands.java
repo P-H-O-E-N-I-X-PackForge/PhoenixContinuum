@@ -389,6 +389,13 @@ final class ContinuumAdminCommands {
                                 swarmLevels(source, body, -levels, false))))
                         .then(literal("set").then(swarmBody(true, (source, body, levels) ->
                                 swarmLevels(source, body, levels, true)))))
+                .then(literal("shell")
+                        .then(literal("add").then(swarmBody(false, (source, body, levels) ->
+                                shellLevels(source, body, levels, false))))
+                        .then(literal("remove").then(swarmBody(false, (source, body, levels) ->
+                                shellLevels(source, body, -levels, false))))
+                        .then(literal("set").then(swarmBody(true, (source, body, levels) ->
+                                shellLevels(source, body, levels, true)))))
                 .then(literal("comet")
                         .then(literal("spawn")
                                 .then(argument("body", ResourceLocationArgument.id())
@@ -703,6 +710,27 @@ final class ContinuumAdminCommands {
         return next;
     }
 
+    /** Changes the level of your team shell at a body; the first shell level takes a swarm there apart. */
+    private static int shellLevels(CommandSourceStack source, ResourceLocation id, int levels,
+                                   boolean absolute) throws CommandSyntaxException {
+        var body = ContinuumData.body(id);
+        if (body == null || !Swarms.isSwarm(body)) {
+            source.sendFailure(Component.literal("Shells go round a star or a black hole: " + id));
+            return 0;
+        }
+        UUID team = team(source);
+        ContinuumTeamData data = ContinuumTeamData.get(source.getServer());
+        int max = Swarms.shellMaxLevel(body);
+        int next = Math.max(0, Math.min(max, absolute ? levels : data.shellLevel(team, id) + levels));
+        data.setShellLevel(team, id, next);
+        ContinuumServerEvents.engageTeam(source.getServer(), team);
+        ContinuumServerEvents.sendStateToTeam(source.getServer(), team);
+        String name = Swarms.shellName(body);
+        source.sendSuccess(() -> Component.literal(name + " at " + body.name() + " is now level " + next + " of " +
+                max + (next > 0 ? " (" + Swarms.describeShell(body, next) + ")" : "") + "."), false);
+        return next;
+    }
+
     private static int grantOutpost(CommandSourceStack source, ResourceLocation body, int probes)
                                                                                                   throws CommandSyntaxException {
         if (ContinuumData.body(body) == null) {
@@ -792,6 +820,7 @@ final class ContinuumAdminCommands {
             case EXTRACT, DEPLOY -> 3;
             case STATION -> Math.max(1,
                     net.phoenix.continuum.config.ContinuumConfigs.INSTANCE.stationProbesPerLevel);
+            case SHELL -> Swarms.shellProbesPerLevel();
             case HAUL -> 4;
             case REPAIR, RESCUE -> 1;
             case SURVEY -> 0;

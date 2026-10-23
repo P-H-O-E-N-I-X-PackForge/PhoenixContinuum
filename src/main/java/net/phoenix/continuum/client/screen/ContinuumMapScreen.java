@@ -1440,6 +1440,7 @@ public class ContinuumMapScreen extends Screen {
                 case REPAIR -> name + "  (repair)";
                 case RESCUE -> name + "  (rescue)";
                 case STATION -> name + "  (station)";
+                case SHELL -> name + "  (shell)";
             };
 
             int statusW = font.width(status);

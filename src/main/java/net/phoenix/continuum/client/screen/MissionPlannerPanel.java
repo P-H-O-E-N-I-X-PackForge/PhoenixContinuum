@@ -163,15 +163,20 @@ final class MissionPlannerPanel {
         int stationLevel = ContinuumClientState.stationLevel(body.id());
         boolean swarm = Swarms.isSwarm(body);
         int stationMax = Stations.maxLevel(body);
-        boolean canStation = stage == DiscoveryStage.SURVEYED && stationLevel < stationMax;
+        int shellLevel = ContinuumClientState.shellLevel(body.id());
+        int shellMax = Swarms.shellMaxLevel(body);
+        boolean canStation = stage == DiscoveryStage.SURVEYED && stationLevel < stationMax && shellLevel == 0;
+        boolean canShell = swarm && stage == DiscoveryStage.SURVEYED && shellLevel < shellMax;
 
         long[] passing = body.transientInfo() == null ? null : ContinuumClientState.transientWindow(body.id());
         if (body.transientInfo() != null) {
             canSurvey = false;
             canDeploy = false;
             canStation = false;
+            canShell = false;
         }
-        int stationProbes = Stations.probesPerLevel(body);
+        int stationProbes = mode == Mission.Type.SHELL ? Stations.shellProbesPerLevel() :
+                Stations.probesPerLevel(body);
         int strandedCount = 0;
         for (var m : ContinuumClientState.missions()) {
             if (m.stranded() && !m.rescuing() && m.destination().equals(body.id())) strandedCount++;
@@ -182,10 +187,10 @@ final class MissionPlannerPanel {
         float affWear = affinity == null ? 1.0f : affinity.wear();
         float affYield = affinity == null ? 1.0f : affinity.yield();
 
-        if (!available(mode, canSurvey, canExtract, canDeploy, canHaul, canRepair, canRescue, canStation)) {
+        if (!available(mode, canSurvey, canExtract, canDeploy, canHaul, canRepair, canRescue, canStation, canShell)) {
             for (Mission.Type candidate : Mission.Type.values()) {
                 if (available(candidate, canSurvey, canExtract, canDeploy, canHaul, canRepair, canRescue,
-                        canStation)) {
+                        canStation, canShell)) {
                     mode = candidate;
                     break;
                 }
@@ -233,12 +238,15 @@ final class MissionPlannerPanel {
                 canRescue ? "Rescue stranded rocket  (DISTRESS)" : "Rescue stranded rocket", canRescue,
                 mode == Mission.Type.RESCUE, mx, my);
 
-        modeRects[Mission.Type.STATION.ordinal()] = button(g, font, x + 10, y + 104, 312, 16,
-                swarm ? (stationLevel > 0 ? "Grow " + Swarms.kindName(body) + "  (level " + stationLevel + " of " +
-                        stationMax + ")" : "Build " + Swarms.kindName(body)) :
+        int stationW = swarm ? 154 : 312;
+        modeRects[Mission.Type.STATION.ordinal()] = button(g, font, x + 10, y + 104, stationW, 16,
+                swarm ? (stationLevel > 0 ? "Swarm  (" + stationLevel + "/" + stationMax + ")" : "Build swarm") :
                         stationLevel > 0 ? "Upgrade orbital station  (level " + stationLevel + " of " + stationMax +
                                 ")" : "Build orbital station",
                 canStation, mode == Mission.Type.STATION, mx, my);
+        modeRects[Mission.Type.SHELL.ordinal()] = swarm ? button(g, font, x + 168, y + 104, 154, 16,
+                shellLevel > 0 ? "Shell  (" + shellLevel + "/" + shellMax + ")" : "Build shell", canShell,
+                mode == Mission.Type.SHELL, mx, my) : null;
 
         int ty = y + 130;
         int noteEnd = ty;
@@ -261,7 +269,12 @@ final class MissionPlannerPanel {
                 case REPAIR -> "Delivers " + kitsNeeded + " repair kit" + (kitsNeeded == 1 ? "" : "s") +
                         " and gets the broken outpost producing again.";
                 case STATION -> "Level " + (stationLevel + 1) + ": " + (swarm ?
-                        Swarms.describe(body, stationLevel + 1) : Stations.describe(stationLevel + 1));
+                        Swarms.kindName(body) + ", " + Swarms.describe(body, stationLevel + 1) +
+                                ". Makes power from its first level, but tops out low." :
+                        Stations.describe(stationLevel + 1));
+                case SHELL -> Swarms.shellName(body) + " level " + (shellLevel + 1) + " of " + shellMax + ": " +
+                        Swarms.describeShell(body, shellLevel + 1) + ". Costs more, makes far more when finished, " +
+                        "but shades your outposts here, and it replaces a swarm.";
                 case RESCUE -> "Flies a second rocket out with " + rescueKits + " repair kit" +
                         (rescueKits == 1 ? "" : "s") + " and brings the stranded one home. It must arrive before " +
                         "the distress signal fades.";
@@ -399,7 +412,7 @@ final class MissionPlannerPanel {
                     ty = row(g, font, "Idle cycles", String.valueOf(outpost.brokenCycles()), x + 10, ty, MapUi.WARN);
                 }
             }
-            case STATION -> ty = row(g, font, "Probes", stationProbes + "  (" + probesOwned + " " + loaded + ")",
+            case STATION, SHELL -> ty = row(g, font, "Probes", stationProbes + "  (" + probesOwned + " " + loaded + ")",
                     x + 10,
                     ty, probesOwned >= stationProbes ? MapUi.TEXT : MapUi.BAD);
             case RESCUE -> {
@@ -421,7 +434,8 @@ final class MissionPlannerPanel {
         }
 
         int sending = convoy ? rockets : 1;
-        boolean enoughProbes = mode == Mission.Type.STATION ? probesOwned >= stationProbes :
+        boolean enoughProbes = mode == Mission.Type.STATION || mode == Mission.Type.SHELL ?
+                probesOwned >= stationProbes :
                 !carriesProbes || probesOwned >= probes * sending;
         boolean enoughKits = (mode != Mission.Type.REPAIR || kitsOwned >= kitsNeeded) &&
                 (mode != Mission.Type.RESCUE || kitsOwned >= rescueKits * sending) && rocketsOwned >= sending;
@@ -431,7 +445,7 @@ final class MissionPlannerPanel {
                 (passing != null && tripMs <= passing[1] - ContinuumClientState.now());
         boolean launchable = hasRocket && !refused && !needsShield && !needsHull && cometOk && enoughProbes &&
                 enoughKits && inTime &&
-                available(mode, canSurvey, canExtract, canDeploy, canHaul, canRepair, canRescue, canStation);
+                available(mode, canSurvey, canExtract, canDeploy, canHaul, canRepair, canRescue, canStation, canShell);
         launchRect = button(g, font, x + 10, y + H - 26, 150, 18, "Launch", launchable, false, mx, my);
         cancelRect = button(g, font, x + 170, y + H - 26, 152, 18, "Cancel", true, false, mx, my);
 
@@ -450,10 +464,15 @@ final class MissionPlannerPanel {
                         "No outpost here yet." : "This outpost is not damaged."),
                 new Mode(Mission.Type.RESCUE, x + 10, y + 84, 312, canRescue,
                         "No distress signal here. A failed run can strand a rocket."),
-                new Mode(Mission.Type.STATION, x + 10, y + 104, 312, canStation, stage != DiscoveryStage.SURVEYED ?
-                        "Survey this body first." : "The station here is fully built."),
+                new Mode(Mission.Type.STATION, x + 10, y + 104, stationW, canStation,
+                        stage != DiscoveryStage.SURVEYED ? "Survey this body first." :
+                                shellLevel > 0 ? "A swarm cannot be built inside a shell." :
+                                        "The station here is fully built."),
+                new Mode(Mission.Type.SHELL, x + 168, y + 104, 154, canShell, !swarm ? "" :
+                        stage != DiscoveryStage.SURVEYED ? "Survey this body first." : "The shell here is finished."),
         };
         for (Mode m : modes) {
+            if (m.type() == Mission.Type.SHELL && !swarm) continue;
             if (!m.enabled() && MapUi.inside(mx, my, m.bx(), m.by(), m.bw(), 16)) {
                 pendingTooltip = Component.literal(m.reason());
             }
@@ -470,9 +489,10 @@ final class MissionPlannerPanel {
     }
 
     private static boolean available(Mission.Type type, boolean survey, boolean extract, boolean deploy,
-                                     boolean haul, boolean repair, boolean rescue, boolean station) {
+                                     boolean haul, boolean repair, boolean rescue, boolean station, boolean shell) {
         return switch (type) {
             case STATION -> station;
+            case SHELL -> shell;
             case RESCUE -> rescue;
             case SURVEY -> survey;
             case EXTRACT -> extract;

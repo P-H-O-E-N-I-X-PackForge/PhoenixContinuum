@@ -30,6 +30,59 @@ public final class Swarms {
         return isPenrose(body) ? "Penrose swarm" : isSwarm(body) ? "Dyson swarm" : "orbital station";
     }
 
+    /** What a shell at this body is called. */
+    public static String shellName(ContinuumBody body) {
+        return isPenrose(body) ? "Penrose sphere" : "Dyson shell";
+    }
+
+    public static int shellMaxLevel(ContinuumBody body) {
+        return ContinuumConfigs.INSTANCE.shellMaxLevel;
+    }
+
+    public static double shellCompletion(ContinuumBody body, int level) {
+        return Math.max(0.0, Math.min(1.0, level / (double) Math.max(1, shellMaxLevel(body))));
+    }
+
+    public static int shellProbesPerLevel() {
+        return Math.max(1, ContinuumConfigs.INSTANCE.shellProbesPerLevel);
+    }
+
+    /**
+     * The share of an outpost's cycles that still get made: a shell round the star it circles shades it. It is the
+     * most complete of the team's shells in the outpost's system.
+     */
+    public static double shadow(ContinuumTeamData data, UUID team, ContinuumBody outpost) {
+        if (outpost == null) return 1.0;
+        double worst = 0.0;
+        for (Map.Entry<ResourceLocation, Integer> entry : data.shells(team).entrySet()) {
+            ContinuumBody shell = ContinuumData.body(entry.getKey());
+            if (shell == null || !shell.system().equals(outpost.system())) continue;
+            worst = Math.max(worst, shellCompletion(shell, entry.getValue()));
+        }
+        return 1.0 - ContinuumConfigs.INSTANCE.shellOutpostShadow * worst;
+    }
+
+    /** What a shell of this level makes per tick: nothing until it is mostly built, then the square of how built. */
+    public static double shellPower(ContinuumBody body, int level) {
+        var cfg = ContinuumConfigs.INSTANCE;
+        double completion = shellCompletion(body, level);
+        if (completion < cfg.shellMinCompletion) return 0.0;
+        return cfg.swarmMaxLevel * cfg.swarmPowerPerLevel * luminosity(body) * cfg.shellPowerMultiplier *
+                completion * completion * (isPenrose(body) ? cfg.penrosePowerMultiplier : 1.0);
+    }
+
+    public static String describeShell(ContinuumBody body, int level) {
+        double completion = shellCompletion(body, level);
+        long power = Math.round(shellPower(body, level));
+        String unit = net.phoenix.continuum.machine.PadTiers.energyUnit();
+        if (power <= 0) {
+            return String.format(java.util.Locale.ROOT, "nothing yet, it needs %d%% built",
+                    Math.round(ContinuumConfigs.INSTANCE.shellMinCompletion * 100));
+        }
+        return String.format(java.util.Locale.ROOT, "%,d %s/t for your team, %d%% built", power, unit,
+                Math.round(completion * 100));
+    }
+
     /** How many levels a station at this body can have: a swarm has many, an ordinary station has a few. */
     public static int maxLevel(ContinuumBody body) {
         var cfg = ContinuumConfigs.INSTANCE;
@@ -56,6 +109,10 @@ public final class Swarms {
             if (!isSwarm(body)) continue;
             total += entry.getValue() * cfg.swarmPowerPerLevel * luminosity(body) *
                     (isPenrose(body) ? cfg.penrosePowerMultiplier : 1.0);
+        }
+        for (Map.Entry<ResourceLocation, Integer> entry : ContinuumTeamData.get(server).shells(team).entrySet()) {
+            ContinuumBody body = ContinuumData.body(entry.getKey());
+            if (isSwarm(body)) total += shellPower(body, entry.getValue());
         }
         return Math.round(total);
     }

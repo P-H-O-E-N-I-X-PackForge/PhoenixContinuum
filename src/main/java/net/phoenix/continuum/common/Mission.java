@@ -39,7 +39,9 @@ public final class Mission {
 
         RESCUE,
 
-        STATION;
+        STATION,
+
+        SHELL;
 
         public String label() {
             return switch (this) {
@@ -50,6 +52,7 @@ public final class Mission {
                 case REPAIR -> "Outpost repair run";
                 case RESCUE -> "Rescue run";
                 case STATION -> "Station construction";
+                case SHELL -> "Shell construction";
             };
         }
     }

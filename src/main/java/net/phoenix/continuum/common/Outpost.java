@@ -78,6 +78,11 @@ public final class Outpost {
     }
 
     public boolean settle(long now, long cycleMillis, int maxReady, CyclePayer payer) {
+        return settle(now, cycleMillis, maxReady, payer, 1.0);
+    }
+
+    /** {@code shadow} is the share of cycles that get made: a shell round the star shades the system's outposts. */
+    public boolean settle(long now, long cycleMillis, int maxReady, CyclePayer payer, double shadow) {
         if (cycleMillis <= 0) return false;
 
         if (damaged) {
@@ -114,10 +119,17 @@ public final class Outpost {
             }
         }
 
-        int paid = Math.max(0, Math.min(survived, payer.pay(survived, probes)));
+        int made = survived;
+        if (shadow < 1.0) {
+            made = 0;
+            for (int i = 0; i < survived; i++) {
+                if (RANDOM.nextDouble() < shadow) made++;
+            }
+        }
+        int paid = Math.max(0, Math.min(made, payer.pay(made, probes)));
         readyCycles += paid;
-        lostCycles += survived - paid;
-        powered = paid >= survived;
+        lostCycles += made - paid;
+        powered = paid >= made;
 
         if (broke) {
             damaged = true;

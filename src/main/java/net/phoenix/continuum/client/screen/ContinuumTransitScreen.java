@@ -225,6 +225,7 @@ public class ContinuumTransitScreen extends Screen {
                 case REPAIR -> "ARRIVED  -  the outpost is repaired and producing again";
                 case RESCUE -> "ARRIVED  -  the stranded rocket is recovered";
                 case STATION -> "ARRIVED  -  the orbital station is built";
+                case SHELL -> "ARRIVED  -  another section of the shell is in place";
             };
             statusColor = MapUi.GOOD;
         } else if (mission.stranded()) {
@@ -242,6 +243,7 @@ public class ContinuumTransitScreen extends Screen {
                 case REPAIR -> "MISSION FAILED  -  the repair kits were lost and the outpost is still broken";
                 case RESCUE -> "MISSION FAILED  -  the repair kits were lost; the stranded rocket still waits";
                 case STATION -> "MISSION FAILED  -  the station crew's probes were lost";
+                case SHELL -> "MISSION FAILED  -  the shell crew's probes were lost";
             };
             statusColor = MapUi.BAD;
         } else {

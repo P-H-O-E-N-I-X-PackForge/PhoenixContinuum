@@ -71,6 +71,7 @@ public class ContinuumFleetScreen extends Screen {
             case REPAIR -> "Repair  -  " + name;
             case RESCUE -> "Rescue  -  " + name;
             case STATION -> "Station  -  " + name;
+            case SHELL -> "Shell  -  " + name;
         };
     }
 

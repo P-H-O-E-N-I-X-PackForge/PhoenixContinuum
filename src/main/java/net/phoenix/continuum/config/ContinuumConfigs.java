@@ -385,6 +385,43 @@ public class ContinuumConfigs {
         public double penrosePowerMultiplier = 4.0;
 
         @Configurable
+        @Configurable.Comment({
+                "Dyson shells and Penrose spheres (a star or black hole closed in completely) against swarms.",
+                "A shell has this many levels. Default: 10"
+        })
+        @Configurable.Range(min = 1, max = 100)
+        public int shellMaxLevel = 10;
+
+        @Configurable
+        @Configurable.Comment({ "Probes one shell level costs to build (a swarm level costs less). Default: 16" })
+        @Configurable.Range(min = 1, max = 64)
+        public int shellProbesPerLevel = 16;
+
+        @Configurable
+        @Configurable.Comment({
+                "A finished shell makes this many times what a finished swarm does, but its output grows with the",
+                "square of how complete it is. Default: 2.5"
+        })
+        @Configurable.DecimalRange(min = 0.0, max = 1000.0)
+        public double shellPowerMultiplier = 2.5;
+
+        @Configurable
+        @Configurable.Comment({
+                "A shell makes nothing until it is this complete (0.3 = 30%). A swarm makes power from its first",
+                "level. Default: 0.3"
+        })
+        @Configurable.DecimalRange(min = 0.0, max = 1.0)
+        public double shellMinCompletion = 0.3;
+
+        @Configurable
+        @Configurable.Comment({
+                "A shell hides its star: your outposts in that system make this much less at full completion",
+                "(0.5 = half as many production cycles). Default: 0.5"
+        })
+        @Configurable.DecimalRange(min = 0.0, max = 1.0)
+        public double shellOutpostShadow = 0.5;
+
+        @Configurable
         @Configurable.Comment({ "Probes one swarm level costs to build. Default: 8" })
         @Configurable.Range(min = 1, max = 64)
         public int swarmProbesPerLevel = 8;
