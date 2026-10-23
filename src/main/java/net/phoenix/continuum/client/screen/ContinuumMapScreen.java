@@ -9,16 +9,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.phoenix.continuum.client.render.*;
 import net.phoenix.continuum.config.ContinuumConfigs;
 import net.phoenix.continuum.client.ContinuumClientState;
 import net.phoenix.continuum.client.ContinuumSounds;
 import net.phoenix.continuum.client.ContinuumVisuals;
-import net.phoenix.continuum.client.render.ContinuumShaders;
-import net.phoenix.continuum.client.render.GlowRenderer;
-import net.phoenix.continuum.client.render.MapCamera;
-import net.phoenix.continuum.client.render.PlanetParams;
-import net.phoenix.continuum.client.render.PlanetRenderer;
-import net.phoenix.continuum.client.render.SceneRenderer;
 import net.phoenix.continuum.common.ContinuumMissions;
 import net.phoenix.continuum.common.ContinuumStateSnapshot;
 import net.phoenix.continuum.common.Mission;
@@ -262,8 +257,9 @@ public class ContinuumMapScreen extends Screen {
         if (system != null) layoutSystem(system);
 
         if (sceneReady) {
-            drawScene();
-            blitScene(graphics);
+        drawScene();
+        Minecraft.getInstance().getMainRenderTarget().bindWrite(true); // Rebind main screen framebuffer
+        blitScene(graphics);
         } else {
             graphics.fill(0, 0, width, height, 0xFF05060f);
             String message = ContinuumShaders.ready() ? "Render target unavailable" : "Continuum shaders not loaded";
@@ -1901,8 +1897,9 @@ public class ContinuumMapScreen extends Screen {
 
     @Override
     public void removed() {
-        net.phoenix.continuum.client.render.PlanetBake.pause(false);
-        net.phoenix.continuum.client.render.PlanetBake.burst(false);
+        Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
+        PlanetBake.pause(false);
+        PlanetBake.burst(false);
         ambience.stop();
         if (scene != null) {
             scene.destroyBuffers();
