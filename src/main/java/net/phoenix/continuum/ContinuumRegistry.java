@@ -172,19 +172,21 @@ public final class ContinuumRegistry {
                     .icon(() -> ROCKET.asStack())
                     .displayItems((parameters, output) -> {
                         for (var entry : ITEMS.getEntries()) output.accept(entry.get());
-                        if (GregTech.loaded()) {
-                            for (ItemStack machine : net.phoenix.continuum.integration.gtceu.ContinuumGt
-                                    .machineStacks()) {
-                                output.accept(machine);
-                            }
-                        }
                     })
                     .build());
+
+    /** Every item and block item Continuum registers itself (the GregTech machines are Registrate's). */
+    public static java.util.List<ItemStack> allStacks() {
+        java.util.List<ItemStack> stacks = new java.util.ArrayList<>();
+        for (var entry : ITEMS.getEntries()) stacks.add(new ItemStack(entry.get()));
+        return stacks;
+    }
 
     public static void register(IEventBus modEventBus) {
         ITEMS.register(modEventBus);
         BLOCKS.register(modEventBus);
         BLOCK_ENTITIES.register(modEventBus);
-        TABS.register(modEventBus);
+        // with GregTech the tab is Registrate's default tab (see ContinuumGt), which the machines are put in
+        if (!GregTech.loaded()) TABS.register(modEventBus);
     }
 }
