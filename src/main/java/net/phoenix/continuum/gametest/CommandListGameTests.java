@@ -34,7 +34,9 @@ public class CommandListGameTests {
     @GameTest(template = "gametest_empty", timeoutTicks = 200)
     public static void bodiesMadeInGameShowInTheCommandListsAndCanBeSearchedByName(GameTestHelper helper) throws Exception {
         MinecraftServer server = helper.getLevel().getServer();
-        var system = ContinuumData.systems().stream().findFirst().orElse(null);
+        var system = ContinuumData.systems().stream()
+                .filter(sys -> !sys.id().getNamespace().equals(net.phoenix.continuum.data.SystemGenerator.NAMESPACE))
+                .findFirst().orElse(null);
         helper.assertTrue(system != null, "there should be a system to put a body in");
 
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath("phoenix_continuum", "gametest_created_world");
