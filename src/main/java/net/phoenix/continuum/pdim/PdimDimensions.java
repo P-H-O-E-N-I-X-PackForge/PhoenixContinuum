@@ -26,10 +26,31 @@ public final class PdimDimensions {
         return ResourceKey.create(Registries.DIMENSION, PhoenixContinuum.id(PREFIX + body.getPath()));
     }
 
+    private static java.util.Map<String, ResourceLocation> byPath = java.util.Map.of();
+    private static int byPathVersion = -1;
+
+    /**
+     * The body a personal dimension belongs to. Its dimension is {@code phoenix_continuum:pdim/<path>} whatever the
+     * body's own namespace, so a generated world (namespace {@code phoenix_continuum_gen}) is found by its path.
+     */
     public static @Nullable ResourceLocation bodyOf(ResourceKey<Level> dimension) {
         ResourceLocation id = dimension.location();
         if (!PhoenixContinuum.MOD_ID.equals(id.getNamespace()) || !id.getPath().startsWith(PREFIX)) return null;
-        return PhoenixContinuum.id(id.getPath().substring(PREFIX.length()));
+        String path = id.getPath().substring(PREFIX.length());
+        if (byPathVersion != net.phoenix.continuum.data.ContinuumData.version()) {
+            java.util.Map<String, ResourceLocation> found = new java.util.HashMap<>();
+            for (ContinuumBody body : net.phoenix.continuum.data.ContinuumData.allBodies()) {
+                // a body in this mod's own namespace wins a clash of paths
+                ResourceLocation old = found.get(body.id().getPath());
+                if (old == null || PhoenixContinuum.MOD_ID.equals(body.id().getNamespace())) {
+                    found.put(body.id().getPath(), body.id());
+                }
+            }
+            byPath = found;
+            byPathVersion = net.phoenix.continuum.data.ContinuumData.version();
+        }
+        ResourceLocation body = byPath.get(path);
+        return body != null ? body : PhoenixContinuum.id(path);
     }
 
     public static boolean isPersonal(ResourceKey<Level> dimension) {

@@ -50,6 +50,27 @@ public final class ContinuumData {
         return version;
     }
 
+    /**
+     * The body at the centre of a system is its star: when the system's star kind is changed (a star tuned into a black
+     * hole), the body follows, so the map, the missions and the swarms see what the system shows. A black hole body in
+     * a generated system goes back to a star the same way.
+     */
+    static void reconcileCentral(Map<ResourceLocation, ContinuumSystem> systems,
+                                 Map<ResourceLocation, ContinuumBody> bodies) {
+        for (Map.Entry<ResourceLocation, ContinuumBody> entry : bodies.entrySet()) {
+            ContinuumBody body = entry.getValue();
+            if (!body.isCentral()) continue;
+            ContinuumSystem owner = systems.get(body.system());
+            if (owner == null) continue;
+            if (owner.hasHole() && body.type() == ContinuumBody.Type.STAR) {
+                entry.setValue(body.withType(ContinuumBody.Type.BLACK_HOLE));
+            } else if (!owner.hasHole() && body.type() == ContinuumBody.Type.BLACK_HOLE &&
+                    body.id().getNamespace().equals(net.phoenix.continuum.data.SystemGenerator.NAMESPACE)) {
+                entry.setValue(body.withType(ContinuumBody.Type.STAR));
+            }
+        }
+    }
+
     public static void acceptSync(Snapshot snapshot) {
         version++;
         Map<ResourceLocation, ContinuumSystem> newSystems = new LinkedHashMap<>();
@@ -57,6 +78,7 @@ public final class ContinuumData {
         snapshot.systems().forEach((id, json) -> parse(id, json, o -> newSystems.put(id, parseSystem(id, o))));
         snapshot.bodies().forEach((id, json) -> parse(id, json, o -> newBodies.put(id, parseBody(id, o))));
 
+        reconcileCentral(newSystems, newBodies);
         systems = newSystems;
         bodies = newBodies;
         rawSystems = snapshot.systems();
@@ -359,10 +381,13 @@ public final class ContinuumData {
             read(manager, SYSTEM_DIR, rawSystems::put, report);
             read(manager, BODY_DIR, rawBodies::put, report);
 
+            // This world's generated galaxy joins the files before anything is resolved: a body made in game can then
+            // start from one of its worlds ("inherits"), or sit in one of its systems, like any other content.
+            addGenerated(rawSystems, rawBodies, report);
+
             Map<ResourceLocation, JsonObject> systemJson = ContentResolver.resolve("system", rawSystems, report);
             Map<ResourceLocation, JsonObject> bodyJson = ContentResolver.resolve("body", rawBodies, report);
             applyDisabled(manager, systemJson, bodyJson, report);
-            addGenerated(systemJson, bodyJson, report);
             TuningPatches.applyAll(bodyJson, report);
             TuningPatches.applySystems(systemJson, report);
 
@@ -391,6 +416,7 @@ public final class ContinuumData {
                     report.error("body " + id, "could not be read: " + e.getMessage());
                 }
             });
+            reconcileCentral(loadedSystems, loadedBodies);
             ContinuumValidator.checkReferences(loadedSystems, loadedBodies, report);
             ContinuumReport.publish(report);
             return new Parsed(loadedSystems, loadedBodies, loadedRawSystems, loadedRawBodies);
@@ -456,7 +482,9 @@ public final class ContinuumData {
                                          Map<ResourceLocation, JsonObject> bodyJson, ContinuumReport report) {
             try {
                 ResourceLocation homeId = ResourceLocation.fromNamespaceAndPath("phoenix_continuum", "home");
-                JsonObject homeJson = systemJson.get(homeId);
+                // home may start from another system: resolve once to find where it is (problems are reported later)
+                JsonObject homeJson = ContentResolver.resolve("system", new LinkedHashMap<>(systemJson),
+                        new ContinuumReport()).get(homeId);
                 ContinuumSystem home = homeJson == null ? null : parseSystem(homeId, homeJson);
                 var generated = net.phoenix.continuum.common.GeneratedGalaxy.currentResult(home);
                 if (generated == null) return;

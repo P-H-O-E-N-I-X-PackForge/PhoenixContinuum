@@ -12,6 +12,7 @@ import net.neoforged.fml.loading.FMLPaths;
 import net.phoenix.continuum.client.render.SurfaceMap;
 import net.phoenix.continuum.data.ContinuumBody;
 import net.phoenix.continuum.data.ContinuumData;
+import net.phoenix.continuum.data.ContinuumSystem;
 import net.phoenix.continuum.data.ContinuumTuner;
 
 import com.google.gson.GsonBuilder;
@@ -168,6 +169,13 @@ public final class ContinuumTunerScreen extends Screen {
             fields.add(new Field("hole_tilt", "Disk tilt (map view)  0 edge-on, 1 face-on", Kind.NUMBER, 0, 1, 0.1, 0.075));
             fields.add(new Field("sky_hole_inclination", "Disk inclination (sky), degrees", Kind.NUMBER, 0, 90, 5, 45.0));
             fields.add(new Field("sky_hole_lean", "Disk lean (sky), degrees", Kind.NUMBER, -90, 90, 5, 15.0));
+            fields.add(Field.header("A black hole's look and size belong to its system."));
+            addServerFields(json);
+            return;
+        }
+        if (body.type() == ContinuumBody.Type.STAR && body.isCentral()) {
+            fields.add(Field.header("This is the system's own star. Its kind, colour and size are the system's:"));
+            addServerFields(json);
             return;
         }
 
@@ -489,7 +497,13 @@ public final class ContinuumTunerScreen extends Screen {
 
         int px = x + LIST_W + 12;
         g.drawString(font, "Preview", px, top() - 12, 0xFFAEBBCF, false);
-        if (body.type() != ContinuumBody.Type.BLACK_HOLE) {
+        ContinuumSystem owner = body.isCentral() ? ContinuumData.system(body.system()) : null;
+        if (owner != null && (body.type() == ContinuumBody.Type.STAR ||
+                body.type() == ContinuumBody.Type.BLACK_HOLE)) {
+            // a system's star or black hole is drawn as the system draws it
+            preview.drawSystem(g, owner, px, top(), 200);
+            g.drawString(font, "drag to turn, scroll to zoom", px, top() + 204, 0xFF7F8A99, false);
+        } else if (body.type() != ContinuumBody.Type.BLACK_HOLE) {
             preview.drawPlanet(g, body.params(), px, top(), 200);
             g.drawString(font, "drag to turn, scroll to zoom", px, top() + 204, 0xFF7F8A99, false);
         } else {
