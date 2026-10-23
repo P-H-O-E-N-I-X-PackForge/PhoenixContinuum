@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.phoenix.continuum.data.ContinuumBody;
 import net.phoenix.continuum.data.ContinuumData;
 import net.phoenix.continuum.data.ContinuumSystem;
@@ -259,7 +260,7 @@ public final class ContinuumCreateScreen extends Screen {
             def.add("surface", surface);
         }
 
-        net.neoforged.neoforge.network.PacketDistributor.sendToServer(new C2SCreatePacket(false, id, def.toString()));
+        PacketDistributor.sendToServer(new C2SCreatePacket(false, id, def.toString()));
         minecraft.setScreen(parent);
     }
 
