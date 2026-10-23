@@ -3,7 +3,6 @@ package net.phoenix.continuum.data;
 import java.util.ArrayList;
 import java.util.List;
 
-/** What went wrong (or is suspicious) while loading Continuum data. Replaced on every reload. */
 public final class ContinuumReport {
 
     public enum Level {

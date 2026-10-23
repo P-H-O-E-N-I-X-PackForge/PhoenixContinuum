@@ -6,16 +6,12 @@ import net.minecraftforge.eventbus.api.Event;
 
 import java.util.UUID;
 
-/**
- * Posted on the game bus after a body or system rules and per-team overrides have been applied, so code (Java mods,
- * KubeJS) has the final say in both directions: call {@link #setResult(boolean)}.
- */
 public class ContinuumVisibilityEvent extends Event {
 
     public enum Kind {
-        /** Whether the body or system appears at all. */
+        
         VISIBLE,
-        /** Whether missions can be sent there. */
+        
         ACCESSIBLE
     }
 
@@ -42,7 +38,6 @@ public class ContinuumVisibilityEvent extends Event {
         return team;
     }
 
-    /** The body id (or, for a system rule, the system id). */
     public ResourceLocation getSubject() {
         return subject;
     }

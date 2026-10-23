@@ -31,14 +31,12 @@ public class ContinuumTeamData extends SavedData {
 
     private final java.util.Set<UUID> engaged = new java.util.HashSet<>();
 
-    /** Per-team show/hide set with /continuumadmin show|hide, by body or system id. */
     private final Map<UUID, Map<ResourceLocation, Boolean>> visibilityOverrides = new HashMap<>();
 
     public @org.jetbrains.annotations.Nullable Boolean visibilityOverride(UUID team, ResourceLocation id) {
         return visibilityOverrides.getOrDefault(team, Map.of()).get(id);
     }
 
-    /** Null clears the override. */
     public void setVisibilityOverride(UUID team, ResourceLocation id,
                                       @org.jetbrains.annotations.Nullable Boolean visible) {
         if (visible == null) {
@@ -96,7 +94,7 @@ public class ContinuumTeamData extends SavedData {
     public DiscoveryStage effectiveStage(MinecraftServer server, UUID team, ResourceLocation id) {
         DiscoveryStage stage = max(stages.getOrDefault(team, Map.of()).getOrDefault(id, DiscoveryStage.UNKNOWN),
                 initial(id));
-        // with the default progression mode everything is on the map from the start; surveying is still a mission
+        
         if (net.phoenix.continuum.config.ContinuumConfigs.INSTANCE.progressionMode ==
                 net.phoenix.continuum.config.ContinuumConfigs.ProgressionMode.SHOW_ALL) {
             stage = max(stage, DiscoveryStage.DETECTED);
@@ -170,7 +168,6 @@ public class ContinuumTeamData extends SavedData {
         setDirty();
     }
 
-    /** The anomalies a team has investigated, as "body|id". */
     public java.util.Set<String> investigatedAnomalies(UUID team) {
         return anomalies.getOrDefault(team, java.util.Set.of());
     }
@@ -204,7 +201,6 @@ public class ContinuumTeamData extends SavedData {
         return stations.getOrDefault(team, Map.of());
     }
 
-    /** The stations that add a mission slot: swarms at stars do not. */
     public int stationCount(UUID team) {
         int count = 0;
         for (ResourceLocation body : stations.getOrDefault(team, Map.of()).keySet()) {
@@ -227,7 +223,6 @@ public class ContinuumTeamData extends SavedData {
         return shells.getOrDefault(team, Map.of());
     }
 
-    /** A shell and a swarm cannot share a star: the first shell level takes the swarm apart. */
     public void setShellLevel(UUID team, ResourceLocation body, int level) {
         if (level <= 0) {
             Map<ResourceLocation, Integer> mine = shells.get(team);

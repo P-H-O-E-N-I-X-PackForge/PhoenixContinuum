@@ -9,11 +9,6 @@ import net.phoenix.continuum.data.SystemGenerator;
 
 import org.jetbrains.annotations.Nullable;
 
-/**
- * The seeded galaxy a world has, if any. Only the seed and the count are saved (with the world); the systems
- * themselves are generated again on every load, so each world has its own and a server owner can reset it by
- * generating a new one.
- */
 public final class GeneratedGalaxy extends SavedData {
 
     public record Setup(boolean active, long seed, int count) {
@@ -37,7 +32,6 @@ public final class GeneratedGalaxy extends SavedData {
         setDirty();
     }
 
-    /** What the loader adds to the data, or null if this world has no generated galaxy (or is not loaded yet). */
     public static @Nullable SystemGenerator.Result currentResult(@Nullable ContinuumSystem home) {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server == null) return null;
@@ -45,7 +39,7 @@ public final class GeneratedGalaxy extends SavedData {
         try {
             setup = get(server).setup();
         } catch (RuntimeException e) {
-            // the overworld does not exist yet during the first data load; the server-started hook reloads
+            
             return null;
         }
         if (!setup.active() || setup.count() <= 0) return null;

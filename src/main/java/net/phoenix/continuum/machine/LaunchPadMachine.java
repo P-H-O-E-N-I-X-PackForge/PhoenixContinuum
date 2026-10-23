@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Predicate;
 
-/** The launch complex controller for GregTech 7.x. {@code LaunchPadMachine8} is the GregTech 8 twin of this class. */
 public class LaunchPadMachine extends MultiblockControllerMachine implements LaunchComplex, IInteractedMachine {
 
     private UUID registeredTeam;

@@ -9,7 +9,6 @@ import net.phoenix.continuum.api.ContinuumSwarmPower;
 
 import java.util.UUID;
 
-/** The Swarm Receiver Array for GregTech 8.x. {@code SwarmReceiverMachine} is the GregTech 7 twin of this class. */
 public class SwarmReceiverMachine8 extends MultiblockControllerMachine implements ContinuumSwarmPower.Sink {
 
     private UUID registeredTeam;
@@ -72,7 +71,7 @@ public class SwarmReceiverMachine8 extends MultiblockControllerMachine implement
     @Override
     public long accept(long amount) {
         if (!isFormed() || getLevel() == null || getLevel().getServer() == null) return 0;
-        // with the Tesla Network installed, the swarm fills its tesla storage first; what that cannot take goes on
+        
         long toTesla = 0;
         if (amount > 0 && net.phoenix.continuum.integration.tesla.TeslaLink.loaded()) {
             UUID owner = getOwnerUUID();
@@ -83,7 +82,6 @@ public class SwarmReceiverMachine8 extends MultiblockControllerMachine implement
                 this::fillHatches);
     }
 
-    /** Puts up to this much into the energy hatches; returns how much they took. */
     private long fillHatches(long available) {
         long remaining = available;
         for (var part : getParts()) {

@@ -11,11 +11,6 @@ import dev.latvian.mods.kubejs.script.BindingsEvent;
 import dev.latvian.mods.kubejs.script.ScriptType;
 import dev.latvian.mods.kubejs.util.ClassFilter;
 
-/**
- * KubeJS bindings for Continuum: the {@code Continuum} global (see {@link ContinuumAPI}), the {@code ContinuumEvents}
- * event group, and the Continuum classes scripts may touch. Listed in {@code kubejs.plugins.txt}, so KubeJS only loads
- * it when it is installed; Continuum works the same without it.
- */
 public class ContinuumKubeJSPlugin extends KubeJSPlugin {
 
     private static boolean bridged = false;
@@ -24,7 +19,7 @@ public class ContinuumKubeJSPlugin extends KubeJSPlugin {
     public void init() {
         if (bridged) return;
         bridged = true;
-        // game-bus events -> script events, only when a script is actually listening
+        
         MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, ContinuumVisibilityEvent.class, event -> {
             if (ContinuumKubeEvents.VISIBILITY.hasListeners()) {
                 ContinuumKubeEvents.VISIBILITY.post(ScriptType.SERVER,

@@ -14,11 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
-/**
- * {@code config/phoenix_continuum/pack/} is an always-on data pack at the top of the stack. It is laid out like any
- * data pack ({@code data/<namespace>/continuum/bodies/...}), so a pack without KubeJS has one obvious place to put
- * extra or overriding content. KubeJS's own {@code kubejs/data/} works the same way without any help from here.
- */
 public final class ContinuumPackFolder {
 
     public static final String ID = "continuum_pack_folder";
@@ -36,9 +31,7 @@ public final class ContinuumPackFolder {
         Path root = folder();
         try {
             Files.createDirectories(root.resolve("data"));
-            // A pack only counts for the namespaces it has when the game loads its data, and a folder made later is
-            // not seen until a restart. These are where bodies and systems are made in game (the tuner's, and the
-            // generated galaxy's), so they must be there from the start.
+
             for (String namespace : new String[] { "phoenix_continuum", "phoenix_continuum_gen" }) {
                 Files.createDirectories(root.resolve("data").resolve(namespace).resolve("continuum").resolve("bodies"));
                 Files.createDirectories(root.resolve("data").resolve(namespace).resolve("continuum").resolve("systems"));

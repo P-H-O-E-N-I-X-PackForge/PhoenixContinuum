@@ -19,7 +19,6 @@ import net.phoenix.continuum.machine.LaunchPadMachine8;
 import net.phoenix.continuum.machine.SwarmReceiverMachine8;
 import net.phoenix.continuum.machine.SwarmReceiverShape;
 
-/** GregTech 8.x: the multiblock pattern builder, and a registrate that is handed the mod bus. */
 public final class GtmBootstrap8 implements GtmBootstrap {
 
     @Override

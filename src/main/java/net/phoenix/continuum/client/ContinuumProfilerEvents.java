@@ -8,7 +8,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.phoenix.continuum.PhoenixContinuum;
 
-/** Feeds the profiler once per frame and draws its numbers while it is on. */
 @Mod.EventBusSubscriber(modid = PhoenixContinuum.MOD_ID, value = Dist.CLIENT)
 public final class ContinuumProfilerEvents {
 

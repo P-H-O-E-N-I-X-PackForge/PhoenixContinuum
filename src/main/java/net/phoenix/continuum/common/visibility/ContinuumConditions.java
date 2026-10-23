@@ -17,15 +17,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-/**
- * The condition types a rule can use, and the place other mods add their own:
- * {@code ContinuumConditions.register(id, json -> context -> ...)}.
- *
- * <p>Built in: {@code always}, {@code never}, {@code research} ({@code node}), {@code flag} ({@code name}),
- * {@code discipline} ({@code is}), {@code stage} ({@code body} or {@code system}, {@code at_least}), {@code visible}
- * ({@code body}), {@code advancement} ({@code id}, any online team member), and the combinators {@code all_of},
- * {@code any_of} and {@code not}. A bare array means all_of; {@code true} / {@code false} are always / never.
- */
 public final class ContinuumConditions {
 
     private static final Map<ResourceLocation, Function<JsonObject, ContinuumCondition>> TYPES =
@@ -127,7 +118,6 @@ public final class ContinuumConditions {
         return list;
     }
 
-    /** Throws IllegalArgumentException with a readable message if the rule is malformed. */
     public static ContinuumCondition parse(JsonElement element) {
         if (element == null || element.isJsonNull()) throw new IllegalArgumentException("missing condition");
         if (element.isJsonPrimitive() && element.getAsJsonPrimitive().isBoolean()) {
@@ -138,7 +128,7 @@ public final class ContinuumConditions {
         if (!element.isJsonObject()) throw new IllegalArgumentException("a condition is an object, list or boolean");
 
         JsonObject json = element.getAsJsonObject();
-        // shorthand: { "all_of": [...] } / { "any_of": [...] } / { "not": {...} }
+        
         for (String combinator : List.of("all_of", "any_of")) {
             if (json.has(combinator) && !json.has("type")) {
                 JsonObject wrapped = new JsonObject();

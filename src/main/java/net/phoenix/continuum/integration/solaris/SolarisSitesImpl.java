@@ -14,12 +14,10 @@ import net.phoenixvine.solaris.api.SolarisMarkerSyncEvent;
 import net.phoenixvine.solaris.api.SolarisMarkers;
 import net.phoenixvine.solaris.api.sites.TeamSiteData;
 
-
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.UUID;
 
-/** The Solaris side of {@link SolarisSites}. Only loaded when Solaris is installed. */
 final class SolarisSitesImpl {
 
     private static final String KIND = "launch_complex";

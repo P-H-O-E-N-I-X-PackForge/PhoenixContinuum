@@ -2,7 +2,6 @@ package net.phoenix.continuum.integration.gtceu;
 
 import net.minecraftforge.fml.loading.FMLLoader;
 
-/** Whether GregTech is installed. Nothing outside the {@code integration.gtceu} package may touch GregTech classes unless this is true. */
 public final class GregTech {
 
     private static Boolean loaded;

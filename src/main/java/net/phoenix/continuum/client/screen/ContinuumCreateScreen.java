@@ -3,9 +3,11 @@ package net.phoenix.continuum.client.screen;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.phoenix.continuum.data.ContinuumBody;
@@ -14,6 +16,7 @@ import net.phoenix.continuum.data.ContinuumSystem;
 import net.phoenix.continuum.network.C2SCreatePacket;
 
 import com.google.gson.JsonObject;
+import net.phoenix.continuum.network.ContinuumNetwork;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -22,14 +25,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
-/**
- * Create a new system or body from the game (operators). The server writes it as an ordinary definition file in the
- * pack folder. A new body starts as a copy of an existing one (it inherits it) and only states what you chose here.
- */
 @OnlyIn(Dist.CLIENT)
 public final class ContinuumCreateScreen extends Screen {
 
     private static final String[] KINDS = { "Planet", "Gas giant", "Moon", "Black hole" };
+    private static final String HINT = "A new body inherits the one you start from; edit it afterwards in the tuner.";
+    private static final int LINE = 10;
 
     private final Screen parent;
     private final List<ContinuumSystem> systems = new ArrayList<>();
@@ -55,7 +56,9 @@ public final class ContinuumCreateScreen extends Screen {
         }
     }
 
-    // ------------------------------------------------------------------ choices
+    private int formW() {
+        return Math.max(120, Math.min(260, width - 20));
+    }
 
     private ContinuumSystem currentSystem() {
         return systems.isEmpty() ? null : systems.get(Math.floorMod(systemIndex, systems.size()));
@@ -69,7 +72,6 @@ public final class ContinuumCreateScreen extends Screen {
         return kindIndex == 3;
     }
 
-    /** Existing bodies of the chosen kind, the things a new one can start from. */
     private List<ContinuumBody> templates() {
         List<ContinuumBody> out = new ArrayList<>();
         for (ContinuumBody body : ContinuumData.allBodies()) {
@@ -106,11 +108,9 @@ public final class ContinuumCreateScreen extends Screen {
         return list.isEmpty() ? null : list.get(Math.floorMod(parentIndex, list.size()));
     }
 
-    // ------------------------------------------------------------------ layout
-
     @Override
     protected void init() {
-        int w = 260;
+        int w = formW();
         int x = (width - w) / 2;
         int y = 40;
 
@@ -153,18 +153,23 @@ public final class ContinuumCreateScreen extends Screen {
 
     private void refreshLabels() {
         ContinuumSystem sys = currentSystem();
-        systemButton.setMessage(Component.literal("System: " + (sys == null ? "none" : sys.name())));
+        Component systemLabel = Component.literal("System: " + (sys == null ? "none" : sys.name()));
+        systemButton.setMessage(systemLabel);
+        systemButton.setTooltip(Tooltip.create(systemLabel));
         kindButton.setMessage(Component.literal("Kind: " + KINDS[kindIndex]));
         ContinuumBody orbit = orbited();
         parentButton.active = isMoon();
-        parentButton.setMessage(Component.literal(isMoon() ? "Orbits: " + (orbit == null ? "no planet in this system" :
-                orbit.name()) : "Orbits: the star"));
+        Component parentLabel = Component.literal(isMoon() ? "Orbits: " + (orbit == null ? "no planet in this system" :
+                orbit.name()) : "Orbits: the star");
+        parentButton.setMessage(parentLabel);
+        parentButton.setTooltip(Tooltip.create(parentLabel));
         ContinuumBody template = template();
-        templateButton.setMessage(Component.literal("Start from: " + (template == null ? "nothing" :
-                template.name() + " (" + template.id().getPath() + ")")));
+        Component templateLabel = Component.literal("Start from: " + (template == null ? "nothing" :
+                template.name() + " (" + template.id().getPath() + ")"));
+        templateButton.setMessage(templateLabel);
+        templateButton.setTooltip(Tooltip.create(templateLabel));
     }
 
-    /** The position in the galaxy furthest from every existing system, close to the middle. */
     static double[] freeSpot() {
         double bestX = 0;
         double bestZ = 0;
@@ -186,17 +191,15 @@ public final class ContinuumCreateScreen extends Screen {
         return new double[] { bestX, 0.0, bestZ };
     }
 
-    // ------------------------------------------------------------------ create
-
     private ResourceLocation freshId(String display) {
         String slug = display.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "_").replaceAll("^_+|_+$", "");
         if (slug.isEmpty()) slug = "new_body";
         String candidate = slug;
         int n = 2;
-        while (ContinuumData.body(new ResourceLocation("phoenix_continuum", candidate)) != null) {
+        while (ContinuumData.body(ResourceLocation.fromNamespaceAndPath("phoenix_continuum", candidate)) != null) {
             candidate = slug + "_" + n++;
         }
-        return new ResourceLocation("phoenix_continuum", candidate);
+        return ResourceLocation.fromNamespaceAndPath("phoenix_continuum", candidate);
     }
 
     private void submit() {
@@ -257,26 +260,30 @@ public final class ContinuumCreateScreen extends Screen {
             def.add("surface", surface);
         }
 
-        net.phoenix.continuum.network.ContinuumNetwork.sendToServer(new C2SCreatePacket(false, id, def.toString()));
+        ContinuumNetwork.sendToServer(new C2SCreatePacket(false, id, def.toString()));
         minecraft.setScreen(parent);
     }
-
-    // ------------------------------------------------------------------ drawing
-
-
-    @Override
-    public void renderBackground(GuiGraphics g) {}
 
     @Override
     public void render(GuiGraphics g, int mx, int my, float partialTick) {
         g.fill(0, 0, width, height, 0xF00A0E14);
-        int w = 260;
+        int w = formW();
         int x = (width - w) / 2;
         g.drawCenteredString(font, title, width / 2, 16, 0xFFFFFFFF);
         g.drawString(font, "Name", x, 40, 0xFFAEBBCF, false);
-        if (!error.isEmpty()) g.drawCenteredString(font, error, width / 2, height - 24, 0xFFFF6666);
-        g.drawCenteredString(font, "A new body inherits the one you start from; edit it afterwards in the tuner.", width / 2,
-                height - 40, 0xFF7F8A99);
+
+        int maxW = width - 32;
+        List<FormattedCharSequence> errorLines = error.isEmpty() ? List.of() :
+                font.split(Component.literal(error), maxW);
+        List<FormattedCharSequence> hintLines = font.split(Component.literal(HINT), maxW);
+        int errorY = height - 6 - Math.max(1, errorLines.size()) * LINE;
+        int hintY = errorY - 4 - hintLines.size() * LINE;
+        for (int i = 0; i < errorLines.size(); i++) {
+            g.drawCenteredString(font, errorLines.get(i), width / 2, errorY + i * LINE, 0xFFFF6666);
+        }
+        for (int i = 0; i < hintLines.size(); i++) {
+            g.drawCenteredString(font, hintLines.get(i), width / 2, hintY + i * LINE, 0xFF7F8A99);
+        }
         super.render(g, mx, my, partialTick);
     }
 

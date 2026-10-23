@@ -76,7 +76,7 @@ public class C2SPdimPacket {
                         msg.orbitView, msg.fixedSky);
                 default -> {
                     String made = PdimActions.createAndEnter(player, msg.body, msg.gravity, msg.orbitView);
-                    // the sky clock chosen on the create screen
+                    
                     if (made == null && (msg.daySpeed != 1.0f || msg.lockedTime >= 0.0f || msg.fixedSky)) {
                         PdimActions.adjust(player, msg.body, msg.gravity, msg.daySpeed, msg.lockedTime, msg.orbitView,
                                 msg.fixedSky);

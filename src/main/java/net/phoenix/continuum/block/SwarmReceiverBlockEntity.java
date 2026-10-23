@@ -21,10 +21,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-/**
- * Turns the power of its team's Dyson swarms into Forge Energy, which it pushes into whatever touches it. Used when
- * GregTech is not installed (with it, the swarm is received by a GregTech multiblock instead).
- */
 public class SwarmReceiverBlockEntity extends BlockEntity implements ContinuumSwarmPower.Sink {
 
     private long stored;
@@ -78,7 +74,6 @@ public class SwarmReceiverBlockEntity extends BlockEntity implements ContinuumSw
         return Math.max(1, ContinuumConfigs.INSTANCE.swarmReceiverMaxFEPerTick);
     }
 
-    /** Practically unlimited: this is where a swarm's power waits until something draws it. */
     private static long capacity() {
         return (long) Math.min(9.0E18, Math.max(1000.0, ContinuumConfigs.INSTANCE.swarmReceiverCapacityFE));
     }

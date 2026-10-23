@@ -32,10 +32,6 @@ final class ContinuumAdminCommands {
 
     private ContinuumAdminCommands() {}
 
-    /**
-     * Completions for bodies (and optionally systems) that can be searched: what is typed is matched against any part of
-     * the id and against the name, and the name is shown beside each id.
-     */
     private static java.util.concurrent.CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> suggestBodies(
             com.mojang.brigadier.suggestion.SuggestionsBuilder builder,
             java.util.function.Predicate<net.phoenix.continuum.data.ContinuumBody> filter, boolean withSystems) {
@@ -199,15 +195,10 @@ final class ContinuumAdminCommands {
 
     private static final int MAX_GENERATED = 64;
 
-    /**
-     * What a generate (or clear) replaced, so it can be put back. Kept in memory and tied to the running server: once
-     * the world is closed, the undo is gone.
-     */
     private record GenerateUndo(net.minecraft.server.MinecraftServer server, GeneratedGalaxy.Setup previous) {}
 
     private static GenerateUndo lastGenerate;
 
-    /** Called when the world closes: the undo belongs to it. */
     static void forgetUndo() {
         lastGenerate = null;
     }
@@ -227,11 +218,6 @@ final class ContinuumAdminCommands {
         }
     }
 
-    /**
-     * Personal dimensions are registered from files, once, when the world loads, so the generated worlds need their
-     * files before a restart, and another world's leftovers should not keep costing a dimension each. This writes the
-     * files this world's generated worlds need and removes generated ones it does not. Returns how many changed.
-     */
     static int reconcileGeneratedDimensions(net.minecraft.server.MinecraftServer server) {
         String namespace = net.phoenix.continuum.data.SystemGenerator.NAMESPACE;
         int changed = writePdimFiles(server.createCommandSourceStack(), new java.util.ArrayList<>(), namespace);
@@ -258,10 +244,9 @@ final class ContinuumAdminCommands {
         return changed;
     }
 
-    /** At world start: load this world's galaxy (it is generated from its saved seed) and settle the dimension files. */
     static void onServerStarted(net.minecraft.server.MinecraftServer server) {
         try {
-            // an earlier version wrote generated systems into the shared pack folder; they belong to a world now
+            
             deleteTree(net.phoenix.continuum.data.ContinuumPackFolder.folder().resolve("data")
                     .resolve(net.phoenix.continuum.data.SystemGenerator.NAMESPACE));
         } catch (java.io.IOException e) {
@@ -641,7 +626,6 @@ final class ContinuumAdminCommands {
         return 1;
     }
 
-    /** Sets every system and body to one stage for your team (the tedious way to test is one command per target). */
     private static int discoverAll(CommandSourceStack source, String stageName) throws CommandSyntaxException {
         DiscoveryStage stage = DiscoveryStage.parse(stageName, null);
         if (stage == null) {
@@ -673,7 +657,6 @@ final class ContinuumAdminCommands {
         int run(CommandSourceStack source, ResourceLocation body, int levels) throws CommandSyntaxException;
     }
 
-    /** The body and level arguments shared by swarm add, remove and set. */
     private static com.mojang.brigadier.builder.RequiredArgumentBuilder<CommandSourceStack, ResourceLocation> swarmBody(
                                                                                                                       boolean allowZero,
                                                                                                                       SwarmAction action) {
@@ -684,7 +667,6 @@ final class ContinuumAdminCommands {
                                 IntegerArgumentType.getInteger(ctx, "levels"))));
     }
 
-    /** Changes the level of your team's swarm (or station) at a body, within what that body allows. */
     private static int swarmLevels(CommandSourceStack source, ResourceLocation id, int levels,
                                    boolean absolute) throws CommandSyntaxException {
         var body = ContinuumData.body(id);
@@ -707,7 +689,6 @@ final class ContinuumAdminCommands {
         return next;
     }
 
-    /** Changes the level of your team shell at a body; the first shell level takes a swarm there apart. */
     private static int shellLevels(CommandSourceStack source, ResourceLocation id, int levels,
                                    boolean absolute) throws CommandSyntaxException {
         var body = ContinuumData.body(id);

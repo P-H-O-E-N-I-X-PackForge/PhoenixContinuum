@@ -5,7 +5,6 @@ import net.phoenix.continuum.common.ContinuumMissions;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-/** The name and crew the player has picked for the next launch (kept until they change it). */
 public final class ExpeditionDraft {
 
     private ExpeditionDraft() {}
@@ -17,7 +16,6 @@ public final class ExpeditionDraft {
         return !name.isBlank() || !crew.isEmpty();
     }
 
-    /** How many crew actually count (the server takes at most this many). */
     public static int crewCount() {
         return Math.min(crew.size(), ContinuumMissions.MAX_CREW);
     }

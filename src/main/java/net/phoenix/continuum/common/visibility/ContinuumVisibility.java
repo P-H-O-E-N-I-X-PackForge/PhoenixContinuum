@@ -20,12 +20,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Decides, per team, what shows on the map and what can be flown to. The order, for a body:
- * its system's rule, then its own rule ({@code "visibility": {"visible_if": ..., "accessible_if": ...}}), then a
- * per-team override set with {@code /continuumadmin show|hide}, then {@link ContinuumVisibilityEvent}. With no rules
- * and no overrides everything is visible and accessible.
- */
 public final class ContinuumVisibility {
 
     private record Rules(@Nullable ContinuumCondition visible, @Nullable ContinuumCondition accessible) {
@@ -38,7 +32,6 @@ public final class ContinuumVisibility {
 
     private ContinuumVisibility() {}
 
-    /** Forgets compiled rules; called when Continuum data is reloaded. */
     public static void clearCache() {
         CACHE.clear();
     }
@@ -80,7 +73,7 @@ public final class ContinuumVisibility {
     private static boolean evaluate(MinecraftServer server, UUID team, ContinuumBody body,
                                     ContinuumVisibilityEvent.Kind kind) {
         Set<ResourceLocation> active = EVALUATING.get();
-        // rules can refer to other bodies; a reference loop counts as "visible" rather than hanging the server
+        
         ResourceLocation guard = new ResourceLocation(kind.name().toLowerCase(), body.id().toString()
                 .replace(':', '/'));
         if (!active.add(guard)) return true;
@@ -113,7 +106,6 @@ public final class ContinuumVisibility {
         }
     }
 
-    /** A readable account of why a body is or is not visible and accessible to a team, for /continuumadmin explain. */
     public static List<String> explain(MinecraftServer server, UUID team, ContinuumBody body) {
         List<String> lines = new ArrayList<>();
         ContinuumSystem system = ContinuumData.system(body.system());

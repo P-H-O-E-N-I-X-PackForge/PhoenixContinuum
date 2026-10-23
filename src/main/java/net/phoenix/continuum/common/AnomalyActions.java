@@ -19,15 +19,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-/**
- * Investigating an anomaly: something a body's definition says is worth a closer look once a team has found it. Each one
- * can be investigated once per team and pays out items and/or research.
- */
 public final class AnomalyActions {
 
     private AnomalyActions() {}
 
-    /** Returns an error message for the player, or null when it worked. */
     public static @Nullable String investigate(ServerPlayer player, ResourceLocation bodyId, String anomalyId) {
         ContinuumBody body = ContinuumData.body(bodyId);
         if (body == null) return "That body does not exist.";

@@ -45,16 +45,10 @@ public final class ContinuumData {
 
     private static int version;
 
-    /** Goes up whenever the loaded systems and bodies change, so a screen that listed them can list them again. */
     public static int version() {
         return version;
     }
 
-    /**
-     * The body at the centre of a system is its star: when the system's star kind is changed (a star tuned into a black
-     * hole), the body follows, so the map, the missions and the swarms see what the system shows. A black hole body in
-     * a generated system goes back to a star the same way.
-     */
     static void reconcileCentral(Map<ResourceLocation, ContinuumSystem> systems,
                                  Map<ResourceLocation, ContinuumBody> bodies) {
         for (Map.Entry<ResourceLocation, ContinuumBody> entry : bodies.entrySet()) {
@@ -269,7 +263,6 @@ public final class ContinuumData {
                 parseAnomalies(json));
     }
 
-    /** Minutes, but a world can say "trip_seconds" instead and fly in seconds (never under one). */
     private static float tripMinutes(JsonObject json) {
         float minutes = json.has("trip_seconds") ? GsonHelper.getAsFloat(json, "trip_seconds") / 60.0f :
                 GsonHelper.getAsFloat(json, "trip_minutes", 10.0f);
@@ -381,8 +374,6 @@ public final class ContinuumData {
             read(manager, SYSTEM_DIR, rawSystems::put, report);
             read(manager, BODY_DIR, rawBodies::put, report);
 
-            // This world's generated galaxy joins the files before anything is resolved: a body made in game can then
-            // start from one of its worlds ("inherits"), or sit in one of its systems, like any other content.
             addGenerated(rawSystems, rawBodies, report);
 
             Map<ResourceLocation, JsonObject> systemJson = ContentResolver.resolve("system", rawSystems, report);
@@ -440,12 +431,6 @@ public final class ContinuumData {
             ContinuumServerEvents.onDataReloaded();
         }
 
-        /**
-         * Any pack can ship {@code data/<namespace>/continuum/disable.json} with {@code "systems"} and
-         * {@code "bodies"} lists of ids to remove. Every copy in every pack is read, so it does not matter which
-         * pack wins the load order (it is how a modpack drops the built-in example without overriding its files).
-         * Removing a system removes its worlds too.
-         */
         private static void applyDisabled(ResourceManager manager, Map<ResourceLocation, JsonObject> systemJson,
                                           Map<ResourceLocation, JsonObject> bodyJson, ContinuumReport report) {
             Set<ResourceLocation> systemIds = new HashSet<>();
@@ -477,12 +462,11 @@ public final class ContinuumData {
             });
         }
 
-        /** This world's seeded galaxy, if it has one: generated again from its seed on every load. */
         private static void addGenerated(Map<ResourceLocation, JsonObject> systemJson,
                                          Map<ResourceLocation, JsonObject> bodyJson, ContinuumReport report) {
             try {
                 ResourceLocation homeId = new ResourceLocation("phoenix_continuum", "home");
-                // home may start from another system: resolve once to find where it is (problems are reported later)
+                
                 JsonObject homeJson = ContentResolver.resolve("system", new LinkedHashMap<>(systemJson),
                         new ContinuumReport()).get(homeId);
                 ContinuumSystem home = homeJson == null ? null : parseSystem(homeId, homeJson);

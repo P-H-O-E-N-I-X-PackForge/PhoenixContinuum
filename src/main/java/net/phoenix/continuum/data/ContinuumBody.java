@@ -62,7 +62,6 @@ public record ContinuumBody(
         }
     }
 
-    /** The same body as another kind (a star made a black hole, or back). */
     public ContinuumBody withType(Type newType) {
         return new ContinuumBody(id, system, parent, newType, name, description, orbitAu, periodDays, phase, radius,
                 tripMinutes, minTier, detectedResearch, surveyedResearch, params, yields, initialStage, loreDetected,

@@ -26,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 
-/** Receives the power of the owner's Dyson swarms as Forge Energy. */
 public class SwarmReceiverBlock extends Block implements EntityBlock {
 
     public SwarmReceiverBlock(Properties properties) {

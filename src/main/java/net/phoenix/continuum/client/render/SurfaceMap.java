@@ -11,11 +11,6 @@ import com.mojang.blaze3d.platform.NativeImage;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * A flat, top-down picture of a world, painted on the CPU from the same parameters the 3D renderer uses (palette,
- * ocean level, polar ice, cloud cover, gas bands). It is an equirectangular map: the left and right edges are the same
- * meridian. Generated once per body and kept as a texture.
- */
 public final class SurfaceMap {
 
     public static final int WIDTH = 512;
@@ -25,7 +20,6 @@ public final class SurfaceMap {
 
     private SurfaceMap() {}
 
-    /** The texture for a body, generating it on first use. Call from the render thread. */
     public static ResourceLocation texture(ContinuumBody body) {
         ResourceLocation existing = TEXTURES.get(body.id());
         if (existing != null) return existing;
@@ -46,13 +40,11 @@ public final class SurfaceMap {
         return id;
     }
 
-    /** Forgets one body picture so it is painted again (after its parameters changed). */
     public static void invalidate(ResourceLocation body) {
         ResourceLocation texture = TEXTURES.remove(body);
         if (texture != null) Minecraft.getInstance().getTextureManager().release(texture);
     }
 
-    /** Drops the cached textures, for example when the body data is reloaded. */
     public static void clear() {
         var manager = Minecraft.getInstance().getTextureManager();
         TEXTURES.values().forEach(manager::release);
@@ -74,7 +66,7 @@ public final class SurfaceMap {
                 float pz = (float) (cosLat * Math.sin(lon)) + seedOffset * 0.71f;
 
                 int rgb = p.gasGiant() ? gas(p, px, py, pz, (float) lat, freq) : rocky(p, px, py, pz, (float) lat, freq);
-                // NativeImage wants ABGR
+                
                 int r = (rgb >> 16) & 0xFF;
                 int g = (rgb >> 8) & 0xFF;
                 int b = rgb & 0xFF;
@@ -83,7 +75,6 @@ public final class SurfaceMap {
         }
     }
 
-    /** A star seen from above: boiling granulation, darker spots, a bright limb at the edge of the disc. */
     private static void paintStar(NativeImage image, ContinuumBody body,
                                   net.phoenix.continuum.data.@org.jetbrains.annotations.Nullable ContinuumSystem system) {
         int base = system != null ? system.starColor() : 0xfff1cf;
@@ -106,7 +97,6 @@ public final class SurfaceMap {
         }
     }
 
-    /** A black hole face-on: horizon, photon ring, and a spiralling accretion disk in the system's hole colours. */
     private static void paintHole(NativeImage image,
                                   net.phoenix.continuum.data.@org.jetbrains.annotations.Nullable ContinuumSystem system) {
         var style = system != null ? system.hole() : net.phoenix.continuum.data.ContinuumSystem.HoleStyle.DEFAULT;
@@ -154,7 +144,7 @@ public final class SurfaceMap {
             color = mix(p.oceanDeep(), p.oceanShallow(), t * t);
         } else {
             float t = (h - p.oceanLevel()) / Math.max(0.001f, 1.0f - p.oceanLevel());
-            // fine grain so large land masses are not flat colour
+            
             float grain = fbm(x * freq * 6.0f + 13.0f, y * freq * 6.0f, z * freq * 6.0f, 3) - 0.5f;
             t = clamp(t + grain * 0.22f * p.bump(), 0.0f, 1.0f);
             color = t < 0.5f ? mix(p.low(), p.mid(), t * 2.0f) : mix(p.mid(), p.high(), (t - 0.5f) * 2.0f);
@@ -182,8 +172,6 @@ public final class SurfaceMap {
         float t = clamp(bands + detail * 0.35f, 0.0f, 1.0f);
         return t < 0.5f ? mix(p.low(), p.mid(), t * 2.0f) : mix(p.mid(), p.high(), (t - 0.5f) * 2.0f);
     }
-
-    // ------------------------------------------------------------------ noise
 
     private static float fbm(float x, float y, float z, int octaves) {
         float sum = 0.0f;
@@ -235,8 +223,6 @@ public final class SurfaceMap {
         h ^= h >>> 16;
         return (h & 0xFFFFFF) / (float) 0x1000000;
     }
-
-    // ------------------------------------------------------------------ colour
 
     private static float clamp(float v, float lo, float hi) {
         return Math.max(lo, Math.min(hi, v));

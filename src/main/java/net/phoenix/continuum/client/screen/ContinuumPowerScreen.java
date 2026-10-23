@@ -8,7 +8,6 @@ import net.phoenix.continuum.common.Swarms;
 
 import java.util.Locale;
 
-/** What a receiver shows: how much power the team's swarms and shells make, and what this receiver holds. */
 public class ContinuumPowerScreen extends Screen {
 
     private static final int W = 320;

@@ -11,12 +11,10 @@ import net.phoenix.continuum.machine.LaunchComplex;
 import java.util.Map;
 import java.util.UUID;
 
-/** Dyson swarms: orbital stations built at a star, whose power is delivered to the team that built them. */
 public final class Swarms {
 
     private Swarms() {}
 
-    /** A swarm is built at a star (a Dyson swarm) or a black hole (a Penrose swarm, which draws on its spin). */
     public static boolean isSwarm(ContinuumBody body) {
         return body != null && (body.type() == ContinuumBody.Type.STAR || isPenrose(body));
     }
@@ -25,12 +23,10 @@ public final class Swarms {
         return body != null && body.type() == ContinuumBody.Type.BLACK_HOLE;
     }
 
-    /** What a station at this body is called. */
     public static String kindName(ContinuumBody body) {
         return isPenrose(body) ? "Penrose swarm" : isSwarm(body) ? "Dyson swarm" : "orbital station";
     }
 
-    /** What a shell at this body is called. */
     public static String shellName(ContinuumBody body) {
         return isPenrose(body) ? "Penrose sphere" : "Dyson shell";
     }
@@ -43,7 +39,6 @@ public final class Swarms {
         return Math.max(0.0, Math.min(1.0, level / (double) Math.max(1, shellMaxLevel(body))));
     }
 
-    /** What a rocket carries for one level: Swarm Collector Pods for a swarm, Shell Segments for a shell. */
     public static int payloadPerLevel(ContinuumBody body, boolean shell) {
         var cfg = ContinuumConfigs.INSTANCE;
         int count = shell ? (isPenrose(body) ? cfg.penroseSegmentsPerLevel : cfg.shellSegmentsPerLevel) :
@@ -56,10 +51,6 @@ public final class Swarms {
                 count + " swarm collector pod" + (count == 1 ? "" : "s");
     }
 
-    /**
-     * The share of an outpost's cycles that still get made: a shell round the star it circles shades it. It is the
-     * most complete of the team's shells in the outpost's system.
-     */
     public static double shadow(ContinuumTeamData data, UUID team, ContinuumBody outpost) {
         if (outpost == null) return 1.0;
         double worst = 0.0;
@@ -71,7 +62,6 @@ public final class Swarms {
         return 1.0 - ContinuumConfigs.INSTANCE.shellOutpostShadow * worst;
     }
 
-    /** What a shell of this level makes per tick: nothing until it is mostly built, then the square of how built. */
     public static double shellPower(ContinuumBody body, int level) {
         var cfg = ContinuumConfigs.INSTANCE;
         double completion = shellCompletion(body, level);
@@ -92,13 +82,11 @@ public final class Swarms {
                 Math.round(completion * 100));
     }
 
-    /** How many levels a station at this body can have: a swarm has many, an ordinary station has a few. */
     public static int maxLevel(ContinuumBody body) {
         var cfg = ContinuumConfigs.INSTANCE;
         return isPenrose(body) ? cfg.penroseMaxLevel : isSwarm(body) ? cfg.swarmMaxLevel : Stations.MAX_LEVEL;
     }
 
-    /** Bigger stars catch more light. */
     public static double luminosity(ContinuumBody star) {
         return Math.max(0.5, Math.min(4.0, star.radius()));
     }
@@ -110,16 +98,13 @@ public final class Swarms {
                 net.phoenix.continuum.machine.PadTiers.energyUnit());
     }
 
-    /** What a swarm of this level makes per tick, before rounding. */
     public static double swarmPower(ContinuumBody body, int level) {
         var cfg = ContinuumConfigs.INSTANCE;
         return level * cfg.swarmPowerPerLevel * luminosity(body) * (isPenrose(body) ? cfg.penrosePowerMultiplier : 1.0);
     }
 
-    /** One swarm or shell a team has built, and what it makes per tick. */
     public record Entry(ResourceLocation body, String name, boolean shell, int level, int max, long perTick) {}
 
-    /** The swarms and shells in these level maps, with their output. Works on the client with its synced maps. */
     public static java.util.List<Entry> entries(Map<ResourceLocation, Integer> swarms,
                                                 Map<ResourceLocation, Integer> shells) {
         java.util.List<Entry> out = new java.util.ArrayList<>();
@@ -153,14 +138,13 @@ public final class Swarms {
         return total(entries(server, team));
     }
 
-    /** Once a second: offers each team's swarm power to its sinks, then to its launch complexes. */
     public static void tick(MinecraftServer server) {
         var data = ContinuumTeamData.get(server);
         java.util.Set<UUID> teams = data.teamsWithStations();
         teams.addAll(ContinuumSwarmPower.teams());
         for (UUID team : teams) {
             long remaining = powerPerTick(server, team) * 20L;
-            // a sink is offered power even when there is none, so a capacitor can keep feeding what it holds
+            
             for (ContinuumSwarmPower.Sink sink : ContinuumSwarmPower.sinks(team)) {
                 remaining -= Math.max(0L, Math.min(remaining, sink.accept(remaining)));
             }

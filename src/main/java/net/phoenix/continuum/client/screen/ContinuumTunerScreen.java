@@ -5,10 +5,14 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.network.PacketDistributor;
 import net.phoenix.continuum.client.render.SurfaceMap;
 import net.phoenix.continuum.data.ContinuumBody;
 import net.phoenix.continuum.data.ContinuumData;
@@ -19,6 +23,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import net.phoenix.continuum.network.C2STunePacket;
+import net.phoenix.continuum.network.ContinuumNetwork;
 import org.lwjgl.glfw.GLFW;
 
 import java.io.IOException;
@@ -68,17 +74,15 @@ public final class ContinuumTunerScreen extends Screen {
     }
 
     private static final int ROW = 15;
+    private static final int LINE = 10;
     private static final int LIST_W = 330;
 
-    // the screen is laid out for this much room; with a bigger gui scale (a smaller screen in gui units) it is drawn
-    // scaled down to fit, and the mouse is scaled to match
     private static final int MIN_W = LIST_W + 230;
     private static final int MIN_H = 430;
     private float uiScale = 1.0f;
     private int vw;
     private int vh;
 
-    /** Text fields that are sentences rather than ids: these open the roomy editor. */
     private static final java.util.Set<String> LONG_TEXT = java.util.Set.of("name", "description", "lore.detected",
             "lore.surveyed");
 
@@ -105,6 +109,8 @@ public final class ContinuumTunerScreen extends Screen {
     private EditBox editor;
     private Field editing;
     private String status = "";
+    
+    private List<FormattedCharSequence> tooltip;
     private long previewDueAt = -1;
     private final ScenePreview preview = new ScenePreview();
     private final List<Object[]> hits = new ArrayList<>();
@@ -112,7 +118,7 @@ public final class ContinuumTunerScreen extends Screen {
     public ContinuumTunerScreen(Screen parent, ResourceLocation start) {
         super(Component.literal("Continuum tuner"));
         this.parent = parent;
-        // every body of every system, stars and black holes included
+        
         bodies.addAll(ContinuumData.allBodies());
         bodies.sort(Comparator.comparing((ContinuumBody b) -> b.system().toString()).thenComparing(ContinuumBody::name));
         for (int i = 0; i < bodies.size(); i++) {
@@ -121,7 +127,6 @@ public final class ContinuumTunerScreen extends Screen {
         rebuildFields();
     }
 
-    /** Bodies made while this screen is open (or edited elsewhere) appear in its list as soon as they are synced. */
     private void listAgainIfChanged() {
         if (dataVersion == ContinuumData.version()) return;
         dataVersion = ContinuumData.version();
@@ -142,7 +147,7 @@ public final class ContinuumTunerScreen extends Screen {
 
     private ContinuumBody body() {
         ContinuumBody listed = bodies.get(Math.floorMod(bodyIndex, bodies.size()));
-        
+
         ContinuumBody current = ContinuumData.body(listed.id());
         return current != null ? current : listed;
     }
@@ -169,12 +174,12 @@ public final class ContinuumTunerScreen extends Screen {
             fields.add(new Field("hole_tilt", "Disk tilt (map view)  0 edge-on, 1 face-on", Kind.NUMBER, 0, 1, 0.1, 0.075));
             fields.add(new Field("sky_hole_inclination", "Disk inclination (sky), degrees", Kind.NUMBER, 0, 90, 5, 45.0));
             fields.add(new Field("sky_hole_lean", "Disk lean (sky), degrees", Kind.NUMBER, -90, 90, 5, 15.0));
-            fields.add(Field.header("A black hole's look and size belong to its system."));
+            addHeader("A black hole's look and size belong to its system.");
             addServerFields(json);
             return;
         }
         if (body.type() == ContinuumBody.Type.STAR && body.isCentral()) {
-            fields.add(Field.header("This is the system's own star. Its kind, colour and size are the system's:"));
+            addHeader("This is the system's own star. Its kind, colour and size are the system's:");
             addServerFields(json);
             return;
         }
@@ -208,13 +213,20 @@ public final class ContinuumTunerScreen extends Screen {
         addServerFields(json);
     }
 
+    private void addHeader(String text) {
+        for (FormattedText line : Minecraft.getInstance().font.getSplitter().splitLines(text, LIST_W - 8,
+                Style.EMPTY)) {
+            fields.add(Field.header(line.getString()));
+        }
+    }
+
     private void addServerFields(JsonObject json) {
-        fields.add(Field.header("Visual edits above are local. Push them to apply for everyone."));
+        addHeader("Visual edits above are local. Push them to apply for everyone.");
         fields.add(Field.button("push", "Push visual edits to the server"));
         fields.add(Field.button("newbody", "New body in this system..."));
         fields.add(Field.button("tunesystem", "Tune this system..."));
         fields.add(Field.button("newsystem", "New system..."));
-        fields.add(Field.header("Server (applies for everyone, saved in config/phoenix_continuum/tuning)"));
+        addHeader("Server (applies for everyone, saved in config/phoenix_continuum/tuning)");
         fields.add(Field.server("name", "Name", Kind.TEXT, 0, 0, 0, ""));
         fields.add(Field.server("description", "Description", Kind.TEXT, 0, 0, 0, ""));
         fields.add(Field.server("lore.detected", "Lore (detected)", Kind.TEXT, 0, 0, 0, ""));
@@ -230,7 +242,7 @@ public final class ContinuumTunerScreen extends Screen {
                     "minecraft:ender_pearl"));
             fields.add(Field.server("pdim_cost.count", "Personal dimension cost count", Kind.NUMBER, 0, 4096, 1, 2.0));
         }
-        fields.add(Field.header("Yields"));
+        addHeader("Yields");
         int count = json.has("yields") && json.get("yields").isJsonArray() ? json.getAsJsonArray("yields").size() : 0;
         for (int i = 0; i < count; i++) {
             fields.add(Field.server("yields." + i + ".item", "  #" + (i + 1) + " item", Kind.TEXT, 0, 0, 0,
@@ -278,7 +290,7 @@ public final class ContinuumTunerScreen extends Screen {
             } catch (RuntimeException ignored) {}
         }
         if (field.path().equals("trip_seconds")) {
-            // bodies written in minutes show the same trip in seconds until it is edited
+            
             JsonElement minutes = ContinuumTuner.merged(body().id()).get("trip_minutes");
             if (minutes != null && minutes.isJsonPrimitive()) {
                 try {
@@ -309,8 +321,8 @@ public final class ContinuumTunerScreen extends Screen {
     }
 
     private void send(String path, JsonElement value) {
-        net.phoenix.continuum.network.ContinuumNetwork.sendToServer(
-                new net.phoenix.continuum.network.C2STunePacket(body().id(), path,
+        ContinuumNetwork.sendToServer(
+                new C2STunePacket(body().id(), path,
                         value == null ? "" : value.toString()));
         status = "Sent to the server.";
     }
@@ -367,6 +379,20 @@ public final class ContinuumTunerScreen extends Screen {
         set(field, new JsonPrimitive(field.step() >= 1 ? (Number) (long) Math.round(clamped) : (Number) clamped));
     }
 
+    private String fit(String text, int maxWidth) {
+        if (font.width(text) <= maxWidth) return text;
+        return font.plainSubstrByWidth(text, Math.max(0, maxWidth - font.width("..."))) + "...";
+    }
+
+    private int wrap(GuiGraphics g, String text, int x, int y, int width, int color, boolean centered) {
+        for (FormattedCharSequence line : font.split(Component.literal(text), width)) {
+            if (centered) g.drawCenteredString(font, line, x + width / 2, y, color);
+            else g.drawString(font, line, x, y, color, false);
+            y += LINE;
+        }
+        return y;
+    }
+
     private int left() {
         return Math.max(8, (vw - LIST_W - 210) / 2);
     }
@@ -388,10 +414,6 @@ public final class ContinuumTunerScreen extends Screen {
         addRenderableWidget(editor);
     }
 
-
-    @Override
-    public void renderBackground(GuiGraphics g) {}
-
     @Override
     public void render(GuiGraphics g, int rawMx, int rawMy, float partialTick) {
         listAgainIfChanged();
@@ -402,11 +424,14 @@ public final class ContinuumTunerScreen extends Screen {
         g.pose().scale(uiScale, uiScale, 1.0f);
         renderContent(g, (int) (rawMx / uiScale), (int) (rawMy / uiScale), partialTick);
         g.pose().popPose();
+        
+        if (tooltip != null && pickerField == null) g.renderTooltip(font, tooltip, rawMx, rawMy);
     }
 
     private void renderContent(GuiGraphics g, int mx, int my, float partialTick) {
         g.fill(0, 0, vw, vh, 0xF00A0E14);
         hits.clear();
+        tooltip = null;
         if (bodies.isEmpty()) {
             g.drawCenteredString(font, "No bodies loaded.", vw / 2, vh / 2, 0xFFFFFFFF);
             return;
@@ -420,7 +445,11 @@ public final class ContinuumTunerScreen extends Screen {
         ContinuumBody body = body();
         int x = left();
         g.drawString(font, "Continuum tuner", x, 8, 0xFFFFFFFF, false);
-        String title = "<  " + body.name() + "  (" + body.id() + ")  >";
+        String tail = "  (" + body.id() + ")  >";
+        String title = "<  " + fit(body.name(), Math.max(40, LIST_W - font.width("<  ") - font.width(tail))) + tail;
+        if (font.width(title) > LIST_W) {
+            title = fit(title.substring(0, title.length() - 3), LIST_W - font.width("  >")) + "  >";
+        }
         g.drawString(font, "click the name to pick a body", x + 90, 8, 0xFF7F8A99, false);
         g.drawString(font, title, x, 22, 0xFFC8D4E8, false);
         hit(g, mx, my, x, 20, font.width(title) + 4, 12, "body", false);
@@ -435,21 +464,27 @@ public final class ContinuumTunerScreen extends Screen {
             if (hover) g.fill(x, y, x + LIST_W, y + ROW, 0x20FFFFFF);
             if (field.kind() == Kind.HEADER) {
                 g.fill(x, y, x + LIST_W, y + ROW, 0x30406080);
-                g.drawString(font, font.plainSubstrByWidth(field.label(), LIST_W - 8), x + 4, y + 4, 0xFFFFD080, false);
+                g.drawString(font, fit(field.label(), LIST_W - 8), x + 4, y + 4, 0xFFFFD080, false);
                 continue;
             }
             if (field.kind() == Kind.BUTTON) {
                 button(g, mx, my, x + 4, y + 1, LIST_W - 8, field.label(), field, "button");
                 continue;
             }
-            g.drawString(font, font.plainSubstrByWidth(field.label(), 150), x + 4, y + 4,
+            g.drawString(font, fit(field.label(), 150), x + 4, y + 4,
                     field.server() ? 0xFFD8C890 : 0xFFAEBBCF, false);
+            if (hover && mx < x + 160 && font.width(field.label()) > 150) {
+                tooltip = font.split(Component.literal(field.label().trim()), 220);
+            }
 
             int vx = x + 160;
             switch (field.kind()) {
                 case TEXT -> {
                     String value = text(field);
-                    g.drawString(font, font.plainSubstrByWidth(value, LIST_W - 170), vx, y + 4, 0xFFFFFFFF, false);
+                    g.drawString(font, fit(value, LIST_W - 170), vx, y + 4, 0xFFFFFFFF, false);
+                    if (hover && mx >= vx && font.width(value) > LIST_W - 170) {
+                        tooltip = font.split(Component.literal(value), 260);
+                    }
                     hit(g, mx, my, vx, y + 1, LIST_W - 164, 13, field, "edit");
                 }
                 case CHOICE -> {
@@ -498,7 +533,7 @@ public final class ContinuumTunerScreen extends Screen {
         ContinuumSystem owner = body.isCentral() ? ContinuumData.system(body.system()) : null;
         if (owner != null && (body.type() == ContinuumBody.Type.STAR ||
                 body.type() == ContinuumBody.Type.BLACK_HOLE)) {
-            // a system's star or black hole is drawn as the system draws it
+            
             preview.drawSystem(g, owner, px, top(), 200);
             g.drawString(font, "drag to turn, scroll to zoom", px, top() + 204, 0xFF7F8A99, false);
         } else if (body.type() != ContinuumBody.Type.BLACK_HOLE) {
@@ -506,8 +541,7 @@ public final class ContinuumTunerScreen extends Screen {
             g.drawString(font, "drag to turn, scroll to zoom", px, top() + 204, 0xFF7F8A99, false);
         } else {
             g.fill(px, top(), px + 200, top() + 200, 0xFF05070C);
-            g.drawCenteredString(font, "tune black holes in the", px + 100, top() + 92, 0xFF7F8A99);
-            g.drawCenteredString(font, "system screen", px + 100, top() + 104, 0xFF7F8A99);
+            wrap(g, "Tune black holes in the system screen", px + 10, top() + 92, 180, 0xFF7F8A99, true);
         }
         int ay = top() + 218;
         action(g, mx, my, px, ay, 200, "Export definition", "export");
@@ -515,10 +549,9 @@ public final class ContinuumTunerScreen extends Screen {
         action(g, mx, my, px, ay + 40, 200, "Reset server edits", "resetServer");
         action(g, mx, my, px, ay + 60, 200, "Sky view...", "sky");
         action(g, mx, my, px, ay + 80, 200, "Close", "close");
-        g.drawString(font, "Visual edits: this client only", px, ay + 104, 0xFF7F8A99, false);
-        g.drawString(font, "until pushed. Gold rows go to the", px, ay + 114, 0xFF7F8A99, false);
-        g.drawString(font, "server and are saved as patches.", px, ay + 124, 0xFF7F8A99, false);
-        if (!status.isEmpty()) g.drawString(font, font.plainSubstrByWidth(status, 200), px, ay + 140, 0xFF66DDFF, false);
+        int noteEnd = wrap(g, "Visual edits: this client only until pushed. Gold rows go to the server and are saved as "
+                + "patches.", px, ay + 104, 200, 0xFF7F8A99, false);
+        if (!status.isEmpty()) wrap(g, status, px, noteEnd + 6, 200, 0xFF66DDFF, false);
 
         super.render(g, mx, my, partialTick);
         if (pickerField != null) renderPicker(g);
@@ -550,7 +583,6 @@ public final class ContinuumTunerScreen extends Screen {
         set(pickerField, new JsonPrimitive(String.format(Locale.ROOT, "#%06x", rgb)));
     }
 
-    /** The same picker PhoenixWiki's theme editor has: a saturation/value square, a hue strip and a hex readout. */
     private void renderPicker(GuiGraphics g) {
         g.pose().pushPose();
         g.pose().translate(0f, 0f, 400f);
@@ -693,7 +725,7 @@ public final class ContinuumTunerScreen extends Screen {
                     bodyIndex++;
                     rebuildFields();
                 } else {
-                    // the name between the arrows opens the picker of every system and body
+                    
                     minecraft.setScreen(new ContinuumBodyPickerScreen(this, bodies, body().id(), this::selectBody,
                             id -> minecraft.setScreen(new ContinuumSystemScreen(this, id))));
                 }
@@ -748,7 +780,7 @@ public final class ContinuumTunerScreen extends Screen {
             return true;
         }
         if (preview.mouseDragged(dx, dy)) return true;
-        
+
         for (Object[] h : hits) {
             if (!"bar".equals(h[1])) continue;
             int x = (int) h[2];
@@ -777,11 +809,11 @@ public final class ContinuumTunerScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mx, double my, double scrollY) {
+    public boolean mouseScrolled(double mx, double my, double delta) {
         mx /= uiScale;
         my /= uiScale;
-        if (preview.mouseScrolled(mx, my, scrollY)) return true;
-        scroll -= (int) Math.signum(scrollY) * 2;
+        if (preview.mouseScrolled(mx, my, delta)) return true;
+        scroll -= (int) Math.signum(delta) * 2;
         return true;
     }
 
@@ -814,7 +846,7 @@ public final class ContinuumTunerScreen extends Screen {
                 setNumber(editing, Double.parseDouble(text));
             }
         } catch (NumberFormatException ignored) {
-            
+
         }
         editor.setVisible(false);
         editing = null;

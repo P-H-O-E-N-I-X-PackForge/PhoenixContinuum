@@ -66,7 +66,7 @@ public final class ScenePreview {
     public boolean mouseDragged(double dx, double dy) {
         if (!dragging) return false;
         yaw += (float) dx * 0.6f;
-        // no stop at straight up or down: keep turning over the pole instead of hitting a wall there
+        
         pitch = ((pitch + (float) dy * 0.6f + 180.0f) % 360.0f + 360.0f) % 360.0f - 180.0f;
         return true;
     }

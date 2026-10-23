@@ -13,10 +13,6 @@ import net.phoenix.continuum.common.ContinuumMissions;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Names a flight and picks who goes with it. A named expedition shows up under its name in the fleet and the log; each crew
- * member (online teammates, up to three) lowers the chance of the flight failing. Choices are kept for the next launches.
- */
 public class ContinuumExpeditionScreen extends Screen {
 
     private final Screen parent;

@@ -12,39 +12,27 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-/**
- * What Continuum needs from the pack or mod around it, as plain interfaces. Nothing here depends on another mod: a
- * companion (PhoenixCore's Conflux research, a guild or team mod) installs its own implementations at startup, and
- * Continuum works with the defaults until then. Defaults: a team is just the player, research is Continuum's own (see
- * {@link net.phoenix.continuum.common.BuiltinResearch}), and there are no discipline worlds to travel to.
- */
 public final class ContinuumHost {
 
     private ContinuumHost() {}
 
-    /** Who counts as a team. */
     public interface Teams {
 
-        /** The team id a player's progress is stored under. */
         UUID teamOf(UUID player);
 
-        /** Whether the player belongs to that team. */
         boolean onTeam(Player player, UUID team);
     }
 
-    /** What a team has researched (Continuum keeps its own unless replaced). Used by research gates in definitions and by the "research" visibility rules. */
     public interface Research {
 
         boolean isUnlocked(UUID team, ResourceLocation node);
 
         boolean hasFlag(UUID team, String flag);
 
-        /** The discipline the team chose, or null. */
         @Nullable
         String getDiscipline(UUID team);
     }
 
-    /** Travel to a discipline's own world (Conflux). */
     public interface Travel {
 
         @Nullable
@@ -98,25 +86,19 @@ public final class ContinuumHost {
         return travel;
     }
 
-    /** A team id for a player, never null. */
     public static UUID teamOf(UUID player) {
         UUID team = teams.teamOf(player);
         return team == null ? player : team;
     }
 
-    // ---------------------------------------------------------------- hooks for the companion to call
-
-    /** Call before a team's research changes; hand the result to {@link #afterResearch}. */
     public static Object beforeResearch(MinecraftServer server, UUID team) {
         return net.phoenix.continuum.common.ContinuumConfluxHooks.before(server, team);
     }
 
-    /** Call after a team's research changed: announces new discoveries and refreshes the team's map. */
     public static void afterResearch(MinecraftServer server, UUID team, Object token) {
         net.phoenix.continuum.common.ContinuumConfluxHooks.after(server, team, token);
     }
 
-    /** Call when a player joins or leaves a team: refreshes that team's map. */
     public static void teamChanged(MinecraftServer server, UUID team) {
         net.phoenix.continuum.common.ContinuumConfluxHooks.teamChanged(server, team);
     }

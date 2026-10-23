@@ -14,23 +14,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * A small profiler for Continuum's drawing, so a heavy shader shows up as a number instead of a guess.
- *
- * <p>Every instrumented draw is a {@link #scope scope}. While profiling is off a scope costs one boolean check. While it is
- * on, each scope is timed on the CPU (how long the game thread spent issuing it) and on the GPU with a timer query (how long
- * the card spent drawing it). The GPU numbers are the ones that matter for shaders. Scopes nest, and a nested scope takes its
- * own time away from the one around it, so every figure is time spent in that pass alone.
- *
- * <p>GPU results arrive a few frames late (the card is still busy when the CPU asks), so they are read back on later
- * frames. Figures are smoothed over roughly the last second.
- *
- * <p>Use it with {@code /continuum profile start}, look at the numbers on screen or with {@code /continuum profile report},
- * and {@code /continuum profile stop}.
- */
 public final class ContinuumProfiler {
 
-    /** What a scope is; closing it ends the timing. */
     public interface Scope extends AutoCloseable {
 
         @Override
@@ -51,7 +36,7 @@ public final class ContinuumProfiler {
         double gpuMs;
         double calls;
         double gpuMax;
-        // this frame
+        
         long cpuNanos;
         int callCount;
     }
@@ -90,11 +75,9 @@ public final class ContinuumProfiler {
         STATS.clear();
     }
 
-    /** Times a section of drawing. Always use it in a try-with-resources. */
     public static Scope scope(String name) {
         if (!enabled) return NOOP;
 
-        // hand the card's timer to this scope: whatever was running (the scope around it) stops being charged now
         endActive();
         STACK.push(new Frame(name, System.nanoTime()));
         beginQuery(name);
@@ -111,7 +94,6 @@ public final class ContinuumProfiler {
         stat.cpuNanos += nanos;
         stat.callCount++;
 
-        // the scope around this one carries on, on a fresh query
         Frame parent = STACK.peek();
         if (parent != null) beginQuery(parent.name());
     }
@@ -142,7 +124,6 @@ public final class ContinuumProfiler {
         activeName = null;
     }
 
-    /** Call once per rendered frame: reads back finished GPU timings and folds this frame's numbers into the averages. */
     public static void endFrame() {
         if (!enabled) return;
         endActive();
@@ -188,7 +169,6 @@ public final class ContinuumProfiler {
                 s.calls, s.gpuMax);
     }
 
-    /** Lines for chat or the log, heaviest first. */
     public static List<String> report() {
         List<String> out = new ArrayList<>();
         if (STATS.isEmpty()) {
@@ -209,7 +189,6 @@ public final class ContinuumProfiler {
         return out;
     }
 
-    /** A compact list in the corner of the screen while profiling. */
     public static void drawOverlay(GuiGraphics g) {
         if (!enabled || STATS.isEmpty()) return;
         var font = Minecraft.getInstance().font;

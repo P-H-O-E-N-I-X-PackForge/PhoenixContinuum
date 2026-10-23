@@ -5,7 +5,6 @@ import net.phoenix_tesla_network.tesla.common.machine.multiblock.electric.TeslaW
 import java.math.BigInteger;
 import java.util.UUID;
 
-/** The part of {@link TeslaLink} that uses the Tesla Network's classes. */
 final class TeslaImpl {
 
     private TeslaImpl() {}

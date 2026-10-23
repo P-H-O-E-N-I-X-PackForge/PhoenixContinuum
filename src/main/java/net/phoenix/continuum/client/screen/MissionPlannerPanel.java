@@ -176,7 +176,7 @@ final class MissionPlannerPanel {
             canStation = false;
             canShell = false;
         }
-        // a swarm is grown with Swarm Collector Pods and a shell built with Shell Segments, not probes
+        
         boolean shellMode = mode == Mission.Type.SHELL;
         boolean specialStation = swarm && (shellMode || mode == Mission.Type.STATION);
         int stationProbes = specialStation ? Swarms.payloadPerLevel(body, shellMode) : Stations.probesPerLevel(body);
@@ -305,7 +305,6 @@ final class MissionPlannerPanel {
 
         boolean hasRocket = !rocket.isEmpty();
 
-        // where the target is on its orbit: a good launch window is quicker and gentler, a bad one slower and harsher
         var launchWindow = net.phoenix.continuum.common.LaunchWindows.of(body, now);
         long tripMs = hasRocket ? Math.round(RocketStats.tripMillis(body, rocket) * Stations.tripFactor(stationLevel) *
                 affTrip * launchWindow.factor()) : 0L;

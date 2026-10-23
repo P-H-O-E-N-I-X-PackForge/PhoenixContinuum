@@ -22,12 +22,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * The observatory: a live 3D look at any body or star the team has found, plus what only the instruments here can tell you
- * (readings the map does not show): surface gravity, an estimate of the temperature, the kind of air, the materials a
- * spectrograph picks out, a forecast of the next eclipse its moons will cast, and a live top-down view of the system's
- * orbits. Pick a body from the list; drag the picture to turn it and scroll over it to zoom.
- */
 public class ContinuumObservatoryScreen extends Screen {
 
     private static final int ROW = 12;
@@ -38,11 +32,9 @@ public class ContinuumObservatoryScreen extends Screen {
     private int selected;
     private int scroll;
 
-    // worked out once when a body is picked, not every frame
     private int forecastFor = -2;
     private ObservatoryReadings.Eclipse eclipse;
 
-    /** A row in the list: a system heading (body == null) or a body. */
     private record Entry(ContinuumSystem system, ContinuumBody body) {}
 
     public ContinuumObservatoryScreen() {
@@ -83,7 +75,6 @@ public class ContinuumObservatoryScreen extends Screen {
     @Override
     public void renderBackground(GuiGraphics g) {}
 
-    /** The layout is drawn at a fixed size and scaled to fit the window, so a small window is smaller rather than squashed. */
     private static final int VW = 470;
     private static final int VH = 300;
     private float scale = 1.0f;
@@ -113,12 +104,11 @@ public class ContinuumObservatoryScreen extends Screen {
             return;
         }
 
-        // ---- the list ----
         int listW = 132;
         int listTop = y + 22;
         int visible = (h - 30) / ROW;
         scroll = Math.max(0, Math.min(scroll, Math.max(0, entries.size() - visible)));
-        // (the scissor box is in window coordinates and is not scaled by the pose, so scale it by hand)
+        
         g.enableScissor(Math.round((x + 6) * scale), Math.round(listTop * scale), Math.round((x + 6 + listW) * scale),
                 Math.round((y + h - 6) * scale));
         for (int i = scroll; i < Math.min(entries.size(), scroll + visible); i++) {
@@ -151,7 +141,6 @@ public class ContinuumObservatoryScreen extends Screen {
             eclipse = body.isMoon() || body.isCentral() ? null : ObservatoryReadings.nextEclipse(body, days, 800.0);
         }
 
-        // ---- the picture, and the system's orbits under it ----
         int px = x + listW + 16;
         int size = 132;
         if (body.isCentral()) {
@@ -164,7 +153,6 @@ public class ContinuumObservatoryScreen extends Screen {
         int diagram = Math.min(size, y + h - 8 - diagramTop);
         if (diagram >= 64) drawOrbits(g, system, body, px, diagramTop, diagram);
 
-        // ---- what the instruments say ----
         int tx = px + size + 10;
         int tw = x + w - 8 - tx;
         int ty = y + 22;
@@ -186,7 +174,7 @@ public class ContinuumObservatoryScreen extends Screen {
             String air = ObservatoryReadings.atmosphere(body);
             ty = line(g, "Air", air, tx, ty, tw);
             if (body.params().atmoDensity() > 0.0f) {
-                // the colour of the air, after the word
+                
                 int sx = tx + 56 + font.width(air) + 5;
                 g.fill(sx, airY, sx + 9, airY + 8, 0xFF000000 | body.params().atmoColor());
                 g.renderOutline(sx - 1, airY - 1, 11, 10, MapUi.PANEL_LINE);
@@ -220,14 +208,13 @@ public class ContinuumObservatoryScreen extends Screen {
                 ty = wrapped(g, "No eclipse in the next 800 days.", tx, ty, tw, MapUi.DIM);
             } else {
                 String how = eclipse.total() ? "total" : "annular or partial";
-                // a game day is 24000 ticks: 20 real minutes at normal speed
+                
                 ty = line(g, "Eclipse", String.format(Locale.ROOT, "%s, in %.1f days (about %s)", how, eclipse.inDays(),
                         MapUi.duration(Math.round(eclipse.inDays() * 1_200_000.0))), tx, ty, tw);
                 ty = wrapped(g, "by " + eclipse.moon(), tx, ty, tw, MapUi.DIM);
             }
         }
 
-        // notes: what the observers have written down
         String lore = body.lore(stage);
         if (!lore.isBlank()) {
             ty += 3;
@@ -239,7 +226,6 @@ public class ContinuumObservatoryScreen extends Screen {
         }
     }
 
-    /** A top-down view of the system's orbits with every found world where it is right now. */
     private void drawOrbits(GuiGraphics g, ContinuumSystem system, ContinuumBody selectedBody, int x, int y, int size) {
         g.fill(x, y, x + size, y + size, 0xFF05060F);
         g.renderOutline(x, y, size, size, MapUi.PANEL_LINE);
@@ -261,7 +247,7 @@ public class ContinuumObservatoryScreen extends Screen {
         g.fill(cx - 2, cy - 2, cx + 3, cy + 3, 0xFF000000 | system.starColor());
         for (ContinuumBody b : worlds) {
             int r = 7 + (int) ((outer - 7) * Math.sqrt(b.orbitAu() / maxAu));
-            // the orbit
+            
             for (int i = 0; i < 48; i++) {
                 double a = i * Math.PI * 2.0 / 48.0;
                 g.fill(cx + (int) Math.round(Math.cos(a) * r), cy + (int) Math.round(Math.sin(a) * r),

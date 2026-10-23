@@ -17,10 +17,6 @@ import net.phoenix.continuum.data.ContinuumData;
 import net.phoenix.continuum.integration.gtceu.GregTech;
 import net.phoenix.continuum.machine.LaunchSites;
 
-/**
- * The Launch Pad that stands in for the GregTech Launch Complex. These only mean something without GregTech
- * ({@code runGameTestServer -Pgtm=none}); with it they pass at once.
- */
 @GameTestHolder(PhoenixContinuum.MOD_ID)
 @PrefixGameTestTemplate(false)
 public class BasicPadGameTests {

@@ -25,11 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * The sky of a personal dimension, from any world of a system, at any time: look around, run the day, jump to the next
- * eclipse, and see which worlds are up there and how big they look. It draws with the same code as the live sky, so
- * what you tune is what you will see standing there.
- */
 @OnlyIn(Dist.CLIENT)
 public final class ContinuumSkyScreen extends Screen {
 
@@ -64,7 +59,6 @@ public final class ContinuumSkyScreen extends Screen {
         this(parent, start, null);
     }
 
-    /** {@code systemOverride}: the system as the editor has it, applied or not (null for the one the game has). */
     public ContinuumSkyScreen(Screen parent, ContinuumBody start,
                               @org.jetbrains.annotations.Nullable ContinuumSystem systemOverride) {
         super(Component.literal("Sky view"));
@@ -183,7 +177,6 @@ public final class ContinuumSkyScreen extends Screen {
         g.drawString(font, font.plainSubstrByWidth(system == null ? "" : system.name(), PANEL_W), x, y, 0xFF7F8A99, false);
         y += 14;
 
-        // time of day: a bar to drag, then play, speed and the day count
         g.drawString(font, String.format(Locale.ROOT, "Time of day  %02d:%02d", (int) (timeOfDay / 1000.0f * 1.0f + 6) % 24,
                 (int) ((timeOfDay % 1000.0f) / 1000.0f * 60.0f)), x, y, 0xFFAEBBCF, false);
         y += 12;
@@ -209,7 +202,6 @@ public final class ContinuumSkyScreen extends Screen {
         button(g, mx, my, x + 120, y, 116, eclipse == null ? "No eclipse soon" : "Next eclipse", "eclipse");
         y += 18;
 
-        // what is in the sky
         g.fill(x, y, x + PANEL_W, y + 1, 0xFF404040);
         y += 5;
         g.drawString(font, "In the sky", x, y, 0xFFFFD080, false);
@@ -253,7 +245,6 @@ public final class ContinuumSkyScreen extends Screen {
         g.drawString(font, "drag: look   scroll: zoom", x + 66, bottom - 12, 0xFF7F8A99, false);
     }
 
-    /** The panel folded away: a slim bar with the world's name and the time, and a button to open it again. */
     private void drawFoldedPanel(GuiGraphics g, int mx, int my, ContinuumBody body, PdimSkyView view0,
                                  PdimSkyModel.Sample sample) {
         String text = body.name() + "   Day " + day;
@@ -271,7 +262,6 @@ public final class ContinuumSkyScreen extends Screen {
         return apparent > 0.0f ? base + String.format(Locale.ROOT, "  %.1f° wide", apparent) : base;
     }
 
-    /** A top-down view of the system at the current day: orbits, worlds, and the one being looked from. */
     private void drawDiagram(GuiGraphics g, int x, int y, int w, int h, ContinuumBody viewer, ContinuumSystem system) {
         g.fill(x, y, x + w, y + h, 0xFF05070C);
         g.renderOutline(x, y, w, h, 0xFF3A4452);

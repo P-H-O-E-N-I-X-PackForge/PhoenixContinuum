@@ -12,11 +12,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-/**
- * Creates new systems and bodies from the game. They are written as ordinary definition files into the pack folder
- * ({@code config/phoenix_continuum/pack/data/<ns>/continuum/...}), so they behave exactly like content a pack author
- * wrote by hand, survive restarts, and can be edited or deleted as files.
- */
 public final class ContentCreator {
 
     private static final String PDIM_TEMPLATE = """
@@ -104,13 +99,13 @@ public final class ContentCreator {
                 Files.writeString(file, PDIM_TEMPLATE);
                 needsRestart = true;
             } catch (IOException ignored) {
-                // the body still works; only its personal dimension is missing
+                
             }
         }
 
         ContinuumReport report = ContinuumData.reloadNow(server);
         if (ContinuumData.body(id) == null) {
-            // written, but the loader turned it down: say why, instead of a "created" that the lists never show
+            
             StringBuilder why = new StringBuilder();
             for (ContinuumReport.Issue issue : report.issues()) {
                 if (issue.toString().contains(id.toString())) why.append(' ').append(issue);

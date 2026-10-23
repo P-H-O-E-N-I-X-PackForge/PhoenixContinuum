@@ -19,15 +19,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Continuum's own research, used unless a companion installs a different one with
- * {@link ContinuumHost#setResearch}. A team has a set of unlocked research ids, a set of flags and an optional discipline,
- * all saved with the world. They are granted with {@code /continuumadmin research}, {@code ContinuumAPI.grantResearch} or
- * the KubeJS {@code Continuum} binding, so a pack decides what earns each one.
- */
 public final class BuiltinResearch extends SavedData {
 
-    /** The provider Continuum uses until another one is installed. */
     public static final ContinuumHost.Research PROVIDER = new ContinuumHost.Research() {
 
         @Override
@@ -63,8 +56,6 @@ public final class BuiltinResearch extends SavedData {
                 "phoenix_continuum_research");
     }
 
-    // ---------------------------------------------------------------- changing
-
     public boolean grant(UUID team, ResourceLocation node) {
         boolean changed = unlocked.computeIfAbsent(team, k -> new LinkedHashSet<>()).add(node);
         if (changed) setDirty();
@@ -94,8 +85,6 @@ public final class BuiltinResearch extends SavedData {
     public Set<ResourceLocation> unlockedOf(UUID team) {
         return unlocked.getOrDefault(team, Set.of());
     }
-
-    // ---------------------------------------------------------------- saving
 
     public static BuiltinResearch load(CompoundTag tag) {
         BuiltinResearch data = new BuiltinResearch();

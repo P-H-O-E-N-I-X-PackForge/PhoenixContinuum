@@ -13,12 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Resolves {@code "inherits"}: a body or system can name another one (any namespace) and only write what differs.
- * Objects are merged key by key, everything else (numbers, strings, arrays) is replaced, and a {@code null} deletes
- * the inherited key. {@code "abstract": true} marks a template that is never registered itself, and
- * {@code "disabled": true} removes a definition a lower layer made. Neither flag is inherited.
- */
 final class ContentResolver {
 
     static final int SUPPORTED_FORMAT = 1;
@@ -96,7 +90,7 @@ final class ContentResolver {
         }
 
         JsonObject merged = merge(parent, own);
-        // flags belong to the definition that wrote them
+        
         merged.remove("abstract");
         merged.remove("disabled");
         if (own.has("abstract")) merged.add("abstract", own.get("abstract"));

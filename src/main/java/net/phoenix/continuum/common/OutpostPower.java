@@ -6,7 +6,6 @@ import net.phoenix.continuum.machine.LaunchComplex;
 
 import java.util.UUID;
 
-/** Outpost upkeep is paid out of the power stored in the team's formed Launch Complexes. */
 public final class OutpostPower {
 
     private OutpostPower() {}

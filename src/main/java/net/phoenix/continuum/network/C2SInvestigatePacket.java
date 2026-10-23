@@ -8,7 +8,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
 import net.phoenix.continuum.common.AnomalyActions;
 
-/** Investigate an anomaly on a body. */
 public class C2SInvestigatePacket {
 
     private final ResourceLocation body;

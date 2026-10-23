@@ -20,15 +20,10 @@ import net.phoenix.continuum.machine.LaunchComplex;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import org.jetbrains.annotations.Nullable;
 
-/** Everything that touches GregTech classes while Continuum is set up; only loaded when GregTech is installed. */
 public final class ContinuumGt {
 
     public static final GTRegistrate REGISTRATE = GTRegistrate.create(PhoenixContinuum.MOD_ID);
 
-    /**
-     * The creative tab, as Registrate default tab so the machines go in it (otherwise they land in GregTech own tab,
-     * which already lists them, and the creative screen fails with a duplicate).
-     */
     public static final RegistryEntry<CreativeModeTab> CREATIVE_TAB = REGISTRATE
             .defaultCreativeTab(PhoenixContinuum.MOD_ID,
                     builder -> builder

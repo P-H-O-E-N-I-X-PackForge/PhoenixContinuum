@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 
-/** The shared tessellator, already begun: the one place the 1.20.1 buffer-builder idiom lives. */
 public final class Vtx {
 
     private Vtx() {}

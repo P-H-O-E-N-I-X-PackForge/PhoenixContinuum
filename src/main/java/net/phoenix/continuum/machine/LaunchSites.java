@@ -8,7 +8,6 @@ import net.phoenix.continuum.integration.gtceu.GregTech;
 
 import org.jetbrains.annotations.Nullable;
 
-/** Finds the launch complex at a position: the GregTech multiblock when GregTech is installed, the powered Launch Pad when not. */
 public final class LaunchSites {
 
     private LaunchSites() {}

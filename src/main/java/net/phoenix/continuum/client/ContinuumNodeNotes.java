@@ -8,7 +8,6 @@ import net.phoenix.continuum.data.ContinuumData;
 import java.util.ArrayList;
 import java.util.List;
 
-/** The "Surveys Rime" lines Continuum adds to the Conflux node viewer, for whoever shows research nodes (PhoenixCore registers this). */
 @OnlyIn(Dist.CLIENT)
 public final class ContinuumNodeNotes {
 

@@ -5,10 +5,6 @@ import net.phoenix.continuum.PhoenixContinuum;
 
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Picks the GregTech integration that matches the installed GregTech. Continuum is compiled against GregTech 7.5.3; the
- * parts written for GregTech 8 live in their own source set and are only loaded when GregTech 8 is installed.
- */
 public final class GTCEuCompat {
 
     private static GtmBootstrap bootstrap;

@@ -33,7 +33,6 @@ public class SwarmMissionGameTests {
         return total;
     }
 
-    /** The test world is kept between runs, so missions a test launched must not outlive it. */
     private static void clearMissions(MinecraftServer server, net.minecraft.world.entity.player.Player player) {
         var team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         var data = net.phoenix.continuum.common.ContinuumTeamData.get(server);
@@ -65,7 +64,6 @@ public class SwarmMissionGameTests {
             BlockPos at = helper.absolutePos(pad);
             player.setPos(at.getX() + 0.5, at.getY() + 1.0, at.getZ() + 0.5);
 
-            // a rocket that can fly to a star
             ItemStack rocket = ContinuumRegistry.ROCKET.asStack();
             RocketStats.setTier(rocket, RocketStats.MAX_TIER);
             RocketStats.setLevel(rocket, RocketStats.STELLAR_SHIELD, 1);
@@ -73,7 +71,6 @@ public class SwarmMissionGameTests {
             player.getInventory().add(new ItemStack(ContinuumRegistry.PROBE.get(), 16));
             if (PadTiers.basic()) ((LaunchPadBlockEntity) helper.getBlockEntity(pad)).chargeEnergy(300_000);
 
-            // probes are not what a swarm is built from
             String error = ContinuumMissions.launchMany(player, star.id(), at, Mission.Type.STATION, 0, 1);
             helper.assertTrue(error != null && error.contains("swarm collector"),
                     "a swarm should ask for swarm collector pods, got: " + error);
@@ -87,7 +84,6 @@ public class SwarmMissionGameTests {
                             ContinuumRegistry.SWARM_COLLECTOR.get()) + " were left of " + (collectors + 1));
             helper.assertTrue(count(player, ContinuumRegistry.PROBE.get()) == 16, "no probes should be taken");
 
-            // a shell wants its own segments
             ItemStack second = ContinuumRegistry.ROCKET.asStack();
             RocketStats.setTier(second, RocketStats.MAX_TIER);
             RocketStats.setLevel(second, RocketStats.STELLAR_SHIELD, 1);

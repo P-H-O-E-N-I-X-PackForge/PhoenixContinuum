@@ -19,23 +19,13 @@ public record ContinuumSystem(
                               @Nullable com.google.gson.JsonObject visibility,
                               @Nullable Companion companion) {
 
-    /**
-     * A second star orbiting the first round their common centre, drawn as its own kind (a plain star, a dyson swarm, a
-     * dyson sphere, ...).
-     *
-     * @param radius     its size relative to the primary
-     * @param separation distance between the two, in primary radii
-     * @param massRatio  its mass over the primary's (the lighter one orbits further out)
-     */
     public record Companion(String kind, int color, float radius, float separation, float massRatio,
                             float periodSeconds) {}
 
-    /** This system with its companion dropped and its star replaced: how each half of a pair is drawn on its own. */
     public ContinuumSystem withStar(String kind, int color) {
         return new ContinuumSystem(id, name, description, galaxyX, galaxyY, galaxyZ, color, starRadius, kind,
                 initialStage, detectedResearch, surveyedResearch, hole, visibility, null);
     }
-
 
     public record HoleStyle(float diskSize, float diskIntensity, float feeding, float tilt, int hotColor, int coolColor,
                             float separation, float massRatio, float periodSeconds, float skyInclination,
@@ -49,7 +39,6 @@ public record ContinuumSystem(
                     massRatio, periodSeconds, skyInclination, skyLean);
         }
 
-        /** Overrides how the disk is tipped when it is drawn in a skybox (NaN keeps the default for that value). */
         public HoleStyle withSky(float inclination, float lean) {
             return new HoleStyle(diskSize, diskIntensity, feeding, tilt, hotColor, coolColor, separation, massRatio,
                     periodSeconds, Float.isNaN(inclination) ? skyInclination : inclination,
@@ -87,7 +76,6 @@ public record ContinuumSystem(
         return "pulsar".equals(starKind);
     }
 
-    /** A star shut inside a complete shell ("dyson_sphere"). */
     public boolean isDysonSphere() {
         return "dyson_sphere".equals(starKind) || "dyson_shell".equals(starKind);
     }

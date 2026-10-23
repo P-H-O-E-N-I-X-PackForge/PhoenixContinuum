@@ -7,10 +7,6 @@ import net.phoenix.continuum.data.DiscoveryStage;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * What Continuum does when research or team membership changes. The companion mod that owns research calls these through
- * {@link net.phoenix.continuum.api.ContinuumHost}.
- */
 public final class ContinuumConfluxHooks {
 
     private ContinuumConfluxHooks() {}

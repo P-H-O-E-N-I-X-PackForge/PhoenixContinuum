@@ -54,8 +54,6 @@ public final class LaunchWindows {
             best = home == null ? 0.0 : Math.atan2(home.galaxyZ() - system.galaxyZ(), home.galaxyX() - system.galaxyX());
         }
 
-        // keep the speed at which the world drifts into and out of line within real cycle times: a year close to
-        // home's would otherwise take days to come round, and a very fast one would open and shut in seconds
         double naturalRate = omega - bestRate;
         double slowest = 2.0 * Math.PI / Math.max(1.0, cfg.launchWindowMaxCycleMinutes * 60_000.0 / dayMillis);
         double fastest = 2.0 * Math.PI / Math.max(1.0, cfg.launchWindowMinCycleMinutes * 60_000.0 / dayMillis);

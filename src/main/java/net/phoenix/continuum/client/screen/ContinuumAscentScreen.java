@@ -109,7 +109,7 @@ public class ContinuumAscentScreen extends Screen {
             boolean starAhead = ahead != null && (ahead.type() == ContinuumBody.Type.STAR ||
                     ahead.type() == ContinuumBody.Type.BLACK_HOLE);
             if (starAhead && t >= 0.5f) {
-                // past stage separation the home world is behind: what is ahead is the star or black hole itself
+                
                 float approach = smooth((t - 0.5f) / 0.5f);
                 Matrix4f starView = new Matrix4f().translate(0.0f, 0.0f, -(5.0f - 2.1f * approach))
                         .rotateX((float) Math.toRadians(9.0));

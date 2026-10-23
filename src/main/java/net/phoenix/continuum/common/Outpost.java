@@ -81,7 +81,6 @@ public final class Outpost {
         return settle(now, cycleMillis, maxReady, payer, 1.0);
     }
 
-    /** {@code shadow} is the share of cycles that get made: a shell round the star shades the system's outposts. */
     public boolean settle(long now, long cycleMillis, int maxReady, CyclePayer payer, double shadow) {
         if (cycleMillis <= 0) return false;
 

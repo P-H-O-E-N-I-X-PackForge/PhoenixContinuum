@@ -19,7 +19,6 @@ import net.phoenix.continuum.machine.LaunchPadMachine;
 import net.phoenix.continuum.machine.SwarmReceiverMachine;
 import net.phoenix.continuum.machine.SwarmReceiverShape;
 
-/** GregTech 7.x: the factory block pattern, and a registrate that registers itself. */
 public final class GtmBootstrap7 implements GtmBootstrap {
 
     @Override
@@ -71,10 +70,6 @@ public final class GtmBootstrap7 implements GtmBootstrap {
                 .build();
     }
 
-    /**
-     * GregTech 7 writes patterns the other way round from GregTech 8: its left is the right of 8 and its front is the
-     * back of 8, so the layout that is (front, up, right) there is (back, up, left) here.
-     */
     private static BlockPattern pattern(MultiblockMachineDefinition definition) {
         var builder = FactoryBlockPattern.start(RelativeDirection.LEFT, RelativeDirection.UP,
                 RelativeDirection.BACK);

@@ -6,7 +6,6 @@ import net.minecraftforge.network.NetworkEvent;
 import net.phoenix.continuum.client.ContinuumClientHooks;
 import net.phoenix.continuum.common.SwarmReport;
 
-/** Opens the swarm power screen of a receiver. */
 public class S2COpenPowerPacket {
 
     private final SwarmReport report;

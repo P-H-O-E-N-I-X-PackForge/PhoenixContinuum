@@ -29,15 +29,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Predicate;
 
-/**
- * The Launch Pad when GregTech is not installed: it takes Forge Energy, and its tier is the best foundation block
- * under it (the tags {@code phoenix_continuum:pad_foundation/tier_1} to {@code tier_4}). Rockets, probes and kits come
- * from the launching player, not from item buses. With GregTech installed this does nothing and the pad stays the plain
- * test pad.
- */
 public class LaunchPadBlockEntity extends BlockEntity implements LaunchComplex {
 
-    /** How many base launches the pad can hold. */
     private static final int BUFFER_LAUNCHES = 8;
 
     private final PadEnergy energy;
@@ -83,7 +76,6 @@ public class LaunchPadBlockEntity extends BlockEntity implements LaunchComplex {
         register();
     }
 
-    /** The first player to use an unowned pad becomes its owner. */
     public void claim(UUID player) {
         if (owner == null) setOwner(player);
     }
@@ -97,7 +89,6 @@ public class LaunchPadBlockEntity extends BlockEntity implements LaunchComplex {
         registeredTeam = LaunchComplexes.unregister(this, registeredTeam);
     }
 
-    /** False when GregTech is installed: the Launch Pad block is then only the free test pad. */
     private boolean isActive() {
         return PadTiers.basic();
     }
@@ -145,8 +136,6 @@ public class LaunchPadBlockEntity extends BlockEntity implements LaunchComplex {
         return TagKey.create(Registries.BLOCK,
                 new ResourceLocation(PhoenixContinuum.MOD_ID, "pad_foundation/tier_" + tier));
     }
-
-    // ---- LaunchComplex
 
     @Override
     public boolean isFormed() {

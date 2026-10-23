@@ -59,10 +59,6 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
         return true;
     }
 
-    /**
-     * Draws the sky as seen from {@code body}: nebula, horizon, star, the other worlds. Used by the live sky and by the
-     * tuner's sky view. Returns the sample it drew with (the sun, the air colours, the eclipse).
-     */
     public static PdimSkyModel.Sample drawScene(Matrix4f view, Matrix4f projection, PdimSkyView view0,
                                                 ContinuumBody body, ContinuumSystem system, float time) {
         PdimSkyModel.Sample sample = PdimSkyModel.sample(view0, body, system);
@@ -79,7 +75,6 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
             RenderSystem.enableDepthTest();
             RenderSystem.depthMask(true);
 
-            // standing on a world: its horizon hides what has set, so the star and the other worlds sink behind it
             if (sample.hasSun() && !view0.orbit()) SceneRenderer.drawHorizonPlane(view, projection);
 
             if (sample.hasSun() && system != null && sample.sunDir().y > -0.25f) {
