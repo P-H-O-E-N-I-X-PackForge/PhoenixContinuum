@@ -11,6 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.phoenix.continuum.ContinuumRegistry;
 import net.phoenix.continuum.data.ContinuumData;
+import net.phoenix.continuum.common.Swarms;
 import net.phoenix.continuum.data.DiscoveryStage;
 import net.phoenix.continuum.item.ContinuumRocketItem;
 
@@ -381,6 +382,13 @@ final class ContinuumAdminCommands {
                         .then(literal("damage").executes(ctx -> damageOutposts(ctx.getSource(), true)))
                         .then(literal("repair").executes(ctx -> damageOutposts(ctx.getSource(), false)))
                         .then(literal("clear").executes(ctx -> clearOutposts(ctx.getSource()))))
+                .then(literal("swarm")
+                        .then(literal("add").then(swarmBody(false, (source, body, levels) ->
+                                swarmLevels(source, body, levels, false))))
+                        .then(literal("remove").then(swarmBody(false, (source, body, levels) ->
+                                swarmLevels(source, body, -levels, false))))
+                        .then(literal("set").then(swarmBody(true, (source, body, levels) ->
+                                swarmLevels(source, body, levels, true)))))
                 .then(literal("comet")
                         .then(literal("spawn")
                                 .then(argument("body", ResourceLocationArgument.id())
@@ -649,6 +657,50 @@ final class ContinuumAdminCommands {
         source.sendSuccess(() -> Component.literal("All " + total + " systems and bodies are now " +
                 stage.name().toLowerCase(Locale.ROOT) + "."), false);
         return total;
+    }
+
+    @FunctionalInterface
+    private interface SwarmAction {
+
+        int run(CommandSourceStack source, ResourceLocation body, int levels) throws CommandSyntaxException;
+    }
+
+    /** The body and level arguments shared by swarm add, remove and set. */
+    private static com.mojang.brigadier.builder.RequiredArgumentBuilder<CommandSourceStack, ResourceLocation> swarmBody(
+                                                                                                                      boolean allowZero,
+                                                                                                                      SwarmAction action) {
+        return argument("body", ResourceLocationArgument.id())
+                .suggests((ctx, builder) -> {
+                    ContinuumData.allBodies().stream().filter(b -> Swarms.isSwarm(b))
+                            .forEach(b -> builder.suggest(b.id().toString()));
+                    return builder.buildFuture();
+                })
+                .then(argument("levels", IntegerArgumentType.integer(allowZero ? 0 : 1, 1000))
+                        .executes(ctx -> action.run(ctx.getSource(), ResourceLocationArgument.getId(ctx, "body"),
+                                IntegerArgumentType.getInteger(ctx, "levels"))));
+    }
+
+    /** Changes the level of your team's swarm (or station) at a body, within what that body allows. */
+    private static int swarmLevels(CommandSourceStack source, ResourceLocation id, int levels,
+                                   boolean absolute) throws CommandSyntaxException {
+        var body = ContinuumData.body(id);
+        if (body == null) {
+            source.sendFailure(Component.literal("No such body: " + id));
+            return 0;
+        }
+        UUID team = team(source);
+        ContinuumTeamData data = ContinuumTeamData.get(source.getServer());
+        int max = Swarms.maxLevel(body);
+        int now = data.stationLevel(team, id);
+        int next = Math.max(0, Math.min(max, absolute ? levels : now + levels));
+        data.setStationLevel(team, id, next);
+        ContinuumServerEvents.engageTeam(source.getServer(), team);
+        ContinuumServerEvents.sendStateToTeam(source.getServer(), team);
+        String name = Swarms.kindName(body);
+        String power = Swarms.isSwarm(body) && next > 0 ? " (" + Swarms.describe(body, next) + ")" : "";
+        source.sendSuccess(() -> Component.literal(name + " at " + body.name() + " is now level " + next + " of " + max +
+                power + "."), false);
+        return next;
     }
 
     private static int grantOutpost(CommandSourceStack source, ResourceLocation body, int probes)

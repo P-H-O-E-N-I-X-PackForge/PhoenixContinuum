@@ -14,6 +14,8 @@ uniform float Core;         // radius of the star body in billboard units
 uniform float Detail;       // 2 (low) - 4 (high)
 uniform vec3 Tint;          // star colour
 uniform vec3 DiskNormal;    // orbital plane normal, view space
+uniform float Completion;   // 0 - 1: how much of the shell is built (1 is a finished sphere)
+uniform float Overlay;      // 1 when drawn over a star that is already drawn: no glare of its own, gaps show the star
 
 in vec2 vLocal;
 out vec4 fragColor;
@@ -78,6 +80,15 @@ void main() {
         vec2 e = min(fr, 1.0 - fr);
         float seam = 1.0 - smoothstep(0.03, 0.10, min(e.x, e.y));
 
+        // a half-built shell: plates go up scattered, the belt first. A missing plate is just the scaffold's lattice
+        float order = mix(hash(vec2(cid * 1.7 + row * 61.0, 9.0)), abs(lat) / (0.5 * PI), 0.35);
+        if (order > Completion) {
+            float lattice = seam * 0.85;
+            vec3 strut = vec3(0.10, 0.11, 0.15) + hot * 0.12;
+            fragColor = vec4(strut * lattice * edge, lattice * edge);
+            return;
+        }
+
         // plates differ a little in tone, with slow large-scale weathering
         vec3 sp = vec3(dot(nrm, u), dot(nrm, n), dot(nrm, w));
         float weather = vnoise3(sp * 5.0 + vec3(0.0, 0.0, 3.7));
@@ -107,6 +118,10 @@ void main() {
         vec3 starFace = hot * (1.4 + 0.5 * vnoise3(sp * 9.0 + vec3(Time * 0.05)));
         col = mix(col, starFace, rift);
         alpha = 1.0;
+    } else if (Overlay > 0.5) {
+        // the star under it already has its own glare
+        fragColor = vec4(0.0);
+        return;
     } else {
         // ---- outside the shell: the glare that gets past it, a faint corona, and slow shafts -------------------------
         float d = rr - SHELL;

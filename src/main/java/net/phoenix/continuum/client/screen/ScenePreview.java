@@ -103,6 +103,8 @@ public final class ScenePreview {
                 SceneRenderer.drawSystemStar(system, system.starColor(), view, projection, at, system.starRadius(),
                         ContinuumVisuals.quality(), false);
             }
+            SceneRenderer.drawSwarmShell(system, system.starColor(), view, projection, at, system.starRadius(),
+                    ContinuumVisuals.quality(), false);
             SceneRenderer.end();
             return true;
         });

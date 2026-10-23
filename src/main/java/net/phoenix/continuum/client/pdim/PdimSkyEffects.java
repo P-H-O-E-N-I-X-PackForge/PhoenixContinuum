@@ -93,6 +93,8 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
                     SceneRenderer.drawSystemStar(system, system.starColor(), view, projection, sunPos, 6.0f,
                             ContinuumVisuals.quality(), true);
                 }
+                SceneRenderer.drawSwarmShell(system, system.starColor(), view, projection, sunPos,
+                        system.hasHole() ? 4.5f : 6.0f, ContinuumVisuals.quality(), true);
                 RenderSystem.enableCull();
                 RenderSystem.enableDepthTest();
                 RenderSystem.depthMask(true);

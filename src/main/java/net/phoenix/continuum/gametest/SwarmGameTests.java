@@ -81,4 +81,40 @@ public class SwarmGameTests {
         storage.set(level, pos, 0);
         helper.succeed();
     }
+
+    @GameTest(template = "gametest_empty", timeoutTicks = 100)
+    public static void blackHolesHostPenroseSwarmsAndTheCommandChangesLevels(GameTestHelper helper) {
+        MinecraftServer server = helper.getLevel().getServer();
+        server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withPermission(4),
+                "continuumadmin generate 40 11");
+        ContinuumBody hole = ContinuumData.allBodies().stream().filter(Swarms::isPenrose).findFirst().orElse(null);
+        helper.assertTrue(hole != null, "the generated galaxy should have a black hole to build a Penrose swarm at");
+        helper.assertTrue(Swarms.maxLevel(hole) == ContinuumConfigs.INSTANCE.penroseMaxLevel,
+                "a Penrose swarm has its own maximum level");
+
+        var player = net.neoforged.neoforge.common.util.FakePlayerFactory.getMinecraft(helper.getLevel());
+        var source = player.createCommandSourceStack().withPermission(4);
+        UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
+        var data = ContinuumTeamData.get(server);
+        data.setStationLevel(team, hole.id(), 0);
+        String id = hole.id().toString();
+        server.getCommands().performPrefixedCommand(source, "continuumadmin swarm add " + id + " 3");
+        helper.assertTrue(data.stationLevel(team, hole.id()) == 3, "add 3 should give level 3, is "
+                + data.stationLevel(team, hole.id()));
+        server.getCommands().performPrefixedCommand(source, "continuumadmin swarm remove " + id + " 1");
+        helper.assertTrue(data.stationLevel(team, hole.id()) == 2, "remove 1 should give level 2");
+        long perTick = ContinuumSwarmPower.outputPerTick(server, team);
+        long expected = Math.round(2 * ContinuumConfigs.INSTANCE.swarmPowerPerLevel * Swarms.luminosity(hole) *
+                ContinuumConfigs.INSTANCE.penrosePowerMultiplier);
+        helper.assertTrue(perTick == expected, "a level 2 Penrose swarm should make " + expected + " per tick, makes "
+                + perTick);
+        server.getCommands().performPrefixedCommand(source, "continuumadmin swarm set " + id + " 999");
+        helper.assertTrue(data.stationLevel(team, hole.id()) == Swarms.maxLevel(hole),
+                "set past the maximum clamps to it");
+        server.getCommands().performPrefixedCommand(source, "continuumadmin swarm set " + id + " 0");
+        helper.assertTrue(data.stationLevel(team, hole.id()) == 0, "set 0 removes the swarm");
+        server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withPermission(4),
+                "continuumadmin generate clear");
+        helper.succeed();
+    }
 }

@@ -16,13 +16,24 @@ public final class Swarms {
 
     private Swarms() {}
 
+    /** A swarm is built at a star (a Dyson swarm) or a black hole (a Penrose swarm, which draws on its spin). */
     public static boolean isSwarm(ContinuumBody body) {
-        return body != null && body.type() == ContinuumBody.Type.STAR;
+        return body != null && (body.type() == ContinuumBody.Type.STAR || isPenrose(body));
+    }
+
+    public static boolean isPenrose(ContinuumBody body) {
+        return body != null && body.type() == ContinuumBody.Type.BLACK_HOLE;
+    }
+
+    /** What a station at this body is called. */
+    public static String kindName(ContinuumBody body) {
+        return isPenrose(body) ? "Penrose swarm" : isSwarm(body) ? "Dyson swarm" : "orbital station";
     }
 
     /** How many levels a station at this body can have: a swarm has many, an ordinary station has a few. */
     public static int maxLevel(ContinuumBody body) {
-        return isSwarm(body) ? ContinuumConfigs.INSTANCE.swarmMaxLevel : Stations.MAX_LEVEL;
+        var cfg = ContinuumConfigs.INSTANCE;
+        return isPenrose(body) ? cfg.penroseMaxLevel : isSwarm(body) ? cfg.swarmMaxLevel : Stations.MAX_LEVEL;
     }
 
     /** Bigger stars catch more light. */
@@ -32,7 +43,8 @@ public final class Swarms {
 
     public static String describe(ContinuumBody star, int level) {
         return String.format(java.util.Locale.ROOT, "%,d %s/t for your team", Math.round(
-                level * ContinuumConfigs.INSTANCE.swarmPowerPerLevel * luminosity(star)),
+                level * ContinuumConfigs.INSTANCE.swarmPowerPerLevel * luminosity(star) *
+                        (isPenrose(star) ? ContinuumConfigs.INSTANCE.penrosePowerMultiplier : 1.0)),
                 net.phoenix.continuum.machine.PadTiers.energyUnit());
     }
 
@@ -42,7 +54,8 @@ public final class Swarms {
         for (Map.Entry<ResourceLocation, Integer> entry : ContinuumTeamData.get(server).stations(team).entrySet()) {
             ContinuumBody body = ContinuumData.body(entry.getKey());
             if (!isSwarm(body)) continue;
-            total += entry.getValue() * cfg.swarmPowerPerLevel * luminosity(body);
+            total += entry.getValue() * cfg.swarmPowerPerLevel * luminosity(body) *
+                    (isPenrose(body) ? cfg.penrosePowerMultiplier : 1.0);
         }
         return Math.round(total);
     }
