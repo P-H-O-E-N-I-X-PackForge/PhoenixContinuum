@@ -111,7 +111,8 @@ public final class ContentCreator {
                 if (issue.toString().contains(id.toString())) why.append(' ').append(issue);
             }
             return Result.fail("The body " + id + " was written but did not load." + (why.length() == 0 ?
-                    " See /continuumadmin validate." : why.toString()));
+                    " If " + id.getNamespace() + " is a new namespace for the pack folder, restart the game once;" +
+                            " otherwise see /continuumadmin validate." : why.toString()));
         }
         return new Result(true, "Created the body " + id + "." +
                 (needsRestart ? " Its personal dimension appears after a restart." : ""));
