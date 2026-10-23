@@ -28,8 +28,13 @@ public class S2CPadStockPacket implements CustomPacketPayload {
     private final int probes;
     private final int kits;
     private final int rockets;
+    private final int collectors;
+    private final int segments;
 
-    public S2CPadStockPacket(BlockPos pad, boolean buses, ItemStack rocket, int probes, int kits, int rockets) {
+    public S2CPadStockPacket(BlockPos pad, boolean buses, ItemStack rocket, int probes, int kits, int rockets,
+                             int collectors, int segments) {
+        this.collectors = collectors;
+        this.segments = segments;
         this.rockets = rockets;
         this.pad = pad;
         this.buses = buses;
@@ -45,6 +50,8 @@ public class S2CPadStockPacket implements CustomPacketPayload {
         this.probes = buf.readVarInt();
         this.kits = buf.readVarInt();
         this.rockets = buf.readVarInt();
+        this.collectors = buf.readVarInt();
+        this.segments = buf.readVarInt();
     }
 
     public void encode(RegistryFriendlyByteBuf buf) {
@@ -54,13 +61,15 @@ public class S2CPadStockPacket implements CustomPacketPayload {
         buf.writeVarInt(probes);
         buf.writeVarInt(kits);
         buf.writeVarInt(rockets);
+        buf.writeVarInt(collectors);
+        buf.writeVarInt(segments);
     }
 
     public static void handle(S2CPadStockPacket msg, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             if (FMLEnvironment.dist.isClient()) {
                 ContinuumClientState.acceptPadStock(msg.pad, msg.buses, msg.rocket, msg.probes, msg.kits,
-                        msg.rockets);
+                        msg.rockets, msg.collectors, msg.segments);
             }
         });
     }

@@ -15,8 +15,9 @@ import java.util.Map;
 public final class PlanetBake {
 
     private static final int SIZE = 512;
-    private static final int MAX_TERRAIN = 8;
-    private static final int MAX_CLOUDS = 8;
+    // a system can show more worlds than this at once; the more that fit, the less the cache has to throw away and redo
+    private static final int MAX_TERRAIN = 12;
+    private static final int MAX_CLOUDS = 16;
     
     private static final long BAKE_INTERVAL = 8_000_000L;
     
@@ -52,6 +53,23 @@ public final class PlanetBake {
 
     private static final Map<Object, Pending> pending = new LinkedHashMap<>();
     private static boolean paused;
+    private static boolean burst;
+    private static int denied;
+
+    /**
+     * While bursting, every world asked for gets a face baked each frame, with no waiting between bakes. The map does
+     * this while its screen is black between two views, so what it is about to show is ready before it fades in.
+     */
+    public static void burst(boolean value) {
+        burst = value;
+    }
+
+    /** How many worlds were asked for since the last call and were not ready (still waiting to be baked). */
+    public static int takeDenied() {
+        int count = denied;
+        denied = 0;
+        return count;
+    }
 
     /** While paused nothing new is baked (the map pauses it while its camera is in flight, so no frame hitches). */
     public static void pause(boolean value) {
@@ -97,7 +115,10 @@ public final class PlanetBake {
             have.lastUse = now;
             return have.tex;
         }
-        if (paused || now - lastBake < BAKE_INTERVAL) return 0;
+        if (paused || (!burst && now - lastBake < BAKE_INTERVAL)) {
+            denied++;
+            return 0;
+        }
 
         Pending bake = pending.get(key);
         if (bake == null) {
@@ -109,7 +130,7 @@ public final class PlanetBake {
                 oldestFirst.remove();
             }
             // worlds that were left before they finished must not pile up
-            while (pending.size() >= 4) {
+            while (pending.size() >= 16) {
                 Iterator<Pending> stale = pending.values().iterator();
                 GL11.glDeleteTextures(stale.next().tex);
                 stale.remove();
@@ -122,7 +143,10 @@ public final class PlanetBake {
         bakeFace(shader, bake.tex, mode, seed, scale, octaves, bake.face);
         bake.face++;
         lastBake = System.nanoTime();
-        if (bake.face < 6) return 0;
+        if (bake.face < 6) {
+            denied++;
+            return 0;
+        }
 
         pending.remove(key);
         cache.put(key, new Entry(bake.tex, lastBake));

@@ -21,6 +21,7 @@ public final class ContinuumNetwork {
         registrar.playToClient(S2CContinuumStatePacket.TYPE, S2CContinuumStatePacket.STREAM_CODEC,
                 S2CContinuumStatePacket::handle);
         registrar.playToClient(S2COpenMapPacket.TYPE, S2COpenMapPacket.STREAM_CODEC, S2COpenMapPacket::handle);
+        registrar.playToClient(S2COpenPowerPacket.TYPE, S2COpenPowerPacket.STREAM_CODEC, S2COpenPowerPacket::handle);
         registrar.playToClient(S2CMissionLaunchedPacket.TYPE, S2CMissionLaunchedPacket.STREAM_CODEC,
                 S2CMissionLaunchedPacket::handle);
         registrar.playToClient(S2CPadStockPacket.TYPE,

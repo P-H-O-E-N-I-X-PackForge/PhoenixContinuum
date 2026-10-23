@@ -90,6 +90,19 @@ public class SwarmReceiverBlockEntity extends BlockEntity implements ContinuumSw
         return stored;
     }
 
+    public net.phoenix.continuum.common.SwarmReport report(net.minecraft.server.MinecraftServer server) {
+        UUID team = owner == null ? null : ContinuumHost.teamOf(owner);
+        String note = isActive() ? "Pass it on to machines that touch it, up to the rate shown. Several receivers share" +
+                " a swarm's power, and what nothing takes is lost." :
+                "GregTech is installed, so this block does nothing. Build a Swarm Receiver Array instead.";
+        if (team == null) {
+            return new net.phoenix.continuum.common.SwarmReport("Swarm Receiver", "FE", stored, capacity(), maxOut(), 0,
+                    "This receiver has no owner yet: place it yourself.", java.util.List.of());
+        }
+        return net.phoenix.continuum.common.SwarmReport.build(server, team, "Swarm Receiver", stored, capacity(),
+                maxOut(), note);
+    }
+
     public void setOwner(@Nullable UUID player) {
         if (player == null || level == null || level.isClientSide) return;
         owner = player;

@@ -134,6 +134,26 @@ public final class ContinuumRecipes {
                 .duration(800).EUt(VA[LuV])
                 .save(provider);
 
+        ASSEMBLER_RECIPES.recipeBuilder("continuum_swarm_collector")
+                .inputItems(plate, Aluminium, 4)
+                .inputItems(SENSOR_HV, 1)
+                .inputItems(EMITTER_HV, 1)
+                .inputItems(CustomTags.HV_CIRCUITS, 2)
+                .inputFluids(SolderingAlloy, 144)
+                .outputItems(ContinuumRegistry.SWARM_COLLECTOR.asStack(4))
+                .duration(300).EUt(VA[HV])
+                .save(provider);
+
+        ASSEMBLER_RECIPES.recipeBuilder("continuum_shell_segment")
+                .inputItems(plate, TungstenSteel, 6)
+                .inputItems(plate, Titanium, 4)
+                .inputItems(frameGt, Titanium, 1)
+                .inputItems(CustomTags.EV_CIRCUITS, 2)
+                .inputFluids(SolderingAlloy, 288)
+                .outputItems(ContinuumRegistry.SHELL_SEGMENT.asStack(2))
+                .duration(400).EUt(VA[EV])
+                .save(provider);
+
         ASSEMBLER_RECIPES.recipeBuilder("continuum_swarm_array")
                 .inputItems(GTMachines.HULL[IV].asStack())
                 .inputItems(CASING_STEEL_SOLID, 8)

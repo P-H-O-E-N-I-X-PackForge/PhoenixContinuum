@@ -112,6 +112,7 @@ final class MissionPlannerPanel {
     void draw(GuiGraphics g, Font font, int screenW, int screenH, int mx, int my, ContinuumBody body,
               @Nullable net.minecraft.core.BlockPos padPos,
               DiscoveryStage stage, ItemStack rocket, int probesOwned, int kitsOwned, int rocketsOwned,
+              int collectorsOwned, int segmentsOwned,
               @Nullable ContinuumStateSnapshot.OutpostView outpost, long now) {
         g.pose().pushPose();
         g.pose().translate(0.0f, 0.0f, 300.0f);
@@ -175,8 +176,12 @@ final class MissionPlannerPanel {
             canStation = false;
             canShell = false;
         }
-        int stationProbes = mode == Mission.Type.SHELL ? Stations.shellProbesPerLevel() :
-                Stations.probesPerLevel(body);
+        // a swarm is grown with Swarm Collector Pods and a shell built with Shell Segments, not probes
+        boolean shellMode = mode == Mission.Type.SHELL;
+        boolean specialStation = swarm && (shellMode || mode == Mission.Type.STATION);
+        int stationProbes = specialStation ? Swarms.payloadPerLevel(body, shellMode) : Stations.probesPerLevel(body);
+        int stationOwned = specialStation ? (shellMode ? segmentsOwned : collectorsOwned) : probesOwned;
+        String stationLabel = specialStation ? (shellMode ? "Shell segments" : "Swarm collectors") : "Probes";
         int strandedCount = 0;
         for (var m : ContinuumClientState.missions()) {
             if (m.stranded() && !m.rescuing() && m.destination().equals(body.id())) strandedCount++;
@@ -412,9 +417,8 @@ final class MissionPlannerPanel {
                     ty = row(g, font, "Idle cycles", String.valueOf(outpost.brokenCycles()), x + 10, ty, MapUi.WARN);
                 }
             }
-            case STATION, SHELL -> ty = row(g, font, "Probes", stationProbes + "  (" + probesOwned + " " + loaded + ")",
-                    x + 10,
-                    ty, probesOwned >= stationProbes ? MapUi.TEXT : MapUi.BAD);
+            case STATION, SHELL -> ty = row(g, font, stationLabel, stationProbes + "  (" + stationOwned + " " + loaded +
+                    ")", x + 10, ty, stationOwned >= stationProbes ? MapUi.TEXT : MapUi.BAD);
             case RESCUE -> {
                 ty = row(g, font, "Repair kits", rescueKits + "  (" + kitsOwned + " " + loaded + ")", x + 10, ty,
                         kitsOwned >= rescueKits ? MapUi.TEXT : MapUi.BAD);
@@ -435,7 +439,7 @@ final class MissionPlannerPanel {
 
         int sending = convoy ? rockets : 1;
         boolean enoughProbes = mode == Mission.Type.STATION || mode == Mission.Type.SHELL ?
-                probesOwned >= stationProbes :
+                stationOwned >= stationProbes :
                 !carriesProbes || probesOwned >= probes * sending;
         boolean enoughKits = (mode != Mission.Type.REPAIR || kitsOwned >= kitsNeeded) &&
                 (mode != Mission.Type.RESCUE || kitsOwned >= rescueKits * sending) && rocketsOwned >= sending;

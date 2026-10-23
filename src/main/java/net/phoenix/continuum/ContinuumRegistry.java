@@ -26,6 +26,8 @@ import net.phoenix.continuum.item.ContinuumProbeItem;
 import net.phoenix.continuum.item.ContinuumRefitKitItem;
 import net.phoenix.continuum.item.ContinuumRepairKitItem;
 import net.phoenix.continuum.item.ContinuumRocketItem;
+import net.phoenix.continuum.item.ContinuumShellSegmentItem;
+import net.phoenix.continuum.item.ContinuumSwarmCollectorItem;
 import net.phoenix.continuum.item.ContinuumUpgradeItem;
 
 import java.util.function.Supplier;
@@ -144,6 +146,12 @@ public final class ContinuumRegistry {
 
     public static final ItemRef<ContinuumRefitKitItem> REFIT_MK4 = item("continuum_hull_refit_mk4",
             () -> new ContinuumRefitKitItem(new Item.Properties(), 4));
+
+    public static final ItemRef<ContinuumSwarmCollectorItem> SWARM_COLLECTOR = item("continuum_swarm_collector",
+            () -> new ContinuumSwarmCollectorItem(new Item.Properties()));
+
+    public static final ItemRef<ContinuumShellSegmentItem> SHELL_SEGMENT = item("continuum_shell_segment",
+            () -> new ContinuumShellSegmentItem(new Item.Properties()));
 
     public static final ItemRef<ContinuumRepairKitItem> REPAIR_KIT = item("continuum_repair_kit",
             () -> new ContinuumRepairKitItem(new Item.Properties()));

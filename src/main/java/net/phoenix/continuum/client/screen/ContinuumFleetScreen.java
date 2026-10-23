@@ -188,13 +188,34 @@ public class ContinuumFleetScreen extends Screen {
         graphics.drawString(font, "Each adds a mission slot.", x + 8, top + 20, MapUi.DIM);
 
         Map<ResourceLocation, Integer> stations = ContinuumClientState.stations();
-        if (stations.isEmpty()) {
+        if (stations.isEmpty() && ContinuumClientState.shells().isEmpty()) {
             graphics.drawString(font, "None built yet. Plan a", x + 8, top + 38, MapUi.DIM);
             graphics.drawString(font, "station run from a body's page.", x + 8, top + 49, MapUi.DIM);
             return;
         }
         int y = top + 38;
+        java.util.List<net.phoenix.continuum.common.Swarms.Entry> built = net.phoenix.continuum.common.Swarms
+                .entries(stations, ContinuumClientState.shells());
+        if (!built.isEmpty()) {
+            long total = net.phoenix.continuum.common.Swarms.total(built);
+            String power = String.format(java.util.Locale.ROOT, "Swarms make %,d %s/t", total,
+                    net.phoenix.continuum.machine.PadTiers.energyUnit());
+            graphics.drawString(font, power, x + 8, y, total > 0 ? MapUi.GOOD : MapUi.WARN);
+            y += 14;
+            for (var entry : built) {
+                graphics.drawString(font, font.plainSubstrByWidth(entry.name() + "  " +
+                        (entry.shell() ? "shell" : "swarm") + " " + entry.level() + "/" + entry.max(), w - 110), x + 8,
+                        y, MapUi.TEXT);
+                String output = String.format(java.util.Locale.ROOT, "%,d/t", entry.perTick());
+                graphics.drawString(font, output, x + w - 8 - font.width(output), y,
+                        entry.perTick() > 0 ? MapUi.GOOD : MapUi.WARN);
+                y += 12;
+            }
+            y += 4;
+        }
         for (var entry : stations.entrySet()) {
+            var swarmBody = net.phoenix.continuum.data.ContinuumData.body(entry.getKey());
+            if (net.phoenix.continuum.common.Swarms.isSwarm(swarmBody)) continue;
             graphics.drawString(font, bodyName(entry.getKey()), x + 8, y, MapUi.TEXT);
             var stationBody = net.phoenix.continuum.data.ContinuumData.body(entry.getKey());
             int stationMax = stationBody == null ? Stations.MAX_LEVEL : Stations.maxLevel(stationBody);

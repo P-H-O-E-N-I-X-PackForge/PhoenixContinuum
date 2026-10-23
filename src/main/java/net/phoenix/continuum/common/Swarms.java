@@ -43,8 +43,17 @@ public final class Swarms {
         return Math.max(0.0, Math.min(1.0, level / (double) Math.max(1, shellMaxLevel(body))));
     }
 
-    public static int shellProbesPerLevel() {
-        return Math.max(1, ContinuumConfigs.INSTANCE.shellProbesPerLevel);
+    /** What a rocket carries for one level: Swarm Collector Pods for a swarm, Shell Segments for a shell. */
+    public static int payloadPerLevel(ContinuumBody body, boolean shell) {
+        var cfg = ContinuumConfigs.INSTANCE;
+        int count = shell ? (isPenrose(body) ? cfg.penroseSegmentsPerLevel : cfg.shellSegmentsPerLevel) :
+                (isPenrose(body) ? cfg.penroseCollectorsPerLevel : cfg.swarmCollectorsPerLevel);
+        return Math.max(1, count);
+    }
+
+    public static String payloadName(boolean shell, int count) {
+        return shell ? count + " shell segment" + (count == 1 ? "" : "s") :
+                count + " swarm collector pod" + (count == 1 ? "" : "s");
     }
 
     /**
@@ -101,20 +110,47 @@ public final class Swarms {
                 net.phoenix.continuum.machine.PadTiers.energyUnit());
     }
 
-    public static long powerPerTick(MinecraftServer server, UUID team) {
-        double total = 0.0;
+    /** What a swarm of this level makes per tick, before rounding. */
+    public static double swarmPower(ContinuumBody body, int level) {
         var cfg = ContinuumConfigs.INSTANCE;
-        for (Map.Entry<ResourceLocation, Integer> entry : ContinuumTeamData.get(server).stations(team).entrySet()) {
-            ContinuumBody body = ContinuumData.body(entry.getKey());
-            if (!isSwarm(body)) continue;
-            total += entry.getValue() * cfg.swarmPowerPerLevel * luminosity(body) *
-                    (isPenrose(body) ? cfg.penrosePowerMultiplier : 1.0);
+        return level * cfg.swarmPowerPerLevel * luminosity(body) * (isPenrose(body) ? cfg.penrosePowerMultiplier : 1.0);
+    }
+
+    /** One swarm or shell a team has built, and what it makes per tick. */
+    public record Entry(ResourceLocation body, String name, boolean shell, int level, int max, long perTick) {}
+
+    /** The swarms and shells in these level maps, with their output. Works on the client with its synced maps. */
+    public static java.util.List<Entry> entries(Map<ResourceLocation, Integer> swarms,
+                                                Map<ResourceLocation, Integer> shells) {
+        java.util.List<Entry> out = new java.util.ArrayList<>();
+        for (Map.Entry<ResourceLocation, Integer> e : swarms.entrySet()) {
+            ContinuumBody body = ContinuumData.body(e.getKey());
+            if (!isSwarm(body) || e.getValue() <= 0) continue;
+            out.add(new Entry(e.getKey(), body.name(), false, e.getValue(), maxLevel(body),
+                    Math.round(swarmPower(body, e.getValue()))));
         }
-        for (Map.Entry<ResourceLocation, Integer> entry : ContinuumTeamData.get(server).shells(team).entrySet()) {
-            ContinuumBody body = ContinuumData.body(entry.getKey());
-            if (isSwarm(body)) total += shellPower(body, entry.getValue());
+        for (Map.Entry<ResourceLocation, Integer> e : shells.entrySet()) {
+            ContinuumBody body = ContinuumData.body(e.getKey());
+            if (!isSwarm(body) || e.getValue() <= 0) continue;
+            out.add(new Entry(e.getKey(), body.name(), true, e.getValue(), shellMaxLevel(body),
+                    Math.round(shellPower(body, e.getValue()))));
         }
-        return Math.round(total);
+        return out;
+    }
+
+    public static java.util.List<Entry> entries(MinecraftServer server, UUID team) {
+        var data = ContinuumTeamData.get(server);
+        return entries(data.stations(team), data.shells(team));
+    }
+
+    public static long total(java.util.List<Entry> entries) {
+        long total = 0;
+        for (Entry entry : entries) total += entry.perTick();
+        return total;
+    }
+
+    public static long powerPerTick(MinecraftServer server, UUID team) {
+        return total(entries(server, team));
     }
 
     /** Once a second: offers each team's swarm power to its sinks, then to its launch complexes. */

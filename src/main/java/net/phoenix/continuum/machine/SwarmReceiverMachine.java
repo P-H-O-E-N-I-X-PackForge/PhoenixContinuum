@@ -45,6 +45,31 @@ public class SwarmReceiverMachine extends MultiblockControllerMachine implements
     }
 
     @Override
+    public net.minecraft.world.InteractionResult onUse(
+                                                       com.gregtechceu.gtceu.utils.ExtendedUseOnContext context) {
+        var player = context.getPlayer();
+        if (!isFormed() || player == null || player.isShiftKeyDown()) return super.onUse(context);
+        if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer && getLevel() != null &&
+                getLevel().getServer() != null) {
+            var server = getLevel().getServer();
+            UUID owner = getOwnerUUID();
+            UUID team = ContinuumHost.teamOf(owner != null ? owner : player.getUUID());
+            long stored = net.phoenix.continuum.common.SwarmStorage.get(server).get(getLevel(), getBlockPos());
+            long capacity = (long) Math.min(9.0E18,
+                    Math.max(0.0, net.phoenix.continuum.config.ContinuumConfigs.INSTANCE.swarmArrayCapacitorEU));
+            String note = "Fills its output hatches from the capacitor" +
+                    (net.phoenix.continuum.integration.tesla.TeslaLink.loaded() ?
+                            ", after the Tesla Network storage, which comes first." : ".") +
+                    " Sneak and use for the GregTech screen.";
+            net.phoenix.continuum.network.ContinuumNetwork.sendToPlayer(serverPlayer,
+                    new net.phoenix.continuum.network.S2COpenPowerPacket(
+                            net.phoenix.continuum.common.SwarmReport.build(server, team, "Swarm Receiver Array", stored,
+                                    capacity, 0, note)));
+        }
+        return net.minecraft.world.InteractionResult.sidedSuccess(context.getLevel().isClientSide);
+    }
+
+    @Override
     public long accept(long amount) {
         if (!isFormed() || getLevel() == null || getLevel().getServer() == null) return 0;
         // with the Tesla Network installed, the swarm fills its tesla storage first; what that cannot take goes on

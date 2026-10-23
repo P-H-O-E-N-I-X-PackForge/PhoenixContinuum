@@ -52,7 +52,7 @@ public class C2SRequestPadStockPacket implements CustomPacketPayload {
             var stock = ContinuumMissions.padStock(player, msg.pad);
             PacketDistributor.sendToPlayer(player,
                     new S2CPadStockPacket(msg.pad, stock.buses(), stock.rocket(), stock.probes(), stock.kits(),
-                            stock.rockets()));
+                            stock.rockets(), stock.collectors(), stock.segments()));
         });
     }
 }

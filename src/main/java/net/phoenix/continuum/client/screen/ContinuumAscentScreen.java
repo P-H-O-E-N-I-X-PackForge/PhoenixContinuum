@@ -105,8 +105,21 @@ public class ContinuumAscentScreen extends Screen {
             Matrix4f view = new Matrix4f().translate(0.0f, 0.0f, -distance).rotateX((float) Math.toRadians(pitch));
 
             SceneRenderer.begin(target, spin);
-            SceneRenderer.drawPlanet(params, view, projection, new Vector3f(), 1.0f, new Vector3f(-40.0f, 18.0f, 30.0f),
-                    spin, spin * 1.4f, net.phoenix.continuum.client.ContinuumVisuals.quality(), true);
+            ContinuumBody ahead = ContinuumData.body(destination);
+            boolean starAhead = ahead != null && (ahead.type() == ContinuumBody.Type.STAR ||
+                    ahead.type() == ContinuumBody.Type.BLACK_HOLE);
+            if (starAhead && t >= 0.5f) {
+                // past stage separation the home world is behind: what is ahead is the star or black hole itself
+                float approach = smooth((t - 0.5f) / 0.5f);
+                Matrix4f starView = new Matrix4f().translate(0.0f, 0.0f, -(5.0f - 2.1f * approach))
+                        .rotateX((float) Math.toRadians(9.0));
+                SceneRenderer.drawCentralBody(ahead, starView, projection, new Vector3f(), 1.2f,
+                        net.phoenix.continuum.client.ContinuumVisuals.quality());
+            } else {
+                SceneRenderer.drawPlanet(params, view, projection, new Vector3f(), 1.0f,
+                        new Vector3f(-40.0f, 18.0f, 30.0f), spin, spin * 1.4f,
+                        net.phoenix.continuum.client.ContinuumVisuals.quality(), true);
+            }
             SceneRenderer.end();
             scene.blit(graphics, width, height);
         } else {

@@ -69,6 +69,8 @@ public class ContinuumMapScreen extends Screen {
     private enum Phase {
         NONE,
         OUT,
+        /** The screen is black and what comes next is being prepared (worlds baked), so it fades in finished. */
+        WAIT,
         IN
     }
 
@@ -81,6 +83,7 @@ public class ContinuumMapScreen extends Screen {
     private static final float FOV = 40.0f;
     private static final float OUT_SECONDS = 0.42f;
     private static final float IN_SECONDS = 0.6f;
+    private static final float WAIT_MAX_SECONDS = 1.0f;
     private static final float DAYS_PER_SECOND = 4.0f;
 
     private static int FRAME = 0xFF7a5cff;
@@ -103,6 +106,7 @@ public class ContinuumMapScreen extends Screen {
     private int sceneHeight = -1;
 
     private Phase phase = Phase.NONE;
+    private int quietFrames;
     private float phaseTime;
     private float fade;
     private int zoomDirection;
@@ -289,6 +293,7 @@ public class ContinuumMapScreen extends Screen {
         if (planner.isOpen() && body != null) {
             planner.draw(graphics, font, width, height, mouseX, mouseY, body, pad,
                     ContinuumClientState.stage(body.id()), findRocket(), countProbes(), countKits(), countRockets(),
+                    countCollectors(), countSegments(),
                     ContinuumClientState.outpost(body.id()), ContinuumClientState.now());
         }
 
@@ -1084,6 +1089,15 @@ public class ContinuumMapScreen extends Screen {
             ty = stat(graphics, net.phoenix.continuum.common.Swarms.isPenrose(b) ? "Penrose swarm" :
                     net.phoenix.continuum.common.Swarms.isSwarm(b) ? "Dyson swarm" : "Station",
                     "Level " + stationLevel + " of " + net.phoenix.continuum.common.Stations.maxLevel(b), x + 7, ty);
+            if (net.phoenix.continuum.common.Swarms.isSwarm(b)) {
+                ty = stat(graphics, "Output", swarmOutput(b, stationLevel, false), x + 7, ty);
+            }
+        }
+        int shellLevel = ContinuumClientState.shellLevel(b.id());
+        if (shellLevel > 0 && net.phoenix.continuum.common.Swarms.isSwarm(b)) {
+            ty = stat(graphics, net.phoenix.continuum.common.Swarms.shellName(b),
+                    "Level " + shellLevel + " of " + net.phoenix.continuum.common.Swarms.shellMaxLevel(b), x + 7, ty);
+            ty = stat(graphics, "Output", swarmOutput(b, shellLevel, true), x + 7, ty);
         }
 
         if (!anomalies.isEmpty()) {
@@ -1164,6 +1178,18 @@ public class ContinuumMapScreen extends Screen {
         if (enabled) planRect = new int[] { bx, y, bw, 18 };
     }
 
+    /** What a swarm or shell of this level makes, as the panel shows it (worked out from the synced levels). */
+    private static String swarmOutput(ContinuumBody b, int level, boolean shell) {
+        long power = Math.round(shell ? net.phoenix.continuum.common.Swarms.shellPower(b, level) :
+                net.phoenix.continuum.common.Swarms.swarmPower(b, level));
+        String unit = net.phoenix.continuum.machine.PadTiers.energyUnit();
+        if (shell && power <= 0) {
+            return "none yet (needs " + Math.round(
+                    net.phoenix.continuum.config.ContinuumConfigs.INSTANCE.shellMinCompletion * 100) + "% built)";
+        }
+        return String.format(Locale.ROOT, "%,d %s/t", power, unit);
+    }
+
     private int countKits() {
         if (ContinuumClientState.padUsesBuses(pad)) return ContinuumClientState.padKits();
         var player = Minecraft.getInstance().player;
@@ -1178,6 +1204,29 @@ public class ContinuumMapScreen extends Screen {
             if (stack.getItem() instanceof net.phoenix.continuum.item.ContinuumRepairKitItem) {
                 total += stack.getCount();
             }
+        }
+        return total;
+    }
+
+    private int countCollectors() {
+        if (ContinuumClientState.padUsesBuses(pad)) return ContinuumClientState.padCollectors();
+        return countInventory(stack -> stack.getItem() instanceof net.phoenix.continuum.item.ContinuumSwarmCollectorItem);
+    }
+
+    private int countSegments() {
+        if (ContinuumClientState.padUsesBuses(pad)) return ContinuumClientState.padSegments();
+        return countInventory(stack -> stack.getItem() instanceof net.phoenix.continuum.item.ContinuumShellSegmentItem);
+    }
+
+    private static int countInventory(java.util.function.Predicate<ItemStack> matches) {
+        var player = Minecraft.getInstance().player;
+        if (player == null) return 0;
+        int total = 0;
+        for (ItemStack stack : player.getInventory().items) {
+            if (matches.test(stack)) total += stack.getCount();
+        }
+        for (ItemStack stack : player.getInventory().offhand) {
+            if (matches.test(stack)) total += stack.getCount();
         }
         return total;
     }
@@ -1538,8 +1587,23 @@ public class ContinuumMapScreen extends Screen {
 
     private void updateTransition(float dt) {
         // a bake in the middle of the move would hitch it, so nothing new is baked until it has landed
-        net.phoenix.continuum.client.render.PlanetBake.pause(phase != Phase.NONE);
+        // a bake in the middle of the move would hitch it, but in the black between two views it is free
+        net.phoenix.continuum.client.render.PlanetBake.pause(phase == Phase.OUT || phase == Phase.IN);
+        net.phoenix.continuum.client.render.PlanetBake.burst(phase == Phase.WAIT);
         if (phase == Phase.NONE) return;
+
+        if (phase == Phase.WAIT) {
+            phaseTime += dt;
+            fade = 1.0f;
+            // ready when nothing asked for last frame was still waiting (two frames running), or after a moment
+            int waiting = net.phoenix.continuum.client.render.PlanetBake.takeDenied();
+            quietFrames = waiting == 0 ? quietFrames + 1 : 0;
+            if ((quietFrames >= 2 && phaseTime > 0.08f) || phaseTime >= WAIT_MAX_SECONDS) {
+                phase = Phase.IN;
+                phaseTime = 0.0f;
+            }
+            return;
+        }
 
         phaseTime += dt;
         float t = Math.min(phaseTime / (phase == Phase.OUT ? OUT_SECONDS : IN_SECONDS), 1.0f);
@@ -1550,8 +1614,10 @@ public class ContinuumMapScreen extends Screen {
             if (t >= 1.0f) {
                 if (onSwitch != null) onSwitch.run();
                 onSwitch = null;
-                phase = Phase.IN;
+                phase = Phase.WAIT;
                 phaseTime = 0.0f;
+                quietFrames = 0;
+                net.phoenix.continuum.client.render.PlanetBake.takeDenied();
             }
         } else {
             fade = 1.0f - eased;
@@ -1855,6 +1921,7 @@ public class ContinuumMapScreen extends Screen {
     @Override
     public void removed() {
         net.phoenix.continuum.client.render.PlanetBake.pause(false);
+        net.phoenix.continuum.client.render.PlanetBake.burst(false);
         ambience.stop();
         if (scene != null) {
             scene.destroyBuffers();
