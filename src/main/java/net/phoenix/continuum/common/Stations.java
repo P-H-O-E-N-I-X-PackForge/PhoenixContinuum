@@ -16,6 +16,10 @@ public final class Stations {
                 Swarms.isSwarm(body) ? cfg.swarmProbesPerLevel : cfg.stationProbesPerLevel);
     }
 
+    public static int shellProbesPerLevel() {
+        return Swarms.shellProbesPerLevel();
+    }
+
     public static float tripFactor(int level) {
         return 1.0f - 0.10f * clamp(level);
     }

@@ -16,6 +16,8 @@ uniform float Core;         // radius of the star body in billboard units
 uniform float Detail;       // 2 (low) - 4 (high)
 uniform vec3 Tint;          // star colour
 uniform vec3 DiskNormal;    // orbital plane normal, view space
+uniform float Completion;   // 0 - 1: how many of the panels are in orbit (1 is a finished swarm)
+uniform float Overlay;      // 1 when drawn over a star that is already drawn: no glare of its own
 
 in vec2 vLocal;
 out vec4 fragColor;
@@ -50,6 +52,8 @@ vec4 panels(vec3 p, float R, vec3 axis, float band, float scatter, float seed, f
     float inBand = 1.0 - smoothstep(band, band + 0.10, abs(lat));
     float prob = inBand * 0.62 + scatter;
     float present = step(h2, prob);
+    // a swarm that is not finished has only some of its panels up, picked evenly over the whole thing
+    present *= step(hash(vec2(row * 13.0 + col * 5.0, seed + 29.0)), Completion);
     if (present < 0.5) return vec4(0.0);
 
     vec2 fr = vec2(fract(colF), fract(rowF));
@@ -121,6 +125,7 @@ void main() {
         float flick = 0.8 + 0.2 * sin(Time * 0.7 + rayH * 30.0);
         glare += hot * ray * flick * exp(-(rs - 1.0) * 0.28) * 0.32 * smoothstep(1.0, 1.6, rs);
     }
+    if (Overlay > 0.5) glare = vec3(0.0);                         // the star under it has its own
     acc = vec4(acc.rgb + glare * (1.0 - acc.a * 0.0), acc.a);     // light adds on top of what is behind it
 
     // ---- near side: the outer faces of the shells, dark against the glare, hiding it ----------------------------

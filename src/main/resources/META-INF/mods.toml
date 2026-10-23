@@ -39,6 +39,13 @@ ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
+modId = "phoenix_tesla_network"
+mandatory = false
+versionRange = "[0.4.0,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
 modId = "solaris"
 mandatory = false
 versionRange = "[1.6.5,)"

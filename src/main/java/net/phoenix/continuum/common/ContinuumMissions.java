@@ -303,7 +303,25 @@ public final class ContinuumMissions {
         Outpost outpost = null;
         Mission stranded = null;
         switch (type) {
+            case SHELL -> {
+                if (!Swarms.isSwarm(body)) return "A shell can only be built round a star or a black hole.";
+                if (stage != DiscoveryStage.SURVEYED) return "Shells can only be built at a surveyed body.";
+                if (data.shellLevel(team, destinationId) >= Swarms.shellMaxLevel(body)) {
+                    return "The " + Swarms.shellName(body) + " at " + body.name() + " is finished.";
+                }
+                for (Mission other : data.missions(team)) {
+                    if (other.type == Mission.Type.SHELL && other.destination.equals(destinationId) &&
+                            !other.state.finished()) {
+                        return "A shell crew is already on its way to " + body.name() + ".";
+                    }
+                }
+                carried = Stations.shellProbesPerLevel();
+                if (stock.probes() < carried) return notEnoughProbes(carried, stock);
+            }
             case STATION -> {
+                if (Swarms.isSwarm(body) && data.shellLevel(team, destinationId) > 0) {
+                    return "A swarm cannot be built inside a shell. The " + Swarms.shellName(body) + " is in the way.";
+                }
                 if (stage != DiscoveryStage.SURVEYED) return "Stations can only be built at a surveyed body.";
                 if (stationLevel >= Stations.maxLevel(body)) {
                     return "The " + (Swarms.isSwarm(body) ? "swarm" : "station") + " at " + body.name() +
@@ -712,6 +730,17 @@ public final class ContinuumMissions {
                     if (repaired != null) repaired.repair(System.currentTimeMillis());
                     yield "Repair run to " + name + " landed: the outpost is producing again.";
                 }
+                case SHELL -> {
+                    int shellBuilt = data.shellLevel(mission.team, mission.destination) + 1;
+                    boolean tookApart = data.stationLevel(mission.team, mission.destination) > 0;
+                    data.setShellLevel(mission.team, mission.destination, shellBuilt);
+                    ContinuumBody shellBody = ContinuumData.body(mission.destination);
+                    int shown = Math.min(shellBuilt, Swarms.shellMaxLevel(shellBody));
+                    yield (shellBody != null && Swarms.isPenrose(shellBody) ? "Penrose sphere" : "Dyson shell") +
+                            " at " + name + " is now level " + shown + ": " +
+                            Swarms.describeShell(shellBody, shown) + "." +
+                            (tookApart ? " The swarm that was here was taken apart for it." : "");
+                }
                 case STATION -> {
                     int built = data.stationLevel(mission.team, mission.destination) + 1;
                     data.setStationLevel(mission.team, mission.destination, built);
@@ -738,7 +767,8 @@ public final class ContinuumMissions {
                 }
             };
             notifyLogged(server, data, mission.team,
-                    mission.type == Mission.Type.STATION ? MissionLog.Kind.STATION :
+                    mission.type == Mission.Type.STATION || mission.type == Mission.Type.SHELL ?
+                            MissionLog.Kind.STATION :
                             mission.type == Mission.Type.RESCUE ? MissionLog.Kind.RESCUED : MissionLog.Kind.LANDED,
                     mission.destination,
                     Component.literal((mission.expedition.isEmpty() ? "" : "Expedition " + mission.expeditionTag() +
@@ -751,7 +781,7 @@ public final class ContinuumMissions {
 
             String lost = switch (mission.type) {
                 case SURVEY -> "";
-                case EXTRACT, DEPLOY, STATION -> " The " + probesText + " were lost.";
+                case EXTRACT, DEPLOY, STATION, SHELL -> " The " + probesText + " were lost.";
                 case HAUL -> " The haul was lost.";
                 case REPAIR -> " The repair kits were lost and the outpost is still broken.";
                 case RESCUE -> " The repair kits were lost and the stranded rocket is still waiting.";

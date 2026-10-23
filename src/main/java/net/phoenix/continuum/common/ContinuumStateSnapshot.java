@@ -14,7 +14,8 @@ public record ContinuumStateSnapshot(long serverNow, Map<ResourceLocation, Disco
                                      List<MissionView> missions, List<OutpostView> outposts,
                                      Map<ResourceLocation, float[]> deposits,
                                      java.util.Set<ResourceLocation> hidden,
-                                     Map<ResourceLocation, Integer> stations, int missionSlots,
+                                     Map<ResourceLocation, Integer> stations,
+                                     Map<ResourceLocation, Integer> shells, int missionSlots,
                                      Map<ResourceLocation, AffinityView> affinities,
                                      Map<ResourceLocation, long[]> transients) {
 
@@ -114,7 +115,7 @@ public record ContinuumStateSnapshot(long serverNow, Map<ResourceLocation, Disco
             }
         }
         return new ContinuumStateSnapshot(now, stages, views, outposts, deposits, hidden,
-                new LinkedHashMap<>(data.stations(team)),
+                new LinkedHashMap<>(data.stations(team)), new LinkedHashMap<>(data.shells(team)),
                 net.phoenix.continuum.config.ContinuumConfigs.INSTANCE.maxMissionsPerTeam +
                         data.stationCount(team),
                 affinities, ContinuumTransients.get(server).activeWindows(now));
@@ -168,6 +169,11 @@ public record ContinuumStateSnapshot(long serverNow, Map<ResourceLocation, Disco
         });
         buf.writeVarInt(stations.size());
         stations.forEach((body, level) -> {
+            buf.writeResourceLocation(body);
+            buf.writeVarInt(level);
+        });
+        buf.writeVarInt(shells.size());
+        shells.forEach((body, level) -> {
             buf.writeResourceLocation(body);
             buf.writeVarInt(level);
         });
@@ -242,6 +248,9 @@ public record ContinuumStateSnapshot(long serverNow, Map<ResourceLocation, Disco
         Map<ResourceLocation, Integer> stations = new LinkedHashMap<>();
         int stationCount = buf.readVarInt();
         for (int i = 0; i < stationCount; i++) stations.put(buf.readResourceLocation(), buf.readVarInt());
+        Map<ResourceLocation, Integer> shells = new LinkedHashMap<>();
+        int shellCount = buf.readVarInt();
+        for (int i = 0; i < shellCount; i++) shells.put(buf.readResourceLocation(), buf.readVarInt());
         int missionSlots = buf.readVarInt();
         Map<ResourceLocation, AffinityView> affinities = new LinkedHashMap<>();
         int affinityCount = buf.readVarInt();
@@ -258,6 +267,6 @@ public record ContinuumStateSnapshot(long serverNow, Map<ResourceLocation, Disco
         int hiddenCount = buf.readVarInt();
         for (int i = 0; i < hiddenCount; i++) hidden.add(buf.readResourceLocation());
         return new ContinuumStateSnapshot(serverNow, stages, missions, outposts, deposits, hidden, stations,
-                missionSlots, affinities, transients);
+                shells, missionSlots, affinities, transients);
     }
 }

@@ -117,4 +117,50 @@ public class SwarmGameTests {
                 "continuumadmin generate clear");
         helper.succeed();
     }
+
+    @GameTest(template = "gametest_empty", timeoutTicks = 100)
+    public static void shellsAndSwarmsTradeOff(GameTestHelper helper) {
+        MinecraftServer server = helper.getLevel().getServer();
+        server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withPermission(4),
+                "continuumadmin generate 30 11");
+        ContinuumBody star = ContinuumData.allBodies().stream()
+                .filter(b -> b.type() == ContinuumBody.Type.STAR).findFirst().orElse(null);
+        helper.assertTrue(star != null, "there should be a star to build at");
+        UUID team = UUID.randomUUID();
+        var data = ContinuumTeamData.get(server);
+        var cfg = ContinuumConfigs.INSTANCE;
+
+        // a swarm makes power from its first level; a shell nothing until it is mostly built
+        data.setStationLevel(team, star.id(), 1);
+        helper.assertTrue(ContinuumSwarmPower.outputPerTick(server, team) > 0, "a level 1 swarm makes power");
+        data.setStationLevel(team, star.id(), 0);
+        data.setShellLevel(team, star.id(), 1);
+        helper.assertTrue(ContinuumSwarmPower.outputPerTick(server, team) == 0,
+                "a shell at 10% makes nothing (it needs " + cfg.shellMinCompletion + ")");
+
+        // ... but a finished shell beats a finished swarm
+        data.setShellLevel(team, star.id(), Swarms.shellMaxLevel(star));
+        long shell = ContinuumSwarmPower.outputPerTick(server, team);
+        data.setStationLevel(team, star.id(), Swarms.maxLevel(star));
+        long swarm = ContinuumSwarmPower.outputPerTick(server, team);
+        helper.assertTrue(shell > swarm, "a finished shell (" + shell + ") should out-produce a finished swarm ("
+                + swarm + ")");
+
+        // the two cannot share a star: the later one replaces the earlier
+        helper.assertTrue(data.shellLevel(team, star.id()) == 0, "building the swarm took the shell apart");
+        data.setShellLevel(team, star.id(), 5);
+        helper.assertTrue(data.stationLevel(team, star.id()) == 0, "the shell took the swarm apart");
+
+        // a shell shades the outposts in its system
+        var planet = ContinuumData.bodiesOf(star.system()).stream().filter(b -> !b.isCentral()).findFirst()
+                .orElse(null);
+        double shadow = Swarms.shadow(data, team, planet);
+        helper.assertTrue(shadow < 1.0 && shadow >= 1.0 - cfg.shellOutpostShadow,
+                "a half-built shell shades the system, factor " + shadow);
+        data.setShellLevel(team, star.id(), 0);
+        helper.assertTrue(Swarms.shadow(data, team, planet) == 1.0, "no shell, no shadow");
+        server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withPermission(4),
+                "continuumadmin generate clear");
+        helper.succeed();
+    }
 }

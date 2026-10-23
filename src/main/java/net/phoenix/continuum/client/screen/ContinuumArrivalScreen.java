@@ -361,6 +361,8 @@ public class ContinuumArrivalScreen extends Screen {
                     "The stranded rocket is recovered.";
             case STATION -> crash ? "The station crew's probes were lost and the rocket is damaged." :
                     "The orbital station is built.";
+            case SHELL -> crash ? "The shell crew's probes were lost and the rocket is damaged." :
+                    "Another section of the shell is in place.";
         };
         if (mission.stranded()) result = "The rocket is stranded. A distress signal is going out.";
         graphics.drawCenteredString(font, result, x + w / 2, y + 48, a | (crash ? 0xffb0b0 : 0xB8B0D8));

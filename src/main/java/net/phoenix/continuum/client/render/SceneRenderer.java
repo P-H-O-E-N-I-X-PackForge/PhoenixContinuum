@@ -641,18 +641,23 @@ public final class SceneRenderer {
                                       Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
                                       PlanetRenderer.Quality quality, boolean sky) {
         if (central == null || !net.phoenix.continuum.common.Swarms.isSwarm(central)) return;
-        int level = net.phoenix.continuum.client.ContinuumClientState.stationLevel(central.id());
-        if (level <= 0) return;
-        final float completion = Math.min(1.0f,
-                level / (float) Math.max(1, net.phoenix.continuum.common.Swarms.maxLevel(central)));
-        // a Penrose swarm is a cooler, bluer metal than the hot light of a Dyson one
+        int swarmLevel = net.phoenix.continuum.client.ContinuumClientState.stationLevel(central.id());
+        int shellLevel = net.phoenix.continuum.client.ContinuumClientState.shellLevel(central.id());
+        if (swarmLevel <= 0 && shellLevel <= 0) return;
+        // a shell is plates closing the star in; a swarm is panels scattered on nested orbits
+        boolean shell = shellLevel > 0;
+        final float completion = shell ?
+                (float) net.phoenix.continuum.common.Swarms.shellCompletion(central, shellLevel) :
+                Math.min(1.0f, swarmLevel / (float) Math.max(1, net.phoenix.continuum.common.Swarms.maxLevel(central)));
+        // a Penrose structure is a cooler, bluer metal than the hot light of a Dyson one
         int tint = net.phoenix.continuum.common.Swarms.isPenrose(central) ? 0x9a78ff : rgb;
         final Vector3f normal = planeNormal(view, worldPos, sky);
-        drawStarFx(ContinuumShaders.DYSON, tint, 7.0f, view, projection, worldPos, radius, quality, sky, s -> {
-            s.safeGetUniform("DiskNormal").set(normal.x, normal.y, normal.z);
-            s.safeGetUniform("Completion").set(completion);
-            s.safeGetUniform("Overlay").set(1.0f);
-        });
+        drawStarFx(shell ? ContinuumShaders.DYSON : ContinuumShaders.MEGASTRUCTURE, tint, shell ? 7.0f : 16.0f, view,
+                projection, worldPos, radius, quality, sky, s -> {
+                    s.safeGetUniform("DiskNormal").set(normal.x, normal.y, normal.z);
+                    s.safeGetUniform("Completion").set(completion);
+                    s.safeGetUniform("Overlay").set(1.0f);
+                });
     }
 
     public static void drawTidalDisruption(int rgb, float progress, Vector3f starWorld, Vector3f starNextWorld,

@@ -26,6 +26,7 @@ public class ContinuumTeamData extends SavedData {
     private final Map<UUID, Map<ResourceLocation, Integer>> depths = new HashMap<>();
     private final Map<UUID, java.util.Set<String>> anomalies = new HashMap<>();
     private final Map<UUID, Map<ResourceLocation, Integer>> stations = new HashMap<>();
+    private final Map<UUID, Map<ResourceLocation, Integer>> shells = new HashMap<>();
     private final Map<UUID, java.util.List<MissionLog.Entry>> history = new HashMap<>();
 
     private final java.util.Set<UUID> engaged = new java.util.HashSet<>();
@@ -56,7 +57,8 @@ public class ContinuumTeamData extends SavedData {
 
     public boolean isEngaged(UUID team) {
         return engaged.contains(team) || !missions.getOrDefault(team, List.of()).isEmpty() ||
-                !outposts.getOrDefault(team, Map.of()).isEmpty() || !stations.getOrDefault(team, Map.of()).isEmpty();
+                !outposts.getOrDefault(team, Map.of()).isEmpty() || !stations.getOrDefault(team, Map.of()).isEmpty() ||
+                !shells.getOrDefault(team, Map.of()).isEmpty();
     }
 
     public void markEngaged(UUID team) {
@@ -212,7 +214,31 @@ public class ContinuumTeamData extends SavedData {
     }
 
     public java.util.Set<UUID> teamsWithStations() {
-        return new java.util.HashSet<>(stations.keySet());
+        java.util.Set<UUID> teams = new java.util.HashSet<>(stations.keySet());
+        teams.addAll(shells.keySet());
+        return teams;
+    }
+
+    public int shellLevel(UUID team, ResourceLocation body) {
+        return shells.getOrDefault(team, Map.of()).getOrDefault(body, 0);
+    }
+
+    public Map<ResourceLocation, Integer> shells(UUID team) {
+        return shells.getOrDefault(team, Map.of());
+    }
+
+    /** A shell and a swarm cannot share a star: the first shell level takes the swarm apart. */
+    public void setShellLevel(UUID team, ResourceLocation body, int level) {
+        if (level <= 0) {
+            Map<ResourceLocation, Integer> mine = shells.get(team);
+            if (mine != null) mine.remove(body);
+        } else {
+            shells.computeIfAbsent(team, t -> new HashMap<>()).put(body,
+                    Math.min(Swarms.shellMaxLevel(ContinuumData.body(body)), level));
+            Map<ResourceLocation, Integer> swarm = stations.get(team);
+            if (swarm != null) swarm.remove(body);
+        }
+        setDirty();
     }
 
     public void setStationLevel(UUID team, ResourceLocation body, int level) {
@@ -221,6 +247,8 @@ public class ContinuumTeamData extends SavedData {
             if (mine != null) mine.remove(body);
         } else {
             stations.computeIfAbsent(team, t -> new HashMap<>()).put(body, Math.min(Swarms.maxLevel(ContinuumData.body(body)), level));
+            Map<ResourceLocation, Integer> shell = shells.get(team);
+            if (shell != null) shell.remove(body);
         }
         setDirty();
     }
@@ -298,7 +326,11 @@ public class ContinuumTeamData extends SavedData {
         for (var team : outposts.entrySet()) {
             Outpost.CyclePayer payer = OutpostPower.payerFor(server, team.getKey());
             for (var entry : team.getValue().entrySet()) {
-                if (!entry.getValue().settle(now, cycleMillis, maxReady, payer)) continue;
+                ContinuumBody outpostBody = ContinuumData.body(entry.getKey());
+                if (!entry.getValue().settle(now, cycleMillis, maxReady, payer,
+                        Swarms.shadow(this, team.getKey(), outpostBody))) {
+                    continue;
+                }
 
                 newlyDamaged.add(team.getKey());
                 ContinuumBody body = ContinuumData.body(entry.getKey());
@@ -403,6 +435,22 @@ public class ContinuumTeamData extends SavedData {
         }
         tag.put("StationTeams", stationTeams);
 
+        ListTag shellTeams = new ListTag();
+        for (var team : shells.entrySet()) {
+            CompoundTag teamTag = new CompoundTag();
+            teamTag.putUUID("Team", team.getKey());
+            ListTag list = new ListTag();
+            for (var entry : team.getValue().entrySet()) {
+                CompoundTag e = new CompoundTag();
+                e.putString("Body", entry.getKey().toString());
+                e.putInt("Level", entry.getValue());
+                list.add(e);
+            }
+            teamTag.put("Shells", list);
+            shellTeams.add(teamTag);
+        }
+        tag.put("ShellTeams", shellTeams);
+
         ListTag historyTeams = new ListTag();
         for (var team : history.entrySet()) {
             CompoundTag teamTag = new CompoundTag();
@@ -487,6 +535,16 @@ public class ContinuumTeamData extends SavedData {
                 map.put(new ResourceLocation(e.getString("Body")), e.getInt("Level"));
             }
             data.stations.put(teamTag.getUUID("Team"), map);
+        }
+
+        for (Tag t : tag.getList("ShellTeams", Tag.TAG_COMPOUND)) {
+            CompoundTag teamTag = (CompoundTag) t;
+            Map<ResourceLocation, Integer> map = new HashMap<>();
+            for (Tag s : teamTag.getList("Shells", Tag.TAG_COMPOUND)) {
+                CompoundTag e = (CompoundTag) s;
+                map.put(new ResourceLocation(e.getString("Body")), e.getInt("Level"));
+            }
+            data.shells.put(teamTag.getUUID("Team"), map);
         }
 
         for (Tag t : tag.getList("HistoryTeams", Tag.TAG_COMPOUND)) {

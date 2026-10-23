@@ -21,6 +21,7 @@ public final class ContinuumClientState {
     private static Map<ResourceLocation, DiscoveryStage> stages = Map.of();
     private static List<ContinuumStateSnapshot.MissionView> missions = List.of();
     private static Map<ResourceLocation, Integer> stations = Map.of();
+    private static Map<ResourceLocation, Integer> shells = Map.of();
     private static int missionSlots;
     private static List<net.phoenix.continuum.common.MissionLog.Entry> history = List.of();
     private static Map<ResourceLocation, ContinuumStateSnapshot.AffinityView> affinities = Map.of();
@@ -82,6 +83,7 @@ public final class ContinuumClientState {
         deposits = new HashMap<>(snapshot.deposits());
         hidden = java.util.Set.copyOf(snapshot.hidden());
         stations = new HashMap<>(snapshot.stations());
+        shells = new HashMap<>(snapshot.shells());
         missionSlots = snapshot.missionSlots();
         affinities = new HashMap<>(snapshot.affinities());
         transients = new HashMap<>(snapshot.transients());
@@ -143,6 +145,14 @@ public final class ContinuumClientState {
 
     public static int stationLevel(ResourceLocation body) {
         return stations.getOrDefault(body, 0);
+    }
+
+    public static int shellLevel(ResourceLocation body) {
+        return shells.getOrDefault(body, 0);
+    }
+
+    public static Map<ResourceLocation, Integer> shells() {
+        return shells;
     }
 
     public static Map<ResourceLocation, Integer> stations() {

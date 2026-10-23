@@ -141,6 +141,9 @@ dependencies {
     modImplementation "curse.maven:configuration-444699:5840405" // Configuration 3.1.0 (GregTech 8 needs 3.1+)
     jarJar(modImplementation("net.phoenixvine.wiki:phoenix_wiki:0.5.5"))
 
+    // Phoenix Tesla Network (optional): swarm power can go straight into its tesla storage
+    modCompileOnly "curse.maven:phoenix-tesla-network-1680918:9150029"
+
     // Solaris (map markers for launch complexes), optional: a plain jar in libs/
     modCompileOnly "solaris:solaris:1.20.1"
 

@@ -47,7 +47,14 @@ public class SwarmReceiverMachine8 extends MultiblockControllerMachine implement
     @Override
     public long accept(long amount) {
         if (!isFormed() || getLevel() == null || getLevel().getServer() == null) return 0;
-        return net.phoenix.continuum.common.SwarmStorage.exchange(getLevel().getServer(), getLevel(), getBlockPos(), amount,
+        // with the Tesla Network installed, the swarm fills its tesla storage first; what that cannot take goes on
+        long toTesla = 0;
+        if (amount > 0 && net.phoenix.continuum.integration.tesla.TeslaLink.loaded()) {
+            UUID owner = getOwnerUUID();
+            toTesla = net.phoenix.continuum.integration.tesla.TeslaLink.fill(
+                    owner == null ? null : ContinuumHost.teamOf(owner), owner, amount);
+        }
+        return toTesla + net.phoenix.continuum.common.SwarmStorage.exchange(getLevel().getServer(), getLevel(), getBlockPos(), amount - toTesla,
                 this::fillHatches);
     }
 
