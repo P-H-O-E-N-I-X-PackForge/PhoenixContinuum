@@ -1,7 +1,5 @@
 package net.phoenix.continuum.client.render;
 
-import net.phoenix.continuum.client.ContinuumDebug;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ShaderInstance;
 
@@ -26,24 +24,18 @@ public final class SceneRenderer {
     private static @Nullable RenderTarget previous;
 
     private static @Nullable RenderTarget current;
-    private static final float[] savedClearColor = { 0f, 0f, 0f, 0f };
     private static @Nullable com.mojang.blaze3d.pipeline.TextureTarget holeTarget;
 
     public static void begin(RenderTarget target, float backdropYawDeg) {
         previous = Minecraft.getInstance().getMainRenderTarget();
         current = target;
 
-        // RenderTarget.clear() overwrites the global GL clear color. Remember what the game had so end() can put
-        // it back; otherwise our near-black clear color leaks into the world pass after the screen closes.
-        org.lwjgl.opengl.GL11.glGetFloatv(org.lwjgl.opengl.GL11.GL_COLOR_CLEAR_VALUE, savedClearColor);
         target.setClearColor(0.004f, 0.005f, 0.014f, 1.0f);
-        if (!ContinuumDebug.skip(ContinuumDebug.SKIP_CLEAR)) target.clear(Minecraft.ON_OSX);
+        target.clear(Minecraft.ON_OSX);
         target.bindWrite(true);
 
-        if (!ContinuumDebug.skip(ContinuumDebug.BACKDROP)) drawBackdrop(target.width, target.height, backdropYawDeg);
-        if (!ContinuumDebug.skip(ContinuumDebug.BACKDROP_GALAXIES)) {
-            drawBackdropGalaxies(target.width, target.height, backdropYawDeg);
-        }
+        drawBackdrop(target.width, target.height, backdropYawDeg);
+        drawBackdropGalaxies(target.width, target.height, backdropYawDeg);
 
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(true);
@@ -69,10 +61,6 @@ public final class SceneRenderer {
 
     public static void end() {
         try {
-            if (current != null) {
-                com.mojang.blaze3d.platform.GlStateManager._clearColor(savedClearColor[0], savedClearColor[1],
-                        savedClearColor[2], savedClearColor[3]);
-            }
             RenderSystem.colorMask(true, true, true, true);
             RenderSystem.depthMask(true);
             RenderSystem.enableDepthTest();
@@ -1319,6 +1307,13 @@ public final class SceneRenderer {
 
     public static boolean BUILTIN_BACKDROP = true;
 
+    /**
+     * 1.20.1 workaround: sampling the baked nebula texture in the built-in backdrop leaves the world rendering black
+     * after the map screen closes (seen on an AMD Radeon iGPU). With this off the backdrop renders the nebula noise
+     * live in the shader instead. Flip to true to use the baked texture again (e.g. to retest after a driver update).
+     */
+    public static final boolean USE_BAKED_BACKDROP = false;
+
     private static void drawBuiltinBackdrop(ShaderInstance g, float width, float height, float yawDeg) {
         try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("backdrop.builtin")) {
             drawBuiltinBackdrop$timed(g, width, height, yawDeg);
@@ -1334,7 +1329,7 @@ public final class SceneRenderer {
 
     private static void drawBuiltinBackdrop$timed(ShaderInstance g, float width, float height, float yawDeg){
 
-        var baked = NebulaBake.get(new float[] {0.42f, 0.2f, 0.85f}, new float[] {0.1f, 0.35f, 0.9f},
+        var baked = !USE_BAKED_BACKDROP ? null : NebulaBake.get(new float[] {0.42f, 0.2f, 0.85f}, new float[] {0.1f, 0.35f, 0.9f},
                 net.phoenix.continuum.client.ContinuumVisuals.backdropOctaves());
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);

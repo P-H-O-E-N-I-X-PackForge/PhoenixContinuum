@@ -33,13 +33,6 @@ public final class ContinuumPreviewCommands {
     @SubscribeEvent
     public static void register(RegisterClientCommandsEvent event) {
         CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
-        dispatcher.register(literal("continuumskip")
-                .then(argument("mask", com.mojang.brigadier.arguments.IntegerArgumentType.integer(0, 255))
-                        .executes(ctx -> {
-                            int mask = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "mask");
-                            ContinuumDebug.setSkip(mask);
-                            return mask;
-                        })));
         dispatcher.register(literal("continuumpreview")
                 .then(literal("ascent")
                         .then(argument("body", ResourceLocationArgument.id()).suggests((ctx, builder) -> {

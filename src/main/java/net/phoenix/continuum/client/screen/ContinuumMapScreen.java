@@ -1,7 +1,5 @@
 package net.phoenix.continuum.client.screen;
 
-import net.phoenix.continuum.client.ContinuumDebug;
-
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -258,10 +256,9 @@ public class ContinuumMapScreen extends Screen {
         if (system != null) layoutSystem(system);
 
         if (sceneReady) {
-            if (!ContinuumDebug.skip(ContinuumDebug.WHOLE_SCENE)) drawScene();
+            drawScene();
             Minecraft.getInstance().getMainRenderTarget().bindWrite(true); // Rebind main framebuffer and restore viewport
-            if (!ContinuumDebug.skip(ContinuumDebug.BLIT)) blitScene(graphics);
-            else graphics.fill(0, 0, width, height, 0xFF05060f);
+            blitScene(graphics);
         } else {
             graphics.fill(0, 0, width, height, 0xFF05060f);
             String message = ContinuumShaders.ready() ? "Render target unavailable" : "Continuum shaders not loaded";
@@ -322,7 +319,7 @@ public class ContinuumMapScreen extends Screen {
                     ? ContinuumData.system(body.system())
                     : null;
 
-            if (home != null && !ContinuumDebug.skip(ContinuumDebug.WASH)) {
+            if (home != null) {
                 var inside = NebulaData.around(
                         home.galaxyX(), home.galaxyY(), home.galaxyZ());
 
@@ -333,7 +330,7 @@ public class ContinuumMapScreen extends Screen {
                 }
             }
 
-            if (!ContinuumDebug.skip(ContinuumDebug.CONTENT)) switch (level) {
+            switch (level) {
                 case GALAXY -> SceneRenderer.drawNebulas(
                         NebulaData.all(), view, projection, GALAXY_SCALE);
                 case SYSTEM -> {
