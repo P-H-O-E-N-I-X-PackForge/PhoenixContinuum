@@ -66,7 +66,7 @@ public final class ScenePreview {
     public boolean mouseDragged(double dx, double dy) {
         if (!dragging) return false;
         yaw += (float) dx * 0.6f;
-        
+
         pitch = ((pitch + (float) dy * 0.6f + 180.0f) % 360.0f + 360.0f) % 360.0f - 180.0f;
         return true;
     }
@@ -122,6 +122,8 @@ public final class ScenePreview {
         try {
             return body.getAsBoolean();
         } catch (RuntimeException e) {
+            net.phoenix.continuum.PhoenixContinuum.LOGGER.error("Continuum preview render failed", e);
+            restoreMainTarget();
             return false;
         }
     }
@@ -152,5 +154,22 @@ public final class ScenePreview {
             target.destroyBuffers();
             target = null;
         }
+        restoreMainTarget();
+    }
+
+    /** Puts GL back the way the game expects it: main framebuffer + viewport, no scissor, default masks. */
+    private static void restoreMainTarget() {
+        try {
+            SceneRenderer.end();
+        } catch (RuntimeException ignored) {
+        }
+        com.mojang.blaze3d.platform.GlStateManager._disableScissorTest();
+        RenderSystem.colorMask(true, true, true, true);
+        RenderSystem.depthMask(true);
+        RenderSystem.enableDepthTest();
+        RenderSystem.enableCull();
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
     }
 }

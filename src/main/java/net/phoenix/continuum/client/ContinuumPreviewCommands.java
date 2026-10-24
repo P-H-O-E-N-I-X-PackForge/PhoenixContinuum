@@ -33,6 +33,13 @@ public final class ContinuumPreviewCommands {
     @SubscribeEvent
     public static void register(RegisterClientCommandsEvent event) {
         CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
+        dispatcher.register(literal("continuumskip")
+                .then(argument("mask", com.mojang.brigadier.arguments.IntegerArgumentType.integer(0, 255))
+                        .executes(ctx -> {
+                            int mask = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "mask");
+                            ContinuumDebug.setSkip(mask);
+                            return mask;
+                        })));
         dispatcher.register(literal("continuumpreview")
                 .then(literal("ascent")
                         .then(argument("body", ResourceLocationArgument.id()).suggests((ctx, builder) -> {
@@ -46,9 +53,9 @@ public final class ContinuumPreviewCommands {
                         })))
                 .then(literal("arrival")
                         .then(argument("body", ResourceLocationArgument.id()).suggests((ctx, builder) -> {
-                            ContinuumData.allBodies().forEach(b -> builder.suggest(b.id().toString()));
-                            return builder.buildFuture();
-                        }).executes(ctx -> arrival(ResourceLocationArgument.getId(ctx, "body"), false))
+                                    ContinuumData.allBodies().forEach(b -> builder.suggest(b.id().toString()));
+                                    return builder.buildFuture();
+                                }).executes(ctx -> arrival(ResourceLocationArgument.getId(ctx, "body"), false))
                                 .then(argument("outcome", StringArgumentType.word())
                                         .suggests((ctx, builder) -> SharedSuggestionProvider
                                                 .suggest(List.of("success", "fail"), builder))

@@ -15,12 +15,12 @@ import java.util.Map;
 public final class PlanetBake {
 
     private static final int SIZE = 512;
-    
+
     private static final int MAX_TERRAIN = 12;
     private static final int MAX_CLOUDS = 16;
-    
+
     private static final long BAKE_INTERVAL = 8_000_000L;
-    
+
     private static final long IN_USE = 1_000_000_000L;
 
     public static final int TERRAIN_UNIT = 5;
@@ -122,7 +122,7 @@ public final class PlanetBake {
                 GL11.glDeleteTextures(oldest.tex);
                 oldestFirst.remove();
             }
-            
+
             while (pending.size() >= 16) {
                 Iterator<Pending> stale = pending.values().iterator();
                 GL11.glDeleteTextures(stale.next().tex);
@@ -167,7 +167,7 @@ public final class PlanetBake {
         int previousFbo = GL11.glGetInteger(36006);
         int[] viewport = new int[4];
         GL11.glGetIntegerv(GL11.GL_VIEWPORT, viewport);
-        
+
         boolean blend = GL11.glIsEnabled(GL11.GL_BLEND);
         boolean depthTest = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
         boolean cull = GL11.glIsEnabled(GL11.GL_CULL_FACE);
@@ -181,23 +181,26 @@ public final class PlanetBake {
         RenderSystem.disableCull();
         GlStateManager._viewport(0, 0, SIZE, SIZE);
 
-        shader.safeGetUniform("Mode").set(mode);
-        shader.safeGetUniform("Seed").set(seed);
-        shader.safeGetUniform("Scale").set(scale);
-        shader.safeGetUniform("Octaves").set((float) octaves);
-        GL30.glFramebufferTexture2D(36160, 36064, FACE_0 + face, tex, 0);
-        shader.safeGetUniform("Face").set((float) face);
-        SceneRenderer.drawFullQuad(shader);
+        try {
+            shader.safeGetUniform("Mode").set(mode);
+            shader.safeGetUniform("Seed").set(seed);
+            shader.safeGetUniform("Scale").set(scale);
+            shader.safeGetUniform("Octaves").set((float) octaves);
+            GL30.glFramebufferTexture2D(36160, 36064, FACE_0 + face, tex, 0);
+            shader.safeGetUniform("Face").set((float) face);
+            SceneRenderer.drawFullQuad(shader);
 
-        GL30.glDeleteFramebuffers(fbo);
-        if (cull) RenderSystem.enableCull();
-        else RenderSystem.disableCull();
-        RenderSystem.depthMask(depthMask);
-        if (depthTest) RenderSystem.enableDepthTest();
-        else RenderSystem.disableDepthTest();
-        if (blend) RenderSystem.enableBlend();
-        else RenderSystem.disableBlend();
-        GlStateManager._glBindFramebuffer(36160, previousFbo);
-        GlStateManager._viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+        } finally {
+            GL30.glDeleteFramebuffers(fbo);
+            if (cull) RenderSystem.enableCull();
+            else RenderSystem.disableCull();
+            RenderSystem.depthMask(depthMask);
+            if (depthTest) RenderSystem.enableDepthTest();
+            else RenderSystem.disableDepthTest();
+            if (blend) RenderSystem.enableBlend();
+            else RenderSystem.disableBlend();
+            GlStateManager._glBindFramebuffer(36160, previousFbo);
+            GlStateManager._viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+        }
     }
 }

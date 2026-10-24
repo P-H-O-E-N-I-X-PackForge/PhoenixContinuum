@@ -56,7 +56,7 @@ public final class NebulaBake {
     private static TextureTarget create() {
         TextureTarget target = new TextureTarget(WIDTH, HEIGHT, false, Minecraft.ON_OSX);
         target.setFilterMode(GL11.GL_LINEAR);
-        
+
         GlStateManager._bindTexture(target.getColorTextureId());
         GlStateManager._texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
         GlStateManager._texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, 33071);
@@ -64,7 +64,7 @@ public final class NebulaBake {
     }
 
     private static void bake(ShaderInstance shader, TextureTarget target, Key key, int y0, int y1) {
-        int previousFbo = GL11.glGetInteger(36006);   
+        int previousFbo = GL11.glGetInteger(36006);
         int[] viewport = new int[4];
         GL11.glGetIntegerv(GL11.GL_VIEWPORT, viewport);
 
@@ -81,20 +81,22 @@ public final class NebulaBake {
         GlStateManager._enableScissorTest();
         GlStateManager._scissorBox(0, y0, WIDTH, y1 - y0);
 
-        shader.safeGetUniform("Octaves").set((float) key.octaves());
-        shader.safeGetUniform("PrimaryColor").set(key.p0(), key.p1(), key.p2());
-        shader.safeGetUniform("SecondaryColor").set(key.s0(), key.s1(), key.s2());
-        SceneRenderer.drawFullQuad(shader);
-
-        GlStateManager._disableScissorTest();
-        if (cullWas) RenderSystem.enableCull();
-        else RenderSystem.disableCull();
-        RenderSystem.depthMask(depthMaskWas);
-        if (depthTestWas) RenderSystem.enableDepthTest();
-        else RenderSystem.disableDepthTest();
-        if (blendWas) RenderSystem.enableBlend();
-        else RenderSystem.disableBlend();
-        GlStateManager._glBindFramebuffer(36160, previousFbo);
-        GlStateManager._viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+        try {
+            shader.safeGetUniform("Octaves").set((float) key.octaves());
+            shader.safeGetUniform("PrimaryColor").set(key.p0(), key.p1(), key.p2());
+            shader.safeGetUniform("SecondaryColor").set(key.s0(), key.s1(), key.s2());
+            SceneRenderer.drawFullQuad(shader);
+        } finally {
+            GlStateManager._disableScissorTest();
+            if (cullWas) RenderSystem.enableCull();
+            else RenderSystem.disableCull();
+            RenderSystem.depthMask(depthMaskWas);
+            if (depthTestWas) RenderSystem.enableDepthTest();
+            else RenderSystem.disableDepthTest();
+            if (blendWas) RenderSystem.enableBlend();
+            else RenderSystem.disableBlend();
+            GlStateManager._glBindFramebuffer(36160, previousFbo);
+            GlStateManager._viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+        }
     }
 }

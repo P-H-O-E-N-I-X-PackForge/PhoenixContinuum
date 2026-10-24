@@ -1,5 +1,7 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumDebug;
+
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -51,8 +53,7 @@ import java.util.UUID;
 
 public class ContinuumMapScreen extends Screen {
 
-    @Override
-    public void renderBackground(GuiGraphics g) {}
+
 
     private enum Level {
         GALAXY,
@@ -75,7 +76,7 @@ public class ContinuumMapScreen extends Screen {
     private static final float FOV = 40.0f;
     private static final float OUT_SECONDS = 0.42f;
     private static final float IN_SECONDS = 0.6f;
-    
+
     private static final float BURST_SECONDS = 0.2f;
     private static final float DAYS_PER_SECOND = 4.0f;
 
@@ -257,9 +258,10 @@ public class ContinuumMapScreen extends Screen {
         if (system != null) layoutSystem(system);
 
         if (sceneReady) {
-        drawScene();
-        Minecraft.getInstance().getMainRenderTarget().bindWrite(true); // Rebind main screen framebuffer
-        blitScene(graphics);
+            if (!ContinuumDebug.skip(ContinuumDebug.WHOLE_SCENE)) drawScene();
+            Minecraft.getInstance().getMainRenderTarget().bindWrite(true); // Rebind main framebuffer and restore viewport
+            if (!ContinuumDebug.skip(ContinuumDebug.BLIT)) blitScene(graphics);
+            else graphics.fill(0, 0, width, height, 0xFF05060f);
         } else {
             graphics.fill(0, 0, width, height, 0xFF05060f);
             String message = ContinuumShaders.ready() ? "Render target unavailable" : "Continuum shaders not loaded";
@@ -311,33 +313,40 @@ public class ContinuumMapScreen extends Screen {
     private void drawScene() {
         Matrix4f projection = SceneRenderer.projection(sceneWidth, sceneHeight, FOV);
         Matrix4f view = cam().view();
+
         SceneRenderer.begin(scene, cam().yaw);
+        try {
+            ContinuumSystem home = level == Level.SYSTEM
+                    ? system
+                    : level == Level.BODY && body != null
+                    ? ContinuumData.system(body.system())
+                    : null;
 
-        ContinuumSystem home = level == Level.SYSTEM ? system : level == Level.BODY && body != null ?
-                ContinuumData.system(body.system()) : null;
-        if (home != null) {
-            var inside = net.phoenix.continuum.client.render.NebulaData.around(
-                    home.galaxyX(), home.galaxyY(), home.galaxyZ());
-            if (inside != null) {
-                SceneRenderer.drawNebulaWash(inside.nebula(), inside.depth(), projection, cam().yaw, cam().pitch);
+            if (home != null && !ContinuumDebug.skip(ContinuumDebug.WASH)) {
+                var inside = NebulaData.around(
+                        home.galaxyX(), home.galaxyY(), home.galaxyZ());
+
+                if (inside != null) {
+                    SceneRenderer.drawNebulaWash(
+                            inside.nebula(), inside.depth(),
+                            projection, cam().yaw, cam().pitch);
+                }
             }
+
+            if (!ContinuumDebug.skip(ContinuumDebug.CONTENT)) switch (level) {
+                case GALAXY -> SceneRenderer.drawNebulas(
+                        NebulaData.all(), view, projection, GALAXY_SCALE);
+                case SYSTEM -> {
+                    if (system != null) drawSystemScene(system, view, projection);
+                }
+                case BODY -> {
+                    if (body != null) drawBodyScene(body, view, projection);
+                }
+            }
+        } finally {
+            SceneRenderer.end();
+            Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
         }
-
-        switch (level) {
-            case GALAXY -> {
-
-                SceneRenderer.drawNebulas(net.phoenix.continuum.client.render.NebulaData.all(), view,
-                        projection, GALAXY_SCALE);
-            }
-            case SYSTEM -> {
-                if (system != null) drawSystemScene(system, view, projection);
-            }
-            case BODY -> {
-                if (body != null) drawBodyScene(body, view, projection);
-            }
-        }
-
-        SceneRenderer.end();
     }
 
     private void drawSystemScene(ContinuumSystem sys, Matrix4f view, Matrix4f projection) {
@@ -471,7 +480,7 @@ public class ContinuumMapScreen extends Screen {
         float previousRadius = sys.starRadius() * 1.4f;
         for (ContinuumBody b : planets) {
             float own = visualRadius(b);
-            
+
             float radius = Math.max(orbitWorldRadius(b.orbitAu()), previousOrbit + previousRadius + own + 0.3f);
             orbitRadii.put(b.id(), radius);
             previousOrbit = radius;
@@ -762,7 +771,7 @@ public class ContinuumMapScreen extends Screen {
         for (var mission : ContinuumClientState.missions()) {
             if (mission.destination().equals(bodyId) && mission.state() == Mission.State.SUCCESS &&
                     !mission.stranded() && (mission.type() == Mission.Type.EXTRACT ||
-                            mission.type() == Mission.Type.HAUL)) {
+                    mission.type() == Mission.Type.HAUL)) {
                 return true;
             }
         }
@@ -971,7 +980,7 @@ public class ContinuumMapScreen extends Screen {
     }
 
     private static List<net.minecraft.util.FormattedCharSequence> anomalyLines(ContinuumBody b,
-                                                                              ContinuumBody.Anomaly anomaly, int width) {
+                                                                               ContinuumBody.Anomaly anomaly, int width) {
         boolean done = ContinuumClientState.anomalyInvestigated(b.id(), anomaly.id());
         String text = anomaly.cost() != null && !done ?
                 anomaly.description() + " (costs " + anomaly.cost().count() + " x " + anomaly.cost().item().getPath() + ")" :
@@ -1062,7 +1071,7 @@ public class ContinuumMapScreen extends Screen {
                         outpost.powered() ? MapUi.GOOD : MapUi.BAD);
                 ty += 11;
                 ty = stat(graphics, "Upkeep", String.format(Locale.ROOT, "%,d " + net.phoenix.continuum.machine.PadTiers.energyUnit() + " / cycle",
-                        outpost.upkeepPerCycle()),
+                                outpost.upkeepPerCycle()),
                         x + 7, ty);
                 if (outpost.lostCycles() > 0) {
                     graphics.drawString(font, "Lost cycles", x + 7, ty, DIM);
@@ -1079,7 +1088,7 @@ public class ContinuumMapScreen extends Screen {
         int stationLevel = ContinuumClientState.stationLevel(b.id());
         if (stationLevel > 0) {
             ty = stat(graphics, net.phoenix.continuum.common.Swarms.isPenrose(b) ? "Penrose swarm" :
-                    net.phoenix.continuum.common.Swarms.isSwarm(b) ? "Dyson swarm" : "Station",
+                            net.phoenix.continuum.common.Swarms.isSwarm(b) ? "Dyson swarm" : "Station",
                     "Level " + stationLevel + " of " + net.phoenix.continuum.common.Stations.maxLevel(b), x + 7, ty);
             if (net.phoenix.continuum.common.Swarms.isSwarm(b)) {
                 ty = stat(graphics, "Output", swarmOutput(b, stationLevel, false), x + 7, ty);
@@ -1521,7 +1530,7 @@ public class ContinuumMapScreen extends Screen {
                 boolean held = button.id().equals("orbits") && orbitsPaused;
                 graphics.fill(button.x(), 8, button.x() + button.w(), 22, held ? 0xAA3a3380 : MapUi.CHROME);
                 graphics.renderOutline(button.x(), 8, button.w(), 14, held ? FRAME : PANEL_LINE);
-                
+
                 float scale = Math.min(1.0f, (button.w() - 4) / (float) Math.max(1, font.width(button.label())));
                 graphics.pose().pushPose();
                 graphics.pose().translate(button.x() + button.w() / 2.0f, 15.0f - 4.0f * scale, 0.0f);
@@ -1577,7 +1586,7 @@ public class ContinuumMapScreen extends Screen {
     }
 
     private void updateTransition(float dt) {
-        
+
         dt = Math.min(dt, 1.0f / 30.0f);
 
         net.phoenix.continuum.client.render.PlanetBake.pause(phase == Phase.OUT);
@@ -1598,7 +1607,7 @@ public class ContinuumMapScreen extends Screen {
                 fade = 1.0f;
             }
         } else {
-            
+
             float shown = Math.max(0.0f, (phaseTime - BURST_SECONDS * 0.5f) / (IN_SECONDS - BURST_SECONDS * 0.5f));
             float shownEased = Math.min(1.0f, shown);
             shownEased = shownEased * shownEased * (3.0f - 2.0f * shownEased);
@@ -1897,9 +1906,12 @@ public class ContinuumMapScreen extends Screen {
 
     @Override
     public void removed() {
-        Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
-        PlanetBake.pause(false);
-        PlanetBake.burst(false);
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.getMainRenderTarget() != null) {
+            mc.getMainRenderTarget().bindWrite(true);
+        }
+        net.phoenix.continuum.client.render.PlanetBake.pause(false);
+        net.phoenix.continuum.client.render.PlanetBake.burst(false);
         ambience.stop();
         if (scene != null) {
             scene.destroyBuffers();
@@ -1908,5 +1920,24 @@ public class ContinuumMapScreen extends Screen {
             sceneHeight = -1;
         }
         super.removed();
+    }
+
+    @Override
+    public void onClose() {
+        try {
+            ambience.stop();
+        } finally {
+            try {
+                if (scene != null) {
+                    scene.destroyBuffers();
+                    scene = null;
+                    sceneWidth = -1;
+                    sceneHeight = -1;
+                }
+            } finally {
+                Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
+                super.onClose();
+            }
+        }
     }
 }
