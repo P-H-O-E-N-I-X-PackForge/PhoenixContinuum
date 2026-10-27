@@ -133,7 +133,7 @@ public final class ContinuumBodyPickerScreen extends Screen {
     }
 
     private static String detailLabel(ContinuumBody body, boolean searching) {
-        return (searching ? systemName(body.system()) + "  " : "") + body.type().label();
+        return (searching ? systemName(body.system()) + "  " : "") + body.kindLabel();
     }
 
     private int rowHeight(Object[] row, int bodiesW, boolean searching) {

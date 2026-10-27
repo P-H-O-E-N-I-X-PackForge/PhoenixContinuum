@@ -360,10 +360,11 @@ public final class ContinuumTunerScreen extends Screen {
             status = "No visual edits to push.";
             return;
         }
-        leaves.forEach(this::send);
-        ContinuumTuner.reset(body().id());
-        SurfaceMap.invalidate(body().id());
-        status = "Pushed " + leaves.size() + " edit(s).";
+        java.util.Map<String, JsonElement> sent = new java.util.LinkedHashMap<>(leaves);
+        sent.forEach(this::send);
+        // the edits stay shown until the server's copy comes back with them (then the maps are painted again)
+        ContinuumTuner.pushed(body().id(), sent);
+        status = "Pushed " + sent.size() + " edit(s).";
     }
 
     private void setNumber(Field field, double value) {
