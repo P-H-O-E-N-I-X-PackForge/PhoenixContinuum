@@ -28,10 +28,11 @@ import java.util.Locale;
 
 final class MissionPlannerPanel {
 
-    record Result(boolean consumed, @Nullable Mission.Type launchType, int probes, int count, boolean openExpedition) {
+    record Result(boolean consumed, @Nullable Mission.Type launchType, int probes, int count, boolean openExpedition,
+                  boolean schedule) {
 
-        static final Result CONSUMED = new Result(true, null, 0, 1, false);
-        static final Result EXPEDITION = new Result(true, null, 0, 1, true);
+        static final Result CONSUMED = new Result(true, null, 0, 1, false, false);
+        static final Result EXPEDITION = new Result(true, null, 0, 1, true, false);
     }
 
     private static final int W = 332;
@@ -53,6 +54,7 @@ final class MissionPlannerPanel {
     private int[] minusRect;
     private int[] plusRect;
     private int[] launchRect;
+    private int[] scheduleRect;
     private int[] expeditionRect;
     private int[] cancelRect;
 
@@ -450,8 +452,9 @@ final class MissionPlannerPanel {
         boolean launchable = hasRocket && !refused && !needsShield && !needsHull && cometOk && enoughProbes &&
                 enoughKits && inTime &&
                 available(mode, canSurvey, canExtract, canDeploy, canHaul, canRepair, canRescue, canStation, canShell);
-        launchRect = button(g, font, x + 10, y + H - 26, 150, 18, "Launch", launchable, false, mx, my);
-        cancelRect = button(g, font, x + 170, y + H - 26, 152, 18, "Cancel", true, false, mx, my);
+        launchRect = button(g, font, x + 10, y + H - 26, 100, 18, "Launch", launchable, false, mx, my);
+        scheduleRect = button(g, font, x + 116, y + H - 26, 100, 18, "Schedule", true, false, mx, my);
+        cancelRect = button(g, font, x + 222, y + H - 26, 100, 18, "Cancel", true, false, mx, my);
 
         record Mode(Mission.Type type, int bx, int by, int bw, boolean enabled, String reason) {}
         Mode[] modes = {
@@ -566,7 +569,14 @@ final class MissionPlannerPanel {
             boolean carries = mode == Mission.Type.EXTRACT || mode == Mission.Type.DEPLOY;
             boolean convoyLaunch = mode == Mission.Type.EXTRACT || mode == Mission.Type.DEPLOY ||
                     mode == Mission.Type.RESCUE;
-            return new Result(true, mode, carries ? probes : 0, convoyLaunch ? rockets : 1, false);
+            return new Result(true, mode, carries ? probes : 0, convoyLaunch ? rockets : 1, false, false);
+        }
+        if (hit(mx, my, scheduleRect)) {
+            open = false;
+            boolean carries = mode == Mission.Type.EXTRACT || mode == Mission.Type.DEPLOY;
+            boolean convoyLaunch = mode == Mission.Type.EXTRACT || mode == Mission.Type.DEPLOY ||
+                    mode == Mission.Type.RESCUE;
+            return new Result(true, mode, carries ? probes : 0, convoyLaunch ? rockets : 1, false, true);
         }
         if (hit(mx, my, cancelRect)) {
             open = false;

@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.phoenix.continuum.common.ContinuumMissions;
 import net.phoenix.continuum.machine.PadTiers;
 import net.phoenix.continuum.network.S2COpenMapPacket;
 
@@ -42,8 +43,32 @@ public class LaunchPadBlock extends Block implements EntityBlock {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
+        if (!state.is(newState.getBlock()) && !level.isClientSide &&
+                level.getBlockEntity(pos) instanceof LaunchPadBlockEntity pad) {
+            for (ItemStack stack : pad.contents()) Block.popResource(level, pos, stack);
+        }
+        super.onRemove(state, level, pos, newState, moved);
+    }
+
+    @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
                                  net.minecraft.world.InteractionHand hand, BlockHitResult hit) {
+        ItemStack held = player.getItemInHand(hand);
+        if (PadTiers.basic() && !held.isEmpty() && ContinuumMissions.isStockItem(held) &&
+                level.getBlockEntity(pos) instanceof LaunchPadBlockEntity stocked) {
+            if (!level.isClientSide) {
+                int before = held.getCount();
+                stocked.stock(held);
+                int moved = before - held.getCount();
+                if (moved > 0) {
+                    player.displayClientMessage(Component.literal("Stocked " + moved +
+                            " in the pad, for its schedules.").withStyle(ChatFormatting.GRAY), true);
+                }
+            }
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        }
         if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
             if (PadTiers.basic() && level.getBlockEntity(pos) instanceof LaunchPadBlockEntity pad) {
                 pad.claim(player.getUUID());

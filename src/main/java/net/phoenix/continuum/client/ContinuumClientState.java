@@ -91,6 +91,18 @@ public final class ContinuumClientState {
         clockOffset = snapshot.serverNow() - System.currentTimeMillis();
     }
 
+    private static @Nullable BlockPos schedulePad;
+    private static List<net.phoenix.continuum.common.ScheduleService.View> schedules = List.of();
+
+    public static void acceptSchedules(BlockPos pad, List<net.phoenix.continuum.common.ScheduleService.View> views) {
+        schedulePad = pad;
+        schedules = List.copyOf(views);
+    }
+
+    public static List<net.phoenix.continuum.common.ScheduleService.View> schedules(BlockPos pad) {
+        return pad.equals(schedulePad) ? schedules : List.of();
+    }
+
     private static @Nullable BlockPos stockPad;
     private static boolean stockFromBuses;
     private static ItemStack stockRocket = ItemStack.EMPTY;
