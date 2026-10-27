@@ -82,6 +82,15 @@ public class ContinuumConfigs {
 
         @Configurable
         @Configurable.Comment({
+                "How strongly black holes bend the light behind them (this client only): 1 is the original",
+                "strength, higher bends more of the sky into a wider ring. 0 turns lensing off.",
+                "Default: 1.6"
+        })
+        @Configurable.DecimalRange(min = 0.0, max = 4.0)
+        public float blackHoleLensing = 1.6f;
+
+        @Configurable
+        @Configurable.Comment({
                 "How planets and moons are drawn. SPHERE is the smooth shaded globe. CUBE draws every world as a",
                 "blocky cube whose surface is built from chunky square cells (8 / 12 / 16 per face at",
                 "LOW / MEDIUM / HIGH), for a more Minecraft look. Stars and black holes stay round.",

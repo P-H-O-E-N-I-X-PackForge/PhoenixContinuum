@@ -1167,7 +1167,8 @@ public final class SceneRenderer {
         });
         shader.safeGetUniform("Voxel").set(net.phoenix.continuum.client.ContinuumVisuals.cube() ?
                 net.phoenix.continuum.client.ContinuumVisuals.cubeCells(quality) / 1.64f : 0.0f);
-        shader.safeGetUniform("Lensing").set(quality == net.phoenix.continuum.client.render.PlanetRenderer.Quality.LOW ? 0.0f : 1.0f);
+        shader.safeGetUniform("Lensing").set(quality == net.phoenix.continuum.client.render.PlanetRenderer.Quality.LOW ? 0.0f :
+                Math.max(0.0f, net.phoenix.continuum.config.ContinuumConfigs.INSTANCE.blackHoleLensing));
 
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
@@ -1211,6 +1212,17 @@ public final class SceneRenderer {
         return holeTarget;
     }
 
+    private static float worldDepth = Float.NaN;
+
+    /**
+     * Black holes are drawn aside and laid over the picture, with no depth of their own. In the world, set the
+     * depth (normalised, -1 to 1) of the thing they are drawn for, and they are laid over at that depth, so blocks in
+     * front of it hide them. NaN (the default) is the map, with nothing to be behind.
+     */
+    public static void setWorldDepth(float ndcDepth) {
+        worldDepth = ndcDepth;
+    }
+
     private static void compositeHole(com.mojang.blaze3d.pipeline.TextureTarget low) {
         Matrix4f savedProjection = new Matrix4f(RenderSystem.getProjectionMatrix());
         var savedSorting = RenderSystem.getVertexSorting();
@@ -1223,8 +1235,15 @@ public final class SceneRenderer {
 
         ShaderInstance blit = Minecraft.getInstance().gameRenderer.blitShader;
         blit.setSampler("DiffuseSampler", low.getColorTextureId());
+        boolean depthAware = !Float.isNaN(worldDepth);
+        // an ortho from 1000 to 3000 puts a quad at z = -1000 * (depth + 2) at that normalised depth
+        float quadZ = depthAware ? -1000.0f * (Math.max(-1.0f, Math.min(1.0f, worldDepth)) + 2.0f) : -2000.0f;
+        if (depthAware) {
+            RenderSystem.enableDepthTest();
+            RenderSystem.depthMask(false);
+        }
         if (blit.MODEL_VIEW_MATRIX != null)
-            blit.MODEL_VIEW_MATRIX.set(new Matrix4f().translation(0.0f, 0.0f, -2000.0f));
+            blit.MODEL_VIEW_MATRIX.set(new Matrix4f().translation(0.0f, 0.0f, quadZ));
         if (blit.PROJECTION_MATRIX != null) blit.PROJECTION_MATRIX.set(ortho);
         blit.apply();
 

@@ -3,7 +3,6 @@ package net.phoenix.continuum.client.screen;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -63,37 +62,66 @@ public class ContinuumSwarmControlScreen extends Screen {
         return width - PANEL_W - 12;
     }
 
+    private boolean blackHoles;
+    private boolean sectionChosen;
+
+    private java.util.List<SwarmControlView.Candidate> section() {
+        java.util.List<SwarmControlView.Candidate> list = new java.util.ArrayList<>();
+        for (var c : view.candidates()) {
+            if (c.penrose() == blackHoles) list.add(c);
+        }
+        return list;
+    }
+
     private void cycle(int by) {
-        var list = view.candidates();
+        var list = section();
         if (list.isEmpty()) return;
-        int index = 0;
+        int index = -1;
         for (int i = 0; i < list.size(); i++) {
             if (list.get(i).body().equals(view.target())) index = i;
         }
         send(C2SSwarmControlPacket.SELECT, list.get(Math.floorMod(index + by, list.size())).body());
     }
 
+    private void pickSection(boolean holes) {
+        blackHoles = holes;
+        sectionChosen = true;
+        var list = section();
+        var current = view.current();
+        if (!list.isEmpty() && (current == null || current.penrose() != holes)) {
+            send(C2SSwarmControlPacket.SELECT, list.get(0).body());
+        }
+        rebuildWidgets();
+    }
+
     @Override
     protected void init() {
         int x = panelX();
-        addRenderableWidget(Button.builder(Component.literal("<"), b -> cycle(-1)).bounds(x + 8, 34, 18, 16).build());
-        addRenderableWidget(Button.builder(Component.literal(">"), b -> cycle(1))
-                .bounds(x + PANEL_W - 26, 34, 18, 16).build());
-
         var current = view.current();
+        if (!sectionChosen && current != null) blackHoles = current.penrose();
+        else if (current != null && current.penrose() != blackHoles && section().stream()
+                .noneMatch(c -> c.body().equals(view.target()))) {
+            // the target moved to the other section (another screen changed it): follow it
+            blackHoles = current.penrose();
+        }
+        int stars = (int) view.candidates().stream().filter(c -> !c.penrose()).count();
+        int holes = view.candidates().size() - stars;
+        int half = (PANEL_W - 22) / 2;
+        addRenderableWidget(MapButton.of(x + 8, 32, half, 16, "Stars (" + stars + ")", b -> pickSection(false))
+                .selected(!blackHoles).enabled(stars > 0));
+        addRenderableWidget(MapButton.of(x + 14 + half, 32, half, 16, "Black holes (" + holes + ")",
+                b -> pickSection(true)).selected(blackHoles).enabled(holes > 0));
+        addRenderableWidget(MapButton.of(x + 8, 52, 18, 16, "<", b -> cycle(-1)));
+        addRenderableWidget(MapButton.of(x + PANEL_W - 26, 52, 18, 16, ">", b -> cycle(1)));
+
         boolean ready = current != null && view.padFound() && view.online();
-        Button swarm = Button.builder(Component.literal("Send swarm pods"),
+        addRenderableWidget(MapButton.of(x + 8, height - 64, PANEL_W - 16, 18, "Send swarm pods",
                 b -> send(C2SSwarmControlPacket.BUILD_SWARM, view.target()))
-                .bounds(x + 8, height - 64, PANEL_W - 16, 18).build();
-        swarm.active = ready && current.swarm() < current.swarmMax() && current.shell() == 0;
-        addRenderableWidget(swarm);
-        Button shell = Button.builder(Component.literal("Send shell segments"),
+                .enabled(ready && current.swarm() < current.swarmMax() && current.shell() == 0));
+        addRenderableWidget(MapButton.of(x + 8, height - 42, PANEL_W - 16, 18, "Send shell segments",
                 b -> send(C2SSwarmControlPacket.BUILD_SHELL, view.target()))
-                .bounds(x + 8, height - 42, PANEL_W - 16, 18).build();
-        shell.active = ready && current.shell() < current.shellMax() && current.swarm() == 0;
-        addRenderableWidget(shell);
-        addRenderableWidget(Button.builder(Component.literal("Close"), b -> onClose())
-                .bounds(x + 8, height - 20, PANEL_W - 16, 14).build());
+                .enabled(ready && current.shell() < current.shellMax() && current.swarm() == 0));
+        addRenderableWidget(MapButton.of(x + 8, height - 20, PANEL_W - 16, 14, "Close", b -> onClose()));
     }
 
     @Override
@@ -142,19 +170,19 @@ public class ContinuumSwarmControlScreen extends Screen {
         String status = view.online() ? "ONLINE" : "OFFLINE";
         g.drawString(font, status, x + PANEL_W - 8 - font.width(status), 14, view.online() ? MapUi.GOOD : MapUi.BAD);
         if (current == null) {
-            g.drawString(font, "No target", x + 32, 38, MapUi.DIM);
+            g.drawString(font, "No target", x + 8, 76, MapUi.DIM);
             for (var line : font.split(Component.literal(view.note()), PANEL_W - 16)) {
-                g.drawString(font, line, x + 8, 64, MapUi.DIM, false);
+                g.drawString(font, line, x + 8, 90, MapUi.DIM, false);
             }
-            super.render(g, mouseX, mouseY, partialTick);
+            for (var renderable : this.renderables) renderable.render(g, mouseX, mouseY, partialTick);
             return;
         }
-        g.drawCenteredString(font, font.plainSubstrByWidth(current.name(), PANEL_W - 64), x + PANEL_W / 2, 38,
+        g.drawCenteredString(font, font.plainSubstrByWidth(current.name(), PANEL_W - 64), x + PANEL_W / 2, 58,
                 MapUi.TITLE);
         g.drawCenteredString(font, current.penrose() ? "Black hole  -  Penrose swarm" : "Star  -  Dyson swarm",
-                x + PANEL_W / 2, 54, MapUi.DIM);
+                x + PANEL_W / 2, 72, MapUi.DIM);
 
-        int y = 70;
+        int y = 88;
         y = stage(g, x + 8, y, current);
         y = meter(g, x + 8, y, "Swarm", current.swarm(), current.swarmMax(), view.swarmInFlight(), MapUi.GOOD);
         y = meter(g, x + 8, y, current.penrose() ? "Penrose sphere" : "Shell", current.shell(), current.shellMax(),
@@ -187,7 +215,7 @@ public class ContinuumSwarmControlScreen extends Screen {
             g.drawString(font, "Rockets " + view.rockets() + "   Pods " + view.collectors() + "   Segments " +
                     view.segments(), x + 8, y, MapUi.TEXT);
         }
-        super.render(g, mouseX, mouseY, partialTick);
+        for (var renderable : this.renderables) renderable.render(g, mouseX, mouseY, partialTick);
     }
 
     private int stage(GuiGraphics g, int x, int y, SwarmControlView.Candidate c) {

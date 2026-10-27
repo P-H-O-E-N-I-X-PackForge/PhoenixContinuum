@@ -1616,10 +1616,36 @@ public class ContinuumMapScreen extends Screen {
         }
     }
 
+    /** Where a camera was looking: its focus, angles and zoom. */
+    private static float[] remember(MapCamera cam) {
+        return new float[] { cam.targetFocus.x, cam.targetFocus.y, cam.targetFocus.z, cam.targetYaw, cam.targetPitch,
+                cam.targetDistance };
+    }
+
+    private static void restore(MapCamera cam, float[] saved) {
+        cam.focus.set(saved[0], saved[1], saved[2]);
+        cam.targetFocus.set(saved[0], saved[1], saved[2]);
+        cam.targetYaw = cam.yaw = saved[3];
+        cam.targetPitch = cam.pitch = saved[4];
+        cam.targetDistance = saved[5];
+    }
+
+    private @Nullable float[] savedGalaxy;
+    private @Nullable float[] savedSystem;
+    private @Nullable ResourceLocation savedSystemFor;
+
     private void enterSystem(ContinuumSystem sys) {
         level = Level.SYSTEM;
         system = sys;
         body = null;
+        if (zoomDirection < 0 && savedSystem != null && sys.id().equals(savedSystemFor)) {
+            // backing out of a body: the system is as it was left
+            restore(systemCam, savedSystem);
+            systemCam.snapDistance(savedSystem[5] * 0.5f);
+            systemCam.targetDistance = Math.max(systemCam.minDistance, Math.min(systemCam.maxDistance,
+                    savedSystem[5]));
+            return;
+        }
         systemCam.targetYaw = systemCam.yaw = 20.0f;
         systemCam.targetPitch = systemCam.pitch = 38.0f;
         systemCam.focus.set(0, 0, 0);
@@ -1643,6 +1669,14 @@ public class ContinuumMapScreen extends Screen {
         level = Level.GALAXY;
         system = null;
         body = null;
+        if (savedGalaxy != null) {
+            // backing out of a system: the galaxy is as it was before going in
+            restore(galaxyCam, savedGalaxy);
+            galaxyCam.snapDistance(savedGalaxy[5] * 0.55f);
+            galaxyCam.targetDistance = Math.max(galaxyCam.minDistance, Math.min(galaxyCam.maxDistance,
+                    savedGalaxy[5]));
+            return;
+        }
         galaxyCam.targetFocus.set(0, 0, 0);
         galaxyCam.targetDistance = GALAXY_DISTANCE;
         galaxyCam.snapDistance(GALAXY_DISTANCE * 0.55f);
@@ -1669,6 +1703,7 @@ public class ContinuumMapScreen extends Screen {
                 flash("Unknown signal. More research is needed to resolve it.");
                 return;
             }
+            savedGalaxy = remember(galaxyCam);
             galaxyCam.targetFocus.set(sys.galaxyX(), sys.galaxyY(), sys.galaxyZ()).mul(GALAXY_SCALE);
             transition(1, () -> enterSystem(sys));
         } else if (pick.body() != null) {
@@ -1678,6 +1713,8 @@ public class ContinuumMapScreen extends Screen {
                 return;
             }
 
+            savedSystem = remember(systemCam);
+            savedSystemFor = system == null ? null : system.id();
             Vector3f bodyPos = bodyPositions.get(target.id());
             if (bodyPos != null) systemCam.targetFocus.set(bodyPos);
             transition(1, () -> enterBody(target));

@@ -236,9 +236,9 @@ void main() {
     bgAlpha = max(bgAlpha, ring * 0.5);
 
     if (Lensing > 0.01 && rho < 5.0) {
-        float w = (1.0 - smoothstep(2.4, 5.0, rho)) * Lensing;
+        float w = (1.0 - smoothstep(2.4, 5.0, rho)) * min(Lensing, 1.0);
         // point-mass thin lens: source = image * (1 - E^2/rho^2)
-        float E2 = 2.2;
+        float E2 = 2.2 * max(Lensing, 1.0);
         vec2 src = q * (1.0 - E2 / max(rho * rho, 0.25));
         float mag = clamp(1.0 / max(abs(1.0 - E2 * E2 / max(pow(rho, 4.0), 0.0625)), 0.15), 1.0, 5.0);
         bg += stars(src, vox) * mag * w;

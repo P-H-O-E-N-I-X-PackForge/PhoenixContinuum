@@ -59,8 +59,8 @@ public final class HologramRenderer {
         Vec3 camera = event.getCamera().getPosition();
         Matrix4f view = new Matrix4f(event.getModelViewMatrix());
         Matrix4f projection = event.getProjectionMatrix();
+        // the level's own model-view matrix already carries the camera turn: beams are camera-relative as they are
         PoseStack pose = new PoseStack();
-        pose.mulPose(view);
         var buffers = mc.renderBuffers().bufferSource();
         float seconds = (float) (System.currentTimeMillis() % 100000L) / 1000.0f;
 
@@ -90,6 +90,9 @@ public final class HologramRenderer {
 
             if (shown && star > 0.001f) {
                 Vector3f at = new Vector3f((float) cx, (float) cy, (float) cz);
+                // blocks between the player and the hologram hide it: tell the black hole how deep the middle is
+                org.joml.Vector4f clip = new org.joml.Vector4f(at, 1.0f).mul(view).mul(projection);
+                SceneRenderer.setWorldDepth(clip.w > 0.0f ? clip.z / clip.w : Float.NaN);
                 float radius = STAR_RADIUS * star;
                 if (Swarms.isPenrose(body)) {
                     SceneRenderer.drawHole(system, view, projection, at, radius, ContinuumVisuals.quality(), false);
@@ -104,6 +107,7 @@ public final class HologramRenderer {
                     SceneRenderer.drawSwarmCompletion(body, system.starColor(), view, projection, at, radius,
                             ContinuumVisuals.quality(), false, shell, Math.min(1.0f, real) * structure);
                 }
+                SceneRenderer.setWorldDepth(Float.NaN);
                 RenderSystem.enableDepthTest();
                 RenderSystem.depthMask(true);
                 RenderSystem.enableCull();
