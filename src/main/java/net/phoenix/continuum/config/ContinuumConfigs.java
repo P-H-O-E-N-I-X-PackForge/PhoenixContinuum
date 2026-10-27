@@ -252,6 +252,27 @@ public class ContinuumConfigs {
 
         @Configurable
         @Configurable.Comment({
+                "Whether launch pads run their schedules (repeating or timed launches that need no player).",
+                "Default: true"
+        })
+        public boolean scheduledLaunches = true;
+
+        @Configurable
+        @Configurable.Comment({
+                "Most schedules one launch pad can hold. Default: 6"
+        })
+        @Configurable.Range(min = 1, max = 64)
+        public int maxSchedulesPerPad = 6;
+
+        @Configurable
+        @Configurable.Comment({
+                "Shortest time between two runs of a repeating schedule, in seconds. Default: 30"
+        })
+        @Configurable.Range(min = 1, max = 86400)
+        public int minScheduleIntervalSeconds = 30;
+
+        @Configurable
+        @Configurable.Comment({
                 "Whether a body's tier needs a matching rocket hull to work there: mid tier needs Mk II, late Mk III,",
                 "endgame Mk IV (surveys are exempt). Hulls are raised with Hull Refit Kits in the refit screen",
                 "(sneak + use a rocket). Default: true"

@@ -93,6 +93,12 @@ public final class Mission {
 
     public boolean rescuing;
 
+    /** Launched by a schedule that brings the cargo home by itself: the pad takes it in when it lands. */
+    public boolean autoCollect;
+
+    /** The team was told the pad had no room (not saved: a restart may tell them again). */
+    public boolean fullNoticeSent;
+
     public boolean stranded() {
         return distressUntil > 0;
     }
@@ -162,6 +168,7 @@ public final class Mission {
             for (String member : crew) crewList.add(net.minecraft.nbt.StringTag.valueOf(member));
             tag.put("Crew", crewList);
         }
+        if (autoCollect) tag.putBoolean("AutoCollect", true);
         if (distressUntil > 0) {
             tag.putLong("DistressUntil", distressUntil);
             tag.putBoolean("Rescuing", rescuing);
@@ -188,6 +195,7 @@ public final class Mission {
         }
         mission.expedition = tag.getString("Expedition");
         for (Tag t : tag.getList("Crew", Tag.TAG_STRING)) mission.crew.add(t.getAsString());
+        mission.autoCollect = tag.getBoolean("AutoCollect");
         mission.distressUntil = tag.getLong("DistressUntil");
         mission.rescuing = tag.getBoolean("Rescuing");
         return mission;

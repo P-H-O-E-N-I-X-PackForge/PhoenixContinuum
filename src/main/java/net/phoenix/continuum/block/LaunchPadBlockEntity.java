@@ -14,8 +14,12 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.energy.EnergyStorage;
 import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.phoenix.continuum.ContinuumRegistry;
 import net.phoenix.continuum.PhoenixContinuum;
+import net.phoenix.continuum.common.ContinuumMissions;
 import net.phoenix.continuum.config.ContinuumConfigs;
 import net.phoenix.continuum.machine.LaunchComplex;
 import net.phoenix.continuum.machine.LaunchComplexes;
@@ -31,7 +35,19 @@ public class LaunchPadBlockEntity extends BlockEntity implements LaunchComplex {
 
     private static final int BUFFER_LAUNCHES = 8;
 
+    /** The first half is what launches spend (input), the second what comes home (output). */
+    public static final int INPUT_SLOTS = 9;
+    public static final int SLOTS = 18;
+
     private final PadEnergy energy;
+    private final ItemStackHandler items = new ItemStackHandler(SLOTS) {
+
+        @Override
+        protected void onContentsChanged(int slot) {
+            setChanged();
+        }
+    };
+    private final IItemHandler outside = new Outside();
     private UUID owner;
     private UUID registeredTeam;
 
@@ -40,6 +56,57 @@ public class LaunchPadBlockEntity extends BlockEntity implements LaunchComplex {
         var cfg = ContinuumConfigs.INSTANCE;
         int capacity = (int) Math.min(Integer.MAX_VALUE, (long) cfg.basicLaunchEnergyFE * BUFFER_LAUNCHES);
         this.energy = new PadEnergy(Math.max(1, capacity), Math.max(1, cfg.basicPadMaxFePerTick));
+    }
+
+    /** What hoppers and pipes see: stock goes in the input half, only the output half comes out. */
+    private final class Outside implements IItemHandler {
+
+        @Override
+        public int getSlots() {
+            return SLOTS;
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            return items.getStackInSlot(slot);
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            if (slot >= INPUT_SLOTS || !isItemValid(slot, stack)) return stack;
+            return items.insertItem(slot, stack, simulate);
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            return slot < INPUT_SLOTS ? ItemStack.EMPTY : items.extractItem(slot, amount, simulate);
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return items.getSlotLimit(slot);
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return slot < INPUT_SLOTS && ContinuumMissions.isStockItem(stack);
+        }
+    }
+
+    /** Put by hand: whatever of the stack the input could take is taken out of it. */
+    public void stock(ItemStack stack) {
+        if (!ContinuumMissions.isStockItem(stack)) return;
+        ItemStack left = insertInput(stack.copy());
+        stack.shrink(stack.getCount() - left.getCount());
+    }
+
+    /** The contents, for when the block is broken. */
+    public List<ItemStack> contents() {
+        List<ItemStack> all = new java.util.ArrayList<>();
+        for (int i = 0; i < SLOTS; i++) {
+            if (!items.getStackInSlot(i).isEmpty()) all.add(items.getStackInSlot(i).copy());
+        }
+        return all;
     }
 
     private final class PadEnergy extends EnergyStorage {
@@ -110,12 +177,15 @@ public class LaunchPadBlockEntity extends BlockEntity implements LaunchComplex {
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ContinuumRegistry.LAUNCH_PAD_ENTITY.get(),
                 (pad, side) -> pad.isActive() ? pad.energy : null);
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ContinuumRegistry.LAUNCH_PAD_ENTITY.get(),
+                (pad, side) -> pad.isActive() ? pad.outside : null);
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.putInt("Energy", energy.getEnergyStored());
+        tag.put("Items", items.serializeNBT(registries));
         if (owner != null) tag.putUUID("Owner", owner);
     }
 
@@ -123,6 +193,7 @@ public class LaunchPadBlockEntity extends BlockEntity implements LaunchComplex {
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         energy.set(tag.getInt("Energy"));
+        if (tag.contains("Items")) items.deserializeNBT(registries, tag.getCompound("Items"));
         owner = tag.hasUUID("Owner") ? tag.getUUID("Owner") : null;
     }
 
@@ -136,6 +207,7 @@ public class LaunchPadBlockEntity extends BlockEntity implements LaunchComplex {
         return isActive();
     }
 
+    /** No buses: a launch by hand spends the player's stock. A schedule spends what the pad's buffer holds. */
     @Override
     public boolean hasBuses() {
         return false;
@@ -181,26 +253,48 @@ public class LaunchPadBlockEntity extends BlockEntity implements LaunchComplex {
 
     @Override
     public int count(Predicate<ItemStack> matches) {
-        return 0;
+        int total = 0;
+        for (int i = 0; i < INPUT_SLOTS; i++) {
+            ItemStack stack = items.getStackInSlot(i);
+            if (!stack.isEmpty() && matches.test(stack)) total += stack.getCount();
+        }
+        return total;
     }
 
     @Override
     public ItemStack peek(Predicate<ItemStack> matches) {
+        for (int i = 0; i < INPUT_SLOTS; i++) {
+            ItemStack stack = items.getStackInSlot(i);
+            if (!stack.isEmpty() && matches.test(stack)) return stack.copy();
+        }
         return ItemStack.EMPTY;
     }
 
     @Override
     public List<ItemStack> take(Predicate<ItemStack> matches, int amount) {
-        return List.of();
+        List<ItemStack> taken = new java.util.ArrayList<>();
+        for (int i = 0; i < INPUT_SLOTS && amount > 0; i++) {
+            ItemStack stack = items.getStackInSlot(i);
+            if (stack.isEmpty() || !matches.test(stack)) continue;
+            ItemStack out = items.extractItem(i, amount, false);
+            amount -= out.getCount();
+            taken.add(out);
+        }
+        return taken;
+    }
+
+    private ItemStack insert(ItemStack stack, int from, int to) {
+        for (int i = from; i < to && !stack.isEmpty(); i++) stack = items.insertItem(i, stack, false);
+        return stack;
     }
 
     @Override
     public ItemStack insertOutput(ItemStack stack) {
-        return stack;
+        return insert(stack, INPUT_SLOTS, SLOTS);
     }
 
     @Override
     public ItemStack insertInput(ItemStack stack) {
-        return stack;
+        return ContinuumMissions.isStockItem(stack) ? insert(stack, 0, INPUT_SLOTS) : stack;
     }
 }

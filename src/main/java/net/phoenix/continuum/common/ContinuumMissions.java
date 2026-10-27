@@ -48,6 +48,12 @@ public final class ContinuumMissions {
     private static final java.util.function.Predicate<ItemStack> IS_SEGMENT = s -> s
             .getItem() instanceof net.phoenix.continuum.item.ContinuumShellSegmentItem;
 
+    /** Anything a launch spends: what a pad accepts into its input. */
+    public static boolean isStockItem(ItemStack stack) {
+        return IS_ROCKET.test(stack) || IS_PROBE.test(stack) || IS_KIT.test(stack) || IS_COLLECTOR.test(stack) ||
+                IS_SEGMENT.test(stack);
+    }
+
     private interface Stock {
 
         ItemStack peekRocket();
@@ -259,15 +265,40 @@ public final class ContinuumMissions {
     public static @Nullable String launch(ServerPlayer player, ResourceLocation destinationId, BlockPos pad,
                                           Mission.Type type, int probes, String expeditionName,
                                           List<String> crewNames) {
-        var cfg = ContinuumConfigs.INSTANCE;
-        MinecraftServer server = player.server;
-
         var level = player.level();
         if (!level.isLoaded(pad)) return "There is no launch pad there.";
-        double range = cfg.launchRangeBlocks;
+        double range = ContinuumConfigs.INSTANCE.launchRangeBlocks;
         if (player.distanceToSqr(Vec3.atCenterOf(pad)) > range * range) {
             return "You are too far from the launch pad.";
         }
+        return launchFrom(player.server, level, pad, net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID()),
+                player.getUUID(), player.getGameProfile().getName(), player.getRandom(),
+                complex -> complex != null && complex.hasBuses() ? new BusStock(complex) : new PlayerStock(player),
+                destinationId, type, probes, expeditionName, validCrew(player, crewNames), false);
+    }
+
+    /**
+     * A launch with nobody at the pad: a schedule's. The pad's own stock pays for it, the pad's owner is the one who
+     * launched, and there is no range to be in.
+     */
+    public static @Nullable String launchScheduled(MinecraftServer server, net.minecraft.world.level.Level level,
+                                                   BlockPos pad, UUID team, UUID owner, String ownerName,
+                                                   ResourceLocation destinationId, Mission.Type type, int probes,
+                                                   String expeditionName, List<String> crew,
+                                                   boolean autoCollect) {
+        return launchFrom(server, level, pad, team, owner, ownerName, level.getRandom(),
+                complex -> complex == null ? null : new BusStock(complex), destinationId, type, probes,
+                expeditionName, crew, autoCollect);
+    }
+
+    private static @Nullable String launchFrom(MinecraftServer server, net.minecraft.world.level.Level level,
+                                               BlockPos pad, UUID team, UUID ownerId, String ownerName,
+                                               RandomSource random,
+                                               java.util.function.Function<LaunchComplex, Stock> stockOf,
+                                               ResourceLocation destinationId, Mission.Type type, int probes,
+                                               String expeditionName, List<String> crew, boolean autoCollect) {
+        var cfg = ContinuumConfigs.INSTANCE;
+        if (!level.isLoaded(pad)) return "There is no launch pad there.";
 
         ContinuumBody body = ContinuumData.body(destinationId);
         if (body == null) return "That destination does not exist.";
@@ -308,7 +339,6 @@ public final class ContinuumMissions {
             return "There is no launch pad there.";
         }
 
-        UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         ContinuumTeamData data = ContinuumTeamData.get(server);
 
         DiscoveryStage stage = data.effectiveStage(server, team, destinationId);
@@ -323,7 +353,8 @@ public final class ContinuumMissions {
         int stationLevel = data.stationLevel(team, destinationId);
         Affinities.Factors affinity = Affinities.of(server, team, body);
 
-        Stock stock = complex != null && complex.hasBuses() ? new BusStock(complex) : new PlayerStock(player);
+        Stock stock = stockOf.apply(complex);
+        if (stock == null) return "There is no launch pad there.";
 
         long now = System.currentTimeMillis();
         int carried = 0;
@@ -488,15 +519,14 @@ public final class ContinuumMissions {
             data.setDirty();
         }
 
-        List<String> crew = validCrew(player, crewNames);
         String expedition = cleanName(expeditionName);
         
         float failureChance = Math.max(0.0f, RocketStats.failureChance(flown, stage) - CREW_RISK_REDUCTION * crew.size());
-        boolean succeeds = player.getRandom().nextFloat() >= failureChance;
+        boolean succeeds = random.nextFloat() >= failureChance;
 
         boolean kitRun = type == Mission.Type.REPAIR || type == Mission.Type.RESCUE;
         int payload = type == Mission.Type.HAUL ? haulProbes : kitRun ? kitsCarried : carried;
-        MissionEvent event = MissionEvent.roll(type, payload, player.getRandom(), cfg.missionEventChance);
+        MissionEvent event = MissionEvent.roll(type, payload, random, cfg.missionEventChance);
         List<String> events = new ArrayList<>();
         if (event != null) events.add(event.id);
 
@@ -505,13 +535,13 @@ public final class ContinuumMissions {
             int rolls = carried - (event == MissionEvent.MICROMETEOROIDS ? 1 : 0) +
                     (event == MissionEvent.DERELICT ? 1 : 0);
             rewards = rollRewards(team, body,
-                    Affinities.scaled(Math.max(0, rolls), affinity.yield(), player.getRandom()),
-                    player.getRandom());
+                    Affinities.scaled(Math.max(0, rolls), affinity.yield(), random),
+                    random);
         }
         if (succeeds && type == Mission.Type.HAUL) {
             int rolls = Affinities.scaled(haulProbes * haulCycles + (event == MissionEvent.DERELICT ? haulProbes : 0),
-                    Stations.yieldFactor(stationLevel) * affinity.yield(), player.getRandom());
-            rewards = rollRewards(team, body, rolls, player.getRandom());
+                    Stations.yieldFactor(stationLevel) * affinity.yield(), random);
+            rewards = rollRewards(team, body, rolls, random);
         }
 
         long trip = Math.round(RocketStats.tripMillis(body, flown) * Stations.tripFactor(stationLevel) *
@@ -522,7 +552,7 @@ public final class ContinuumMissions {
         trip = Math.max(1000L, Math.round(trip * window.factor()));
 
         int shownProbes = type == Mission.Type.HAUL ? haulProbes : kitRun ? kitsCarried : carried;
-        Mission mission = new Mission(UUID.randomUUID(), team, player.getUUID(), player.getGameProfile().getName(),
+        Mission mission = new Mission(UUID.randomUUID(), team, ownerId, ownerName,
                 destinationId, type, shownProbes, rewards, now, trip, succeeds,
                 RocketStats.wearCost(body, flown) * Stations.wearFactor(stationLevel) * affinity.wear() *
                         window.factor(),
@@ -534,6 +564,7 @@ public final class ContinuumMissions {
         }
         mission.expedition = expedition;
         mission.crew = crew;
+        mission.autoCollect = autoCollect;
         data.addMission(mission);
         net.phoenix.continuum.api.ContinuumEvents.postMission(
                 net.phoenix.continuum.api.ContinuumEvents.MissionChanged.Kind.LAUNCHED, mission);
@@ -704,6 +735,13 @@ public final class ContinuumMissions {
             }
 
             for (Mission mission : List.copyOf(data.missions(team))) {
+                if (mission.autoCollect && mission.state.finished() && !mission.stranded() &&
+                        autoCollect(server, data, mission)) {
+                    changed = true;
+                }
+            }
+
+            for (Mission mission : List.copyOf(data.missions(team))) {
                 if (!mission.stranded() || mission.rescuing || now < mission.distressUntil) continue;
                 ContinuumBody where = ContinuumData.body(mission.destination);
                 data.removeMission(team, mission.id);
@@ -718,6 +756,52 @@ public final class ContinuumMissions {
                 ContinuumServerEvents.sendStateToTeam(server, team);
             }
         }
+    }
+
+    /**
+     * A scheduled mission is home: the pad takes the rocket and what it brought. What does not fit stays in the
+     * mission, to be tried again (and the team told once) or collected by hand.
+     *
+     * @return whether the mission was taken in completely
+     */
+    private static boolean autoCollect(MinecraftServer server, ContinuumTeamData data, Mission mission) {
+        LaunchComplex pad = launchComplexOf(server, mission);
+        if (pad == null) return false;
+
+        boolean changed = false;
+        if (!mission.rocket.isEmpty()) {
+            ItemStack rest = pad.insertInput(mission.rocket.copy());
+            if (!rest.isEmpty()) rest = pad.insertOutput(rest);
+            if (rest.getCount() != mission.rocket.getCount()) changed = true;
+            mission.rocket.setCount(rest.getCount());
+        }
+        int items = 0;
+        List<ItemStack> left = new ArrayList<>();
+        for (ItemStack reward : mission.rewards) {
+            ItemStack rest = pad.insertOutput(reward.copy());
+            items += reward.getCount() - rest.getCount();
+            if (!rest.isEmpty()) left.add(rest);
+        }
+        if (items > 0) changed = true;
+        mission.rewards.clear();
+        mission.rewards.addAll(left);
+
+        if (mission.rocket.isEmpty() && left.isEmpty()) {
+            data.removeMission(mission.team, mission.id);
+            ContinuumBody from = ContinuumData.body(mission.destination);
+            data.log(mission.team, MissionLog.Kind.COLLECTED, mission.destination,
+                    "The pad took in the rocket from " + (from != null ? from.name() : mission.destination.getPath()) +
+                            (items > 0 ? " and " + items + " resources." : "."));
+            return true;
+        }
+        if (changed) data.setDirty();
+        if (!mission.fullNoticeSent) {
+            mission.fullNoticeSent = true;
+            data.setDirty();
+            notifyTeam(server, mission.team, Component.literal("A scheduled return does not fit in the pad. " +
+                    "Empty its output and it will be taken in, or collect it by hand.").withStyle(ChatFormatting.GOLD));
+        }
+        return changed;
     }
 
     public static int collectAll(ServerPlayer player) {
@@ -953,6 +1037,8 @@ public final class ContinuumMissions {
         }
 
         LaunchComplex pad = launchComplexOf(server, mission);
+        // the basic pad's buffer is for the schedules: a collection by hand still comes to the player
+        if (pad != null && !pad.hasBuses()) pad = null;
         ItemStack rocket = mission.rocket.copy();
         int items = 0;
         int delivered = 0;
