@@ -23,7 +23,7 @@ public class S2CHologramPacket implements CustomPacketPayload {
     }
 
     public record State(BlockPos pos, boolean active, ResourceLocation target, int swarm, int swarmMax, int shell,
-                        int shellMax) {}
+                        int shellMax, int offsetX, int offsetZ) {}
 
     private final State state;
 
@@ -33,7 +33,7 @@ public class S2CHologramPacket implements CustomPacketPayload {
 
     public S2CHologramPacket(FriendlyByteBuf buf) {
         this.state = new State(buf.readBlockPos(), buf.readBoolean(), buf.readResourceLocation(), buf.readVarInt(),
-                buf.readVarInt(), buf.readVarInt(), buf.readVarInt());
+                buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt());
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -44,6 +44,8 @@ public class S2CHologramPacket implements CustomPacketPayload {
         buf.writeVarInt(state.swarmMax());
         buf.writeVarInt(state.shell());
         buf.writeVarInt(state.shellMax());
+        buf.writeVarInt(state.offsetX());
+        buf.writeVarInt(state.offsetZ());
     }
 
     public static void handle(S2CHologramPacket msg, IPayloadContext ctx) {

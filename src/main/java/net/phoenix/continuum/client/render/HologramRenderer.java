@@ -68,9 +68,9 @@ public final class HologramRenderer {
             holo.step();
             if (holo.boot <= 0.0f) continue;
             var state = holo.state;
-            double cx = state.pos().getX() + 0.5 - camera.x;
+            double cx = state.pos().getX() + 0.5 + state.offsetX() - camera.x;
             double cy = state.pos().getY() + HEIGHT - camera.y;
-            double cz = state.pos().getZ() + 0.5 - camera.z;
+            double cz = state.pos().getZ() + 0.5 + state.offsetZ() - camera.z;
             if (cx * cx + cy * cy + cz * cz > RANGE * RANGE) continue;
 
             ContinuumBody body = ContinuumData.body(state.target());

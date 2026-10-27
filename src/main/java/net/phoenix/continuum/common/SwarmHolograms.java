@@ -34,6 +34,11 @@ public final class SwarmHolograms {
         boolean active();
 
         @Nullable UUID owner();
+
+        /** How far (x, z) the middle of the hologram is from the block: a multiblock's middle is not its controller. */
+        default int[] offset() {
+            return new int[] { 0, 0 };
+        }
     }
 
     private record Key(ResourceKey<Level> dimension, BlockPos pos) {}
@@ -55,7 +60,7 @@ public final class SwarmHolograms {
         S2CHologramPacket.State last = LAST.remove(key);
         if (last != null && level instanceof ServerLevel server) {
             send(server, key, new S2CHologramPacket.State(last.pos(), false, last.target(), last.swarm(),
-                    last.swarmMax(), last.shell(), last.shellMax()));
+                    last.swarmMax(), last.shell(), last.shellMax(), last.offsetX(), last.offsetZ()));
         }
     }
 
@@ -73,11 +78,12 @@ public final class SwarmHolograms {
         ContinuumBody body = target == null ? null : ContinuumData.body(target);
         if (body == null || !Swarms.isSwarm(body)) {
             return new S2CHologramPacket.State(key.pos(), false, ResourceLocation.fromNamespaceAndPath("minecraft", "none"),
-                    0, 1, 0, 1);
+                    0, 1, 0, 1, 0, 0);
         }
         var data = ContinuumTeamData.get(server);
+        int[] offset = source.offset();
         return new S2CHologramPacket.State(key.pos(), source.active(), target, data.stationLevel(team, target),
-                Swarms.maxLevel(body), data.shellLevel(team, target), Swarms.shellMaxLevel(body));
+                Swarms.maxLevel(body), data.shellLevel(team, target), Swarms.shellMaxLevel(body), offset[0], offset[1]);
     }
 
     private static void send(ServerLevel level, Key key, S2CHologramPacket.State state) {
