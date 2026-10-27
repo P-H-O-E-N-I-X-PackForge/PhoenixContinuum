@@ -203,7 +203,7 @@ public final class ContinuumBodyPickerScreen extends Screen {
             String name = body.name() + (ContinuumTuner.isTuned(body.id()) ? "  *" : "");
             g.drawString(font, fit(name, Math.max(40, bodiesW - 150 - indent)),
                     bodiesX + 14 + indent, y + 3, isCurrent ? 0xFFFFFFFF : 0xFFC8D4E8, false);
-            String detail = (searching ? systemName(body.system()) + "  " : "") + body.type().label();
+            String detail = (searching ? systemName(body.system()) + "  " : "") + body.kindLabel();
             g.drawString(font, fit(detail, 136), bodiesX + bodiesW - 140, y + 3, 0xFF7F8A99, false);
             hits.add(new Object[] { "body", body.id(), bodiesX, y, bodiesW, ROW });
         }

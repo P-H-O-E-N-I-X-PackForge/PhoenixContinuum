@@ -61,6 +61,63 @@ public final class ContinuumTuner {
         apply(id);
     }
 
+    private static final Map<ResourceLocation, Map<String, JsonElement>> PENDING = new HashMap<>();
+    private static final Map<ResourceLocation, Long> PENDING_SINCE = new HashMap<>();
+
+    /** These edits were sent to the server: they stay on screen until the server's own copy has them. */
+    public static void pushed(ResourceLocation id, Map<String, JsonElement> leaves) {
+        PENDING.put(id, new java.util.LinkedHashMap<>(leaves));
+        PENDING_SINCE.put(id, System.currentTimeMillis());
+    }
+
+    private static JsonElement at(JsonElement from, String path) {
+        JsonElement cursor = from;
+        for (String part : path.split("[.]")) {
+            if (cursor == null) return null;
+            if (cursor.isJsonObject()) {
+                cursor = cursor.getAsJsonObject().get(part);
+            } else if (cursor.isJsonArray()) {
+                try {
+                    int index = Integer.parseInt(part);
+                    cursor = index >= 0 && index < cursor.getAsJsonArray().size() ?
+                            cursor.getAsJsonArray().get(index) : null;
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+            } else {
+                return null;
+            }
+        }
+        return cursor;
+    }
+
+    /**
+     * New data arrived from the server. A body whose pushed edits are now in it stops being tuned locally (the server's
+     * word is the one that counts); one that is still waiting keeps them on top, for a few seconds at most.
+     */
+    public static void afterSync() {
+        long now = System.currentTimeMillis();
+        for (ResourceLocation id : new java.util.ArrayList<>(PENDING.keySet())) {
+            JsonObject raw = ContinuumData.rawBody(id);
+            boolean arrived = raw != null;
+            if (arrived) {
+                for (Map.Entry<String, JsonElement> leaf : PENDING.get(id).entrySet()) {
+                    JsonElement have = at(raw, leaf.getKey());
+                    if (have == null || !have.equals(leaf.getValue())) {
+                        arrived = false;
+                        break;
+                    }
+                }
+            }
+            if (arrived || now - PENDING_SINCE.getOrDefault(id, now) > 10_000L) {
+                PENDING.remove(id);
+                PENDING_SINCE.remove(id);
+                TWEAKS.remove(id);
+            }
+        }
+        reapply();
+    }
+
     public static void reapply() {
         for (ResourceLocation id : new java.util.ArrayList<>(TWEAKS.keySet())) apply(id);
     }

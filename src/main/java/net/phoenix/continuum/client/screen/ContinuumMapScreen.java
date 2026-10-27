@@ -921,7 +921,7 @@ public class ContinuumMapScreen extends Screen {
         panel(graphics, x, y, w, h);
         graphics.drawString(font, stage == DiscoveryStage.UNKNOWN ? "???" : b.name(), x + 6, y + 6, TITLE);
         String sub = stage == DiscoveryStage.UNKNOWN ? stageLabel(stage) :
-                b.type().label() + "  -  " + stageLabel(stage);
+                b.kindLabel() + "  -  " + stageLabel(stage);
         graphics.drawString(font, sub, x + 6, y + 17, stageColor(stage));
         if (descLines > 0) wrapped(graphics, b.description(), x + 6, y + 30, w - 12, TEXT);
     }
@@ -1003,7 +1003,7 @@ public class ContinuumMapScreen extends Screen {
         int ty = y + 8;
         graphics.drawString(font, b.name(), x + 7, ty, TITLE);
         ty += 11;
-        graphics.drawString(font, b.type().label() + "  -  " + stageLabel(stage), x + 7, ty, stageColor(stage));
+        graphics.drawString(font, b.kindLabel() + "  -  " + stageLabel(stage), x + 7, ty, stageColor(stage));
         ty += 14;
 
         if (stage == DiscoveryStage.SURVEYED) {

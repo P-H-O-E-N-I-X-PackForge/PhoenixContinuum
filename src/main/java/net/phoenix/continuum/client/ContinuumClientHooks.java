@@ -31,6 +31,8 @@ public final class ContinuumClientHooks {
 
     public static void acceptData(ContinuumData.Snapshot snapshot) {
         ContinuumData.acceptSync(snapshot);
+        // surface maps painted from the old definitions are painted again from the new ones
+        net.phoenix.continuum.client.render.SurfaceMap.clear();
 
         if (net.neoforged.fml.ModList.get().isLoaded("emi")) {
             net.phoenix.continuum.integration.emi.ContinuumEmiBridge.reload();

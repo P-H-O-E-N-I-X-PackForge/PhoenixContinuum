@@ -116,7 +116,7 @@ public class ContinuumArchiveScreen extends Screen {
 
         DiscoveryStage stage = ContinuumClientState.stage(selected.id());
         graphics.drawString(font, selected.name(), x + 8, top + 8, MapUi.TITLE);
-        graphics.drawString(font, selected.type().label() + "  -  " + stage.label(), x + 8, top + 20, MapUi.DIM);
+        graphics.drawString(font, selected.kindLabel() + "  -  " + stage.label(), x + 8, top + 20, MapUi.DIM);
 
         int y = top + 38;
         y = paragraph(graphics, "DETECTED", selected.loreDetected(), x + 8, y, w - 16, MapUi.WARN);

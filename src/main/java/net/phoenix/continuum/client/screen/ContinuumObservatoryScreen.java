@@ -158,7 +158,7 @@ public class ContinuumObservatoryScreen extends Screen {
         int ty = y + 22;
         g.drawString(font, body.name(), tx, ty, MapUi.TITLE);
         ty += 11;
-        g.drawString(font, body.type().label() + "  -  " + (surveyed ? "surveyed" : "detected"), tx, ty,
+        g.drawString(font, body.kindLabel() + "  -  " + (surveyed ? "surveyed" : "detected"), tx, ty,
                 surveyed ? MapUi.GOOD : MapUi.WARN);
         ty += 14;
 
