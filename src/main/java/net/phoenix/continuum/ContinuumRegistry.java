@@ -162,6 +162,10 @@ public final class ContinuumRegistry {
             "continuum_swarm_control", () -> new net.phoenix.continuum.block.SwarmControlBlock(
                     BlockBehaviour.Properties.ofFullCopy(Blocks.POLISHED_BLACKSTONE).strength(4.0f, 12.0f)));
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<net.phoenix.continuum.block.SwarmControlBlockEntity>> SWARM_CONTROL_ENTITY = BLOCK_ENTITIES
+            .register("continuum_swarm_control", () -> BlockEntityType.Builder
+                    .of(net.phoenix.continuum.block.SwarmControlBlockEntity::new, SWARM_CONTROL.get()).build(null));
+
     public static final BlockRef<SwarmReceiverBlock> SWARM_RECEIVER = block("continuum_swarm_receiver",
             () -> new SwarmReceiverBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.POLISHED_BLACKSTONE).strength(4.0f, 12.0f)));
 

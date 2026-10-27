@@ -648,7 +648,15 @@ public final class SceneRenderer {
         final float completion = shell ?
                 (float) net.phoenix.continuum.common.Swarms.shellCompletion(central, shellLevel) :
                 Math.min(1.0f, swarmLevel / (float) Math.max(1, net.phoenix.continuum.common.Swarms.maxLevel(central)));
-        
+        drawSwarmCompletion(central, rgb, view, projection, worldPos, radius, quality, sky, shell, completion);
+    }
+
+    /** The swarm or shell at a completion given, 0 to 1 (the hologram builds it up piece by piece). */
+    public static void drawSwarmCompletion(net.phoenix.continuum.data.ContinuumBody central, int rgb, Matrix4f view,
+                                           Matrix4f projection, Vector3f worldPos, float radius,
+                                           PlanetRenderer.Quality quality, boolean sky, boolean shell,
+                                           final float completion) {
+        if (completion <= 0.0f) return;
         int tint = net.phoenix.continuum.common.Swarms.isPenrose(central) ? 0x9a78ff : rgb;
         final Vector3f normal = planeNormal(view, worldPos, sky);
         drawStarFx(shell ? ContinuumShaders.DYSON : ContinuumShaders.MEGASTRUCTURE, tint, shell ? 7.0f : 16.0f, view,

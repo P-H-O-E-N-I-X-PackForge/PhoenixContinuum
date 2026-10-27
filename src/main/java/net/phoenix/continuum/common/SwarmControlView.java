@@ -9,7 +9,7 @@ import java.util.List;
 
 /** What a Swarm Control screen shows: the targets, the chosen one's build, and the pad that builds it. */
 public record SwarmControlView(BlockPos control, ResourceLocation target, List<Candidate> candidates, String padName,
-                               boolean padFound, long energyStored, long launchEnergy, int collectors, int segments,
+                               boolean padFound, boolean online, long energyStored, long launchEnergy, int collectors, int segments,
                                int rockets, int swarmInFlight, int shellInFlight, long powerNow, long powerDone,
                                String unit, String note) {
 
@@ -38,6 +38,7 @@ public record SwarmControlView(BlockPos control, ResourceLocation target, List<C
         }
         buf.writeUtf(padName, 64);
         buf.writeBoolean(padFound);
+        buf.writeBoolean(online);
         buf.writeVarLong(energyStored);
         buf.writeVarLong(launchEnergy);
         buf.writeVarInt(collectors);
@@ -61,7 +62,7 @@ public record SwarmControlView(BlockPos control, ResourceLocation target, List<C
                     buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt()));
         }
         return new SwarmControlView(control, target, candidates, buf.readUtf(64), buf.readBoolean(),
-                buf.readVarLong(), buf.readVarLong(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
+                buf.readBoolean(), buf.readVarLong(), buf.readVarLong(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
                 buf.readVarInt(), buf.readVarInt(), buf.readVarLong(), buf.readVarLong(), buf.readUtf(8),
                 buf.readUtf(256));
     }

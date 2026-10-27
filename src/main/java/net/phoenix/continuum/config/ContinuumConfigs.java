@@ -273,6 +273,14 @@ public class ContinuumConfigs {
 
         @Configurable
         @Configurable.Comment({
+                "Forge Energy a Swarm Control block uses every tick to stay online (its screen and hologram work",
+                "only while it has power). With GregTech the Swarm Control Array runs a recipe instead. Default: 80"
+        })
+        @Configurable.Range(min = 1, max = 100000)
+        public int swarmControlFePerTick = 80;
+
+        @Configurable
+        @Configurable.Comment({
                 "Shortest time between two runs of a repeating schedule, in seconds. Default: 30"
         })
         @Configurable.Range(min = 1, max = 86400)

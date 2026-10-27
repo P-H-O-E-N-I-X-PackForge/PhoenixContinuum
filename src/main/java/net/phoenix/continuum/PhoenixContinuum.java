@@ -35,6 +35,7 @@ public class PhoenixContinuum {
         modEventBus.addListener(net.phoenix.continuum.data.ContinuumPackFolder::register);
         modEventBus.addListener(net.phoenix.continuum.block.LaunchPadBlockEntity::registerCapabilities);
         modEventBus.addListener(net.phoenix.continuum.block.SwarmReceiverBlockEntity::registerCapabilities);
+        modEventBus.addListener(net.phoenix.continuum.block.SwarmControlBlockEntity::registerCapabilities);
         if (FMLEnvironment.dist.isClient()) ContinuumClientSetup.init(modEventBus);
     }
 

@@ -81,7 +81,7 @@ public class ContinuumSwarmControlScreen extends Screen {
                 .bounds(x + PANEL_W - 26, 34, 18, 16).build());
 
         var current = view.current();
-        boolean ready = current != null && view.padFound();
+        boolean ready = current != null && view.padFound() && view.online();
         Button swarm = Button.builder(Component.literal("Send swarm pods"),
                 b -> send(C2SSwarmControlPacket.BUILD_SWARM, view.target()))
                 .bounds(x + 8, height - 64, PANEL_W - 16, 18).build();
@@ -139,6 +139,8 @@ public class ContinuumSwarmControlScreen extends Screen {
         int x = panelX();
         MapUi.panel(g, x, 8, PANEL_W, height - 16);
         g.drawString(font, "SWARM CONTROL", x + 8, 14, MapUi.TITLE);
+        String status = view.online() ? "ONLINE" : "OFFLINE";
+        g.drawString(font, status, x + PANEL_W - 8 - font.width(status), 14, view.online() ? MapUi.GOOD : MapUi.BAD);
         if (current == null) {
             g.drawString(font, "No target", x + 32, 38, MapUi.DIM);
             for (var line : font.split(Component.literal(view.note()), PANEL_W - 16)) {

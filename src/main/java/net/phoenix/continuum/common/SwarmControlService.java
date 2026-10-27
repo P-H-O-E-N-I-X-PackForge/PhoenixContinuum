@@ -43,6 +43,23 @@ public final class SwarmControlService {
         return best;
     }
 
+    /** The star or black hole a control block looks at: the one chosen, else the first surveyed one. */
+    public static @Nullable ResourceLocation targetOf(MinecraftServer server, Level level, BlockPos control,
+                                                      UUID team) {
+        ContinuumTeamData data = ContinuumTeamData.get(server);
+        ResourceLocation chosen = SwarmControlTargets.get(server).get(level, control);
+        ResourceLocation first = null;
+        for (ContinuumBody body : ContinuumData.allBodies()) {
+            if (!Swarms.isSwarm(body) || !body.isCentral()) continue;
+            if (data.effectiveStage(server, team, body.id()) != DiscoveryStage.SURVEYED) continue;
+            if (body.id().equals(chosen)) return chosen;
+            if (first == null || body.name().compareToIgnoreCase(ContinuumData.body(first).name()) < 0) {
+                first = body.id();
+            }
+        }
+        return first;
+    }
+
     public static SwarmControlView view(ServerPlayer player, BlockPos control) {
         MinecraftServer server = player.server;
         Level level = player.level();
@@ -94,7 +111,12 @@ public final class SwarmControlService {
         String note = candidates.isEmpty() ? "Survey a star or black hole first: only surveyed ones can be built round." :
                 pad == null ? "No launch pad within " + ContinuumConfigs.INSTANCE.swarmControlPadRange +
                         " blocks. Build one near this block." : "";
-        return new SwarmControlView(control, target, candidates, padName, complex != null,
+        boolean online = SwarmHolograms.isActive(level, control);
+        if (!online && !candidates.isEmpty()) {
+            note = "Offline: " + (PadTiers.basic() ? "it needs " + ContinuumConfigs.INSTANCE.swarmControlFePerTick +
+                    " FE/t." : "the array needs its recipe running.");
+        }
+        return new SwarmControlView(control, target, candidates, padName, complex != null, online,
                 complex == null ? 0 : complex.storedEnergy(), launchEnergy, stock == null ? 0 : stock.collectors(),
                 stock == null ? 0 : stock.segments(), stock == null ? 0 : stock.rockets(), swarmFlying, shellFlying,
                 powerNow, powerDone, PadTiers.energyUnit(), note);
@@ -109,6 +131,7 @@ public final class SwarmControlService {
     /** @return why the build could not be sent, or null once it has been */
     public static @Nullable String build(ServerPlayer player, BlockPos control, boolean shell) {
         Level level = player.level();
+        if (!SwarmHolograms.isActive(level, control)) return "The control block is offline.";
         ResourceLocation target = view(player, control).target();
         BlockPos pad = findPad(level, control);
         if (pad == null) return "There is no launch pad near this control block.";

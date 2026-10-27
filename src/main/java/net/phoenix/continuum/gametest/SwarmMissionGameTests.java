@@ -132,7 +132,19 @@ public class SwarmMissionGameTests {
             BlockPos control = helper.absolutePos(controlPos);
             player.setPos(control.getX() + 0.5, control.getY() + 1.0, control.getZ() + 0.5);
 
+            var entity = (net.phoenix.continuum.block.SwarmControlBlockEntity) helper.getBlockEntity(controlPos);
+            entity.setOwner(player.getUUID());
             var view = net.phoenix.continuum.common.SwarmControlService.view(player, control);
+            helper.assertTrue(!view.online(), "an unpowered control is offline");
+            helper.assertTrue(net.phoenix.continuum.common.SwarmControlService.build(player, control, false) != null,
+                    "an offline control cannot send builds");
+            var energy = helper.getLevel().getCapability(net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK,
+                    control, null);
+            helper.assertTrue(energy != null && energy.receiveEnergy(100_000, false) > 0, "the control takes energy");
+            net.phoenix.continuum.block.SwarmControlBlockEntity.tick(helper.getLevel(), control,
+                    helper.getLevel().getBlockState(control), entity);
+            view = net.phoenix.continuum.common.SwarmControlService.view(player, control);
+            helper.assertTrue(view.online(), "a powered control is online");
             helper.assertTrue(!view.candidates().isEmpty(), "surveyed stars and holes should be listed");
             helper.assertTrue(view.padFound(), "the pad four blocks away should be found");
             var star = view.candidates().stream().filter(c -> !c.penrose()).findFirst().orElse(null);
