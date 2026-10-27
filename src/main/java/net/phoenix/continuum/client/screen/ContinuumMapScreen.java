@@ -79,8 +79,8 @@ public class ContinuumMapScreen extends Screen {
     private static final float SYSTEM_DISTANCE = 15.0f;
     private static final float BODY_DISTANCE = 4.3f;
     private static final float FOV = 40.0f;
-    private static final float OUT_SECONDS = 0.42f;
-    private static final float IN_SECONDS = 0.6f;
+    private static final float OUT_SECONDS = 0.38f;
+    private static final float IN_SECONDS = 0.7f;
     
     private static final float BURST_SECONDS = 0.2f;
     private static final float DAYS_PER_SECOND = 4.0f;
@@ -1594,7 +1594,8 @@ public class ContinuumMapScreen extends Screen {
 
         float eased = t * t * (3.0f - 2.0f * t);
         if (phase == Phase.OUT) {
-            fade = eased;
+            // ease in: the zoom is seen for most of it, the dark only closes at the end
+            fade = t * t;
             if (t >= 1.0f) {
                 if (onSwitch != null) onSwitch.run();
                 onSwitch = null;
@@ -1604,10 +1605,10 @@ public class ContinuumMapScreen extends Screen {
             }
         } else {
             
-            float shown = Math.max(0.0f, (phaseTime - BURST_SECONDS * 0.5f) / (IN_SECONDS - BURST_SECONDS * 0.5f));
-            float shownEased = Math.min(1.0f, shown);
-            shownEased = shownEased * shownEased * (3.0f - 2.0f * shownEased);
-            fade = 1.0f - shownEased;
+            // a short hold while the bakes burst, then ease out so the new view opens up gently
+            float hold = BURST_SECONDS * 0.25f;
+            float shown = Math.min(1.0f, Math.max(0.0f, (phaseTime - hold) / (IN_SECONDS - hold)));
+            fade = (1.0f - shown) * (1.0f - shown);
             if (t >= 1.0f) {
                 phase = Phase.NONE;
                 fade = 0.0f;
