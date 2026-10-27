@@ -158,6 +158,10 @@ public final class ContinuumRegistry {
             () -> new ObservatoryBlock(
                     BlockBehaviour.Properties.ofFullCopy(Blocks.POLISHED_DEEPSLATE).strength(3.0f, 9.0f).noOcclusion()));
 
+    public static final BlockRef<net.phoenix.continuum.block.SwarmControlBlock> SWARM_CONTROL = block(
+            "continuum_swarm_control", () -> new net.phoenix.continuum.block.SwarmControlBlock(
+                    BlockBehaviour.Properties.ofFullCopy(Blocks.POLISHED_BLACKSTONE).strength(4.0f, 12.0f)));
+
     public static final BlockRef<SwarmReceiverBlock> SWARM_RECEIVER = block("continuum_swarm_receiver",
             () -> new SwarmReceiverBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.POLISHED_BLACKSTONE).strength(4.0f, 12.0f)));
 

@@ -111,6 +111,32 @@ public final class ScenePreview {
         finish(g, drawn);
     }
 
+    /** A star or black hole with the swarm or shell round it at the levels given, turning slowly. */
+    public void drawTarget(GuiGraphics g, net.phoenix.continuum.data.ContinuumBody central, ContinuumSystem system,
+                           int swarmLevel, int shellLevel, int x, int y, int size) {
+        begin(x, y, size);
+        yaw += tick() * 5.0f;
+        boolean drawn = ContinuumShaders.ready() && system != null && central != null && render(() -> {
+            SceneRenderer.begin(target, yaw);
+            Matrix4f projection = SceneRenderer.projection(target.width, target.height, 32.0f);
+            Matrix4f view = new Matrix4f().translate(0.0f, 0.0f, -(distance + 1.5f)).rotateX(
+                    (float) Math.toRadians(pitch));
+            Vector3f at = new Vector3f();
+            if (net.phoenix.continuum.common.Swarms.isPenrose(central)) {
+                SceneRenderer.drawHole(system, view, projection, at, system.starRadius(),
+                        ContinuumVisuals.quality(), false);
+            } else {
+                SceneRenderer.drawSystemStar(system, system.starColor(), view, projection, at, system.starRadius(),
+                        ContinuumVisuals.quality(), false);
+            }
+            SceneRenderer.drawSwarmShell(central, system.starColor(), view, projection, at, system.starRadius(),
+                    ContinuumVisuals.quality(), false, swarmLevel, shellLevel);
+            SceneRenderer.end();
+            return true;
+        });
+        finish(g, drawn);
+    }
+
     private void begin(int x, int y, int size) {
         this.x = x;
         this.y = y;

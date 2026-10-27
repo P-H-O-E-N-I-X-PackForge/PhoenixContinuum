@@ -632,8 +632,16 @@ public final class SceneRenderer {
                                       Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
                                       PlanetRenderer.Quality quality, boolean sky) {
         if (central == null || !net.phoenix.continuum.common.Swarms.isSwarm(central)) return;
-        int swarmLevel = net.phoenix.continuum.client.ContinuumClientState.stationLevel(central.id());
-        int shellLevel = net.phoenix.continuum.client.ContinuumClientState.shellLevel(central.id());
+        drawSwarmShell(central, rgb, view, projection, worldPos, radius, quality, sky,
+                net.phoenix.continuum.client.ContinuumClientState.stationLevel(central.id()),
+                net.phoenix.continuum.client.ContinuumClientState.shellLevel(central.id()));
+    }
+
+    /** The same, at levels given rather than the team's: the Swarm Control screen shows what it is told. */
+    public static void drawSwarmShell(@Nullable net.phoenix.continuum.data.ContinuumBody central, int rgb,
+                                      Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
+                                      PlanetRenderer.Quality quality, boolean sky, int swarmLevel, int shellLevel) {
+        if (central == null || !net.phoenix.continuum.common.Swarms.isSwarm(central)) return;
         if (swarmLevel <= 0 && shellLevel <= 0) return;
         
         boolean shell = shellLevel > 0;

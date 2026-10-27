@@ -266,6 +266,13 @@ public class ContinuumConfigs {
 
         @Configurable
         @Configurable.Comment({
+                "How far (in blocks) a Swarm Control block looks for a launch pad to build from. Default: 16"
+        })
+        @Configurable.Range(min = 1, max = 64)
+        public int swarmControlPadRange = 16;
+
+        @Configurable
+        @Configurable.Comment({
                 "Shortest time between two runs of a repeating schedule, in seconds. Default: 30"
         })
         @Configurable.Range(min = 1, max = 86400)
