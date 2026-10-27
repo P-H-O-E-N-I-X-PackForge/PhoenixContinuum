@@ -240,7 +240,7 @@ public final class ContinuumMissions {
         return launch(player, destinationId, pad, type, probes, "", List.of());
     }
 
-    private static List<String> validCrew(ServerPlayer player, List<String> wanted) {
+    public static List<String> validCrew(ServerPlayer player, List<String> wanted) {
         List<String> crew = new ArrayList<>();
         UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         for (String name : wanted) {

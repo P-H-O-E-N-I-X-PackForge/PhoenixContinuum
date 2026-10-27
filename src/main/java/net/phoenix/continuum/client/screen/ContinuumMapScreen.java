@@ -1708,6 +1708,11 @@ public class ContinuumMapScreen extends Screen {
                     Minecraft.getInstance().setScreen(new ContinuumExpeditionScreen(this));
                     return true;
                 }
+                if (result.schedule() && result.launchType() != null && body != null && pad != null) {
+                    Minecraft.getInstance().setScreen(new ContinuumScheduleScreen(this, body.id(), pad,
+                            result.launchType(), result.probes(), result.count()));
+                    return true;
+                }
                 if (result.launchType() != null && body != null && pad != null) {
                     PacketDistributor.sendToServer(
                             new C2SLaunchMissionPacket(body.id(), pad, result.launchType(), result.probes(),

@@ -63,5 +63,9 @@ public final class ContinuumNetwork {
                 S2CAnomalyStatePacket::handle);
         registrar.playToServer(C2STunePacket.TYPE, C2STunePacket.STREAM_CODEC, C2STunePacket::handle);
         registrar.playToServer(C2SCreatePacket.TYPE, C2SCreatePacket.STREAM_CODEC, C2SCreatePacket::handle);
+        registrar.playToServer(C2SScheduleActionPacket.TYPE, C2SScheduleActionPacket.STREAM_CODEC,
+                C2SScheduleActionPacket::handle);
+        registrar.playToClient(S2CSchedulesPacket.TYPE, S2CSchedulesPacket.STREAM_CODEC,
+                S2CSchedulesPacket::handle);
     }
 }

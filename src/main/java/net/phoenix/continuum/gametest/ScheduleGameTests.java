@@ -119,4 +119,45 @@ public class ScheduleGameTests {
         helper.assertTrue(store.get(schedule.id) == null, "removed schedules are gone");
         helper.succeed();
     }
+
+    @GameTest(template = "gametest_empty", timeoutTicks = 100)
+    public static void playersManageTheirPadsSchedulesFromTheServerSide(GameTestHelper helper) {
+        if (GregTech.loaded()) {
+            helper.succeed();
+            return;
+        }
+        MinecraftServer server = helper.getLevel().getServer();
+        BlockPos at = new BlockPos(1, 2, 1);
+        helper.setBlock(at.below(), Blocks.IRON_BLOCK);
+        helper.setBlock(at, ContinuumRegistry.LAUNCH_PAD.get());
+        BlockPos pos = helper.absolutePos(at);
+        var player = net.neoforged.neoforge.common.util.FakePlayerFactory.getMinecraft(helper.getLevel());
+        player.setPos(pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5);
+        var store = ContinuumSchedules.get(server);
+        store.clearPad(ContinuumSchedules.dimensionOf(helper.getLevel()), pos.asLong());
+        UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
+        ContinuumBody destination = ContinuumData.allBodies().stream().filter(b -> b.transientInfo() == null)
+                .findFirst().orElse(null);
+        helper.assertTrue(destination != null, "there should be a body");
+        ContinuumTeamData.get(server).raise(team, destination.id(), DiscoveryStage.DETECTED);
+
+        String error = net.phoenix.continuum.common.ScheduleService.create(player, pos, destination.id(),
+                Mission.Type.SURVEY, 0, 1, "Run", java.util.List.of(), 0, 120, 4, true);
+        helper.assertTrue(error == null, "creating should work: " + error);
+        var views = net.phoenix.continuum.common.ScheduleService.views(player, pos);
+        helper.assertTrue(views.size() == 1 && views.get(0).enabled() && views.get(0).cap() == 4 &&
+                views.get(0).interval() == 120_000L, "the pad should list the new schedule: " + views);
+
+        UUID id = views.get(0).id();
+        helper.assertTrue(net.phoenix.continuum.common.ScheduleService.toggle(player, pos, id) == null, "toggle works");
+        helper.assertTrue(!net.phoenix.continuum.common.ScheduleService.views(player, pos).get(0).enabled(),
+                "it is paused");
+        player.setPos(pos.getX() + 500.0, pos.getY(), pos.getZ());
+        helper.assertTrue(net.phoenix.continuum.common.ScheduleService.delete(player, pos, id) != null,
+                "a player far from the pad cannot change its schedules");
+        player.setPos(pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5);
+        helper.assertTrue(net.phoenix.continuum.common.ScheduleService.delete(player, pos, id) == null, "delete works");
+        helper.assertTrue(net.phoenix.continuum.common.ScheduleService.views(player, pos).isEmpty(), "and it is gone");
+        helper.succeed();
+    }
 }
