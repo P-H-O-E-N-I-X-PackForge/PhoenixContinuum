@@ -160,4 +160,23 @@ public class ScheduleGameTests {
         helper.assertTrue(net.phoenix.continuum.common.ScheduleService.views(player, pos).isEmpty(), "and it is gone");
         helper.succeed();
     }
+
+    @GameTest(template = "gametest_empty", timeoutTicks = 100)
+    public static void adminsCanListToggleAndRemoveSchedules(GameTestHelper helper) {
+        MinecraftServer server = helper.getLevel().getServer();
+        var store = ContinuumSchedules.get(server);
+        ContinuumBody destination = ContinuumData.allBodies().stream().findFirst().orElse(null);
+        helper.assertTrue(destination != null, "there should be a body");
+        Schedule schedule = new Schedule(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "x",
+                "minecraft:overworld", 9L, destination.id());
+        schedule.enabled = true;
+        helper.assertTrue(store.add(schedule) == null, "accepted");
+        var source = server.createCommandSourceStack().withPermission(4);
+        String id = schedule.id.toString().substring(0, 8);
+        server.getCommands().performPrefixedCommand(source, "continuumadmin schedule toggle " + id);
+        helper.assertTrue(!schedule.enabled, "toggle switches it off");
+        server.getCommands().performPrefixedCommand(source, "continuumadmin schedule remove " + id);
+        helper.assertTrue(store.get(schedule.id) == null, "remove deletes it");
+        helper.succeed();
+    }
 }

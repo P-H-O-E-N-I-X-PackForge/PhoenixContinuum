@@ -389,6 +389,11 @@ final class ContinuumAdminCommands {
                                 swarmLevels(source, body, -levels, false))))
                         .then(literal("set").then(swarmBody(true, (source, body, levels) ->
                                 swarmLevels(source, body, levels, true)))))
+                .then(literal("schedule")
+                        .then(literal("list").executes(ctx -> listSchedules(ctx.getSource())))
+                        .then(literal("clear").executes(ctx -> clearSchedules(ctx.getSource())))
+                        .then(literal("remove").then(scheduleId((source, schedule) -> removeSchedule(source, schedule))))
+                        .then(literal("toggle").then(scheduleId((source, schedule) -> toggleSchedule(source, schedule)))))
                 .then(literal("shell")
                         .then(literal("add").then(swarmBody(false, (source, body, levels) ->
                                 shellLevels(source, body, levels, false))))
@@ -665,6 +670,75 @@ final class ContinuumAdminCommands {
                 .then(argument("levels", IntegerArgumentType.integer(allowZero ? 0 : 1, 1000))
                         .executes(ctx -> action.run(ctx.getSource(), ResourceLocationArgument.getId(ctx, "body"),
                                 IntegerArgumentType.getInteger(ctx, "levels"))));
+    }
+
+    private interface ScheduleAction {
+
+        int run(CommandSourceStack source, Schedule schedule);
+    }
+
+    private static com.mojang.brigadier.builder.RequiredArgumentBuilder<CommandSourceStack, String> scheduleId(
+            ScheduleAction action) {
+        return argument("id", StringArgumentType.word())
+                .suggests((ctx, builder) -> {
+                    for (Schedule schedule : ContinuumSchedules.get(ctx.getSource().getServer()).all()) {
+                        builder.suggest(schedule.id.toString().substring(0, 8));
+                    }
+                    return builder.buildFuture();
+                })
+                .executes(ctx -> {
+                    String wanted = StringArgumentType.getString(ctx, "id");
+                    for (Schedule schedule : ContinuumSchedules.get(ctx.getSource().getServer()).all()) {
+                        if (schedule.id.toString().startsWith(wanted)) return action.run(ctx.getSource(), schedule);
+                    }
+                    ctx.getSource().sendFailure(Component.literal("No schedule starts with " + wanted + "."));
+                    return 0;
+                });
+    }
+
+    private static int listSchedules(CommandSourceStack source) {
+        List<Schedule> all = ContinuumSchedules.get(source.getServer()).all();
+        if (all.isEmpty()) {
+            source.sendSuccess(() -> Component.literal("No schedules."), false);
+            return 0;
+        }
+        for (Schedule s : all) {
+            String line = s.id.toString().substring(0, 8) + "  " + s.type.label() + " to " + s.destination + "  by " +
+                    s.ownerName + " at " + s.padDimension + " " + net.minecraft.core.BlockPos.of(s.padPos).toShortString() +
+                    "  " + (s.intervalMillis <= 0 ? "single" : "every " + s.intervalMillis / 1000L + "s") + ", " +
+                    s.runs + (s.cap > 0 ? "/" + s.cap : "") + " runs, " + (s.enabled ? "on" : "off") +
+                    (s.lastFailure.isEmpty() ? "" : ", waiting: " + s.lastFailure);
+            source.sendSuccess(() -> Component.literal(line), false);
+        }
+        return all.size();
+    }
+
+    private static int clearSchedules(CommandSourceStack source) {
+        var store = ContinuumSchedules.get(source.getServer());
+        int count = 0;
+        for (Schedule s : store.all()) {
+            if (store.remove(s.id)) count++;
+        }
+        int removed = count;
+        source.sendSuccess(() -> Component.literal("Removed " + removed + " schedules."), true);
+        return removed;
+    }
+
+    private static int removeSchedule(CommandSourceStack source, Schedule schedule) {
+        ContinuumSchedules.get(source.getServer()).remove(schedule.id);
+        source.sendSuccess(() -> Component.literal("Removed the schedule."), true);
+        return 1;
+    }
+
+    private static int toggleSchedule(CommandSourceStack source, Schedule schedule) {
+        schedule.enabled = !schedule.enabled;
+        if (schedule.enabled) {
+            schedule.nextFire = Math.max(schedule.nextFire, System.currentTimeMillis());
+            schedule.retryAt = 0;
+        }
+        ContinuumSchedules.get(source.getServer()).setDirty();
+        source.sendSuccess(() -> Component.literal("The schedule is now " + (schedule.enabled ? "on" : "off") + "."), true);
+        return 1;
     }
 
     private static int swarmLevels(CommandSourceStack source, ResourceLocation id, int levels,
