@@ -286,3 +286,24 @@ object). Also optional: `dimension_type`, `arrival` (`surface`, `platform` or `f
 `match` takes `type`, `system` and `ids`.
 
 **`/continuumadmin pdimworldgen`** lists what each body will get (generator, arrival, structure) and whether it is loaded.
+
+### World rules, plots and ores
+
+Each spec can also say how the world behaves:
+
+```js
+event.pdim('mypack:vacuum_moon')
+  .flat('minecraft:stony_peaks', 'minecraft:bedrock', 'minecraft:stone*60')
+  .mobs(false)                               // nothing spawns on its own (natural, spawners, patrols)
+  .fallDamage(true)                          // a fall hurts (default false)
+  .requireOxygen('#mypack:space_helmets')    // no air: damage each second without this helmet (an item id or a #tag)
+  .plotRadius(300)                           // players stay within 300 blocks of their own plot (ops exempt)
+  .protectPlots(true)                        // other people's plots can't be built on or used (a team shares its plots)
+  .gtOres('minecraft:overworld')             // GregTech's ore veins and bedrock fluids of that dimension generate here too
+```
+
+- `plotRadius` and `protectPlots` are for dimensions where every player has a plot in the same world. Protection covers the
+  area within `plotRadius` of the owner's plot (256 blocks if none is set). Creative ops can build anywhere.
+- `gtOres` adds the dimension to the filter of every GregTech ore vein, bedrock fluid and bedrock ore that lists the one you
+  name, when the dimension is made (or when the world starts, for dimensions read from files). Weather is not controlled yet.
+- The same keys work in a spec file: `mobs`, `fall_damage`, `oxygen`, `plot_radius`, `protect_plots`, `gt_ores`.

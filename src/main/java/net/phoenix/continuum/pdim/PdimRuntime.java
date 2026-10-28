@@ -36,6 +36,7 @@ public final class PdimRuntime {
         if (existing != null) return existing;
         if (!available()) return null;
         try {
+            mirrorOres(server, body);
             return InfiniverseBridge.create(server, key, () -> stem(server, body));
         } catch (RuntimeException e) {
             PhoenixContinuum.LOGGER.error("Could not make the personal dimension of {}: {}", body, e.getMessage());
@@ -58,6 +59,14 @@ public final class PdimRuntime {
         if (!available() || server.getLevel(PdimDimensions.keyFor(body)) == null) return false;
         InfiniverseBridge.unload(server, PdimDimensions.keyFor(body));
         return true;
+    }
+
+    /** Give the body's dimension the GregTech ores of the dimension its spec says it is like. */
+    public static void mirrorOres(MinecraftServer server, ResourceLocation body) {
+        var spec = PdimWorldgen.resolve(body, net.phoenix.continuum.data.ContinuumData.body(body));
+        if (spec.gtOresFrom() == null || !ModList.get().isLoaded("gtceu")) return;
+        PdimGt.mirror(server, net.minecraft.resources.ResourceKey.create(Registries.DIMENSION, spec.gtOresFrom()),
+                PdimDimensions.keyFor(body));
     }
 
     static LevelStem stem(MinecraftServer server, ResourceLocation body) {

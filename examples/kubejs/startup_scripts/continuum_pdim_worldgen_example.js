@@ -46,6 +46,15 @@ ContinuumEvents.pdimWorldgen(event => {
   // 6. A base waiting at the plot the first time a player makes the world (a structure template of your own):
   // event.pdim('phoenix_continuum:example_rock').plotStructure('mypack:landing_pad')
 
+  // 7. World rules. A vacuum moon: no mobs, no air without a helmet, GregTech's overworld ores in the ground, and every
+  //    player kept to (and protected on) their own plot.
+  // event.pdim('phoenix_continuum:example_moon')
+  //   .mobs(false)
+  //   .requireOxygen('#mypack:space_helmets')
+  //   .gtOres('minecraft:overworld')
+  //   .plotRadius(300)
+  //   .protectPlots(true)
+
   // Where players arrive, if you want to force it:
   //   .arriveOnSurface()   the ground at the plot (the default for terrain)
   //   .arriveOnPlatform()  build the obsidian pad whatever the terrain

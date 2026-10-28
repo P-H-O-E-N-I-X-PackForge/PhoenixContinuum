@@ -118,4 +118,61 @@ public class PdimWorldgenGameTests {
             PdimWorldgen.remove(id);
         }
     }
+
+    @GameTest(template = "gametest_empty")
+    public static void rulesAreKeptAndPlotsMapBackToTheirNumber(GameTestHelper helper) {
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("phoenix_continuum", "gametest_world_rules");
+        try {
+            PdimWorldgen.of(id).mobs(false).fallDamage(true).requireOxygen("#mypack:space_helmets").plotRadius(300)
+                    .protectPlots(true).gtOres("minecraft:overworld");
+            var spec = PdimWorldgen.resolve(id, null);
+            helper.assertTrue(!spec.mobs() && spec.fallDamage() && "#mypack:space_helmets".equals(spec.oxygenGear()) &&
+                    spec.plotRadius() == 300 && spec.protectPlots() && spec.gtOresFrom() != null,
+                    "every rule should survive resolving");
+
+            for (int plot : new int[] { 0, 1, 31, 32, 33, 100, 500 }) {
+                var origin = net.phoenix.continuum.pdim.PdimDimensions.plotOrigin(plot);
+                helper.assertTrue(net.phoenix.continuum.pdim.PdimDimensions.plotAt(origin) == plot,
+                        "plot " + plot + " should map back from its origin");
+                helper.assertTrue(net.phoenix.continuum.pdim.PdimDimensions.plotAt(origin.offset(200, 0, -200)) == plot,
+                        "and from a spot inside it");
+            }
+
+            var json = com.google.gson.JsonParser.parseString("{\"body\":\"" + id + "\",\"type\":\"void\"," +
+                    "\"mobs\":false,\"oxygen\":\"mypack:helmet\",\"plot_radius\":50,\"protect_plots\":true}")
+                    .getAsJsonObject();
+            net.phoenix.continuum.pdim.PdimWorldgenFiles.apply(json);
+            var fromFile = PdimWorldgen.resolve(id, null);
+            helper.assertTrue(!fromFile.mobs() && "mypack:helmet".equals(fromFile.oxygenGear()) &&
+                    fromFile.plotRadius() == 50, "the file format sets the rules too");
+            helper.succeed();
+        } finally {
+            PdimWorldgen.remove(id);
+        }
+    }
+
+    @GameTest(template = "gametest_empty")
+    public static void gregTechOresGenerateInAPersonalDimensionLikeItsSource(GameTestHelper helper) {
+        var server = helper.getLevel().getServer();
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("phoenix_continuum", "gametest_ore_world");
+        try {
+            PdimWorldgen.of(id).gtOres("minecraft:overworld");
+            net.phoenix.continuum.pdim.PdimRuntime.mirrorOres(server, id);
+            var key = net.phoenix.continuum.pdim.PdimDimensions.keyFor(id);
+            var veins = server.registryAccess().registryOrThrow(com.gregtechceu.gtceu.api.registry.GTRegistries.Keys.ORE_VEIN);
+            boolean any = false;
+            boolean overworldOnes = false;
+            for (var vein : veins) {
+                var filter = vein.dimensionFilter();
+                if (filter != null && filter.contains(net.minecraft.world.level.Level.OVERWORLD)) {
+                    overworldOnes = true;
+                    any |= filter.contains(key);
+                }
+            }
+            helper.assertTrue(!overworldOnes || any, "the overworld's ore veins should now list the personal dimension");
+            helper.succeed();
+        } finally {
+            PdimWorldgen.remove(id);
+        }
+    }
 }

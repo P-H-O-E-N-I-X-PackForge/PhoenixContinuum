@@ -49,6 +49,15 @@ public class PdimData extends SavedData {
         return entries.getOrDefault(player, Map.of()).get(body);
     }
 
+    /** Who made the plot with this number in a body's dimension, or null if nobody has. */
+    public @Nullable UUID ownerOfPlot(ResourceLocation body, int plot) {
+        for (var owner : entries.entrySet()) {
+            Entry entry = owner.getValue().get(body);
+            if (entry != null && entry.plot() == plot) return owner.getKey();
+        }
+        return null;
+    }
+
     public Map<ResourceLocation, Entry> entries(UUID player) {
         return entries.getOrDefault(player, Map.of());
     }

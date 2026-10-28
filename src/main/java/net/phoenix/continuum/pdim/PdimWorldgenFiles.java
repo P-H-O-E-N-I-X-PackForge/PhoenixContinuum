@@ -31,7 +31,8 @@ import java.util.function.Predicate;
  *
  * {@code type} is void, flat, noise (with {@code settings} and a {@code biome}), overworld_like, auto or generator (with a
  * {@code generator} object). Also optional: {@code dimension_type}, {@code arrival} (surface, platform or fixed, with
- * {@code y}) and {@code plot_structure}.
+ * {@code y}) and {@code plot_structure}; and the world's rules: {@code mobs}, {@code fall_damage}, {@code oxygen} (the
+ * helmet item or #tag needed), {@code plot_radius}, {@code protect_plots} and {@code gt_ores} (a dimension id).
  */
 public final class PdimWorldgenFiles {
 
@@ -120,6 +121,12 @@ public final class PdimWorldgenFiles {
             case "generator" -> spec.generator(json.getAsJsonObject("generator"));
             default -> throw new IllegalArgumentException("unknown type " + type);
         }
+        if (json.has("mobs")) spec.mobs(json.get("mobs").getAsBoolean());
+        if (json.has("fall_damage")) spec.fallDamage(json.get("fall_damage").getAsBoolean());
+        if (json.has("oxygen")) spec.requireOxygen(json.get("oxygen").getAsString());
+        if (json.has("plot_radius")) spec.plotRadius(json.get("plot_radius").getAsInt());
+        if (json.has("protect_plots")) spec.protectPlots(json.get("protect_plots").getAsBoolean());
+        if (json.has("gt_ores")) spec.gtOres(json.get("gt_ores").getAsString());
         if (json.has("dimension_type")) spec.dimensionType(json.get("dimension_type").getAsString());
         if (json.has("plot_structure")) spec.plotStructure(json.get("plot_structure").getAsString());
         if (json.has("arrival")) {

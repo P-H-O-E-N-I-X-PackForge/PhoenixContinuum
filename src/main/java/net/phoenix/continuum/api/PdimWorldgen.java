@@ -149,6 +149,12 @@ public final class PdimWorldgen {
         private boolean voidWorld = true;
         private boolean auto;
         private @Nullable ResourceLocation plotStructure;
+        private boolean mobs = true;
+        private boolean fallDamage;
+        private @Nullable String oxygenGear;
+        private int plotRadius;
+        private boolean protectPlots;
+        private @Nullable ResourceLocation gtOresFrom;
 
         Spec(ResourceLocation body) {
             this.body = body;
@@ -167,6 +173,12 @@ public final class PdimWorldgen {
             c.voidWorld = voidWorld;
             c.auto = auto;
             c.plotStructure = plotStructure;
+            c.mobs = mobs;
+            c.fallDamage = fallDamage;
+            c.oxygenGear = oxygenGear;
+            c.plotRadius = plotRadius;
+            c.protectPlots = protectPlots;
+            c.gtOresFrom = gtOresFrom;
             return c;
         }
 
@@ -177,6 +189,84 @@ public final class PdimWorldgen {
 
         public boolean isAuto() {
             return auto;
+        }
+
+        // ---------------------------------------------------------------------------------------- rules
+
+        /** Whether mobs spawn on their own (naturally, from spawners, patrols). Default true. */
+        public Spec mobs(boolean spawn) {
+            this.mobs = spawn;
+            return this;
+        }
+
+        public boolean mobs() {
+            return mobs;
+        }
+
+        /** Whether a fall hurts. Default false (a personal dimension has its own gravity, and a pad to land on). */
+        public Spec fallDamage(boolean hurts) {
+            this.fallDamage = hurts;
+            return this;
+        }
+
+        public boolean fallDamage() {
+            return fallDamage;
+        }
+
+        /**
+         * There is no air: without {@code gear} on the head (an item id such as "mypack:space_helmet", or a tag with
+         * a leading hash, "#mypack:space_helmets") a player takes damage until they leave. Creative and spectator
+         * players are exempt.
+         */
+        public Spec requireOxygen(String gear) {
+            this.oxygenGear = gear;
+            return this;
+        }
+
+        /** Air, as in the default. */
+        public Spec breathable() {
+            this.oxygenGear = null;
+            return this;
+        }
+
+        public @Nullable String oxygenGear() {
+            return oxygenGear;
+        }
+
+        /** Keep a player within this many blocks of their own plot (0, the default, is no limit). Ops are exempt. */
+        public Spec plotRadius(int blocks) {
+            this.plotRadius = Math.max(0, blocks);
+            return this;
+        }
+
+        public int plotRadius() {
+            return plotRadius;
+        }
+
+        /**
+         * Players cannot break, place or use blocks on a plot that is not theirs or their team's. The plot is the area
+         * within {@link #plotRadius} (256 blocks if none is set) of its owner's plot.
+         */
+        public Spec protectPlots(boolean protect) {
+            this.protectPlots = protect;
+            return this;
+        }
+
+        public boolean protectPlots() {
+            return protectPlots;
+        }
+
+        /**
+         * GregTech's ore veins, bedrock fluids and bedrock ores of another dimension generate here too, for example
+         * "minecraft:overworld" or "minecraft:the_nether". Needs GregTech.
+         */
+        public Spec gtOres(String likeDimension) {
+            this.gtOresFrom = ResourceLocation.parse(likeDimension);
+            return this;
+        }
+
+        public @Nullable ResourceLocation gtOresFrom() {
+            return gtOresFrom;
         }
 
         public ResourceLocation dimensionType() {
