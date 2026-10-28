@@ -329,8 +329,13 @@ public final class SceneRenderer {
             star.safeGetUniform("PalMid").set(r * 1.25f, g * 1.25f, b * 1.25f);
             star.safeGetUniform("PalLow").set(r * 0.35f, g * 0.3f, b * 0.3f);
         }
+        // a black hole's sphere is nearer than the middle the hole's picture is laid over at, so if it wrote depth it would
+        // cut off the part of the disk that passes in front of the hole: in the world it only tests, the picture writes
+        boolean holdDepth = blackHole && !Float.isNaN(worldDepth);
+        if (holdDepth) RenderSystem.depthMask(false);
         if (cube) CubeMesh.draw(star, modelView, projection);
         else PlanetRenderer.mesh(quality).draw(star, modelView, projection);
+        if (holdDepth) RenderSystem.depthMask(true);
     }
 
     private static float[] rgbFloats(int rgb) {
