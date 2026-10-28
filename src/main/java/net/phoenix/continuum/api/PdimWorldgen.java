@@ -427,12 +427,15 @@ public final class PdimWorldgen {
             return noise(settings, source);
         }
 
-        /** A noise world with a biome source of your own (a JSON object). */
-        public Spec noise(String settings, JsonObject biomeSource) {
+        /**
+         * A noise world with a biome source of your own: a JSON object, a JSON string or (from a script) an object such as
+         * {@code { type: 'minecraft:multi_noise', preset: 'minecraft:nether' }}.
+         */
+        public Spec noise(String settings, Object biomeSource) {
             JsonObject gen = new JsonObject();
             gen.addProperty("type", "minecraft:noise");
             gen.addProperty("settings", settings);
-            gen.add("biome_source", biomeSource);
+            gen.add("biome_source", asObject(biomeSource));
             return custom(gen);
         }
 
@@ -444,21 +447,22 @@ public final class PdimWorldgen {
             return noise("minecraft:overworld", source);
         }
 
-        /** Any chunk generator, as a JSON object (another mod's too). Use {@link #dimensionType} if it needs its own. */
-        public Spec generator(JsonObject json) {
-            return custom(json.deepCopy());
+        /**
+         * Any chunk generator (another mod's too): a JSON object, JSON text or, from a script, an object. Use
+         * {@link #dimensionType} if it needs its own dimension type.
+         */
+        public Spec generator(Object json) {
+            return custom(asObject(json));
         }
 
-        /** As above, from JSON text. */
-        public Spec generator(String json) {
-            JsonElement parsed = JsonParser.parseString(json);
-            if (!parsed.isJsonObject()) throw new IllegalArgumentException("A generator is a JSON object");
-            return custom(parsed.getAsJsonObject());
-        }
-
-        /** As above, from a map (a script object). */
-        public Spec generator(Map<?, ?> map) {
-            return custom(GSON.toJsonTree(map).getAsJsonObject());
+        private static JsonObject asObject(Object value) {
+            JsonElement element;
+            if (value instanceof JsonElement json) element = json.deepCopy();
+            else if (value instanceof CharSequence text) element = JsonParser.parseString(text.toString());
+            else if (value instanceof Map<?, ?> map) element = GSON.toJsonTree(map);
+            else throw new IllegalArgumentException("Expected a JSON object, JSON text or an object, got " + value);
+            if (!element.isJsonObject()) throw new IllegalArgumentException("Expected a JSON object");
+            return element.getAsJsonObject();
         }
 
         private Spec custom(JsonObject gen) {

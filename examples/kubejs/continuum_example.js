@@ -32,7 +32,7 @@ Continuum.registerCondition('mypack:night', (params, server, team) => {
 ContinuumEvents.pdimEnter(event => {
   if (event.created) {
     event.player.tell(`Welcome to ${event.body}. Your own plot is ready.`)
-    event.player.give('minecraft:torch 16')
+    event.player.give(Item.of('minecraft:torch', 16))
   }
 })
 
