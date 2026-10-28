@@ -524,8 +524,18 @@ public final class SceneRenderer {
 
         if (extra != null) extra.accept(shader);
 
-        Matrix4f modelView = sky ? skyBillboard(view, worldPos, radius * extent) :
-                new Matrix4f().translate(view.transformPosition(new Vector3f(worldPos))).scale(radius * extent);
+        Matrix4f modelView;
+        if (sky) {
+            modelView = skyBillboard(view, worldPos, radius * extent);
+        } else {
+            Vector3f centre = view.transformPosition(new Vector3f(worldPos));
+            // up close a sphere looks wider than the flat disc at its middle: widen the glow to match its edge
+            float coreRadius = radius * (cube ? 0.82f : 1.0f);
+            float dist = centre.length();
+            float widen = dist > coreRadius * 1.02f ?
+                    (float) (1.0 / Math.sqrt(Math.max(0.04, 1.0 - (coreRadius / dist) * (coreRadius / dist)))) : 5.0f;
+            modelView = new Matrix4f().translate(centre).scale(radius * extent * widen);
+        }
 
         RenderSystem.enableBlend();
         RenderSystem.blendFunc(com.mojang.blaze3d.platform.GlStateManager.SourceFactor.ONE,

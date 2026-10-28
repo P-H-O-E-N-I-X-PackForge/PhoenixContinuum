@@ -11,7 +11,7 @@ import java.util.List;
 public record SwarmControlView(BlockPos control, ResourceLocation target, List<Candidate> candidates, String padName,
                                boolean padFound, boolean online, long energyStored, long launchEnergy, int collectors, int segments,
                                int rockets, int swarmInFlight, int shellInFlight, long powerNow, long powerDone,
-                               String unit, String note) {
+                               String unit, String note, float scale) {
 
     public record Candidate(ResourceLocation body, String name, boolean penrose, int swarm, int swarmMax, int shell,
                             int shellMax) {}
@@ -50,6 +50,7 @@ public record SwarmControlView(BlockPos control, ResourceLocation target, List<C
         buf.writeVarLong(powerDone);
         buf.writeUtf(unit, 8);
         buf.writeUtf(note, 256);
+        buf.writeFloat(scale);
     }
 
     public static SwarmControlView read(FriendlyByteBuf buf) {
@@ -64,6 +65,6 @@ public record SwarmControlView(BlockPos control, ResourceLocation target, List<C
         return new SwarmControlView(control, target, candidates, buf.readUtf(64), buf.readBoolean(),
                 buf.readBoolean(), buf.readVarLong(), buf.readVarLong(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
                 buf.readVarInt(), buf.readVarInt(), buf.readVarLong(), buf.readVarLong(), buf.readUtf(8),
-                buf.readUtf(256));
+                buf.readUtf(256), buf.readFloat());
     }
 }

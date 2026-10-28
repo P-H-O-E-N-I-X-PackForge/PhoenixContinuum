@@ -212,6 +212,10 @@ dependencies {
     }
     implementation "dev.toma.configuration:configuration-${minecraft_version}:${configuration_version}"
 
+    // Jade (optional): tooltips for our blocks and multiblocks
+    compileOnly "maven.modrinth:jade:15.10.6+neoforge"
+    runtimeOnly "maven.modrinth:jade:15.10.6+neoforge"
+
     // Phoenix Tesla Network (optional): swarm power can go straight into its tesla storage
     compileOnly "net.phoenix_tesla_network.tesla:phoenix_tesla_network:0.5.0"
 

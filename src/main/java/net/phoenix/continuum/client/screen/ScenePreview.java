@@ -50,6 +50,11 @@ public final class ScenePreview {
         return dt;
     }
 
+    /** Pull the camera out (or in) to this far, to see all of what is being shown. */
+    public void frame(float newDistance) {
+        distance = Math.max(2.2f, Math.min(24.0f, newDistance));
+    }
+
     public boolean contains(double mx, double my) {
         return mx >= x && mx < x + size && my >= y && my < y + size;
     }
@@ -73,7 +78,7 @@ public final class ScenePreview {
 
     public boolean mouseScrolled(double mx, double my, double delta) {
         if (!contains(mx, my)) return false;
-        distance = Math.max(2.2f, Math.min(14.0f, distance - (float) delta * 0.3f));
+        distance = Math.max(2.2f, Math.min(24.0f, distance - (float) delta * 0.5f));
         return true;
     }
 

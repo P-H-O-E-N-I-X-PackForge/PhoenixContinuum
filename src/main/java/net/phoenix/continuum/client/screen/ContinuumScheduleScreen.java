@@ -74,7 +74,7 @@ public class ContinuumScheduleScreen extends Screen {
     }
 
     private int panelH() {
-        return 228 + Math.max(1, shown.size()) * ROW;
+        return 246 + Math.max(1, shown.size()) * ROW;
     }
 
     private int panelY() {
@@ -127,7 +127,7 @@ public class ContinuumScheduleScreen extends Screen {
         }));
         addRenderableWidget(MapButton.of(x + (w - 6) / 2 + 6, y + 106, (w - 6) / 2, 18, "Back", b -> onClose()));
 
-        int ry = panelY() + 188;
+        int ry = panelY() + 206;
         for (ScheduleService.View view : shown) {
             final ScheduleService.View row = view;
             addRenderableWidget(MapButton.of(panelX() + W - 10 - 100, ry + 2, 48, 14,
@@ -171,7 +171,8 @@ public class ContinuumScheduleScreen extends Screen {
 
         g.drawString(font, "Waits and tells you once if it cannot launch.", x + 10, y + 176, MapUi.DIM);
 
-        int ry = y + 188;
+        int ry = y + 206;
+        g.fill(x + 6, y + 190, x + W - 6, y + 191, MapUi.PANEL_LINE);
         g.drawString(font, "THIS PAD'S SCHEDULES", x + 10, ry - 12, MapUi.TITLE);
         if (shown.isEmpty()) {
             g.drawString(font, "None yet.", x + 10, ry + 4, MapUi.DIM);

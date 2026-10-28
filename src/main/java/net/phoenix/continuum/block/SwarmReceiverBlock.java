@@ -59,7 +59,8 @@ public class SwarmReceiverBlock extends Block implements EntityBlock {
         if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
             if (level.getBlockEntity(pos) instanceof SwarmReceiverBlockEntity receiver) {
                 net.phoenix.continuum.network.ContinuumNetwork.sendToPlayer(serverPlayer,
-                        new net.phoenix.continuum.network.S2COpenPowerPacket(receiver.report(serverPlayer.server)));
+                        new net.phoenix.continuum.network.S2COpenPowerPacket(receiver.report(serverPlayer.server),
+                                pos, true));
             }
         }
         return InteractionResult.sidedSuccess(level.isClientSide);

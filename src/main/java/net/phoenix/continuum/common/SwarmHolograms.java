@@ -39,6 +39,16 @@ public final class SwarmHolograms {
         default int[] offset() {
             return new int[] { 0, 0 };
         }
+
+        /** A control shows a hologram of a star or black hole; a receiver shows its uplink to the sky. */
+        default int kind() {
+            return S2CHologramPacket.State.CONTROL;
+        }
+
+        /** For a receiver: how full it is, 0 to 100, which sets how bright the uplink is. */
+        default int fill() {
+            return 0;
+        }
     }
 
     private record Key(ResourceKey<Level> dimension, BlockPos pos) {}
@@ -60,8 +70,13 @@ public final class SwarmHolograms {
         S2CHologramPacket.State last = LAST.remove(key);
         if (last != null && level instanceof ServerLevel server) {
             send(server, key, new S2CHologramPacket.State(last.pos(), false, last.target(), last.swarm(),
-                    last.swarmMax(), last.shell(), last.shellMax(), last.offsetX(), last.offsetZ()));
+                    last.swarmMax(), last.shell(), last.shellMax(), last.offsetX(), last.offsetZ(), last.scale(),
+                    last.kind()));
         }
+    }
+
+    public static @Nullable Source sourceAt(Level level, BlockPos pos) {
+        return SOURCES.get(new Key(level.dimension(), pos.immutable()));
     }
 
     public static boolean isActive(Level level, BlockPos pos) {
@@ -74,16 +89,23 @@ public final class SwarmHolograms {
         UUID owner = source.owner();
         if (level == null || owner == null) return null;
         UUID team = ContinuumHost.teamOf(owner);
+        int[] where = source.offset();
+        if (source.kind() == S2CHologramPacket.State.RECEIVER) {
+            return new S2CHologramPacket.State(key.pos(), source.active(),
+                    ResourceLocation.fromNamespaceAndPath("minecraft", "none"), source.fill(), 100, 0, 1, where[0],
+                    where[1], 1.0f, S2CHologramPacket.State.RECEIVER);
+        }
+        float scale = SwarmControlTargets.get(server).scale(level, key.pos());
         ResourceLocation target = SwarmControlService.targetOf(server, level, key.pos(), team);
         ContinuumBody body = target == null ? null : ContinuumData.body(target);
         if (body == null || !Swarms.isSwarm(body)) {
             return new S2CHologramPacket.State(key.pos(), false, ResourceLocation.fromNamespaceAndPath("minecraft", "none"),
-                    0, 1, 0, 1, 0, 0);
+                    0, 1, 0, 1, where[0], where[1], scale, S2CHologramPacket.State.CONTROL);
         }
         var data = ContinuumTeamData.get(server);
-        int[] offset = source.offset();
         return new S2CHologramPacket.State(key.pos(), source.active(), target, data.stationLevel(team, target),
-                Swarms.maxLevel(body), data.shellLevel(team, target), Swarms.shellMaxLevel(body), offset[0], offset[1]);
+                Swarms.maxLevel(body), data.shellLevel(team, target), Swarms.shellMaxLevel(body), where[0], where[1],
+                scale, S2CHologramPacket.State.CONTROL);
     }
 
     private static void send(ServerLevel level, Key key, S2CHologramPacket.State state) {

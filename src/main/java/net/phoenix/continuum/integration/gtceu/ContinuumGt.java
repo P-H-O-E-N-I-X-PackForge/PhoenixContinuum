@@ -43,6 +43,11 @@ public final class ContinuumGt {
         return MetaMachine.getMachine(level, pos) instanceof LaunchComplex complex ? complex : null;
     }
 
+    public static @Nullable net.phoenix.continuum.common.SwarmReceiver receiverAt(Level level, BlockPos pos) {
+        return MetaMachine.getMachine(level, pos) instanceof net.phoenix.continuum.common.SwarmReceiver receiver ?
+                receiver : null;
+    }
+
     public static long voltage(int tier) {
         var v = com.gregtechceu.gtceu.api.GTValues.V;
         return v[Math.max(0, Math.min(tier, v.length - 1))];

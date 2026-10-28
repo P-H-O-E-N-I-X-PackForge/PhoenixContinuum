@@ -23,22 +23,30 @@ public class S2COpenPowerPacket implements CustomPacketPayload {
     }
 
     private final SwarmReport report;
+    private final net.minecraft.core.BlockPos pos;
+    private final boolean open;
 
-    public S2COpenPowerPacket(SwarmReport report) {
+    public S2COpenPowerPacket(SwarmReport report, net.minecraft.core.BlockPos pos, boolean open) {
         this.report = report;
+        this.pos = pos;
+        this.open = open;
     }
 
     public S2COpenPowerPacket(FriendlyByteBuf buf) {
+        this.pos = buf.readBlockPos();
+        this.open = buf.readBoolean();
         this.report = SwarmReport.read(buf);
     }
 
     public void encode(FriendlyByteBuf buf) {
+        buf.writeBlockPos(pos);
+        buf.writeBoolean(open);
         report.write(buf);
     }
 
     public static void handle(S2COpenPowerPacket msg, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
-            if (FMLEnvironment.dist.isClient()) ContinuumClientHooks.openPower(msg.report);
+            if (FMLEnvironment.dist.isClient()) ContinuumClientHooks.openPower(msg.report, msg.pos, msg.open);
         });
     }
 }

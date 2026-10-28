@@ -119,7 +119,11 @@ public final class SwarmControlService {
         return new SwarmControlView(control, target, candidates, padName, complex != null, online,
                 complex == null ? 0 : complex.storedEnergy(), launchEnergy, stock == null ? 0 : stock.collectors(),
                 stock == null ? 0 : stock.segments(), stock == null ? 0 : stock.rockets(), swarmFlying, shellFlying,
-                powerNow, powerDone, PadTiers.energyUnit(), note);
+                powerNow, powerDone, PadTiers.energyUnit(), note, SwarmControlTargets.get(server).scale(level, control));
+    }
+
+    public static void resize(ServerPlayer player, BlockPos control, int by) {
+        SwarmControlTargets.get(player.server).step(player.level(), control, by);
     }
 
     public static void select(ServerPlayer player, BlockPos control, ResourceLocation target) {

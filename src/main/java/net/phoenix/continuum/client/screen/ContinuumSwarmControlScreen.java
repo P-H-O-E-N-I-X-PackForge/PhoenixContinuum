@@ -64,6 +64,7 @@ public class ContinuumSwarmControlScreen extends Screen {
 
     private boolean blackHoles;
     private boolean sectionChosen;
+    private boolean framed;
 
     private java.util.List<SwarmControlView.Candidate> section() {
         java.util.List<SwarmControlView.Candidate> list = new java.util.ArrayList<>();
@@ -115,6 +116,10 @@ public class ContinuumSwarmControlScreen extends Screen {
         addRenderableWidget(MapButton.of(x + PANEL_W - 26, 52, 18, 16, ">", b -> cycle(1)));
 
         boolean ready = current != null && view.padFound() && view.online();
+        addRenderableWidget(MapButton.of(x + 8, height - 88, 22, 16, "-", b -> send(C2SSwarmControlPacket.SMALLER,
+                view.target())));
+        addRenderableWidget(MapButton.of(x + PANEL_W - 30, height - 88, 22, 16, "+", b -> send(
+                C2SSwarmControlPacket.BIGGER, view.target())));
         addRenderableWidget(MapButton.of(x + 8, height - 64, PANEL_W - 16, 18, "Send swarm pods",
                 b -> send(C2SSwarmControlPacket.BUILD_SWARM, view.target()))
                 .enabled(ready && current.swarm() < current.swarmMax() && current.shell() == 0));
@@ -157,6 +162,11 @@ public class ContinuumSwarmControlScreen extends Screen {
         renderSize = Math.max(64, Math.min(height - 24, panelX() - 24));
         renderX = 12;
         renderY = (height - renderSize) / 2;
+        if (!framed && current != null) {
+            framed = true;
+            // far enough out to see the whole swarm or shell
+            preview.frame(current.swarm() > 0 || current.shell() > 0 ? 9.0f : 4.6f);
+        }
         preview.drawTarget(g, central, system, current == null ? 0 : current.swarm(),
                 current == null ? 0 : current.shell(), renderX, renderY, renderSize);
         if (current != null) {
@@ -182,6 +192,8 @@ public class ContinuumSwarmControlScreen extends Screen {
         g.drawCenteredString(font, current.penrose() ? "Black hole  -  Penrose swarm" : "Star  -  Dyson swarm",
                 x + PANEL_W / 2, 72, MapUi.DIM);
 
+        g.drawCenteredString(font, String.format(Locale.ROOT, "Hologram size %.2gx", view.scale()), x + PANEL_W / 2,
+                height - 84, MapUi.TEXT);
         int y = 88;
         y = stage(g, x + 8, y, current);
         y = meter(g, x + 8, y, "Swarm", current.swarm(), current.swarmMax(), view.swarmInFlight(), MapUi.GOOD);
@@ -283,6 +295,30 @@ public class ContinuumSwarmControlScreen extends Screen {
             g.pose().popPose();
             g.fill((int) nx - 2, (int) ny - 2, (int) nx + 3, (int) ny + 3, (alpha << 24) | 0x00ffffff);
         }
+    }
+
+    @Override
+    public boolean mouseClicked(double mx, double my, int button) {
+        if (preview.mouseClicked(mx, my)) return true;
+        return super.mouseClicked(mx, my, button);
+    }
+
+    @Override
+    public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
+        if (preview.mouseDragged(dx, dy)) return true;
+        return super.mouseDragged(mx, my, button, dx, dy);
+    }
+
+    @Override
+    public boolean mouseReleased(double mx, double my, int button) {
+        preview.mouseReleased();
+        return super.mouseReleased(mx, my, button);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mx, double my, double scrollX, double scrollY) {
+        if (preview.mouseScrolled(mx, my, scrollY)) return true;
+        return super.mouseScrolled(mx, my, scrollX, scrollY);
     }
 
     @Override

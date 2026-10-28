@@ -39,8 +39,16 @@ public final class ContinuumClientHooks {
         }
     }
 
-    public static void openPower(net.phoenix.continuum.common.SwarmReport report) {
-        Minecraft.getInstance().setScreen(new net.phoenix.continuum.client.screen.ContinuumPowerScreen(report));
+    public static void openPower(net.phoenix.continuum.common.SwarmReport report, net.minecraft.core.BlockPos pos,
+                                 boolean open) {
+        var screen = Minecraft.getInstance().screen;
+        if (screen instanceof net.phoenix.continuum.client.screen.ContinuumPowerScreen power &&
+                power.at().equals(pos)) {
+            power.update(report);
+        } else if (open) {
+            Minecraft.getInstance().setScreen(new net.phoenix.continuum.client.screen.ContinuumPowerScreen(report,
+                    pos));
+        }
     }
 
     public static void swarmControl(net.phoenix.continuum.common.SwarmControlView view, boolean open) {

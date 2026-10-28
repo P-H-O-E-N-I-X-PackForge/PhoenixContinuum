@@ -72,5 +72,7 @@ public final class ContinuumNetwork {
         registrar.playToClient(S2CSwarmControlPacket.TYPE, S2CSwarmControlPacket.STREAM_CODEC,
                 S2CSwarmControlPacket::handle);
         registrar.playToClient(S2CHologramPacket.TYPE, S2CHologramPacket.STREAM_CODEC, S2CHologramPacket::handle);
+        registrar.playToServer(C2SReceiverRefreshPacket.TYPE, C2SReceiverRefreshPacket.STREAM_CODEC,
+                C2SReceiverRefreshPacket::handle);
     }
 }

@@ -20,7 +20,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class SwarmReceiverBlockEntity extends BlockEntity implements ContinuumSwarmPower.Sink {
+public class SwarmReceiverBlockEntity extends BlockEntity implements ContinuumSwarmPower.Sink,
+        net.phoenix.continuum.common.SwarmReceiver, net.phoenix.continuum.common.SwarmHolograms.Source {
 
     private long stored;
     private UUID owner;
@@ -55,7 +56,7 @@ public class SwarmReceiverBlockEntity extends BlockEntity implements ContinuumSw
 
         @Override
         public int getMaxEnergyStored() {
-            return (int) Math.min(Integer.MAX_VALUE, capacity());
+            return (int) Math.min(Integer.MAX_VALUE, capacityFE());
         }
 
         @Override
@@ -73,7 +74,7 @@ public class SwarmReceiverBlockEntity extends BlockEntity implements ContinuumSw
         return Math.max(1, ContinuumConfigs.INSTANCE.swarmReceiverMaxFEPerTick);
     }
 
-    private static long capacity() {
+    private static long capacityFE() {
         return (long) Math.min(9.0E18, Math.max(1000.0, ContinuumConfigs.INSTANCE.swarmReceiverCapacityFE));
     }
 
@@ -81,20 +82,50 @@ public class SwarmReceiverBlockEntity extends BlockEntity implements ContinuumSw
         return PadTiers.basic();
     }
 
+    @Override
     public long stored() {
         return stored;
     }
 
+    @Override
+    public long capacity() {
+        return capacityFE();
+    }
+
+    private long receivedAt = Long.MIN_VALUE / 2;
+
+    /** The uplink shows while the swarms have been feeding it in the last few seconds. */
+    @Override
+    public boolean active() {
+        return isActive() && owner != null && level != null && level.getGameTime() - receivedAt < 60L;
+    }
+
+    @Override
+    public @Nullable UUID owner() {
+        return owner;
+    }
+
+    @Override
+    public int kind() {
+        return net.phoenix.continuum.network.S2CHologramPacket.State.RECEIVER;
+    }
+
+    @Override
+    public int fill() {
+        return (int) Math.min(100L, stored * 100L / Math.max(1L, capacity()));
+    }
+
+    @Override
     public net.phoenix.continuum.common.SwarmReport report(net.minecraft.server.MinecraftServer server) {
         UUID team = owner == null ? null : ContinuumHost.teamOf(owner);
         String note = isActive() ? "Pass it on to machines that touch it, up to the rate shown. Several receivers share" +
                 " a swarm's power, and what nothing takes is lost." :
                 "GregTech is installed, so this block does nothing. Build a Swarm Receiver Array instead.";
         if (team == null) {
-            return new net.phoenix.continuum.common.SwarmReport("Swarm Receiver", "FE", stored, capacity(), maxOut(), 0,
+            return new net.phoenix.continuum.common.SwarmReport("Swarm Receiver", "FE", stored, capacityFE(), maxOut(), 0,
                     "This receiver has no owner yet: place it yourself.", java.util.List.of());
         }
-        return net.phoenix.continuum.common.SwarmReport.build(server, team, "Swarm Receiver", stored, capacity(),
+        return net.phoenix.continuum.common.SwarmReport.build(server, team, "Swarm Receiver", stored, capacityFE(),
                 maxOut(), note);
     }
 
@@ -121,17 +152,20 @@ public class SwarmReceiverBlockEntity extends BlockEntity implements ContinuumSw
 
     @Override
     public long accept(long amount) {
-        long room = capacity() - stored;
+        long room = capacityFE() - stored;
         long taken = Math.max(0L, Math.min(amount, room));
         if (taken > 0) {
             stored += taken;
+            if (level != null) receivedAt = level.getGameTime();
             setChanged();
         }
         return taken;
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, SwarmReceiverBlockEntity self) {
-        if (level.isClientSide || self.stored <= 0 || !self.isActive()) return;
+        if (level.isClientSide) return;
+        if (self.isActive()) net.phoenix.continuum.common.SwarmHolograms.register(level, pos, self);
+        if (self.stored <= 0 || !self.isActive()) return;
         int budget = (int) Math.min(self.stored, maxOut());
         for (Direction side : Direction.values()) {
             if (budget <= 0) break;
@@ -154,12 +188,14 @@ public class SwarmReceiverBlockEntity extends BlockEntity implements ContinuumSw
 
     @Override
     public void setRemoved() {
+        if (level != null) net.phoenix.continuum.common.SwarmHolograms.unregister(level, worldPosition);
         unregister();
         super.setRemoved();
     }
 
     @Override
     public void onChunkUnloaded() {
+        if (level != null) net.phoenix.continuum.common.SwarmHolograms.unregister(level, worldPosition);
         unregister();
         super.onChunkUnloaded();
     }

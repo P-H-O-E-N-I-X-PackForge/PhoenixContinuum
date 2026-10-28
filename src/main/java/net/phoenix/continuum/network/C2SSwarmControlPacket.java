@@ -23,6 +23,8 @@ public class C2SSwarmControlPacket implements CustomPacketPayload {
     public static final byte SELECT = 1;
     public static final byte BUILD_SWARM = 2;
     public static final byte BUILD_SHELL = 3;
+    public static final byte BIGGER = 4;
+    public static final byte SMALLER = 5;
 
     @Override
     public Type<? extends CustomPacketPayload> type() {
@@ -61,6 +63,8 @@ public class C2SSwarmControlPacket implements CustomPacketPayload {
             }
             switch (msg.action) {
                 case SELECT -> SwarmControlService.select(player, msg.control, msg.target);
+                case BIGGER -> SwarmControlService.resize(player, msg.control, 1);
+                case SMALLER -> SwarmControlService.resize(player, msg.control, -1);
                 case BUILD_SWARM, BUILD_SHELL -> {
                     String error = SwarmControlService.build(player, msg.control, msg.action == BUILD_SHELL);
                     if (error != null) player.sendSystemMessage(Component.literal(error));
