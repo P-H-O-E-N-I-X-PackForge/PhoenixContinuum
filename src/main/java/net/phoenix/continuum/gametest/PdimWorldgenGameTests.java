@@ -175,4 +175,36 @@ public class PdimWorldgenGameTests {
             PdimWorldgen.remove(id);
         }
     }
+
+    @GameTest(template = "gametest_empty", timeoutTicks = 400)
+    public static void aPersonalDimensionCanHaveItsOwnWeather(GameTestHelper helper) {
+        var server = helper.getLevel().getServer();
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("phoenix_continuum", "gametest_weather_world");
+        PdimWorldgen.of(id).flat("minecraft:plains", "minecraft:bedrock", "minecraft:stone*20").weather("storm");
+        var level = net.phoenix.continuum.pdim.PdimRuntime.level(server, id);
+        helper.assertTrue(level != null, "the dimension should be made");
+        helper.assertTrue(level.rainLevel < 0.5f, "it starts dry");
+        // the overworld is clear, so only the dimension's own weather step can make this rain: the mixin has to be in
+        helper.runAfterDelay(160, () -> {
+            try {
+                helper.assertTrue(level.rainLevel >= 0.99f, "a storm world should be raining by now, was " + level.rainLevel);
+                helper.assertTrue(level.thunderLevel >= 0.99f, "and thundering");
+                helper.assertTrue(level.isThundering(), "isThundering follows");
+                PdimWorldgen.of(id).weather("clear");
+                helper.runAfterDelay(160, () -> {
+                    try {
+                        helper.assertTrue(level.rainLevel <= 0.01f, "then it clears, was " + level.rainLevel);
+                        helper.succeed();
+                    } finally {
+                        net.phoenix.continuum.pdim.PdimRuntime.unload(server, id);
+                        PdimWorldgen.remove(id);
+                    }
+                });
+            } catch (RuntimeException e) {
+                net.phoenix.continuum.pdim.PdimRuntime.unload(server, id);
+                PdimWorldgen.remove(id);
+                throw e;
+            }
+        });
+    }
 }

@@ -32,7 +32,7 @@ import java.util.function.Predicate;
  * {@code type} is void, flat, noise (with {@code settings} and a {@code biome}), overworld_like, auto or generator (with a
  * {@code generator} object). Also optional: {@code dimension_type}, {@code arrival} (surface, platform or fixed, with
  * {@code y}) and {@code plot_structure}; and the world's rules: {@code mobs}, {@code fall_damage}, {@code oxygen} (the
- * helmet item or #tag needed), {@code plot_radius}, {@code protect_plots} and {@code gt_ores} (a dimension id).
+ * helmet item or #tag needed), {@code weather} (clear, rain, storm, normal, or a cycle object), {@code plot_radius}, {@code protect_plots} and {@code gt_ores} (a dimension id).
  */
 public final class PdimWorldgenFiles {
 
@@ -127,6 +127,19 @@ public final class PdimWorldgenFiles {
         if (json.has("plot_radius")) spec.plotRadius(json.get("plot_radius").getAsInt());
         if (json.has("protect_plots")) spec.protectPlots(json.get("protect_plots").getAsBoolean());
         if (json.has("gt_ores")) spec.gtOres(json.get("gt_ores").getAsString());
+        if (json.has("weather")) {
+            JsonElement weather = json.get("weather");
+            if (weather.isJsonObject()) {
+                JsonObject cycle = weather.getAsJsonObject();
+                spec.weatherCycle(cycle.has("clear_min") ? cycle.get("clear_min").getAsInt() : 600,
+                        cycle.has("clear_max") ? cycle.get("clear_max").getAsInt() : 8400,
+                        cycle.has("rain_min") ? cycle.get("rain_min").getAsInt() : 600,
+                        cycle.has("rain_max") ? cycle.get("rain_max").getAsInt() : 1200,
+                        cycle.has("storm_chance") ? cycle.get("storm_chance").getAsFloat() : 0.3f);
+            } else {
+                spec.weather(weather.getAsString());
+            }
+        }
         if (json.has("dimension_type")) spec.dimensionType(json.get("dimension_type").getAsString());
         if (json.has("plot_structure")) spec.plotStructure(json.get("plot_structure").getAsString());
         if (json.has("arrival")) {

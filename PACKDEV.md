@@ -300,10 +300,28 @@ event.pdim('mypack:vacuum_moon')
   .plotRadius(300)                           // players stay within 300 blocks of their own plot (ops exempt)
   .protectPlots(true)                        // other people's plots can't be built on or used (a team shares its plots)
   .gtOres('minecraft:overworld')             // GregTech's ore veins and bedrock fluids of that dimension generate here too
+  .weather('clear')                          // 'normal' (the overworld's, default), 'clear', 'rain' or 'storm'
 ```
 
 - `plotRadius` and `protectPlots` are for dimensions where every player has a plot in the same world. Protection covers the
   area within `plotRadius` of the owner's plot (256 blocks if none is set). Creative ops can build anywhere.
 - `gtOres` adds the dimension to the filter of every GregTech ore vein, bedrock fluid and bedrock ore that lists the one you
-  name, when the dimension is made (or when the world starts, for dimensions read from files). Weather is not controlled yet.
+  name, when the dimension is made (or when the world starts, for dimensions read from files).
 - The same keys work in a spec file: `mobs`, `fall_damage`, `oxygen`, `plot_radius`, `protect_plots`, `gt_ores`.
+
+### Weather
+
+A dimension other than the overworld takes the overworld's weather, so a personal dimension can't normally differ. A spec can
+give it weather of its own (Continuum runs its own weather step for that dimension, in place of the game's):
+
+```js
+event.pdim('mypack:desert_world').weather('clear')      // never rains
+event.pdim('mypack:swamp_world').weather('rain')        // always raining (snow in cold biomes, as usual)
+event.pdim('mypack:storm_world').weather('storm')       // always a thunderstorm, with lightning
+// clear spells of 10 to 60 minutes, rain for 5 to 10 minutes, one rainy spell in four a thunderstorm
+event.pdim('mypack:island').weatherCycle(600, 3600, 300, 600, 0.25)
+```
+
+In a file: `"weather": "storm"` or `"weather": { "clear_min": 600, "clear_max": 3600, "rain_min": 300, "rain_max": 600,
+"storm_chance": 0.25 }` (seconds). Weather turns on and off gradually, as the game's does. A cycle starts again from clear
+after a restart. `/weather` and the overworld's own cycle do not touch a dimension that has weather of its own.

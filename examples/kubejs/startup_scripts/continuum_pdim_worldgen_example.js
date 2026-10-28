@@ -54,6 +54,7 @@ ContinuumEvents.pdimWorldgen(event => {
   //   .gtOres('minecraft:overworld')
   //   .plotRadius(300)
   //   .protectPlots(true)
+  //   .weather('clear')           // or 'rain', 'storm', 'normal'; .weatherCycle(600, 3600, 300, 600, 0.25) for its own spells
 
   // Where players arrive, if you want to force it:
   //   .arriveOnSurface()   the ground at the plot (the default for terrain)

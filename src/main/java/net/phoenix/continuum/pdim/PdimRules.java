@@ -43,16 +43,16 @@ public final class PdimRules {
     private record Cached(PdimWorldgen.Spec spec, long at) {}
 
     private static final Map<ResourceKey<Level>, Cached> CACHE = new HashMap<>();
-    private static final long CACHE_MILLIS = 3000L;
+    private static final long CACHE_TICKS = 60L;
 
-    /** The spec of the personal dimension a level is, or null if it is not one. A few seconds old at most. */
+    /** The spec of the personal dimension a level is, or null if it is not one. Up to three seconds old. */
     public static synchronized @Nullable PdimWorldgen.Spec specOf(Level level) {
         if (!(level instanceof ServerLevel)) return null;
         ResourceLocation body = PdimDimensions.bodyOf(level.dimension());
         if (body == null) return null;
-        long now = System.currentTimeMillis();
+        long now = level.getGameTime();
         Cached cached = CACHE.get(level.dimension());
-        if (cached != null && now - cached.at() < CACHE_MILLIS) return cached.spec();
+        if (cached != null && now >= cached.at() && now - cached.at() < CACHE_TICKS) return cached.spec();
         var spec = PdimWorldgen.resolve(body, ContinuumData.body(body));
         CACHE.put(level.dimension(), new Cached(spec, now));
         return spec;

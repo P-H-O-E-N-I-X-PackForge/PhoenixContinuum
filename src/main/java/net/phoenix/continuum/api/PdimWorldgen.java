@@ -155,6 +155,8 @@ public final class PdimWorldgen {
         private int plotRadius;
         private boolean protectPlots;
         private @Nullable ResourceLocation gtOresFrom;
+        private net.phoenix.continuum.pdim.PdimWeather.Mode weather = net.phoenix.continuum.pdim.PdimWeather.Mode.NORMAL;
+        private net.phoenix.continuum.pdim.PdimWeather.Cycle weatherCycle = net.phoenix.continuum.pdim.PdimWeather.Cycle.DEFAULT;
 
         Spec(ResourceLocation body) {
             this.body = body;
@@ -179,6 +181,8 @@ public final class PdimWorldgen {
             c.plotRadius = plotRadius;
             c.protectPlots = protectPlots;
             c.gtOresFrom = gtOresFrom;
+            c.weather = weather;
+            c.weatherCycle = weatherCycle;
             return c;
         }
 
@@ -267,6 +271,37 @@ public final class PdimWorldgen {
 
         public @Nullable ResourceLocation gtOresFrom() {
             return gtOresFrom;
+        }
+
+        /**
+         * The weather here: "normal" (the overworld's, the default), "clear" (never rains), "rain" (always raining) or
+         * "storm" (always a thunderstorm). Rain falls as snow in cold biomes, as usual. See also {@link #weatherCycle}.
+         */
+        public Spec weather(String mode) {
+            this.weather = net.phoenix.continuum.pdim.PdimWeather.Mode.of(mode);
+            return this;
+        }
+
+        public net.phoenix.continuum.pdim.PdimWeather.Mode weather() {
+            return weather;
+        }
+
+        /**
+         * Weather of its own that comes and goes: clear spells of {@code clearMinSeconds} to {@code clearMaxSeconds},
+         * then rain for {@code rainMinSeconds} to {@code rainMaxSeconds}, {@code stormChance} (0 to 1) of the rainy
+         * spells being thunderstorms.
+         */
+        public Spec weatherCycle(int clearMinSeconds, int clearMaxSeconds, int rainMinSeconds, int rainMaxSeconds,
+                                 float stormChance) {
+            this.weather = net.phoenix.continuum.pdim.PdimWeather.Mode.CYCLE;
+            this.weatherCycle = new net.phoenix.continuum.pdim.PdimWeather.Cycle(clearMinSeconds * 20,
+                    clearMaxSeconds * 20, rainMinSeconds * 20, rainMaxSeconds * 20,
+                    Math.max(0.0f, Math.min(1.0f, stormChance)));
+            return this;
+        }
+
+        public net.phoenix.continuum.pdim.PdimWeather.Cycle weatherCycle() {
+            return weatherCycle;
         }
 
         public ResourceLocation dimensionType() {

@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "net.phoenix.continuum.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8",
+  "mixins": [
+    "ServerLevelWeatherMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
