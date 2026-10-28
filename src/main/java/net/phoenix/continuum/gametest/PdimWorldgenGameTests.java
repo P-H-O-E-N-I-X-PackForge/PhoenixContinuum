@@ -59,18 +59,21 @@ public class PdimWorldgenGameTests {
     @GameTest(template = "gametest_empty")
     public static void rulesFilesAndAutoResolveFromTheBody(GameTestHelper helper) {
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath("phoenix_continuum", "gametest_rules");
+        ResourceLocation rockId = null;
         try {
             var bodies = net.phoenix.continuum.data.ContinuumData.allBodies();
             var rock = bodies.stream().filter(b -> b.type() == net.phoenix.continuum.data.ContinuumBody.Type.PLANET &&
                     b.params() != null && !b.params().gasGiant()).findFirst().orElse(null);
             helper.assertTrue(rock != null, "there should be a rocky planet to test with");
+            rockId = rock.id();
 
             // a rule from a file-format spec, for every planet
             var json = com.google.gson.JsonParser.parseString(
                     "{\"match\":{\"type\":\"planet\"},\"type\":\"flat\",\"biome\":\"minecraft:plains\"," +
                             "\"layers\":[\"minecraft:stone*10\"],\"plot_structure\":\"phoenix_continuum:landing\"}")
                     .getAsJsonObject();
-            PdimWorldgen.clear();
+            PdimWorldgen.clearRules();
+            PdimWorldgen.remove(rock.id());
             net.phoenix.continuum.pdim.PdimWorldgenFiles.apply(json);
             helper.assertTrue(PdimWorldgen.ruleCount() == 1, "the file made one rule");
             var viaRule = PdimWorldgen.resolve(rock.id(), rock);
@@ -82,7 +85,8 @@ public class PdimWorldgenGameTests {
             helper.assertTrue(PdimWorldgen.resolve(rock.id(), rock).isVoid(), "its own spec wins over a rule");
 
             // auto: rocky worlds get terrain, and the generator is one the game can load
-            PdimWorldgen.clear();
+            PdimWorldgen.clearRules();
+            PdimWorldgen.remove(rock.id());
             PdimWorldgen.of(rock.id()).auto();
             var auto = PdimWorldgen.resolve(rock.id(), rock);
             helper.assertTrue(!auto.isVoid() && auto.arrival() == PdimWorldgen.Arrival.SURFACE,
@@ -91,7 +95,9 @@ public class PdimWorldgenGameTests {
             helper.assertTrue(PdimWorldgen.get(rock.id()).isAuto(), "resolving does not change the stored spec");
             helper.succeed();
         } finally {
-            PdimWorldgen.clear();
+            PdimWorldgen.clearRules();
+            PdimWorldgen.remove(id);
+            PdimWorldgen.remove(rockId);
         }
     }
 

@@ -128,6 +128,11 @@ public final class PdimWorldgen {
         return spec;
     }
 
+    /** Forget every rule, and only the rules. */
+    public static synchronized void clearRules() {
+        RULES.clear();
+    }
+
     /** Forget everything: every spec and rule. */
     public static synchronized void clear() {
         SPECS.clear();
