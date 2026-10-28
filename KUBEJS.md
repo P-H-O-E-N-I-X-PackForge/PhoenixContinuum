@@ -83,3 +83,7 @@ This is for Continuum's own research; a mod that replaces it (PhoenixCore's Conf
 
 `examples/kubejs/continuum_example.js` in the Continuum repository shows a discovery handler, a mission log, the visibility
 event and a custom condition. Copy it into `kubejs/server_scripts/`.
+
+`examples/kubejs/startup_scripts/continuum_pdim_worldgen_example.js` shows giving personal dimensions their own worldgen
+(flat, vanilla noise, a fixed arrival height, and any chunk generator such as a Conflux discipline world). It is a
+startup script; see the personal dimension worldgen section of `PACKDEV.md`.
