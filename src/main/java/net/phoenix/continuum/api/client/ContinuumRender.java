@@ -173,6 +173,12 @@ public final class ContinuumRender {
          */
         public boolean draw(net.minecraft.client.gui.GuiGraphics g, Body body, int rgb, float size01, int x, int y,
                             int size) {
+            return draw(g, body, rgb, size01, x, y, size, true);
+        }
+
+        /** As above; {@code backdrop} false draws the body alone on plain dark space, with no stars or galaxies. */
+        public boolean draw(net.minecraft.client.gui.GuiGraphics g, Body body, int rgb, float size01, int x, int y,
+                            int size, boolean backdrop) {
             if (!ContinuumShaders.ready()) return false;
             long now = net.minecraft.Util.getMillis();
             float dt = Math.min(0.1f, (now - last) / 1000.0f);
@@ -183,12 +189,14 @@ public final class ContinuumRender {
                         net.minecraft.client.Minecraft.ON_OSX);
             }
             try {
-                SceneRenderer.begin(target, yaw);
+                SceneRenderer.begin(target, yaw, backdrop);
                 Matrix4f projection = SceneRenderer.projection(target.width, target.height, 32.0f);
                 Matrix4f view = new Matrix4f().translate(0.0f, 0.0f, -(distance + 1.5f))
                         .rotateX((float) Math.toRadians(pitch));
                 Vector3f at = new Vector3f();
                 float radius = 0.6f + 0.9f * Math.max(0.0f, Math.min(1.0f, size01));
+                // clouds and protostars carry their glow far out from the core: scale them to fit the frame
+                if (body == Body.GAS_CLOUD || body == Body.PROTOSTAR) radius *= 0.067f;
                 var quality = quality();
                 switch (body) {
                     case GAS_CLOUD -> SceneRenderer.drawPlanetaryNebula(rgb, view, projection, at, radius, quality, false);

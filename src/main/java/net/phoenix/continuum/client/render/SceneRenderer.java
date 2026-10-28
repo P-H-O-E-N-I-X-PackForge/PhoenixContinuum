@@ -27,6 +27,11 @@ public final class SceneRenderer {
     private static @Nullable com.mojang.blaze3d.pipeline.TextureTarget holeTarget;
 
     public static void begin(RenderTarget target, float backdropYawDeg) {
+        begin(target, backdropYawDeg, true);
+    }
+
+    /** {@code backdrop} false leaves plain dark space: no stars and no galaxies behind the object. */
+    public static void begin(RenderTarget target, float backdropYawDeg, boolean backdrop) {
         previous = Minecraft.getInstance().getMainRenderTarget();
         current = target;
 
@@ -34,8 +39,10 @@ public final class SceneRenderer {
         target.clear(Minecraft.ON_OSX);
         target.bindWrite(true);
 
-        drawBackdrop(target.width, target.height, backdropYawDeg);
-        drawBackdropGalaxies(target.width, target.height, backdropYawDeg);
+        if (backdrop) {
+            drawBackdrop(target.width, target.height, backdropYawDeg);
+            drawBackdropGalaxies(target.width, target.height, backdropYawDeg);
+        }
 
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(true);
