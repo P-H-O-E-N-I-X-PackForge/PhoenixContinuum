@@ -100,6 +100,18 @@ public final class ContinuumRender {
                 projection, worldPos, radius, quality(), false);
     }
 
+    /**
+     * A black hole in a style you give: disk colours (0xRRGGBB, or -1 for the default), {@code diskSize} and
+     * {@code diskIntensity} (1 is the usual), and {@code feeding} 0 to 1: a quiet disk to a furious one that reaches
+     * further and flares.
+     */
+    public static void drawBlackHole(int hotRgb, int coolRgb, float diskSize, float diskIntensity, float feeding,
+                                     Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius) {
+        SceneRenderer.drawHoleStyled(net.phoenix.continuum.data.ContinuumSystem.HoleStyle.DEFAULT
+                .withColors(hotRgb, coolRgb).withDisk(diskSize, diskIntensity).withFeeding(feeding), view,
+                projection, worldPos, radius, quality(), false);
+    }
+
     /** A young star still gathering itself: a hot core in a disk of gas with gaps where it is clearing a path. */
     public static void drawProtostar(int rgb, Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius) {
         SceneRenderer.drawProtostar(rgb, view, projection, worldPos, radius, quality(), false,

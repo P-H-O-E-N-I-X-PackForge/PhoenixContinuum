@@ -51,6 +51,12 @@ public record ContinuumSystem(
                     periodSeconds, skyInclination, skyLean);
         }
 
+        /** How hard it is feeding, 0 (quiet) to 1 (furious): the disk reaches further and flares. */
+        public HoleStyle withFeeding(float amount) {
+            return new HoleStyle(diskSize, diskIntensity, Math.max(0.0f, Math.min(1.0f, amount)), tilt, hotColor,
+                    coolColor, separation, massRatio, periodSeconds, skyInclination, skyLean);
+        }
+
         public HoleStyle withDisk(float size, float intensity) {
             return new HoleStyle(size, intensity, feeding, tilt, hotColor, coolColor, separation, massRatio,
                     periodSeconds, skyInclination, skyLean);
