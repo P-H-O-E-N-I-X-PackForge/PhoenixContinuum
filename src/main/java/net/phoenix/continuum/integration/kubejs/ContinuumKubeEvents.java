@@ -24,7 +24,18 @@ public final class ContinuumKubeEvents {
 
     public static final EventHandler ANOMALY = GROUP.server("anomaly", () -> AnomalyEvent.class);
 
+    /** Startup: give a body's personal dimension its own worldgen. See {@code PdimWorldgen}. */
+    public static final EventHandler PDIM_WORLDGEN = GROUP.startup("pdimWorldgen", () -> PdimWorldgenEvent.class);
+
     private ContinuumKubeEvents() {}
+
+    public static class PdimWorldgenEvent implements KubeEvent {
+
+        /** The worldgen of a body's personal dimension, to change with {@code .flat(...)}, {@code .noise(...)} and so on. */
+        public net.phoenix.continuum.api.PdimWorldgen.Spec pdim(String body) {
+            return net.phoenix.continuum.api.PdimWorldgen.of(body);
+        }
+    }
 
     public static class AnomalyEvent implements KubeEvent {
 

@@ -50,8 +50,7 @@ public final class PdimActions {
         }
 
         PdimData.Entry entry = data.create(player.getUUID(), bodyId, gravity, orbitView);
-        BlockPos origin = PdimDimensions.plotOrigin(entry.plot());
-        buildPlatform(target, origin);
+        BlockPos origin = arrivalPoint(target, bodyId, PdimDimensions.plotOrigin(entry.plot()));
 
         if (!PdimDimensions.isPersonal(player.level().dimension())) {
             data.setReturn(player.getUUID(), new PdimData.Return(player.level().dimension().location(), player.getX(),
@@ -91,6 +90,31 @@ public final class PdimActions {
         boolean removed = PdimData.get(player.server).delete(player.getUUID(), bodyId);
         if (removed) sendState(player);
         return removed;
+    }
+
+    /**
+     * Where to put the player at a plot: the pad for a void world (it is built here), otherwise the ground or a fixed
+     * height, as the body's {@link net.phoenix.continuum.api.PdimWorldgen} spec says.
+     */
+    private static BlockPos arrivalPoint(ServerLevel level, ResourceLocation bodyId, BlockPos plot) {
+        var spec = net.phoenix.continuum.api.PdimWorldgen.get(bodyId);
+        var arrival = spec == null ? net.phoenix.continuum.api.PdimWorldgen.Arrival.PLATFORM : spec.arrival();
+        switch (arrival) {
+            case FIXED -> {
+                level.getChunk(plot);
+                return new BlockPos(plot.getX(), spec.fixedY(), plot.getZ());
+            }
+            case SURFACE -> {
+                level.getChunk(plot);
+                int y = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                        plot.getX(), plot.getZ());
+                // nothing there to stand on (the world is void, or the column is empty): fall back to the pad
+                if (y > level.getMinBuildHeight() + 1) return new BlockPos(plot.getX(), y - 1, plot.getZ());
+            }
+            default -> {}
+        }
+        buildPlatform(level, plot);
+        return plot;
     }
 
     private static void buildPlatform(ServerLevel level, BlockPos origin) {

@@ -206,3 +206,38 @@ from the start. A mod that provides its own research (PhoenixCore) takes over th
 - **Rings overhead:** standing on a planet that has `rings`, the ring is drawn as an arc across the sky, in the planet's equatorial
   plane tipped by the ring's own `tilt`, with the planet's shadow falling across it away from the sun. It turns with the planet,
   so it stays put in your sky. The world under your feet hides what has gone below the horizon (a ring, another planet).
+
+## Personal dimension worldgen
+
+A personal dimension (pdim) is void by default, with an obsidian pad to stand on. You can give any body real terrain, a
+vanilla noise world, or any chunk generator at all (another mod's too).
+
+**KubeJS** (a startup script; the dimension files are written while the game builds its list of data packs, so a change
+needs a restart, and chunks already generated in a saved world keep their old terrain):
+
+```js
+ContinuumEvents.pdimWorldgen(event => {
+  // layers of blocks from the bottom up ("block" or "block*height") over one biome
+  event.pdim('phoenix_continuum:luna').flat('minecraft:plains', 'minecraft:bedrock', 'minecraft:stone*60', 'minecraft:grass_block')
+
+  // a vanilla style world, one biome or the overworld's own
+  event.pdim('phoenix_continuum:mars').noise('minecraft:overworld', 'minecraft:desert')
+  event.pdim('phoenix_continuum:earth').overworldLike()
+
+  // anything else: a chunk generator as an object, and its dimension type if it needs its own
+  event.pdim('mypack:hive').generator({
+    type: 'phoenixcore:discipline', discipline_id: 'phoenix', seed: 19274618,
+    biome_source: { type: 'minecraft:fixed', biome: 'phoenixcore:phoenix' }
+  }).dimensionType('phoenixcore:discipline')
+
+  // where players arrive: .arriveOnSurface() (the default for terrain), .arriveOnPlatform(), .arriveAt(100)
+})
+```
+
+**Java**: `PdimWorldgen.of(bodyId).flat(...)` (or `.noise`, `.overworldLike`, `.generator`, `.dimensionType`,
+`.arriveAt`), from your mod constructor or by listening for `PdimWorldgen.Collect` on the game bus. `of` creates the
+spec if the body has none and returns it, so there is nothing to register afterwards.
+
+Arrival: a void world builds the pad at the player's plot, as before. With terrain the player is put on the ground at
+the plot (plots are 1024 blocks apart), and the pad is only built if the column is empty. A spec can force the pad or a
+fixed height. A spec registered in code or script wins over a hand-written `dimension/pdim/<body>.json`.

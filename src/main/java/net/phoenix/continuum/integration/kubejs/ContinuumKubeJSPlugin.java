@@ -19,6 +19,11 @@ public class ContinuumKubeJSPlugin implements KubeJSPlugin {
     public void init() {
         if (bridged) return;
         bridged = true;
+        net.phoenix.continuum.pdim.PdimWorldgenPack.scriptHook = ignored -> {
+            if (ContinuumKubeEvents.PDIM_WORLDGEN.hasListeners()) {
+                ContinuumKubeEvents.PDIM_WORLDGEN.post(ScriptType.STARTUP, new ContinuumKubeEvents.PdimWorldgenEvent());
+            }
+        };
         
         NeoForge.EVENT_BUS.addListener(ContinuumVisibilityEvent.class, event -> {
             if (ContinuumKubeEvents.VISIBILITY.hasListeners()) {
