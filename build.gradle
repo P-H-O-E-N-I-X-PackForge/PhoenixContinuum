@@ -227,6 +227,8 @@ dependencies {
     compileOnly "dev.emi:emi-neoforge:${emi_version}+${minecraft_version}"
     compileOnly("dev.latvian.mods:kubejs-neoforge:${kubejs_version}") { transitive = false }
     compileOnly("dev.latvian.mods:rhino:${rhino_version}") { transitive = false }
+    // Phoenix Chronicles (optional): Continuum fires quest triggers for what its players do. Published to maven local.
+    compileOnly("net.phoenixvine.chronicles:phoenix_chronicles-neoforge:${phoenix_chronicles_version}") { transitive = false }
     compileOnly("curse.maven:infiniverse-568341:5486311") { transitive = false } // optional: personal dimensions without a restart
     runtimeOnly("curse.maven:infiniverse-568341:5486311") { transitive = false }
     runtimeOnly "dev.emi:emi-neoforge:${emi_version}+${minecraft_version}"

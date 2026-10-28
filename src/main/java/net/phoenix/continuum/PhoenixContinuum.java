@@ -32,6 +32,8 @@ public class PhoenixContinuum {
         net.phoenix.continuum.integration.solaris.SolarisSites.init();
 
         modEventBus.addListener(this::registerPayloads);
+        modEventBus.addListener((net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent e) -> e
+                .enqueueWork(net.phoenix.continuum.integration.chronicles.ChroniclesBridge::setup));
         modEventBus.addListener(net.phoenix.continuum.data.ContinuumPackFolder::register);
         modEventBus.addListener(net.phoenix.continuum.pdim.PdimWorldgenPack::register);
         modEventBus.addListener(net.phoenix.continuum.block.LaunchPadBlockEntity::registerCapabilities);
