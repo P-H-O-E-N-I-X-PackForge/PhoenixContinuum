@@ -10,17 +10,64 @@ import net.phoenix.continuum.api.ContinuumSwarmPower;
 import java.util.UUID;
 
 public class SwarmReceiverMachine extends MultiblockControllerMachine implements ContinuumSwarmPower.Sink,
-        com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine {
+        com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine, net.phoenix.continuum.common.SwarmReceiver,
+        net.phoenix.continuum.common.SwarmHolograms.Source {
 
     private UUID registeredTeam;
+    private long receivedAt = Long.MIN_VALUE / 2;
 
     public SwarmReceiverMachine(IMachineBlockEntity holder) {
         super(holder);
     }
 
+    @Override
+    public boolean active() {
+        return isFormed() && getOwnerUUID() != null && getLevel() != null &&
+                getLevel().getGameTime() - receivedAt < 60L;
+    }
+
+    @Override
+    public UUID owner() {
+        return getOwnerUUID();
+    }
+
+    @Override
+    public int kind() {
+        return net.phoenix.continuum.network.S2CHologramPacket.State.RECEIVER;
+    }
+
+    @Override
+    public int fill() {
+        return (int) Math.min(100L, stored() * 100L / Math.max(1L, capacity()));
+    }
+
+    @Override
+    public long stored() {
+        return getLevel() == null || getLevel().getServer() == null ? 0L :
+                net.phoenix.continuum.common.SwarmStorage.get(getLevel().getServer()).get(getLevel(), getPos());
+    }
+
+    @Override
+    public long capacity() {
+        return (long) Math.min(9.0E18,
+                Math.max(0.0, net.phoenix.continuum.config.ContinuumConfigs.INSTANCE.swarmArrayCapacitorEU));
+    }
+
+    @Override
+    public net.phoenix.continuum.common.SwarmReport report(net.minecraft.server.MinecraftServer server) {
+        UUID owner = getOwnerUUID();
+        UUID team = ContinuumHost.teamOf(owner != null ? owner : new UUID(0L, 0L));
+        String note = "Fills its output hatches from the capacitor" +
+                (net.phoenix.continuum.integration.tesla.TeslaLink.loaded() ?
+                        ", after the Tesla Network storage, which comes first." : ".");
+        return net.phoenix.continuum.common.SwarmReport.build(server, team, "Swarm Receiver Array", stored(),
+                capacity(), 0, note);
+    }
+
     private void unregister() {
         if (registeredTeam != null) ContinuumSwarmPower.unregister(registeredTeam, this);
         registeredTeam = null;
+        if (getLevel() != null) net.phoenix.continuum.common.SwarmHolograms.unregister(getLevel(), getPos());
     }
 
     @Override
@@ -42,6 +89,7 @@ public class SwarmReceiverMachine extends MultiblockControllerMachine implements
         unregister();
         registeredTeam = ContinuumHost.teamOf(getOwnerUUID());
         ContinuumSwarmPower.register(registeredTeam, this);
+        net.phoenix.continuum.common.SwarmHolograms.register(getLevel(), getPos(), this);
     }
 
     @Override
@@ -53,20 +101,8 @@ public class SwarmReceiverMachine extends MultiblockControllerMachine implements
                                                        net.minecraft.world.phys.BlockHitResult hit) {
         if (!isFormed() || player.isShiftKeyDown()) return net.minecraft.world.InteractionResult.PASS;
         if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer && level.getServer() != null) {
-            var server = level.getServer();
-            UUID owner = getOwnerUUID();
-            UUID team = ContinuumHost.teamOf(owner != null ? owner : player.getUUID());
-            long stored = net.phoenix.continuum.common.SwarmStorage.get(server).get(level, pos);
-            long capacity = (long) Math.min(9.0E18,
-                    Math.max(0.0, net.phoenix.continuum.config.ContinuumConfigs.INSTANCE.swarmArrayCapacitorEU));
-            String note = "Fills its output hatches from the capacitor" +
-                    (net.phoenix.continuum.integration.tesla.TeslaLink.loaded() ?
-                            ", after the Tesla Network storage, which comes first." : ".") +
-                    " Sneak and use for the GregTech screen.";
             net.phoenix.continuum.network.ContinuumNetwork.sendToPlayer(serverPlayer,
-                    new net.phoenix.continuum.network.S2COpenPowerPacket(
-                            net.phoenix.continuum.common.SwarmReport.build(server, team, "Swarm Receiver Array", stored,
-                                    capacity, 0, note)));
+                    new net.phoenix.continuum.network.S2COpenPowerPacket(report(level.getServer()), pos, true));
         }
         return net.minecraft.world.InteractionResult.sidedSuccess(level.isClientSide);
     }
@@ -74,7 +110,8 @@ public class SwarmReceiverMachine extends MultiblockControllerMachine implements
     @Override
     public long accept(long amount) {
         if (!isFormed() || getLevel() == null || getLevel().getServer() == null) return 0;
-        
+        receivedAt = getLevel().getGameTime();
+
         long toTesla = 0;
         if (amount > 0 && net.phoenix.continuum.integration.tesla.TeslaLink.loaded()) {
             UUID owner = getOwnerUUID();

@@ -531,8 +531,18 @@ public final class SceneRenderer {
 
         if (extra != null) extra.accept(shader);
 
-        Matrix4f modelView = sky ? skyBillboard(view, worldPos, radius * extent) :
-                new Matrix4f().translate(view.transformPosition(new Vector3f(worldPos))).scale(radius * extent);
+        Matrix4f modelView;
+        if (sky) {
+            modelView = skyBillboard(view, worldPos, radius * extent);
+        } else {
+            Vector3f centre = view.transformPosition(new Vector3f(worldPos));
+            // up close a sphere looks wider than the flat disc at its middle: widen the glow to match its edge
+            float coreRadius = radius * (cube ? 0.82f : 1.0f);
+            float dist = centre.length();
+            float widen = dist > coreRadius * 1.02f ?
+                    (float) (1.0 / Math.sqrt(Math.max(0.04, 1.0 - (coreRadius / dist) * (coreRadius / dist)))) : 5.0f;
+            modelView = new Matrix4f().translate(centre).scale(radius * extent * widen);
+        }
 
         RenderSystem.enableBlend();
         RenderSystem.blendFunc(com.mojang.blaze3d.platform.GlStateManager.SourceFactor.ONE,
@@ -639,15 +649,31 @@ public final class SceneRenderer {
                                       Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
                                       PlanetRenderer.Quality quality, boolean sky) {
         if (central == null || !net.phoenix.continuum.common.Swarms.isSwarm(central)) return;
-        int swarmLevel = net.phoenix.continuum.client.ContinuumClientState.stationLevel(central.id());
-        int shellLevel = net.phoenix.continuum.client.ContinuumClientState.shellLevel(central.id());
+        drawSwarmShell(central, rgb, view, projection, worldPos, radius, quality, sky,
+                net.phoenix.continuum.client.ContinuumClientState.stationLevel(central.id()),
+                net.phoenix.continuum.client.ContinuumClientState.shellLevel(central.id()));
+    }
+
+    /** The same, at levels given rather than the team's: the Swarm Control screen shows what it is told. */
+    public static void drawSwarmShell(@Nullable net.phoenix.continuum.data.ContinuumBody central, int rgb,
+                                      Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
+                                      PlanetRenderer.Quality quality, boolean sky, int swarmLevel, int shellLevel) {
+        if (central == null || !net.phoenix.continuum.common.Swarms.isSwarm(central)) return;
         if (swarmLevel <= 0 && shellLevel <= 0) return;
 
         boolean shell = shellLevel > 0;
         final float completion = shell ?
                 (float) net.phoenix.continuum.common.Swarms.shellCompletion(central, shellLevel) :
                 Math.min(1.0f, swarmLevel / (float) Math.max(1, net.phoenix.continuum.common.Swarms.maxLevel(central)));
+        drawSwarmCompletion(central, rgb, view, projection, worldPos, radius, quality, sky, shell, completion);
+    }
 
+    /** The swarm or shell at a completion given, 0 to 1 (the hologram builds it up piece by piece). */
+    public static void drawSwarmCompletion(net.phoenix.continuum.data.ContinuumBody central, int rgb, Matrix4f view,
+                                           Matrix4f projection, Vector3f worldPos, float radius,
+                                           PlanetRenderer.Quality quality, boolean sky, boolean shell,
+                                           final float completion) {
+        if (completion <= 0.0f) return;
         int tint = net.phoenix.continuum.common.Swarms.isPenrose(central) ? 0x9a78ff : rgb;
         final Vector3f normal = planeNormal(view, worldPos, sky);
         drawStarFx(shell ? ContinuumShaders.DYSON : ContinuumShaders.MEGASTRUCTURE, tint, shell ? 7.0f : 16.0f, view,
@@ -1158,7 +1184,8 @@ public final class SceneRenderer {
         });
         shader.safeGetUniform("Voxel").set(net.phoenix.continuum.client.ContinuumVisuals.cube() ?
                 net.phoenix.continuum.client.ContinuumVisuals.cubeCells(quality) / 1.64f : 0.0f);
-        shader.safeGetUniform("Lensing").set(quality == net.phoenix.continuum.client.render.PlanetRenderer.Quality.LOW ? 0.0f : 1.0f);
+        shader.safeGetUniform("Lensing").set(quality == net.phoenix.continuum.client.render.PlanetRenderer.Quality.LOW ? 0.0f :
+                Math.max(0.0f, net.phoenix.continuum.config.ContinuumConfigs.INSTANCE.blackHoleLensing));
 
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
@@ -1202,6 +1229,17 @@ public final class SceneRenderer {
         return holeTarget;
     }
 
+    private static float worldDepth = Float.NaN;
+
+    /**
+     * Black holes are drawn aside and laid over the picture, with no depth of their own. In the world, set the
+     * depth (normalised, -1 to 1) of the thing they are drawn for, and they are laid over at that depth, so blocks in
+     * front of it hide them. NaN (the default) is the map, with nothing to be behind.
+     */
+    public static void setWorldDepth(float ndcDepth) {
+        worldDepth = ndcDepth;
+    }
+
     private static void compositeHole(com.mojang.blaze3d.pipeline.TextureTarget low) {
         Matrix4f savedProjection = new Matrix4f(RenderSystem.getProjectionMatrix());
         var savedSorting = RenderSystem.getVertexSorting();
@@ -1214,8 +1252,15 @@ public final class SceneRenderer {
 
         ShaderInstance blit = Minecraft.getInstance().gameRenderer.blitShader;
         blit.setSampler("DiffuseSampler", low.getColorTextureId());
+        boolean depthAware = !Float.isNaN(worldDepth);
+        // an ortho from 1000 to 3000 puts a quad at z = -1000 * (depth + 2) at that normalised depth
+        float quadZ = depthAware ? -1000.0f * (Math.max(-1.0f, Math.min(1.0f, worldDepth)) + 2.0f) : -2000.0f;
+        if (depthAware) {
+            RenderSystem.enableDepthTest();
+            RenderSystem.depthMask(false);
+        }
         if (blit.MODEL_VIEW_MATRIX != null)
-            blit.MODEL_VIEW_MATRIX.set(new Matrix4f().translation(0.0f, 0.0f, -2000.0f));
+            blit.MODEL_VIEW_MATRIX.set(new Matrix4f().translation(0.0f, 0.0f, quadZ));
         if (blit.PROJECTION_MATRIX != null) blit.PROJECTION_MATRIX.set(ortho);
         blit.apply();
 

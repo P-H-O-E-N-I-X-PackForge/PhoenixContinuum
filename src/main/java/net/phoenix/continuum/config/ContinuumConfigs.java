@@ -82,6 +82,15 @@ public class ContinuumConfigs {
 
         @Configurable
         @Configurable.Comment({
+                "How strongly black holes bend the light behind them (this client only): 1 is the original",
+                "strength, higher bends more of the sky into a wider ring. 0 turns lensing off.",
+                "Default: 1.6"
+        })
+        @Configurable.DecimalRange(min = 0.0, max = 4.0)
+        public float blackHoleLensing = 1.6f;
+
+        @Configurable
+        @Configurable.Comment({
                 "How planets and moons are drawn. SPHERE is the smooth shaded globe. CUBE draws every world as a",
                 "blocky cube whose surface is built from chunky square cells (8 / 12 / 16 per face at",
                 "LOW / MEDIUM / HIGH), for a more Minecraft look. Stars and black holes stay round.",
@@ -263,6 +272,21 @@ public class ContinuumConfigs {
         })
         @Configurable.Range(min = 1, max = 64)
         public int maxSchedulesPerPad = 6;
+
+        @Configurable
+        @Configurable.Comment({
+                "How far (in blocks) a Swarm Control block looks for a launch pad to build from. Default: 16"
+        })
+        @Configurable.Range(min = 1, max = 64)
+        public int swarmControlPadRange = 16;
+
+        @Configurable
+        @Configurable.Comment({
+                "Forge Energy a Swarm Control block uses every tick to stay online (its screen and hologram work",
+                "only while it has power). With GregTech the Swarm Control Array runs a recipe instead. Default: 80"
+        })
+        @Configurable.Range(min = 1, max = 100000)
+        public int swarmControlFePerTick = 80;
 
         @Configurable
         @Configurable.Comment({

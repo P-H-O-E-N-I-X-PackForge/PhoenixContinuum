@@ -278,6 +278,28 @@ public final class ContinuumMissions {
     }
 
     /**
+     * A launch from a pad that is not where the player stands: they are at a Swarm Control block, which sends the
+     * build from a launch pad near it.
+     */
+    public static @Nullable String launchFromControl(ServerPlayer player, BlockPos control, BlockPos pad,
+                                                     ResourceLocation destinationId, Mission.Type type) {
+        var level = player.level();
+        double range = ContinuumConfigs.INSTANCE.launchRangeBlocks;
+        if (!level.isLoaded(control) || player.distanceToSqr(Vec3.atCenterOf(control)) > range * range) {
+            return "You are too far from the control block.";
+        }
+        int reach = ContinuumConfigs.INSTANCE.swarmControlPadRange;
+        if (!level.isLoaded(pad) || Math.abs(pad.getX() - control.getX()) > reach ||
+                Math.abs(pad.getY() - control.getY()) > reach || Math.abs(pad.getZ() - control.getZ()) > reach) {
+            return "There is no launch pad near this control block.";
+        }
+        return launchFrom(player.server, level, pad, net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID()),
+                player.getUUID(), player.getGameProfile().getName(), player.getRandom(),
+                complex -> complex != null && complex.hasBuses() ? new BusStock(complex) : new PlayerStock(player),
+                destinationId, type, 0, "", List.of(), false);
+    }
+
+    /**
      * A launch with nobody at the pad: a schedule's. The pad's own stock pays for it, the pad's owner is the one who
      * launched, and there is no range to be in.
      */

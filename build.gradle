@@ -144,6 +144,10 @@ dependencies {
     // Phoenix Tesla Network (optional): swarm power can go straight into its tesla storage
     modCompileOnly "curse.maven:phoenix-tesla-network-1680918:9150029"
 
+    // Jade (optional): tooltips for our blocks and multiblocks
+    modCompileOnly "curse.maven:jade-324717:5390389"
+    modRuntimeOnly "curse.maven:jade-324717:5390389"
+
     // Solaris (map markers for launch complexes), optional: a plain jar in libs/
     modCompileOnly "solaris:solaris:1.20.1"
 

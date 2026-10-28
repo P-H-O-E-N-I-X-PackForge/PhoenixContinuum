@@ -168,8 +168,9 @@ final class MissionPlannerPanel {
         int stationMax = Stations.maxLevel(body);
         int shellLevel = ContinuumClientState.shellLevel(body.id());
         int shellMax = Swarms.shellMaxLevel(body);
-        boolean canStation = stage == DiscoveryStage.SURVEYED && stationLevel < stationMax && shellLevel == 0;
-        boolean canShell = swarm && stage == DiscoveryStage.SURVEYED && shellLevel < shellMax;
+        // swarms and shells are managed from a Swarm Control block, not from here
+        boolean canStation = !swarm && stage == DiscoveryStage.SURVEYED && stationLevel < stationMax && shellLevel == 0;
+        boolean canShell = false;
 
         long[] passing = body.transientInfo() == null ? null : ContinuumClientState.transientWindow(body.id());
         if (body.transientInfo() != null) {
@@ -245,15 +246,13 @@ final class MissionPlannerPanel {
                 canRescue ? "Rescue stranded rocket  (DISTRESS)" : "Rescue stranded rocket", canRescue,
                 mode == Mission.Type.RESCUE, mx, my);
 
-        int stationW = swarm ? 154 : 312;
+        int stationW = 312;
         modeRects[Mission.Type.STATION.ordinal()] = button(g, font, x + 10, y + 104, stationW, 16,
-                swarm ? (stationLevel > 0 ? "Swarm  (" + stationLevel + "/" + stationMax + ")" : "Build swarm") :
+                swarm ? "Swarms and shells: use a Swarm Control block" :
                         stationLevel > 0 ? "Upgrade orbital station  (level " + stationLevel + " of " + stationMax +
                                 ")" : "Build orbital station",
                 canStation, mode == Mission.Type.STATION, mx, my);
-        modeRects[Mission.Type.SHELL.ordinal()] = swarm ? button(g, font, x + 168, y + 104, 154, 16,
-                shellLevel > 0 ? "Shell  (" + shellLevel + "/" + shellMax + ")" : "Build shell", canShell,
-                mode == Mission.Type.SHELL, mx, my) : null;
+        modeRects[Mission.Type.SHELL.ordinal()] = null;
 
         int ty = y + 130;
         int noteEnd = ty;
@@ -472,14 +471,13 @@ final class MissionPlannerPanel {
                 new Mode(Mission.Type.RESCUE, x + 10, y + 84, 312, canRescue,
                         "No distress signal here. A failed run can strand a rocket."),
                 new Mode(Mission.Type.STATION, x + 10, y + 104, stationW, canStation,
-                        stage != DiscoveryStage.SURVEYED ? "Survey this body first." :
-                                shellLevel > 0 ? "A swarm cannot be built inside a shell." :
+                        swarm ? "Build swarms and shells from a Swarm Control block near a launch pad." :
+                                stage != DiscoveryStage.SURVEYED ? "Survey this body first." :
                                         "The station here is fully built."),
-                new Mode(Mission.Type.SHELL, x + 168, y + 104, 154, canShell, !swarm ? "" :
-                        stage != DiscoveryStage.SURVEYED ? "Survey this body first." : "The shell here is finished."),
+                new Mode(Mission.Type.SHELL, x + 168, y + 104, 154, canShell, ""),
         };
         for (Mode m : modes) {
-            if (m.type() == Mission.Type.SHELL && !swarm) continue;
+            if (m.type() == Mission.Type.SHELL) continue;
             if (!m.enabled() && MapUi.inside(mx, my, m.bx(), m.by(), m.bw(), 16)) {
                 pendingTooltip = Component.literal(m.reason());
             }

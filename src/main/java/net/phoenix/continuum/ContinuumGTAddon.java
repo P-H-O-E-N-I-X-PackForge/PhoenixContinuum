@@ -27,5 +27,6 @@ public class ContinuumGTAddon implements IGTAddon {
     @Override
     public void addRecipes(Consumer<FinishedRecipe> provider) {
         ContinuumRecipes.init(provider);
+        SwarmControlRecipes.init(provider);
     }
 }

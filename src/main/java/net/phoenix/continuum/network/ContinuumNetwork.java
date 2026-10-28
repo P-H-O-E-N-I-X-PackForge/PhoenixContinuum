@@ -75,5 +75,13 @@ public final class ContinuumNetwork {
                 Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(id++, S2CSchedulesPacket.class, S2CSchedulesPacket::encode, S2CSchedulesPacket::new, S2CSchedulesPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(id++, C2SSwarmControlPacket.class, C2SSwarmControlPacket::encode, C2SSwarmControlPacket::new, C2SSwarmControlPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(id++, S2CSwarmControlPacket.class, S2CSwarmControlPacket::encode, S2CSwarmControlPacket::new, S2CSwarmControlPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(id++, S2CHologramPacket.class, S2CHologramPacket::encode, S2CHologramPacket::new, S2CHologramPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(id++, C2SReceiverRefreshPacket.class, C2SReceiverRefreshPacket::encode, C2SReceiverRefreshPacket::new, C2SReceiverRefreshPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
     }
 }

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "phoenix_continuum:block/continuum_swarm_control"
+    }
+  }
+}
