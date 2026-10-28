@@ -20,7 +20,7 @@ public final class ContinuumRecipes {
     private static com.gregtechceu.gtceu.api.data.chemical.material.Material weave() {
         var found = com.gregtechceu.gtceu.api.registry.GTRegistries.MATERIALS.get(
                 net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("phoenixcore", "ensorcelled_weave"));
-        return found != null && !"null".equals(found.getName()) && found.hasFluid() ? found : Titanium;
+        return found != null && !"null".equals(found.getName()) && found.hasFluid() ? found : Titanium.get();
     }
 
     public static void init(RecipeOutput provider) {
