@@ -45,6 +45,12 @@ public final class PdimRules {
     private static final Map<ResourceKey<Level>, Cached> CACHE = new HashMap<>();
     private static final long CACHE_TICKS = 60L;
 
+    /** Whether players have plots in this dimension: the config and the spec both allow it. */
+    public static boolean plotsOn(PdimWorldgen.Spec spec) {
+        return spec.plots() && (net.phoenix.continuum.config.ContinuumConfigs.INSTANCE == null ||
+                net.phoenix.continuum.config.ContinuumConfigs.INSTANCE.personalPlots);
+    }
+
     /** The spec of the personal dimension a level is, or null if it is not one. Up to three seconds old. */
     public static synchronized @Nullable PdimWorldgen.Spec specOf(Level level) {
         if (!(level instanceof ServerLevel)) return null;
@@ -82,7 +88,7 @@ public final class PdimRules {
             player.displayClientMessage(Component.literal("There is no air here."), true);
         }
 
-        if (spec.plotRadius() > 0 && !player.hasPermissions(2)) {
+        if (spec.plotRadius() > 0 && plotsOn(spec) && !player.hasPermissions(2)) {
             ResourceLocation body = PdimDimensions.bodyOf(level.dimension());
             var entry = PdimData.get(level.getServer()).entry(player.getUUID(), body);
             if (entry != null) {
@@ -115,7 +121,7 @@ public final class PdimRules {
         if (player.isCreative() && player.hasPermissions(2)) return true;
         ServerLevel level = player.serverLevel();
         var spec = specOf(level);
-        if (spec == null || !spec.protectPlots()) return true;
+        if (spec == null || !spec.protectPlots() || !plotsOn(spec)) return true;
         ResourceLocation body = PdimDimensions.bodyOf(level.dimension());
         int reach = spec.plotRadius() > 0 ? spec.plotRadius() : DEFAULT_PROTECT_RADIUS;
         int plot = PdimDimensions.plotAt(pos);

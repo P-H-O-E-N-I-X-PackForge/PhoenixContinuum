@@ -276,6 +276,14 @@ public class ContinuumConfigs {
 
         @Configurable
         @Configurable.Comment({
+                "Give every player their own plot in a personal dimension (plots are spaced apart in the same world).",
+                "Off: personal dimensions are ordinary shared dimensions, everybody arrives at the same place and there are",
+                "no plots, plot limits or plot protection. A spec can also turn plots off for one body. Default: true"
+        })
+        public boolean personalPlots = true;
+
+        @Configurable
+        @Configurable.Comment({
                 "Most schedules one launch pad can hold. Default: 6"
         })
         @Configurable.Range(min = 1, max = 64)

@@ -207,4 +207,32 @@ public class PdimWorldgenGameTests {
             }
         });
     }
+
+    @GameTest(template = "gametest_empty")
+    public static void plotsCanBeTurnedOffForABodyOrForEverything(GameTestHelper helper) {
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("phoenix_continuum", "gametest_no_plots");
+        var config = net.phoenix.continuum.config.ContinuumConfigs.INSTANCE;
+        boolean before = config.personalPlots;
+        try {
+            var spec = PdimWorldgen.of(id).protectPlots(true).plotRadius(100);
+            helper.assertTrue(net.phoenix.continuum.pdim.PdimRules.plotsOn(spec), "plots are on by default");
+            spec.plots(false).spawnAt(10, 70, -20);
+            helper.assertTrue(!net.phoenix.continuum.pdim.PdimRules.plotsOn(spec), "a spec can turn them off");
+            helper.assertTrue(spec.spawn()[0] == 10 && spec.spawn()[2] == -20, "and set where everybody arrives");
+            spec.plots(true);
+            config.personalPlots = false;
+            helper.assertTrue(!net.phoenix.continuum.pdim.PdimRules.plotsOn(spec), "the config turns them off for all");
+
+            var json = com.google.gson.JsonParser.parseString("{\"body\":\"" + id + "\",\"plots\":false," +
+                    "\"spawn\":[1,2,3]}").getAsJsonObject();
+            net.phoenix.continuum.pdim.PdimWorldgenFiles.apply(json);
+            config.personalPlots = true;
+            var fromFile = PdimWorldgen.resolve(id, null);
+            helper.assertTrue(!fromFile.plots() && fromFile.spawn()[1] == 2, "the file format sets both");
+            helper.succeed();
+        } finally {
+            config.personalPlots = before;
+            PdimWorldgen.remove(id);
+        }
+    }
 }

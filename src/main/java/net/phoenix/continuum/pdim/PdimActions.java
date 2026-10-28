@@ -52,8 +52,19 @@ public final class PdimActions {
         boolean created = data.entry(player.getUUID(), bodyId) == null;
         PdimData.Entry entry = data.create(player.getUUID(), bodyId, gravity, orbitView);
         var spec = net.phoenix.continuum.api.PdimWorldgen.resolve(bodyId, body);
-        BlockPos origin = arrivalPoint(target, spec, PdimDimensions.plotOrigin(entry.plot()));
-        if (created && spec.plotStructure() != null) {
+        boolean plots = PdimRules.plotsOn(spec);
+        BlockPos plot;
+        if (plots) {
+            plot = PdimDimensions.plotOrigin(entry.plot());
+        } else {
+            var at = spec.spawn();
+            plot = at != null ? new BlockPos(at[0], PdimDimensions.PLATFORM_Y, at[2]) :
+                    new BlockPos(0, PdimDimensions.PLATFORM_Y, 0);
+        }
+        BlockPos origin = arrivalPoint(target, spec, plot);
+        // with plots every player gets the structure at their plot; without, it is put down once for the whole dimension
+        if (spec.plotStructure() != null && (created || !plots) &&
+                (plots || PdimData.get(server).markStructurePlaced(bodyId))) {
             PdimStructures.place(target, spec.plotStructure(), origin.above());
         }
 

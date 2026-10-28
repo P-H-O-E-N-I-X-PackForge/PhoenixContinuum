@@ -325,3 +325,20 @@ event.pdim('mypack:island').weatherCycle(600, 3600, 300, 600, 0.25)
 In a file: `"weather": "storm"` or `"weather": { "clear_min": 600, "clear_max": 3600, "rain_min": 300, "rain_max": 600,
 "storm_chance": 0.25 }` (seconds). Weather turns on and off gradually, as the game's does. A cycle starts again from clear
 after a restart. `/weather` and the overworld's own cycle do not touch a dimension that has weather of its own.
+
+### Ordinary dimensions: turn the plots off
+
+By default every player gets a plot of their own in a personal dimension, all in the one world. If you would rather have a
+normal shared dimension, turn plots off:
+
+```js
+event.pdim('mypack:moon_colony').flat(...).plots(false)             // one body: everybody arrives at the world's origin
+event.pdim('mypack:moon_colony').plots(false).spawnAt(120, 70, -40)  // or at a spot of your choosing
+```
+
+or in the config (`personalPlots = false`) for every personal dimension at once, or `"plots": false` and `"spawn": [x, y, z]` in
+a spec file. With plots off there is no plot allocation, `plotRadius` and `protectPlots` do nothing, and a `plotStructure` is put
+down once for the whole dimension (the first time anybody arrives), not once per player. Everything else about a personal
+dimension (gravity, day speed, sky, costs, the worldgen, weather and the other rules) still applies. A void world still gets its
+obsidian pad at the arrival point; terrain puts the player on the ground there.
+

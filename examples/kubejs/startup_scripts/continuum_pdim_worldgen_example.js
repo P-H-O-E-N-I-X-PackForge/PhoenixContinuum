@@ -56,6 +56,10 @@ ContinuumEvents.pdimWorldgen(event => {
   //   .protectPlots(true)
   //   .weather('clear')           // or 'rain', 'storm', 'normal'; .weatherCycle(600, 3600, 300, 600, 0.25) for its own spells
 
+  // 8. An ordinary shared dimension instead of a plot each: everybody arrives at the same spot (the world's origin, or
+  //    wherever you say), and plot limits and protection do nothing. The config option personalPlots=false does it for all.
+  // event.pdim('phoenix_continuum:example_rock').plots(false).spawnAt(0, 70, 0)
+
   // Where players arrive, if you want to force it:
   //   .arriveOnSurface()   the ground at the plot (the default for terrain)
   //   .arriveOnPlatform()  build the obsidian pad whatever the terrain

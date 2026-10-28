@@ -154,6 +154,8 @@ public final class PdimWorldgen {
         private @Nullable String oxygenGear;
         private int plotRadius;
         private boolean protectPlots;
+        private boolean plots = true;
+        private @Nullable int[] spawn;
         private @Nullable ResourceLocation gtOresFrom;
         private net.phoenix.continuum.pdim.PdimWeather.Mode weather = net.phoenix.continuum.pdim.PdimWeather.Mode.NORMAL;
         private net.phoenix.continuum.pdim.PdimWeather.Cycle weatherCycle = net.phoenix.continuum.pdim.PdimWeather.Cycle.DEFAULT;
@@ -180,6 +182,8 @@ public final class PdimWorldgen {
             c.oxygenGear = oxygenGear;
             c.plotRadius = plotRadius;
             c.protectPlots = protectPlots;
+            c.plots = plots;
+            c.spawn = spawn == null ? null : spawn.clone();
             c.gtOresFrom = gtOresFrom;
             c.weather = weather;
             c.weatherCycle = weatherCycle;
@@ -245,6 +249,30 @@ public final class PdimWorldgen {
 
         public int plotRadius() {
             return plotRadius;
+        }
+
+        /**
+         * Whether each player gets a plot of their own in this world (the default). With {@code false} it is an ordinary
+         * shared dimension: everybody arrives at the same place (the world's origin, or {@link #spawnAt}), and plot
+         * limits and plot protection do nothing. The config {@code personalPlots} turns plots off for every body.
+         */
+        public Spec plots(boolean on) {
+            this.plots = on;
+            return this;
+        }
+
+        public boolean plots() {
+            return plots;
+        }
+
+        /** Where players arrive when there are no plots (x and z; with a pad or terrain under it). Plots ignore it. */
+        public Spec spawnAt(int x, int y, int z) {
+            this.spawn = new int[] { x, y, z };
+            return this;
+        }
+
+        public @Nullable int[] spawn() {
+            return spawn == null ? null : spawn.clone();
         }
 
         /**

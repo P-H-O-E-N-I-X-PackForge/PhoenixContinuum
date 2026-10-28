@@ -104,7 +104,8 @@ final class ContinuumAdminCommands {
             boolean loaded = server.getLevel(net.phoenix.continuum.pdim.PdimDimensions.keyFor(body.id())) != null;
             String type = spec.generator().has("type") ? spec.generator().get("type").getAsString() : "?";
             String line = body.id() + ": " + (spec.isVoid() ? "void" : type) + ", arrive " +
-                    spec.arrival().name().toLowerCase() + (spec.plotStructure() != null ?
+                    spec.arrival().name().toLowerCase() + (net.phoenix.continuum.pdim.PdimRules.plotsOn(spec) ? "" :
+                            ", no plots") + (spec.plotStructure() != null ?
                             ", structure " + spec.plotStructure() : "") + (loaded ? " (loaded)" : "");
             if (shown++ < 40) source.sendSuccess(() -> Component.literal(line), false);
         }

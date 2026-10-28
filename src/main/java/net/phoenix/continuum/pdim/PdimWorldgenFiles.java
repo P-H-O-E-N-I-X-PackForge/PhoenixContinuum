@@ -32,7 +32,7 @@ import java.util.function.Predicate;
  * {@code type} is void, flat, noise (with {@code settings} and a {@code biome}), overworld_like, auto or generator (with a
  * {@code generator} object). Also optional: {@code dimension_type}, {@code arrival} (surface, platform or fixed, with
  * {@code y}) and {@code plot_structure}; and the world's rules: {@code mobs}, {@code fall_damage}, {@code oxygen} (the
- * helmet item or #tag needed), {@code weather} (clear, rain, storm, normal, or a cycle object), {@code plot_radius}, {@code protect_plots} and {@code gt_ores} (a dimension id).
+ * helmet item or #tag needed), {@code weather} (clear, rain, storm, normal, or a cycle object), {@code plots} (false for an ordinary shared dimension), {@code spawn} ([x, y, z]), {@code plot_radius}, {@code protect_plots} and {@code gt_ores} (a dimension id).
  */
 public final class PdimWorldgenFiles {
 
@@ -126,6 +126,11 @@ public final class PdimWorldgenFiles {
         if (json.has("oxygen")) spec.requireOxygen(json.get("oxygen").getAsString());
         if (json.has("plot_radius")) spec.plotRadius(json.get("plot_radius").getAsInt());
         if (json.has("protect_plots")) spec.protectPlots(json.get("protect_plots").getAsBoolean());
+        if (json.has("plots")) spec.plots(json.get("plots").getAsBoolean());
+        if (json.has("spawn")) {
+            JsonArray at = json.getAsJsonArray("spawn");
+            spec.spawnAt(at.get(0).getAsInt(), at.get(1).getAsInt(), at.get(2).getAsInt());
+        }
         if (json.has("gt_ores")) spec.gtOres(json.get("gt_ores").getAsString());
         if (json.has("weather")) {
             JsonElement weather = json.get("weather");
