@@ -119,4 +119,102 @@ public final class ContinuumRender {
                                      float width, float strength) {
         HologramRenderer.pulse(out, pose, a, b, t, length, width, strength);
     }
+
+    /** What a {@link Preview} can show. */
+    public enum Body {
+        GAS_CLOUD,
+        PROTOSTAR,
+        STAR,
+        BLACK_HOLE
+    }
+
+    private static @Nullable Preview shared;
+
+    /** One preview for everyone to share: it keeps a single render target, so screens need not manage their own. */
+    public static synchronized Preview preview() {
+        if (shared == null) shared = new Preview();
+        return shared;
+    }
+
+    /**
+     * A body drawn with the real shaders into a square of a GUI screen, turning slowly, that the player can drag to
+     * rotate and scroll to zoom. Call {@link #draw} every frame from a screen or widget.
+     */
+    public static final class Preview {
+
+        private static final int PIXELS = 512;
+
+        private com.mojang.blaze3d.pipeline.@Nullable RenderTarget target;
+        private float yaw = 20.0f;
+        private float pitch = 14.0f;
+        private float distance = 4.6f;
+        private long last = net.minecraft.Util.getMillis();
+
+        private Preview() {}
+
+        public void rotate(float dx, float dy) {
+            yaw += dx * 0.6f;
+            pitch = ((pitch + dy * 0.6f + 180.0f) % 360.0f + 360.0f) % 360.0f - 180.0f;
+        }
+
+        public void zoom(float delta) {
+            distance = Math.max(2.4f, Math.min(14.0f, distance - delta * 0.4f));
+        }
+
+        public void reset() {
+            yaw = 20.0f;
+            pitch = 14.0f;
+            distance = 4.6f;
+        }
+
+        /**
+         * @param size01 how big the body is, 0 (small) to 1 (large)
+         * @return false when it could not be drawn (the shaders are not loaded): draw something else
+         */
+        public boolean draw(net.minecraft.client.gui.GuiGraphics g, Body body, int rgb, float size01, int x, int y,
+                            int size) {
+            if (!ContinuumShaders.ready()) return false;
+            long now = net.minecraft.Util.getMillis();
+            float dt = Math.min(0.1f, (now - last) / 1000.0f);
+            last = now;
+            yaw += dt * 4.0f;
+            if (target == null) {
+                target = new com.mojang.blaze3d.pipeline.TextureTarget(PIXELS, PIXELS, true,
+                        net.minecraft.client.Minecraft.ON_OSX);
+            }
+            try {
+                SceneRenderer.begin(target, yaw);
+                Matrix4f projection = SceneRenderer.projection(target.width, target.height, 32.0f);
+                Matrix4f view = new Matrix4f().translate(0.0f, 0.0f, -(distance + 1.5f))
+                        .rotateX((float) Math.toRadians(pitch));
+                Vector3f at = new Vector3f();
+                float radius = 0.6f + 0.9f * Math.max(0.0f, Math.min(1.0f, size01));
+                var quality = quality();
+                switch (body) {
+                    case GAS_CLOUD -> SceneRenderer.drawPlanetaryNebula(rgb, view, projection, at, radius, quality, false);
+                    case PROTOSTAR -> SceneRenderer.drawProtostar(rgb, view, projection, at, radius, quality, false,
+                            new float[] { 3.4f, 5.1f, 7.3f, 0.0f });
+                    case STAR -> SceneRenderer.drawSystemStar(null, rgb, view, projection, at, radius, quality, false);
+                    case BLACK_HOLE -> SceneRenderer.drawHole(null, view, projection, at, radius, quality, false);
+                }
+                SceneRenderer.end();
+            } catch (RuntimeException e) {
+                return false;
+            }
+
+            com.mojang.blaze3d.systems.RenderSystem.disableBlend();
+            com.mojang.blaze3d.systems.RenderSystem.setShader(net.minecraft.client.renderer.GameRenderer::getPositionTexShader);
+            com.mojang.blaze3d.systems.RenderSystem.setShaderTexture(0, target.getColorTextureId());
+            Matrix4f pose = g.pose().last().pose();
+            var bb = com.mojang.blaze3d.vertex.Tesselator.getInstance().begin(com.mojang.blaze3d.vertex.VertexFormat.Mode.QUADS,
+                    com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_TEX);
+            bb.addVertex(pose, x, y + size, 0).setUv(0, 0);
+            bb.addVertex(pose, x + size, y + size, 0).setUv(1, 0);
+            bb.addVertex(pose, x + size, y, 0).setUv(1, 1);
+            bb.addVertex(pose, x, y, 0).setUv(0, 1);
+            com.mojang.blaze3d.vertex.BufferUploader.drawWithShader(bb.buildOrThrow());
+            com.mojang.blaze3d.systems.RenderSystem.enableBlend();
+            return true;
+        }
+    }
 }
