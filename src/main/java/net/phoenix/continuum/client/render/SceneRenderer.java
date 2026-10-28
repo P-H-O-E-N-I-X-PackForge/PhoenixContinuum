@@ -296,6 +296,9 @@ public final class SceneRenderer {
         boolean cube = net.phoenix.continuum.client.ContinuumVisuals.cube();
         
         float bodyScale = !cube ? radius : blackHole ? radius * 0.5f : radius * 0.82f;
+        // up close a sphere looks wider than the flat disc of its glow: bring it in so their edges meet
+        float away = view.transformPosition(new Vector3f(worldPos)).length();
+        if (away > 1.0e-3f) bodyScale /= (float) Math.sqrt(1.0 + (bodyScale / away) * (bodyScale / away));
         
         float flatten = (!cube && !blackHole && style == STYLE_RAPID_ROTATOR) ? 0.84f : 1.0f;
         Matrix4f modelView = new Matrix4f(view).translate(worldPos).scale(bodyScale, bodyScale * flatten, bodyScale);
@@ -524,18 +527,8 @@ public final class SceneRenderer {
 
         if (extra != null) extra.accept(shader);
 
-        Matrix4f modelView;
-        if (sky) {
-            modelView = skyBillboard(view, worldPos, radius * extent);
-        } else {
-            Vector3f centre = view.transformPosition(new Vector3f(worldPos));
-            // up close a sphere looks wider than the flat disc at its middle: widen the glow to match its edge
-            float coreRadius = radius * (cube ? 0.82f : 1.0f);
-            float dist = centre.length();
-            float widen = dist > coreRadius * 1.02f ?
-                    (float) (1.0 / Math.sqrt(Math.max(0.04, 1.0 - (coreRadius / dist) * (coreRadius / dist)))) : 5.0f;
-            modelView = new Matrix4f().translate(centre).scale(radius * extent * widen);
-        }
+        Matrix4f modelView = sky ? skyBillboard(view, worldPos, radius * extent) :
+                new Matrix4f().translate(view.transformPosition(new Vector3f(worldPos))).scale(radius * extent);
 
         RenderSystem.enableBlend();
         RenderSystem.blendFunc(com.mojang.blaze3d.platform.GlStateManager.SourceFactor.ONE,
