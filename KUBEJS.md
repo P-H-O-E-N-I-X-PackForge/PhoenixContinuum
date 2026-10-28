@@ -63,6 +63,14 @@ ContinuumEvents.discovery(event => {
   // event.team, event.subject, event.stage ('detected' | 'surveyed')
 })
 
+ContinuumEvents.pdimEnter(event => {
+  // event.player, event.body, event.created (true the first time the player made this personal dimension)
+})
+
+ContinuumEvents.pdimLeave(event => {
+  // event.player, event.body
+})
+
 ContinuumEvents.mission(event => {
   // event.kind ('launched' | 'succeeded' | 'failed'), event.team, event.destination, event.missionType, event.probes
 })

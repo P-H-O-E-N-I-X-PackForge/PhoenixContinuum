@@ -41,6 +41,16 @@ public class ContinuumKubeJSPlugin implements KubeJSPlugin {
                 ContinuumKubeEvents.ANOMALY.post(ScriptType.SERVER, new ContinuumKubeEvents.AnomalyEvent(event));
             }
         });
+        NeoForge.EVENT_BUS.addListener(ContinuumEvents.PdimEntered.class, event -> {
+            if (ContinuumKubeEvents.PDIM_ENTER.hasListeners()) {
+                ContinuumKubeEvents.PDIM_ENTER.post(ScriptType.SERVER, new ContinuumKubeEvents.PdimEnterEvent(event));
+            }
+        });
+        NeoForge.EVENT_BUS.addListener(ContinuumEvents.PdimLeft.class, event -> {
+            if (ContinuumKubeEvents.PDIM_LEAVE.hasListeners()) {
+                ContinuumKubeEvents.PDIM_LEAVE.post(ScriptType.SERVER, new ContinuumKubeEvents.PdimLeaveEvent(event));
+            }
+        });
         NeoForge.EVENT_BUS.addListener(ContinuumEvents.MissionChanged.class, event -> {
             if (ContinuumKubeEvents.MISSION.hasListeners()) {
                 ContinuumKubeEvents.MISSION.post(ScriptType.SERVER, new ContinuumKubeEvents.MissionEvent(event));

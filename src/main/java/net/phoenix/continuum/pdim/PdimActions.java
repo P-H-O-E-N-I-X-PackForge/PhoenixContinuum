@@ -29,7 +29,7 @@ public final class PdimActions {
         ContinuumBody body = ContinuumData.body(bodyId);
         if (body == null) return "That body does not exist.";
 
-        ServerLevel target = server.getLevel(PdimDimensions.keyFor(bodyId));
+        ServerLevel target = PdimRuntime.level(server, bodyId);
         if (target == null) return "There is no personal dimension for " + body.name() + " in this world.";
 
         var team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
@@ -49,8 +49,13 @@ public final class PdimActions {
             PdimCosts.take(player, cost);
         }
 
+        boolean created = data.entry(player.getUUID(), bodyId) == null;
         PdimData.Entry entry = data.create(player.getUUID(), bodyId, gravity, orbitView);
-        BlockPos origin = arrivalPoint(target, bodyId, PdimDimensions.plotOrigin(entry.plot()));
+        var spec = net.phoenix.continuum.api.PdimWorldgen.resolve(bodyId, body);
+        BlockPos origin = arrivalPoint(target, spec, PdimDimensions.plotOrigin(entry.plot()));
+        if (created && spec.plotStructure() != null) {
+            PdimStructures.place(target, spec.plotStructure(), origin.above());
+        }
 
         if (!PdimDimensions.isPersonal(player.level().dimension())) {
             data.setReturn(player.getUUID(), new PdimData.Return(player.level().dimension().location(), player.getX(),
@@ -61,6 +66,8 @@ public final class PdimActions {
         player.teleportTo(target, origin.getX() + 0.5, origin.getY() + 1.0, origin.getZ() + 0.5, player.getYRot(),
                 player.getXRot());
         sendState(player);
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(
+                new net.phoenix.continuum.api.ContinuumEvents.PdimEntered(player, bodyId, created));
         return null;
     }
 
@@ -68,6 +75,7 @@ public final class PdimActions {
         MinecraftServer server = player.server;
         if (!PdimDimensions.isPersonal(player.level().dimension())) return "You are not in a personal dimension.";
 
+        ResourceLocation leaving = PdimDimensions.bodyOf(player.level().dimension());
         PdimData data = PdimData.get(server);
         PdimData.Return back = data.returnPoint(player.getUUID());
         ServerLevel level = back == null ? null : server.getLevel(net.minecraft.resources.ResourceKey
@@ -83,6 +91,10 @@ public final class PdimActions {
         }
         data.clearReturn(player.getUUID());
         sendState(player);
+        if (leaving != null) {
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(
+                    new net.phoenix.continuum.api.ContinuumEvents.PdimLeft(player, leaving));
+        }
         return null;
     }
 
@@ -96,10 +108,9 @@ public final class PdimActions {
      * Where to put the player at a plot: the pad for a void world (it is built here), otherwise the ground or a fixed
      * height, as the body's {@link net.phoenix.continuum.api.PdimWorldgen} spec says.
      */
-    private static BlockPos arrivalPoint(ServerLevel level, ResourceLocation bodyId, BlockPos plot) {
-        var spec = net.phoenix.continuum.api.PdimWorldgen.get(bodyId);
-        var arrival = spec == null ? net.phoenix.continuum.api.PdimWorldgen.Arrival.PLATFORM : spec.arrival();
-        switch (arrival) {
+    private static BlockPos arrivalPoint(ServerLevel level, net.phoenix.continuum.api.PdimWorldgen.Spec spec,
+                                         BlockPos plot) {
+        switch (spec.arrival()) {
             case FIXED -> {
                 level.getChunk(plot);
                 return new BlockPos(plot.getX(), spec.fixedY(), plot.getZ());

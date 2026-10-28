@@ -2,7 +2,8 @@
 // A personal dimension (pdim) is void with an obsidian pad unless you say otherwise. Everything here is optional.
 //
 // Startup script: the dimension files are written while the game builds its list of data packs, so a change needs a
-// restart, and chunks already generated in a saved world keep their old terrain (use a fresh world to see it all).
+// restart (unless the Infiniverse mod is installed: then dimensions are made while the game runs), and chunks already
+// generated in a saved world keep their old terrain (use a fresh world to see it all).
 
 ContinuumEvents.pdimWorldgen(event => {
 
@@ -35,6 +36,15 @@ ContinuumEvents.pdimWorldgen(event => {
   //   seed: 19274618,
   //   biome_source: { type: 'minecraft:fixed', biome: 'phoenixcore:phoenix' }
   // }).dimensionType('phoenixcore:discipline')
+
+  // 5. Rules for many bodies at once (they need the Infiniverse mod; a spec for a named body above always wins):
+  //    every other moon is a plain grey flat world, and everything else works itself out from the body's own data
+  //    (rocky worlds get a biome from their climate; gas giants, stars and black holes stay void).
+  event.type('moon', spec => spec.flat('minecraft:stony_peaks', 'minecraft:bedrock', 'minecraft:stone*60'))
+  event.all(spec => spec.auto())
+
+  // 6. A base waiting at the plot the first time a player makes the world (a structure template of your own):
+  // event.pdim('phoenix_continuum:example_rock').plotStructure('mypack:landing_pad')
 
   // Where players arrive, if you want to force it:
   //   .arriveOnSurface()   the ground at the plot (the default for terrain)

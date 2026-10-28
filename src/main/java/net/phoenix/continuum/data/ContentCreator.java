@@ -91,7 +91,7 @@ public final class ContentCreator {
         ResourceLocation dimension = ResourceLocation.fromNamespaceAndPath("phoenix_continuum",
                 "pdim/" + id.getPath());
         var stems = server.registryAccess().registryOrThrow(Registries.LEVEL_STEM);
-        if (!stems.containsKey(dimension)) {
+        if (!stems.containsKey(dimension) && !net.phoenix.continuum.pdim.PdimRuntime.available()) {
             try {
                 Path file = ContinuumPackFolder.folder().resolve("data").resolve("phoenix_continuum")
                         .resolve("dimension").resolve("pdim").resolve(id.getPath() + ".json");

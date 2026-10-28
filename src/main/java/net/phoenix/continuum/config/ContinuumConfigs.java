@@ -268,6 +268,14 @@ public class ContinuumConfigs {
 
         @Configurable
         @Configurable.Comment({
+                "Create personal dimensions while the game runs, with no restart, when the Infiniverse mod is installed.",
+                "Off: they are dimension files read when the world loads, as without Infiniverse (a new body or a changed",
+                "worldgen spec then needs a restart). Default: true"
+        })
+        public boolean runtimePersonalDimensions = true;
+
+        @Configurable
+        @Configurable.Comment({
                 "Most schedules one launch pad can hold. Default: 6"
         })
         @Configurable.Range(min = 1, max = 64)

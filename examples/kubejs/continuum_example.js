@@ -27,3 +27,15 @@ ContinuumEvents.visibility(event => {
 Continuum.registerCondition('mypack:night', (params, server, team) => {
   return server.overworld().isNight()
 })
+
+// 5. Personal dimension events: the first time a player makes the world of a body, welcome them and give a starter kit.
+ContinuumEvents.pdimEnter(event => {
+  if (event.created) {
+    event.player.tell(`Welcome to ${event.body}. Your own plot is ready.`)
+    event.player.give('minecraft:torch 16')
+  }
+})
+
+ContinuumEvents.pdimLeave(event => {
+  console.info(`${event.player.name.string} left their world of ${event.body}`)
+})

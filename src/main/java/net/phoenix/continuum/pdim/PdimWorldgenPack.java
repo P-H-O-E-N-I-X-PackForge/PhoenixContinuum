@@ -43,6 +43,7 @@ public final class PdimWorldgenPack {
     public static void register(AddPackFindersEvent event) {
         if (event.getPackType() != PackType.SERVER_DATA) return;
 
+        PdimWorldgenFiles.load(FMLPaths.CONFIGDIR.get().resolve("phoenix_continuum").resolve("pdim_worldgen"));
         NeoForge.EVENT_BUS.post(new PdimWorldgen.Collect());
         Consumer<Void> hook = scriptHook;
         if (hook != null) hook.accept(null);

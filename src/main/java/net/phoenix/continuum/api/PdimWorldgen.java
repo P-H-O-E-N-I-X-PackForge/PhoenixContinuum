@@ -2,6 +2,7 @@ package net.phoenix.continuum.api;
 
 import net.minecraft.resources.ResourceLocation;
 import net.phoenix.continuum.PhoenixContinuum;
+import net.phoenix.continuum.data.ContinuumBody;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -10,7 +11,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -72,6 +77,63 @@ public final class PdimWorldgen {
         return java.util.List.copyOf(SPECS.values());
     }
 
+    private record Rule(Predicate<ContinuumBody> test, Consumer<Spec> configure) {}
+
+    private static final List<Rule> RULES = new ArrayList<>();
+
+    /**
+     * Configure every body the test matches that has no spec of its own (a spec made with {@link #of} wins). Rules are
+     * applied in the order they were added, later ones over earlier ones. They are worked out when a dimension is made,
+     * so they need Continuum's runtime dimensions (Infiniverse): the dimension files written at startup are for
+     * named bodies only, since the bodies themselves are not loaded yet.
+     */
+    public static synchronized void where(Predicate<ContinuumBody> test, Consumer<Spec> configure) {
+        RULES.add(new Rule(test, configure));
+    }
+
+    /** Every body of a type: "planet", "moon", "star" or "black_hole". */
+    public static void forType(String type, Consumer<Spec> configure) {
+        where(body -> body.type().name().equalsIgnoreCase(type), configure);
+    }
+
+    /** Every body in a system. */
+    public static void forSystem(String system, Consumer<Spec> configure) {
+        ResourceLocation id = ResourceLocation.parse(system.contains(":") ? system : "phoenix_continuum:" + system);
+        where(body -> body.system().equals(id), configure);
+    }
+
+    /** Every body without a spec of its own. */
+    public static void forAll(Consumer<Spec> configure) {
+        where(body -> true, configure);
+    }
+
+    public static synchronized int ruleCount() {
+        return RULES.size();
+    }
+
+    /**
+     * The spec a body's dimension is made from: its own, or one built from the rules that match it, or plain void;
+     * with {@link Spec#auto()} worked out from the body. {@code data} may be null (bodies not loaded yet): then only the
+     * body's own spec counts and {@code auto} stays void.
+     */
+    public static synchronized Spec resolve(ResourceLocation body, @Nullable ContinuumBody data) {
+        Spec own = SPECS.get(body);
+        Spec spec = own != null ? own.copy() : new Spec(body);
+        if (own == null && data != null) {
+            for (Rule rule : RULES) {
+                if (rule.test().test(data)) rule.configure().accept(spec);
+            }
+        }
+        if (spec.auto && data != null) net.phoenix.continuum.pdim.PdimAuto.apply(spec, data);
+        return spec;
+    }
+
+    /** Forget everything: every spec and rule. */
+    public static synchronized void clear() {
+        SPECS.clear();
+        RULES.clear();
+    }
+
     /** Forget a body's spec (it goes back to void). */
     public static synchronized void remove(ResourceLocation body) {
         SPECS.remove(body);
@@ -85,13 +147,36 @@ public final class PdimWorldgen {
         private @Nullable Arrival arrival;
         private int fixedY = 80;
         private boolean voidWorld = true;
+        private boolean auto;
+        private @Nullable ResourceLocation plotStructure;
 
-        private Spec(ResourceLocation body) {
+        Spec(ResourceLocation body) {
             this.body = body;
         }
 
         public ResourceLocation body() {
             return body;
+        }
+
+        Spec copy() {
+            Spec c = new Spec(body);
+            c.dimensionType = dimensionType;
+            c.generator = generator.deepCopy();
+            c.arrival = arrival;
+            c.fixedY = fixedY;
+            c.voidWorld = voidWorld;
+            c.auto = auto;
+            c.plotStructure = plotStructure;
+            return c;
+        }
+
+        /** A structure template placed at the plot when a player first makes this dimension, or null. */
+        public @Nullable ResourceLocation plotStructure() {
+            return plotStructure;
+        }
+
+        public boolean isAuto() {
+            return auto;
         }
 
         public ResourceLocation dimensionType() {
@@ -118,10 +203,31 @@ public final class PdimWorldgen {
 
         // ---------------------------------------------------------------------------------------- what it is
 
+        /**
+         * Worked out from the body when its dimension is made: gas giants, stars and black holes stay void; rocky
+         * worlds get terrain and a biome that follow their climate (distance from the star, ice, ocean).
+         * Needs the bodies to be loaded, so it applies to dimensions made while the game runs.
+         */
+        public Spec auto() {
+            this.auto = true;
+            return this;
+        }
+
+        /** Place a structure template at the plot the first time a player makes this dimension. */
+        public Spec plotStructure(ResourceLocation template) {
+            this.plotStructure = template;
+            return this;
+        }
+
+        public Spec plotStructure(String template) {
+            return plotStructure(ResourceLocation.parse(template));
+        }
+
         /** Empty space (the default). */
         public Spec voidWorld() {
             this.generator = voidGenerator();
             this.voidWorld = true;
+            this.auto = false;
             return this;
         }
 
@@ -200,6 +306,7 @@ public final class PdimWorldgen {
         private Spec custom(JsonObject gen) {
             this.generator = gen;
             this.voidWorld = false;
+            this.auto = false;
             return this;
         }
 
