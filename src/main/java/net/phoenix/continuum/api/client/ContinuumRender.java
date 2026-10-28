@@ -62,6 +62,10 @@ public final class ContinuumRender {
      */
     public static void beginWorldObject(Matrix4f view, Matrix4f projection, Vector3f cameraRelativeCentre,
                                         boolean writeDepth) {
+        // a render type that has just been drawn leaves the depth test off: the sphere passes rely on it being on
+        com.mojang.blaze3d.systems.RenderSystem.enableDepthTest();
+        com.mojang.blaze3d.systems.RenderSystem.depthFunc(515);
+        com.mojang.blaze3d.systems.RenderSystem.depthMask(true);
         org.joml.Vector4f clip = new org.joml.Vector4f(cameraRelativeCentre, 1.0f).mul(view).mul(projection);
         SceneRenderer.setWorldDepth(clip.w > 0.0f ? clip.z / clip.w : Float.NaN, writeDepth);
     }
