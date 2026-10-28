@@ -45,6 +45,12 @@ public record ContinuumSystem(
                     Float.isNaN(lean) ? skyLean : lean);
         }
 
+        /** The disk's hot (inner) and cool (outer) colours as 0xRRGGBB, or -1 to keep the default. */
+        public HoleStyle withColors(int hot, int cool) {
+            return new HoleStyle(diskSize, diskIntensity, feeding, tilt, hot, cool, separation, massRatio,
+                    periodSeconds, skyInclination, skyLean);
+        }
+
         public HoleStyle withDisk(float size, float intensity) {
             return new HoleStyle(size, intensity, feeding, tilt, hotColor, coolColor, separation, massRatio,
                     periodSeconds, skyInclination, skyLean);

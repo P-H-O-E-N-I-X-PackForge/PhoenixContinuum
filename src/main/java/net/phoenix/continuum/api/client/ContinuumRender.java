@@ -75,6 +75,17 @@ public final class ContinuumRender {
         SceneRenderer.drawHole(system, view, projection, worldPos, radius, quality(), false);
     }
 
+    /**
+     * A black hole whose accretion disk is tinted: {@code hotRgb} for the inner edge and {@code coolRgb} for the outer
+     * (0xRRGGBB, or -1 to keep the default for either).
+     */
+    public static void drawBlackHole(int hotRgb, int coolRgb, Matrix4f view, Matrix4f projection, Vector3f worldPos,
+                                     float radius) {
+        SceneRenderer.drawHoleStyled(
+                net.phoenix.continuum.data.ContinuumSystem.HoleStyle.DEFAULT.withColors(hotRgb, coolRgb), view,
+                projection, worldPos, radius, quality(), false);
+    }
+
     /** A young star still gathering itself: a hot core in a disk of gas with gaps where it is clearing a path. */
     public static void drawProtostar(int rgb, Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius) {
         SceneRenderer.drawProtostar(rgb, view, projection, worldPos, radius, quality(), false,
@@ -118,6 +129,13 @@ public final class ContinuumRender {
     public static void drawBeamPulse(VertexConsumer out, Matrix4f pose, Vector3f a, Vector3f b, float t, float length,
                                      float width, float strength) {
         HologramRenderer.pulse(out, pose, a, b, t, length, width, strength);
+    }
+
+    private static int mixToward(int rgb, int other, float t) {
+        int r = (int) (((rgb >> 16) & 0xFF) * (1 - t) + ((other >> 16) & 0xFF) * t);
+        int g = (int) (((rgb >> 8) & 0xFF) * (1 - t) + ((other >> 8) & 0xFF) * t);
+        int b = (int) ((rgb & 0xFF) * (1 - t) + (other & 0xFF) * t);
+        return (r << 16) | (g << 8) | b;
     }
 
     /** What a {@link Preview} can show. */
@@ -179,6 +197,12 @@ public final class ContinuumRender {
         /** As above; {@code backdrop} false draws the body alone on plain dark space, with no stars or galaxies. */
         public boolean draw(net.minecraft.client.gui.GuiGraphics g, Body body, int rgb, float size01, int x, int y,
                             int size, boolean backdrop) {
+            return draw(g, body, rgb, size01, x, y, size, backdrop, -1);
+        }
+
+        /** As above; {@code holeTint} (0xRRGGBB, or -1) colours a black hole's disk. */
+        public boolean draw(net.minecraft.client.gui.GuiGraphics g, Body body, int rgb, float size01, int x, int y,
+                            int size, boolean backdrop, int holeTint) {
             if (!ContinuumShaders.ready()) return false;
             long now = net.minecraft.Util.getMillis();
             float dt = Math.min(0.1f, (now - last) / 1000.0f);
@@ -187,6 +211,13 @@ public final class ContinuumRender {
             if (target == null) {
                 target = new com.mojang.blaze3d.pipeline.TextureTarget(PIXELS, PIXELS, true,
                         net.minecraft.client.Minecraft.ON_OSX);
+            }
+            // the screen this is drawn in may have a scissor on (a page clips to its area); the offscreen picture must not
+            boolean scissored = org.lwjgl.opengl.GL11.glIsEnabled(org.lwjgl.opengl.GL11.GL_SCISSOR_TEST);
+            int[] box = new int[4];
+            if (scissored) {
+                org.lwjgl.opengl.GL11.glGetIntegerv(org.lwjgl.opengl.GL11.GL_SCISSOR_BOX, box);
+                com.mojang.blaze3d.systems.RenderSystem.disableScissor();
             }
             try {
                 SceneRenderer.begin(target, yaw, backdrop);
@@ -203,11 +234,21 @@ public final class ContinuumRender {
                     case PROTOSTAR -> SceneRenderer.drawProtostar(rgb, view, projection, at, radius, quality, false,
                             new float[] { 3.4f, 5.1f, 7.3f, 0.0f });
                     case STAR -> SceneRenderer.drawSystemStar(null, rgb, view, projection, at, radius, quality, false);
-                    case BLACK_HOLE -> SceneRenderer.drawHole(null, view, projection, at, radius, quality, false);
+                    case BLACK_HOLE -> {
+                        if (holeTint >= 0) {
+                            SceneRenderer.drawHoleStyled(net.phoenix.continuum.data.ContinuumSystem.HoleStyle.DEFAULT
+                                    .withColors(holeTint, mixToward(holeTint, 0x000000, 0.45f)), view, projection, at,
+                                    radius, quality, false);
+                        } else {
+                            SceneRenderer.drawHole(null, view, projection, at, radius, quality, false);
+                        }
+                    }
                 }
                 SceneRenderer.end();
             } catch (RuntimeException e) {
                 return false;
+            } finally {
+                if (scissored) com.mojang.blaze3d.systems.RenderSystem.enableScissor(box[0], box[1], box[2], box[3]);
             }
 
             com.mojang.blaze3d.systems.RenderSystem.disableBlend();

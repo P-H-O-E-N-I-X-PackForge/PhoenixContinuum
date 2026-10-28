@@ -380,6 +380,14 @@ public final class SceneRenderer {
         drawBlackHole(view, projection, worldPos, radius, system != null && system.isQuasar(), sky, style);
     }
 
+    /** A black hole in a style given directly (its disk colours, size and tilt), with no system behind it. */
+    public static void drawHoleStyled(net.phoenix.continuum.data.ContinuumSystem.HoleStyle style, Matrix4f view,
+                                      Matrix4f projection, Vector3f worldPos, float radius,
+                                      PlanetRenderer.Quality quality, boolean sky) {
+        drawStar(0, true, view, projection, worldPos, radius, quality);
+        drawBlackHole(view, projection, worldPos, radius, false, sky, style);
+    }
+
     private static void drawBinaryHole(net.phoenix.continuum.data.ContinuumSystem.HoleStyle style,
                                        Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
                                        PlanetRenderer.Quality quality, boolean sky) {
