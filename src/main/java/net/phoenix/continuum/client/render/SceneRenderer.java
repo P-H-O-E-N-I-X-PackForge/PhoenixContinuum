@@ -342,6 +342,17 @@ public final class SceneRenderer {
         return new float[] {((rgb >> 16) & 0xFF) / 255.0f, ((rgb >> 8) & 0xFF) / 255.0f, (rgb & 0xFF) / 255.0f};
     }
 
+    /**
+     * The black sphere under a hole's picture. The picture's own shadow is already opaque black, so in an offscreen scene
+     * (a preview or a screen) with no world depth the sphere adds nothing, and its depth only gets in the way of the disk
+     * that passes in front of the hole: leave it out there.
+     */
+    private static void drawHoleSphere(Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
+                                       PlanetRenderer.Quality quality) {
+        if (current != null && Float.isNaN(worldDepth)) return;
+        drawStar(0, true, view, projection, worldPos, radius, quality);
+    }
+
     public static void drawHole(net.phoenix.continuum.data.ContinuumSystem system, Matrix4f view,
                                 Matrix4f projection, Vector3f worldPos, float radius, PlanetRenderer.Quality quality,
                                 boolean sky) {
@@ -381,7 +392,7 @@ public final class SceneRenderer {
             drawBinaryHole(style, view, projection, worldPos, radius, quality, sky);
             return;
         }
-        drawStar(0, true, view, projection, worldPos, radius, quality);
+        drawHoleSphere(view, projection, worldPos, radius, quality);
         drawBlackHole(view, projection, worldPos, radius, system != null && system.isQuasar(), sky, style);
     }
 
@@ -389,7 +400,7 @@ public final class SceneRenderer {
     public static void drawHoleStyled(net.phoenix.continuum.data.ContinuumSystem.HoleStyle style, Matrix4f view,
                                       Matrix4f projection, Vector3f worldPos, float radius,
                                       PlanetRenderer.Quality quality, boolean sky) {
-        drawStar(0, true, view, projection, worldPos, radius, quality);
+        drawHoleSphere(view, projection, worldPos, radius, quality);
         drawBlackHole(view, projection, worldPos, radius, false, sky, style);
     }
 
@@ -427,7 +438,7 @@ public final class SceneRenderer {
             boolean first = (pass == 0) == firstIsFarther;
             Vector3f p = first ? p1 : p2;
             float r = first ? r1 : r2;
-            drawStar(0, true, view, projection, p, r, quality);
+            drawHoleSphere(view, projection, p, r, quality);
             drawBlackHole(view, projection, p, r, false, sky, first ? s1 : s2);
         }
     }
@@ -1276,6 +1287,10 @@ public final class SceneRenderer {
         if (depthAware) {
             RenderSystem.enableDepthTest();
             RenderSystem.depthMask(worldDepthWrite);
+        } else {
+            // a flat picture laid over the scene: whatever was drawn before (a sphere's depth) must not clip it
+            RenderSystem.disableDepthTest();
+            RenderSystem.depthMask(false);
         }
         if (blit.MODEL_VIEW_MATRIX != null)
             blit.MODEL_VIEW_MATRIX.set(new Matrix4f().translation(0.0f, 0.0f, quadZ));
