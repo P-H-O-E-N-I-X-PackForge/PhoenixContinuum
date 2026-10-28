@@ -63,6 +63,14 @@ ContinuumEvents.discovery(event => {
   // event.team, event.subject, event.stage ('detected' | 'surveyed')
 })
 
+ContinuumEvents.pdimEnter(event => {
+  // event.player, event.body, event.created (true the first time the player made this personal dimension)
+})
+
+ContinuumEvents.pdimLeave(event => {
+  // event.player, event.body
+})
+
 ContinuumEvents.mission(event => {
   // event.kind ('launched' | 'succeeded' | 'failed'), event.team, event.destination, event.missionType, event.probes
 })
@@ -83,3 +91,7 @@ This is for Continuum's own research; a mod that replaces it (PhoenixCore's Conf
 
 `examples/kubejs/continuum_example.js` in the Continuum repository shows a discovery handler, a mission log, the visibility
 event and a custom condition. Copy it into `kubejs/server_scripts/`.
+
+`examples/kubejs/startup_scripts/continuum_pdim_worldgen_example.js` shows giving personal dimensions their own worldgen
+(flat, vanilla noise, a fixed arrival height, and any chunk generator such as a Conflux discipline world). It is a
+startup script; see the personal dimension worldgen section of `PACKDEV.md`.

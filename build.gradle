@@ -26,6 +26,11 @@ repositories {
     mavenLocal()
     mavenCentral()
     maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
+    maven {
         name = 'GTCEu Maven'
         url = 'https://maven.gtceu.com'
         content {
@@ -154,6 +159,8 @@ dependencies {
     modCompileOnly("dev.emi:emi-forge:${emi_version}+${minecraft_version}")
     modRuntimeOnly("dev.emi:emi-forge:${project.findProperty('gtm') != null ? '1.1.24' : emi_version}+${minecraft_version}")
     modCompileOnly("dev.latvian.mods:kubejs-forge:${kubejs_version}") { transitive = false }
+    modCompileOnly "maven.modrinth:infiniverse:4ddkRT11" // optional: personal dimensions without a restart
+    modRuntimeOnly "maven.modrinth:infiniverse:4ddkRT11"
     modCompileOnly("dev.latvian.mods:rhino-forge:${rhino_version}") { transitive = false }
     // KubeJS in the dev runtime, so the plugin and the example script actually load
     modRuntimeOnly("dev.latvian.mods:kubejs-forge:${kubejs_version}")

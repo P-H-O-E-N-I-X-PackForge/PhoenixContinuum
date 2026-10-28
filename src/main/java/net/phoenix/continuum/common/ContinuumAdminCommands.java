@@ -88,8 +88,45 @@ final class ContinuumAdminCommands {
     }
 
     private static boolean hasPersonalDimension(CommandSourceStack source, ResourceLocation body) {
-        var stems = source.getServer().registryAccess().registryOrThrow(net.minecraft.core.registries.Registries.LEVEL_STEM);
-        return stems.containsKey(net.phoenix.continuum.pdim.PdimDimensions.keyFor(body).location());
+        return net.phoenix.continuum.pdim.PdimRuntime.exists(source.getServer(), body);
+    }
+
+    private static int pdimWorldgenReport(CommandSourceStack source) {
+        var server = source.getServer();
+        source.sendSuccess(() -> Component.literal("Personal dimensions: " + (net.phoenix.continuum.pdim.PdimRuntime
+                .available() ? "made while the game runs (Infiniverse), no restart needed" :
+                "read when the world loads (a change needs a restart)") + "; " +
+                net.phoenix.continuum.api.PdimWorldgen.all().size() + " spec(s), " +
+                net.phoenix.continuum.api.PdimWorldgen.ruleCount() + " rule(s)"), false);
+        int shown = 0;
+        for (var body : ContinuumData.allBodies()) {
+            var spec = net.phoenix.continuum.api.PdimWorldgen.resolve(body.id(), body);
+            boolean loaded = server.getLevel(net.phoenix.continuum.pdim.PdimDimensions.keyFor(body.id())) != null;
+            String type = spec.generator().has("type") ? spec.generator().get("type").getAsString() : "?";
+            String line = body.id() + ": " + (spec.isVoid() ? "void" : type) + ", arrive " +
+                    spec.arrival().name().toLowerCase() + (net.phoenix.continuum.pdim.PdimRules.plotsOn(spec) ? "" :
+                            ", no plots") + (spec.plotStructure() != null ?
+                            ", structure " + spec.plotStructure() : "") + (loaded ? " (loaded)" : "");
+            if (shown++ < 40) source.sendSuccess(() -> Component.literal(line), false);
+        }
+        if (shown > 40) {
+            int more = shown - 40;
+            source.sendSuccess(() -> Component.literal("... and " + more + " more"), false);
+        }
+        return shown;
+    }
+
+    private static int pdimWorldgenReset(CommandSourceStack source, ResourceLocation body) {
+        if (!net.phoenix.continuum.pdim.PdimRuntime.available()) {
+            source.sendFailure(Component.literal("Needs Infiniverse (and runtimePersonalDimensions on): without it a " +
+                    "dimension is only read when the world loads."));
+            return 0;
+        }
+        boolean done = net.phoenix.continuum.pdim.PdimRuntime.unload(source.getServer(), body);
+        source.sendSuccess(() -> Component.literal(done ? "Unloaded the dimension of " + body +
+                "; the next visit makes it again from its current spec (what was built stays)." :
+                body + " has no loaded dimension."), true);
+        return done ? 1 : 0;
     }
 
     private static int writePdimFiles(CommandSourceStack source) {
@@ -445,6 +482,12 @@ final class ContinuumAdminCommands {
                         .then(literal("all").executes(ctx -> validate(ctx.getSource(), true))))
                 .then(literal("reload").executes(ctx -> reloadData(ctx.getSource())))
                 .then(literal("pdimfiles").executes(ctx -> writePdimFiles(ctx.getSource())))
+                .then(literal("pdimworldgen").executes(ctx -> pdimWorldgenReport(ctx.getSource()))
+                        .then(literal("reset")
+                                .then(argument("body", ResourceLocationArgument.id())
+                                        .suggests((ctx, builder) -> suggestBodies(builder, b -> true, false))
+                                        .executes(ctx -> pdimWorldgenReset(ctx.getSource(),
+                                                ResourceLocationArgument.getId(ctx, "body"))))))
                 .then(literal("dump")
                         .then(argument("body", ResourceLocationArgument.id())
                                 .suggests((ctx, builder) -> suggestBodies(builder, b -> true, false))

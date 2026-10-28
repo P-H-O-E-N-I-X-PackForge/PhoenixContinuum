@@ -126,6 +126,60 @@ public final class ContinuumEvents {
         }
     }
 
+    /** A player arrived in a personal dimension. {@code created} is true the first time they made it. */
+    public static class PdimEntered extends Event {
+
+        private final net.minecraft.server.level.ServerPlayer player;
+        private final ResourceLocation body;
+        private final boolean created;
+
+        public PdimEntered(net.minecraft.server.level.ServerPlayer player, ResourceLocation body, boolean created) {
+            this.player = player;
+            this.body = body;
+            this.created = created;
+        }
+
+        public net.minecraft.server.level.ServerPlayer getPlayer() {
+            return player;
+        }
+
+        public MinecraftServer getServer() {
+            return player.server;
+        }
+
+        public ResourceLocation getBody() {
+            return body;
+        }
+
+        public boolean isCreated() {
+            return created;
+        }
+    }
+
+    /** A player left a personal dimension through Continuum (not by dying or a command). */
+    public static class PdimLeft extends Event {
+
+        private final net.minecraft.server.level.ServerPlayer player;
+        private final ResourceLocation body;
+
+        public PdimLeft(net.minecraft.server.level.ServerPlayer player, ResourceLocation body) {
+            this.player = player;
+            this.body = body;
+        }
+
+        public net.minecraft.server.level.ServerPlayer getPlayer() {
+            return player;
+        }
+
+        public MinecraftServer getServer() {
+            return player.server;
+        }
+
+        public ResourceLocation getBody() {
+            return body;
+        }
+    }
+
     public static void postAnomaly(net.minecraft.server.level.ServerPlayer player, UUID team, ResourceLocation body,
                                    String anomaly) {
         MinecraftForge.EVENT_BUS.post(new AnomalyInvestigated(player.server, player, team, body, anomaly));

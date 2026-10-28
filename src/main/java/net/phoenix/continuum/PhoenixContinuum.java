@@ -33,6 +33,7 @@ public class PhoenixContinuum {
 
         ContinuumNetwork.register();
         modEventBus.addListener(net.phoenix.continuum.data.ContinuumPackFolder::register);
+        modEventBus.addListener(net.phoenix.continuum.pdim.PdimWorldgenPack::register);
         if (FMLLoader.getDist().isClient()) ContinuumClientSetup.init(modEventBus);
     }
 

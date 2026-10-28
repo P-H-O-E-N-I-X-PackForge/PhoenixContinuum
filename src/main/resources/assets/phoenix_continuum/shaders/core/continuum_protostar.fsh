@@ -82,8 +82,7 @@ void main() {
     // it), so the rings pass in front of the star as the view tilts through edge-on instead of stopping at its edge
     float side = n.z >= 0.0 ? 1.0 : -1.0;
     if (onStar && dot(q, mn) * side >= 0.0) {
-        fragColor = vec4(0.0);
-        return;
+        discard;
     }
 
     // disk-plane coordinates in star radii
@@ -150,4 +149,5 @@ void main() {
 
     float edge = 1.0 - smoothstep(0.7, 1.0, max(abs(vLocal.x), abs(vLocal.y)));
     fragColor = vec4(col * edge, 0.0);
+    if (fragColor.r + fragColor.g + fragColor.b < 0.004) discard;
 }

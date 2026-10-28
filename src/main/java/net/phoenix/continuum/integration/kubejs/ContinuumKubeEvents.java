@@ -24,7 +24,91 @@ public final class ContinuumKubeEvents {
 
     public static final EventHandler ANOMALY = GROUP.server("anomaly", () -> AnomalyEvent.class);
 
+    /** Startup: give a body's personal dimension its own worldgen. See {@code PdimWorldgen}. */
+    public static final EventHandler PDIM_ENTER = GROUP.server("pdimEnter", () -> PdimEnterEvent.class);
+
+    public static final EventHandler PDIM_LEAVE = GROUP.server("pdimLeave", () -> PdimLeaveEvent.class);
+
+    public static final EventHandler PDIM_WORLDGEN = GROUP.startup("pdimWorldgen", () -> PdimWorldgenEvent.class);
+
     private ContinuumKubeEvents() {}
+
+    public static class PdimWorldgenEvent extends EventJS {
+
+        /** The worldgen of a body's personal dimension, to change with {@code .flat(...)}, {@code .noise(...)} and so on. */
+        public net.phoenix.continuum.api.PdimWorldgen.Spec pdim(String body) {
+            return net.phoenix.continuum.api.PdimWorldgen.of(body);
+        }
+
+        /** Every body the test matches that has no pdim of its own. Rules need runtime dimensions (Infiniverse). */
+        public void where(java.util.function.Predicate<net.phoenix.continuum.data.ContinuumBody> test,
+                          java.util.function.Consumer<net.phoenix.continuum.api.PdimWorldgen.Spec> configure) {
+            net.phoenix.continuum.api.PdimWorldgen.where(test, configure);
+        }
+
+        /** Every body of a type: 'planet', 'moon', 'star' or 'black_hole'. */
+        public void type(String type, java.util.function.Consumer<net.phoenix.continuum.api.PdimWorldgen.Spec> configure) {
+            net.phoenix.continuum.api.PdimWorldgen.forType(type, configure);
+        }
+
+        /** Every body of a system. */
+        public void system(String system,
+                           java.util.function.Consumer<net.phoenix.continuum.api.PdimWorldgen.Spec> configure) {
+            net.phoenix.continuum.api.PdimWorldgen.forSystem(system, configure);
+        }
+
+        /** Every body without a pdim of its own. */
+        public void all(java.util.function.Consumer<net.phoenix.continuum.api.PdimWorldgen.Spec> configure) {
+            net.phoenix.continuum.api.PdimWorldgen.forAll(configure);
+        }
+    }
+
+    public static class PdimEnterEvent extends EventJS {
+
+        private final ContinuumEvents.PdimEntered event;
+
+        PdimEnterEvent(ContinuumEvents.PdimEntered event) {
+            this.event = event;
+        }
+
+        public net.minecraft.server.level.ServerPlayer getPlayer() {
+            return event.getPlayer();
+        }
+
+        public MinecraftServer getServer() {
+            return event.getServer();
+        }
+
+        public String getBody() {
+            return event.getBody().toString();
+        }
+
+        /** True the first time the player made this dimension. */
+        public boolean getCreated() {
+            return event.isCreated();
+        }
+    }
+
+    public static class PdimLeaveEvent extends EventJS {
+
+        private final ContinuumEvents.PdimLeft event;
+
+        PdimLeaveEvent(ContinuumEvents.PdimLeft event) {
+            this.event = event;
+        }
+
+        public net.minecraft.server.level.ServerPlayer getPlayer() {
+            return event.getPlayer();
+        }
+
+        public MinecraftServer getServer() {
+            return event.getServer();
+        }
+
+        public String getBody() {
+            return event.getBody().toString();
+        }
+    }
 
     public static class AnomalyEvent extends EventJS {
 

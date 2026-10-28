@@ -155,3 +155,154 @@ patch, or "Reset server edits", puts the body back; the original definition file
   `ContinuumAPI.grantResearch(...)` or the `Continuum` KubeJS binding (`Continuum.grantResearch(player, "mypack:node")`).
   A body or system gated on `detected_research` / `surveyed_research` appears when its id is unlocked; one without gates uses
   its `initial_stage`. Another mod can still replace all of this with `ContinuumHost.setResearch`.
+
+## Personal dimension worldgen
+
+A personal dimension (pdim) is void by default, with an obsidian pad to stand on. You can give any body real terrain, a
+vanilla noise world, or any chunk generator at all (another mod's too).
+
+**KubeJS** (a startup script; the dimension files are written while the game builds its list of data packs, so a change
+needs a restart, and chunks already generated in a saved world keep their old terrain):
+
+```js
+ContinuumEvents.pdimWorldgen(event => {
+  // layers of blocks from the bottom up ("block" or "block*height") over one biome
+  event.pdim('phoenix_continuum:luna').flat('minecraft:plains', 'minecraft:bedrock', 'minecraft:stone*60', 'minecraft:grass_block')
+
+  // a vanilla style world, one biome or the overworld's own
+  event.pdim('phoenix_continuum:mars').noise('minecraft:overworld', 'minecraft:desert')
+  event.pdim('phoenix_continuum:earth').overworldLike()
+
+  // anything else: a chunk generator as an object, and its dimension type if it needs its own
+  event.pdim('mypack:hive').generator({
+    type: 'phoenixcore:discipline', discipline_id: 'phoenix', seed: 19274618,
+    biome_source: { type: 'minecraft:fixed', biome: 'phoenixcore:phoenix' }
+  }).dimensionType('phoenixcore:discipline')
+
+  // where players arrive: .arriveOnSurface() (the default for terrain), .arriveOnPlatform(), .arriveAt(100)
+})
+```
+
+**Java**: `PdimWorldgen.of(bodyId).flat(...)` (or `.noise`, `.overworldLike`, `.generator`, `.dimensionType`,
+`.arriveAt`), from your mod constructor or by listening for `PdimWorldgen.Collect` on the game bus. `of` creates the
+spec if the body has none and returns it, so there is nothing to register afterwards.
+
+Arrival: a void world builds the pad at the player's plot, as before. With terrain the player is put on the ground at
+the plot (plots are 1024 blocks apart), and the pad is only built if the column is empty. A spec can force the pad or a
+fixed height. A spec registered in code or script wins over a hand-written `dimension/pdim/<body>.json`.
+
+### More than terrain
+
+**No restart (Infiniverse).** With the Infiniverse mod installed (and `runtimePersonalDimensions` left on in the config) a
+personal dimension is made the first time somebody needs it, from its spec, while the game runs. A new body, or a spec
+you add or change, needs no restart and no `/continuumadmin pdimfiles`. Without Infiniverse nothing changes: dimensions
+are files read when the world loads. A changed spec only affects chunks not made yet; `/continuumadmin pdimworldgen reset
+<body>` drops the loaded dimension so the next visit makes it again from the current spec (what was built stays).
+
+**Rules instead of one body at a time** (they are worked out when a dimension is made, so they need Infiniverse; a spec
+made for a named body always wins over a rule):
+
+```js
+ContinuumEvents.pdimWorldgen(event => {
+  event.type('moon', spec => spec.flat('minecraft:stony_peaks', 'minecraft:bedrock', 'minecraft:stone*60'))
+  event.system('mypack:home_system', spec => spec.auto())
+  event.where(body => body.radius() > 3, spec => spec.overworldLike())
+  event.all(spec => spec.arriveOnSurface())
+})
+```
+
+**`.auto()`** works the world out from the body: stars, black holes and gas giants stay void; rocky worlds get terrain in
+a biome that follows their distance from the star, their ice and their oceans (an earth-like ocean world gets the
+overworld's own biomes, an airless moon bare rock).
+
+**A base at the plot:** `.plotStructure('mypack:landing_pad')` places that structure template when a player first makes
+the dimension (its floor on the arrival point, its middle on the plot).
+
+**Events** (server scripts): `ContinuumEvents.pdimEnter(e => ...)` with `e.player`, `e.body`, `e.created` (true the first
+time), and `ContinuumEvents.pdimLeave(e => ...)`. From Java, `ContinuumEvents.PdimEntered` and `PdimLeft` on the game bus.
+
+**Files, for packs without KubeJS:** `config/phoenix_continuum/pdim_worldgen/*.json`, one spec per file:
+
+```json
+{ "body": "phoenix_continuum:luna", "type": "flat", "biome": "minecraft:stony_peaks",
+  "layers": ["minecraft:bedrock", "minecraft:stone*60", "minecraft:gravel"] }
+
+{ "match": { "type": "moon" }, "type": "auto", "plot_structure": "mypack:landing_pad" }
+```
+
+`type` is `void`, `flat`, `noise` (`settings` and a `biome`), `overworld_like`, `auto` or `generator` (a `generator`
+object). Also optional: `dimension_type`, `arrival` (`surface`, `platform` or `fixed` with `y`) and `plot_structure`.
+`match` takes `type`, `system` and `ids`.
+
+**`/continuumadmin pdimworldgen`** lists what each body will get (generator, arrival, structure) and whether it is loaded.
+
+### World rules, plots and ores
+
+Each spec can also say how the world behaves:
+
+```js
+event.pdim('mypack:vacuum_moon')
+  .flat('minecraft:stony_peaks', 'minecraft:bedrock', 'minecraft:stone*60')
+  .mobs(false)                               // nothing spawns on its own (natural, spawners, patrols)
+  .fallDamage(true)                          // a fall hurts (default false)
+  .requireOxygen('#mypack:space_helmets')    // no air: damage each second without this helmet (an item id or a #tag)
+  .plotRadius(300)                           // players stay within 300 blocks of their own plot (ops exempt)
+  .protectPlots(true)                        // other people's plots can't be built on or used (a team shares its plots)
+  .gtOres('minecraft:overworld')             // GregTech's ore veins and bedrock fluids of that dimension generate here too
+  .weather('clear')                          // 'normal' (the overworld's, default), 'clear', 'rain' or 'storm'
+```
+
+- `plotRadius` and `protectPlots` are for dimensions where every player has a plot in the same world. Protection covers the
+  area within `plotRadius` of the owner's plot (256 blocks if none is set). Creative ops can build anywhere.
+- `gtOres` adds the dimension to the filter of every GregTech ore vein, bedrock fluid and bedrock ore that lists the one you
+  name, when the dimension is made (or when the world starts, for dimensions read from files).
+- The same keys work in a spec file: `mobs`, `fall_damage`, `oxygen`, `plot_radius`, `protect_plots`, `gt_ores`.
+
+### Weather
+
+A dimension other than the overworld takes the overworld's weather, so a personal dimension can't normally differ. A spec can
+give it weather of its own (Continuum runs its own weather step for that dimension, in place of the game's):
+
+```js
+event.pdim('mypack:desert_world').weather('clear')      // never rains
+event.pdim('mypack:swamp_world').weather('rain')        // always raining (snow in cold biomes, as usual)
+event.pdim('mypack:storm_world').weather('storm')       // always a thunderstorm, with lightning
+// clear spells of 10 to 60 minutes, rain for 5 to 10 minutes, one rainy spell in four a thunderstorm
+event.pdim('mypack:island').weatherCycle(600, 3600, 300, 600, 0.25)
+```
+
+In a file: `"weather": "storm"` or `"weather": { "clear_min": 600, "clear_max": 3600, "rain_min": 300, "rain_max": 600,
+"storm_chance": 0.25 }` (seconds). Weather turns on and off gradually, as the game's does. A cycle starts again from clear
+after a restart. `/weather` and the overworld's own cycle do not touch a dimension that has weather of its own.
+
+### Ordinary dimensions: turn the plots off
+
+By default every player gets a plot of their own in a personal dimension, all in the one world. If you would rather have a
+normal shared dimension, turn plots off:
+
+```js
+event.pdim('mypack:moon_colony').flat(...).plots(false)             // one body: everybody arrives at the world's origin
+event.pdim('mypack:moon_colony').plots(false).spawnAt(120, 70, -40)  // or at a spot of your choosing
+```
+
+or in the config (`personalPlots = false`) for every personal dimension at once, or `"plots": false` and `"spawn": [x, y, z]` in
+a spec file. With plots off there is no plot allocation, `plotRadius` and `protectPlots` do nothing, and a `plotStructure` is put
+down once for the whole dimension (the first time anybody arrives), not once per player. Everything else about a personal
+dimension (gravity, day speed, sky, costs, the worldgen, weather and the other rules) still applies. A void world still gets its
+obsidian pad at the arrival point; terrain puts the player on the ground there.
+
+
+### On 1.20.1 (Forge, KubeJS 6)
+
+The personal dimension API is the same on 1.20.1 and 1.21.1: the same `PdimWorldgen` builder, the same scripts and files, the
+same events. What differs underneath:
+
+- **No restart (Infiniverse):** install Infiniverse 1.0.0.5 for 1.20.1 (Modrinth, Forge). Same switch (`runtimePersonalDimensions`).
+- **Weather:** 1.20.1 has no mixin in Continuum, so a dimension's own weather is put over the game's after every tick instead of
+  replacing its weather step. It behaves the same, with one more packet per tick to the players in the dimension while the
+  overworld's weather is different from the dimension's.
+- **GregTech ores (`.gtOres`):** written for GregTech 7.5.3 (static registries). With GregTech 8 on 1.20.1 it is skipped and the
+  log says so.
+- **KubeJS 6:** the scripts are the same. Use `Item.of('minecraft:torch', 16)` for stacks (not `'minecraft:torch 16'`), and item
+  tags in a data pack go in `tags/items/` (1.21.1: `tags/item/`). Everything in the Rhino JavaScript of KubeJS 6 that the example scripts use
+  (arrow functions, template strings, `const`) is supported.

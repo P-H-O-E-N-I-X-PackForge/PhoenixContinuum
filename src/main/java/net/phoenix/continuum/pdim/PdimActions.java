@@ -28,7 +28,7 @@ public final class PdimActions {
         ContinuumBody body = ContinuumData.body(bodyId);
         if (body == null) return "That body does not exist.";
 
-        ServerLevel target = server.getLevel(PdimDimensions.keyFor(bodyId));
+        ServerLevel target = PdimRuntime.level(server, bodyId);
         if (target == null) return "There is no personal dimension for " + body.name() + " in this world.";
 
         var team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
@@ -48,9 +48,24 @@ public final class PdimActions {
             PdimCosts.take(player, cost);
         }
 
+        boolean created = data.entry(player.getUUID(), bodyId) == null;
         PdimData.Entry entry = data.create(player.getUUID(), bodyId, gravity, orbitView);
-        BlockPos origin = PdimDimensions.plotOrigin(entry.plot());
-        buildPlatform(target, origin);
+        var spec = net.phoenix.continuum.api.PdimWorldgen.resolve(bodyId, body);
+        boolean plots = PdimRules.plotsOn(spec);
+        BlockPos plot;
+        if (plots) {
+            plot = PdimDimensions.plotOrigin(entry.plot());
+        } else {
+            var at = spec.spawn();
+            plot = at != null ? new BlockPos(at[0], PdimDimensions.PLATFORM_Y, at[2]) :
+                    new BlockPos(0, PdimDimensions.PLATFORM_Y, 0);
+        }
+        BlockPos origin = arrivalPoint(target, spec, plot);
+        // with plots every player gets the structure at their plot; without, it is put down once for the whole dimension
+        if (spec.plotStructure() != null && (created || !plots) &&
+                (plots || PdimData.get(server).markStructurePlaced(bodyId))) {
+            PdimStructures.place(target, spec.plotStructure(), origin.above());
+        }
 
         if (!PdimDimensions.isPersonal(player.level().dimension())) {
             data.setReturn(player.getUUID(), new PdimData.Return(player.level().dimension().location(), player.getX(),
@@ -61,6 +76,8 @@ public final class PdimActions {
         player.teleportTo(target, origin.getX() + 0.5, origin.getY() + 1.0, origin.getZ() + 0.5, player.getYRot(),
                 player.getXRot());
         sendState(player);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
+                new net.phoenix.continuum.api.ContinuumEvents.PdimEntered(player, bodyId, created));
         return null;
     }
 
@@ -68,6 +85,7 @@ public final class PdimActions {
         MinecraftServer server = player.server;
         if (!PdimDimensions.isPersonal(player.level().dimension())) return "You are not in a personal dimension.";
 
+        ResourceLocation leaving = PdimDimensions.bodyOf(player.level().dimension());
         PdimData data = PdimData.get(server);
         PdimData.Return back = data.returnPoint(player.getUUID());
         ServerLevel level = back == null ? null : server.getLevel(net.minecraft.resources.ResourceKey
@@ -83,6 +101,10 @@ public final class PdimActions {
         }
         data.clearReturn(player.getUUID());
         sendState(player);
+        if (leaving != null) {
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
+                    new net.phoenix.continuum.api.ContinuumEvents.PdimLeft(player, leaving));
+        }
         return null;
     }
 
@@ -90,6 +112,30 @@ public final class PdimActions {
         boolean removed = PdimData.get(player.server).delete(player.getUUID(), bodyId);
         if (removed) sendState(player);
         return removed;
+    }
+
+    /**
+     * Where to put the player at a plot: the pad for a void world (it is built here), otherwise the ground or a fixed
+     * height, as the body's {@link net.phoenix.continuum.api.PdimWorldgen} spec says.
+     */
+    private static BlockPos arrivalPoint(ServerLevel level, net.phoenix.continuum.api.PdimWorldgen.Spec spec,
+                                         BlockPos plot) {
+        switch (spec.arrival()) {
+            case FIXED -> {
+                level.getChunk(plot);
+                return new BlockPos(plot.getX(), spec.fixedY(), plot.getZ());
+            }
+            case SURFACE -> {
+                level.getChunk(plot);
+                int y = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                        plot.getX(), plot.getZ());
+                // nothing there to stand on (the world is void, or the column is empty): fall back to the pad
+                if (y > level.getMinBuildHeight() + 1) return new BlockPos(plot.getX(), y - 1, plot.getZ());
+            }
+            default -> {}
+        }
+        buildPlatform(level, plot);
+        return plot;
     }
 
     private static void buildPlatform(ServerLevel level, BlockPos origin) {

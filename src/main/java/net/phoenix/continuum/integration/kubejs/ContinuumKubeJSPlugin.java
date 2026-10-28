@@ -19,6 +19,11 @@ public class ContinuumKubeJSPlugin extends KubeJSPlugin {
     public void init() {
         if (bridged) return;
         bridged = true;
+        net.phoenix.continuum.pdim.PdimWorldgenPack.scriptHook = ignored -> {
+            if (ContinuumKubeEvents.PDIM_WORLDGEN.hasListeners()) {
+                ContinuumKubeEvents.PDIM_WORLDGEN.post(ScriptType.STARTUP, new ContinuumKubeEvents.PdimWorldgenEvent());
+            }
+        };
         
         MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, ContinuumVisibilityEvent.class, event -> {
             if (ContinuumKubeEvents.VISIBILITY.hasListeners()) {
@@ -34,6 +39,16 @@ public class ContinuumKubeJSPlugin extends KubeJSPlugin {
         MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, ContinuumEvents.AnomalyInvestigated.class, event -> {
             if (ContinuumKubeEvents.ANOMALY.hasListeners()) {
                 ContinuumKubeEvents.ANOMALY.post(ScriptType.SERVER, new ContinuumKubeEvents.AnomalyEvent(event));
+            }
+        });
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, ContinuumEvents.PdimEntered.class, event -> {
+            if (ContinuumKubeEvents.PDIM_ENTER.hasListeners()) {
+                ContinuumKubeEvents.PDIM_ENTER.post(ScriptType.SERVER, new ContinuumKubeEvents.PdimEnterEvent(event));
+            }
+        });
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, ContinuumEvents.PdimLeft.class, event -> {
+            if (ContinuumKubeEvents.PDIM_LEAVE.hasListeners()) {
+                ContinuumKubeEvents.PDIM_LEAVE.post(ScriptType.SERVER, new ContinuumKubeEvents.PdimLeaveEvent(event));
             }
         });
         MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, ContinuumEvents.MissionChanged.class, event -> {

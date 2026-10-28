@@ -53,6 +53,13 @@ public final class PdimDimensions {
         return bodyOf(dimension) != null;
     }
 
+    /** The plot whose square a position falls in (plots are PLOT_SPACING apart, 32 to a row). */
+    public static int plotAt(BlockPos pos) {
+        int col = Math.floorMod(Math.floorDiv(pos.getX() + PLOT_SPACING / 2, PLOT_SPACING), 32);
+        int row = Math.max(0, Math.floorDiv(pos.getZ() + PLOT_SPACING / 2, PLOT_SPACING));
+        return row * 32 + col;
+    }
+
     public static BlockPos plotOrigin(int plot) {
         return new BlockPos((plot % 32) * PLOT_SPACING, PLATFORM_Y, (plot / 32) * PLOT_SPACING);
     }

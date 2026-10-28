@@ -1,0 +1,17 @@
+{
+  "blend": {
+    "func": "add",
+    "srcrgb": "one",
+    "dstrgb": "1-srcalpha"
+  },
+  "vertex": "phoenix_continuum:continuum_composite",
+  "fragment": "phoenix_continuum:continuum_composite",
+  "attributes": ["Position", "UV0", "Color"],
+  "samplers": [
+    { "name": "DiffuseSampler" }
+  ],
+  "uniforms": [
+    { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1] },
+    { "name": "ProjMat",      "type": "matrix4x4", "count": 16, "values": [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1] }
+  ]
+}

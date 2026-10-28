@@ -7,6 +7,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.TickEvent;
 import net.phoenix.continuum.PhoenixContinuum;
 
@@ -30,9 +31,19 @@ public final class PdimEvents {
         }
     }
 
+    /** Dimensions read from files at startup get their GregTech ores once the world is up. */
+    @SubscribeEvent
+    public static void onServerStarted(ServerStartedEvent event) {
+        for (var spec : net.phoenix.continuum.api.PdimWorldgen.all()) {
+            if (spec.gtOresFrom() != null) PdimRuntime.mirrorOres(event.getServer(), spec.body());
+        }
+    }
+
     @SubscribeEvent
     public static void onFall(LivingFallEvent event) {
-        if (PdimDimensions.isPersonal(event.getEntity().level().dimension())) event.setDamageMultiplier(0.0f);
+        if (!PdimDimensions.isPersonal(event.getEntity().level().dimension())) return;
+        var spec = PdimRules.specOf(event.getEntity().level());
+        if (spec == null || !spec.fallDamage()) event.setDamageMultiplier(0.0f);
     }
 
     @SubscribeEvent

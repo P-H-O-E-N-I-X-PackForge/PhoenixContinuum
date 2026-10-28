@@ -38,6 +38,7 @@ public class PdimData extends SavedData {
     private final Map<UUID, Map<ResourceLocation, Entry>> entries = new HashMap<>();
     private final Map<ResourceLocation, Integer> nextPlot = new HashMap<>();
     private final Map<UUID, Return> returns = new HashMap<>();
+    private final java.util.Set<ResourceLocation> structuresPlaced = new java.util.HashSet<>();
 
     public static PdimData get(MinecraftServer server) {
         return server.overworld().getDataStorage()
@@ -46,6 +47,22 @@ public class PdimData extends SavedData {
 
     public @Nullable Entry entry(UUID player, ResourceLocation body) {
         return entries.getOrDefault(player, Map.of()).get(body);
+    }
+
+    /** For a dimension with no plots: true the first time (the structure is put down once). */
+    public boolean markStructurePlaced(ResourceLocation body) {
+        boolean first = structuresPlaced.add(body);
+        if (first) setDirty();
+        return first;
+    }
+
+    /** Who made the plot with this number in a body's dimension, or null if nobody has. */
+    public @Nullable UUID ownerOfPlot(ResourceLocation body, int plot) {
+        for (var owner : entries.entrySet()) {
+            Entry entry = owner.getValue().get(body);
+            if (entry != null && entry.plot() == plot) return owner.getKey();
+        }
+        return null;
     }
 
     public Map<ResourceLocation, Entry> entries(UUID player) {
@@ -133,6 +150,9 @@ public class PdimData extends SavedData {
             back.add(e);
         }
         tag.put("Returns", back);
+        ListTag placed = new ListTag();
+        for (ResourceLocation body : structuresPlaced) placed.add(net.minecraft.nbt.StringTag.valueOf(body.toString()));
+        tag.put("StructuresPlaced", placed);
         return tag;
     }
 
@@ -157,6 +177,9 @@ public class PdimData extends SavedData {
             CompoundTag e = (CompoundTag) t;
             data.returns.put(e.getUUID("Player"), new Return(new ResourceLocation(e.getString("Dimension")),
                     e.getDouble("X"), e.getDouble("Y"), e.getDouble("Z"), e.getFloat("Yaw"), e.getFloat("Pitch")));
+        }
+        for (Tag t : tag.getList("StructuresPlaced", Tag.TAG_STRING)) {
+            data.structuresPlaced.add(new ResourceLocation(t.getAsString()));
         }
         return data;
     }
