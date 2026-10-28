@@ -39,6 +39,7 @@ public final class ContinuumShaders {
     public static ShaderInstance TIDAL;
 
     public static ShaderInstance STARFIELD;
+    public static ShaderInstance COMPOSITE;
 
     public static void onRegisterShaders(RegisterShadersEvent event) {
         register(event, "phoenix_continuum:continuum_planet", DefaultVertexFormat.POSITION, s -> PLANET = s);
@@ -63,6 +64,8 @@ public final class ContinuumShaders {
         register(event, "phoenix_continuum:continuum_dyson", DefaultVertexFormat.POSITION, s -> DYSON = s);
         register(event, "phoenix_continuum:continuum_tidal", DefaultVertexFormat.POSITION, s -> TIDAL = s);
         register(event, "phoenix_continuum:continuum_starfield", DefaultVertexFormat.POSITION, s -> STARFIELD = s);
+        register(event, "phoenix_continuum:continuum_composite", DefaultVertexFormat.POSITION_TEX_COLOR,
+                s -> COMPOSITE = s);
     }
 
     private static void register(RegisterShadersEvent event, String name, VertexFormat format,

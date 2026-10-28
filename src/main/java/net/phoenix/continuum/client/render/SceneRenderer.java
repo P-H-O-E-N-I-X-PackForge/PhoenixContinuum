@@ -550,7 +550,7 @@ public final class SceneRenderer {
                 com.mojang.blaze3d.platform.GlStateManager.DestFactor.ONE);
         
         RenderSystem.enableDepthTest();
-        RenderSystem.depthMask(false);
+        RenderSystem.depthMask(worldDepthWrite);
         RenderSystem.disableCull();
 
         VertexBuffer quad = holeQuad();
@@ -1238,8 +1238,19 @@ public final class SceneRenderer {
      * front of it hide them. NaN (the default) is the map, with nothing to be behind.
      */
     public static void setWorldDepth(float ndcDepth) {
-        worldDepth = ndcDepth;
+        setWorldDepth(ndcDepth, false);
     }
+
+    /**
+     * As above, and with {@code write} the pictures also write that depth where they are lit, so things drawn after
+     * them (water, glass) that lie behind do not show over them. Off by default: only for objects drawn in the world.
+     */
+    public static void setWorldDepth(float ndcDepth, boolean write) {
+        worldDepth = ndcDepth;
+        worldDepthWrite = write && !Float.isNaN(ndcDepth);
+    }
+
+    private static boolean worldDepthWrite;
 
     private static void compositeHole(com.mojang.blaze3d.pipeline.TextureTarget low) {
         Matrix4f savedProjection = new Matrix4f(RenderSystem.getProjectionMatrix());
@@ -1251,14 +1262,15 @@ public final class SceneRenderer {
         RenderSystem.blendFunc(com.mojang.blaze3d.platform.GlStateManager.SourceFactor.ONE,
                 com.mojang.blaze3d.platform.GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
 
-        ShaderInstance blit = Minecraft.getInstance().gameRenderer.blitShader;
-        blit.setSampler("DiffuseSampler", low.getColorTextureId());
         boolean depthAware = !Float.isNaN(worldDepth);
+        ShaderInstance blit = depthAware && worldDepthWrite && ContinuumShaders.COMPOSITE != null ?
+                ContinuumShaders.COMPOSITE : Minecraft.getInstance().gameRenderer.blitShader;
+        blit.setSampler("DiffuseSampler", low.getColorTextureId());
         // an ortho from 1000 to 3000 puts a quad at z = -1000 * (depth + 2) at that normalised depth
         float quadZ = depthAware ? -1000.0f * (Math.max(-1.0f, Math.min(1.0f, worldDepth)) + 2.0f) : -2000.0f;
         if (depthAware) {
             RenderSystem.enableDepthTest();
-            RenderSystem.depthMask(false);
+            RenderSystem.depthMask(worldDepthWrite);
         }
         if (blit.MODEL_VIEW_MATRIX != null)
             blit.MODEL_VIEW_MATRIX.set(new Matrix4f().translation(0.0f, 0.0f, quadZ));

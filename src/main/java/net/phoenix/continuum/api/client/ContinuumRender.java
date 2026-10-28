@@ -52,8 +52,18 @@ public final class ContinuumRender {
      * laid over the picture, and would otherwise show through everything). Pair with {@link #endWorldObject()}.
      */
     public static void beginWorldObject(Matrix4f view, Matrix4f projection, Vector3f cameraRelativeCentre) {
+        beginWorldObject(view, projection, cameraRelativeCentre, false);
+    }
+
+    /**
+     * As above. With {@code writeDepth} the glow, disk and cloud pictures also write their depth where they are lit,
+     * so water, glass and other translucent blocks drawn after them that lie behind do not show over them. Use it when
+     * the object is drawn before the translucent blocks (after block entities).
+     */
+    public static void beginWorldObject(Matrix4f view, Matrix4f projection, Vector3f cameraRelativeCentre,
+                                        boolean writeDepth) {
         org.joml.Vector4f clip = new org.joml.Vector4f(cameraRelativeCentre, 1.0f).mul(view).mul(projection);
-        SceneRenderer.setWorldDepth(clip.w > 0.0f ? clip.z / clip.w : Float.NaN);
+        SceneRenderer.setWorldDepth(clip.w > 0.0f ? clip.z / clip.w : Float.NaN, writeDepth);
     }
 
     public static void endWorldObject() {
