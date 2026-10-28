@@ -21,11 +21,10 @@ ContinuumEvents.pdimWorldgen(event => {
   event.pdim('phoenix_continuum:example_rock')
     .noise('minecraft:overworld', 'minecraft:desert')
 
-  // 3. The gas giant has no ground: leave it void (the default), but start the player high above the clouds
-  //    on the pad instead of at the pad's usual height.
+  // 3. The gas giant has no ground: leave it void, the default (you arrive on the obsidian pad). Naming it with
+  //    .voidWorld() puts it back to void if something else changed it.
   event.pdim('phoenix_continuum:example_giant')
     .voidWorld()
-    .arriveAt(200)
 
   // 4. Anything else: any chunk generator as an object, even another mod's, with its own dimension type.
   //    This one is a Conflux discipline world, with that discipline's terrain, structures and ores.
@@ -40,5 +39,5 @@ ContinuumEvents.pdimWorldgen(event => {
   // Where players arrive, if you want to force it:
   //   .arriveOnSurface()   the ground at the plot (the default for terrain)
   //   .arriveOnPlatform()  build the obsidian pad whatever the terrain
-  //   .arriveAt(100)       a fixed height, no pad
+  //   .arriveAt(100)       a fixed height, no pad (only for terrain: in void you would fall)
 })
