@@ -75,6 +75,17 @@ public final class ContinuumRender {
         SceneRenderer.drawHole(system, view, projection, worldPos, radius, quality(), false);
     }
 
+    /** A young star still gathering itself: a hot core in a disk of gas with gaps where it is clearing a path. */
+    public static void drawProtostar(int rgb, Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius) {
+        SceneRenderer.drawProtostar(rgb, view, projection, worldPos, radius, quality(), false,
+                new float[] { 3.4f, 5.1f, 7.3f, 0.0f });
+    }
+
+    /** A cloud of glowing gas, an expanding shell of it lit from within. */
+    public static void drawGasCloud(int rgb, Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius) {
+        SceneRenderer.drawPlanetaryNebula(rgb, view, projection, worldPos, radius, quality(), false);
+    }
+
     /**
      * A Dyson swarm or shell round a star, or a Penrose swarm or sphere round a black hole, partly built:
      * {@code completion} is 0 (nothing) to 1 (finished). {@code central} is the system's star or black hole body.
