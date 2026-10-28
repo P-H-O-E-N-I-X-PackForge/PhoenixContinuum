@@ -25,6 +25,7 @@ public final class SwarmControlRecipes {
                 .inputItems(frameGt, Steel, 4)
                 .inputItems(SENSOR_IV, 2)
                 .inputItems(EMITTER_IV, 4)
+                .inputItems(FIELD_GENERATOR_IV, 1)
                 .inputItems(CustomTags.IV_CIRCUITS, 4)
                 .inputFluids(SolderingAlloy, 576)
                 .outputItems(ContinuumMachines.SWARM_CONTROL)
