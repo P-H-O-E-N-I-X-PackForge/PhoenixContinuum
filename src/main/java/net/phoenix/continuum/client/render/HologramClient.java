@@ -25,6 +25,12 @@ public final class HologramClient {
 
         public S2CHologramPacket.State state;
         public float boot;
+
+        /** 0 while it is still coming up, rising to 1 once it has been all there for a while. */
+        public float settle;
+
+        /** Flared to 1 by a change (something built, a new target) and dying away. */
+        public float surge;
         public long lastSeen = Util.getMillis();
         private long lastStep = Util.getMillis();
 
@@ -38,6 +44,8 @@ public final class HologramClient {
             lastStep = now;
             boolean up = state.active() && now - lastSeen < STALE_MILLIS;
             boot = up ? Math.min(1.0f, boot + dt / BOOT_SECONDS) : Math.max(0.0f, boot - dt / COLLAPSE_SECONDS);
+            settle = boot >= 1.0f ? Math.min(1.0f, settle + dt / 2.5f) : 0.0f;
+            surge = Math.max(0.0f, surge - dt * 0.45f);
         }
     }
 
@@ -48,6 +56,13 @@ public final class HologramClient {
         if (holo == null) {
             holo = new Holo(state);
             HOLOS.put(state.pos(), holo);
+        }
+        var before = holo.state;
+        if (before != state && (before.swarm() != state.swarm() || before.shell() != state.shell() ||
+                !before.target().equals(state.target()) || before.active() != state.active() ||
+                before.scale() != state.scale() ||
+                (state.kind() == S2CHologramPacket.State.RECEIVER && Math.abs(before.swarm() - state.swarm()) >= 6))) {
+            holo.surge = 1.0f;
         }
         holo.state = state;
         holo.lastSeen = Util.getMillis();

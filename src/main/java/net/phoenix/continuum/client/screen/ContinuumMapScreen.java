@@ -100,6 +100,7 @@ public class ContinuumMapScreen extends Screen {
     private Phase phase = Phase.NONE;
     private float phaseTime;
     private float fade;
+    private long phaseStarted;
     private int zoomDirection;
     private @Nullable Runnable onSwitch;
 
@@ -1583,14 +1584,18 @@ public class ContinuumMapScreen extends Screen {
     }
 
     private void updateTransition(float dt) {
-
-        dt = Math.min(dt, 1.0f / 30.0f);
+        
+        dt = Math.min(dt, 1.0f / 15.0f);
 
         net.phoenix.continuum.client.render.PlanetBake.pause(phase == Phase.OUT);
         net.phoenix.continuum.client.render.PlanetBake.burst(phase == Phase.IN && phaseTime < BURST_SECONDS);
         if (phase == Phase.NONE) return;
 
         phaseTime += dt;
+        // a slow machine must not stretch a half second move into seconds: after a real second and a half it is done
+        long realNow = Util.getMillis();
+        if (phaseStarted == 0L || phaseTime <= dt) phaseStarted = realNow;
+        if (realNow - phaseStarted > 1500L) phaseTime = Math.max(phaseTime, phase == Phase.OUT ? OUT_SECONDS : IN_SECONDS);
         float t = Math.min(phaseTime / (phase == Phase.OUT ? OUT_SECONDS : IN_SECONDS), 1.0f);
 
         float eased = t * t * (3.0f - 2.0f * t);

@@ -82,6 +82,9 @@ public final class HologramRenderer {
             double cz = state.pos().getZ() + 0.5 + state.offsetZ() - camera.z;
             if (cx * cx + cy * cy + cz * cz > RANGE * RANGE) continue;
             float flicker = state.active() ? 1.0f : 0.55f + 0.45f * (float) Math.sin(seconds * 40.0f);
+            // once it is all there and nothing is happening the light settles and breathes; a change flares it
+            float calm = 0.17f + 0.05f * (float) Math.sin(seconds * 1.3f);
+            flicker *= Mth.lerp(holo.settle, 1.0f, calm + (1.0f - calm) * holo.surge);
 
             if (state.kind() == S2CHologramPacket.State.RECEIVER) {
                 VertexConsumer out = buffers.getBuffer(RenderType.lightning());
@@ -254,54 +257,88 @@ public final class HologramRenderer {
 
     // ------------------------------------------------------------------------------------------------ primitives
 
-    /** A beam with a wide soft halo, a body and a hard white core. */
+    /**
+     * A beam: a wide faint halo, a body and a thin hot core, each fading smoothly to nothing across its width, so
+     * it reads as light and not as a stack of bars.
+     */
     public static void glow(VertexConsumer out, Matrix4f pose, Vector3f a, Vector3f b, float width, float[] c,
-                             float strength) {
-        ribbon(out, pose, a, b, width * 3.2f, c, 0.10f * strength);
-        ribbon(out, pose, a, b, width * 1.5f, c, 0.35f * strength);
-        ribbon(out, pose, a, b, width * 0.55f, new float[] { 1.0f, 1.0f, 1.0f }, 0.95f * strength);
+                            float strength) {
+        ribbon(out, pose, a, b, width * 4.0f, c, 0.22f * strength);
+        ribbon(out, pose, a, b, width * 1.8f, c, 0.55f * strength);
+        ribbon(out, pose, a, b, width * 0.6f, new float[] { 1.0f, 1.0f, 1.0f }, 1.0f * strength);
     }
 
-    /** A short bright dash at t (0 to 1) along a to b. */
+    /** A soft bright dash at t (0 to 1) along a to b: brightest in its middle, fading out all round. */
     public static void pulse(VertexConsumer out, Matrix4f pose, Vector3f a, Vector3f b, float t, float length,
-                              float width, float strength) {
+                             float width, float strength) {
         float t0 = Mth.clamp(t, 0.0f, 1.0f);
         float t1 = Mth.clamp(t + length, 0.0f, 1.0f);
-        if (t1 <= t0) return;
+        if (t1 <= t0 || strength <= 0.01f) return;
         Vector3f p0 = new Vector3f(a).lerp(b, t0);
         Vector3f p1 = new Vector3f(a).lerp(b, t1);
         float edge = (float) Math.sin(Math.PI * Mth.clamp(t, 0.0f, 1.0f));
-        ribbon(out, pose, p0, p1, width * 1.6f, new float[] { 0.7f, 0.95f, 1.0f }, 0.5f * strength * edge);
-        ribbon(out, pose, p0, p1, width * 0.7f, new float[] { 1.0f, 1.0f, 1.0f }, 1.0f * strength * edge);
+        blob(out, pose, p0, p1, width * 2.6f, new float[] { 0.55f, 0.9f, 1.0f }, 0.55f * strength * edge);
+        blob(out, pose, p0, p1, width * 1.0f, new float[] { 1.0f, 1.0f, 1.0f }, 1.0f * strength * edge);
     }
 
-    /** A flat strip from a to b that turns to face the camera (at the origin), drawn from both sides. */
-    public static void ribbon(VertexConsumer out, Matrix4f pose, Vector3f a, Vector3f b, float width, float[] c,
-                               float alpha) {
-        if (alpha <= 0.01f) return;
+    private static Vector3f sideOf(Vector3f a, Vector3f b, float width) {
         Vector3f dir = new Vector3f(b).sub(a);
-        if (dir.lengthSquared() < 1.0e-8f) return;
         Vector3f mid = new Vector3f(a).add(b).mul(0.5f);
         Vector3f side = dir.cross(mid, new Vector3f());
-        if (side.lengthSquared() < 1.0e-10f) return;
-        side.normalize(width * 0.5f);
-        int r = (int) (Mth.clamp(c[0], 0.0f, 1.0f) * 255.0f);
-        int g = (int) (Mth.clamp(c[1], 0.0f, 1.0f) * 255.0f);
-        int bl = (int) (Mth.clamp(c[2], 0.0f, 1.0f) * 255.0f);
-        int al = (int) (Mth.clamp(alpha, 0.0f, 1.0f) * 255.0f);
-        Vector3f p1 = new Vector3f(a).sub(side);
-        Vector3f p2 = new Vector3f(a).add(side);
-        Vector3f p3 = new Vector3f(b).add(side);
-        Vector3f p4 = new Vector3f(b).sub(side);
-        quad(out, pose, p1, p2, p3, p4, r, g, bl, al);
-        quad(out, pose, p4, p3, p2, p1, r, g, bl, al);
+        if (dir.lengthSquared() < 1.0e-8f || side.lengthSquared() < 1.0e-10f) return null;
+        return side.normalize(width * 0.5f);
     }
 
-    private static void quad(VertexConsumer out, Matrix4f pose, Vector3f a, Vector3f b, Vector3f c, Vector3f d, int r,
-                             int g, int bl, int al) {
-        out.vertex(pose, a.x, a.y, a.z).color(r, g, bl, al).endVertex();
-        out.vertex(pose, b.x, b.y, b.z).color(r, g, bl, al).endVertex();
-        out.vertex(pose, c.x, c.y, c.z).color(r, g, bl, al).endVertex();
-        out.vertex(pose, d.x, d.y, d.z).color(r, g, bl, al).endVertex();
+    /** A flat strip from a to b that turns to face the camera (at the origin): clear in the middle, fading at the edges. */
+    public static void ribbon(VertexConsumer out, Matrix4f pose, Vector3f a, Vector3f b, float width, float[] c,
+                              float alpha) {
+        if (alpha <= 0.01f) return;
+        Vector3f side = sideOf(a, b, width);
+        if (side == null) return;
+        Vector3f a0 = new Vector3f(a).sub(side);
+        Vector3f a2 = new Vector3f(a).add(side);
+        Vector3f b0 = new Vector3f(b).sub(side);
+        Vector3f b2 = new Vector3f(b).add(side);
+        float[] edge = { c[0], c[1], c[2], 0.0f };
+        float[] mid = { c[0], c[1], c[2], alpha };
+        quad(out, pose, a0, a, b, b0, edge, mid, mid, edge);
+        quad(out, pose, a, a2, b2, b, mid, edge, edge, mid);
+    }
+
+    /** A soft oval of light along a to b, brightest at its centre, fading out in every direction. */
+    private static void blob(VertexConsumer out, Matrix4f pose, Vector3f p0, Vector3f p1, float width, float[] c,
+                             float alpha) {
+        Vector3f side = sideOf(p0, p1, width);
+        if (side == null || alpha <= 0.01f) return;
+        Vector3f m = new Vector3f(p0).add(p1).mul(0.5f);
+        Vector3f l0 = new Vector3f(p0).sub(side), r0 = new Vector3f(p0).add(side);
+        Vector3f lm = new Vector3f(m).sub(side), rm = new Vector3f(m).add(side);
+        Vector3f l1 = new Vector3f(p1).sub(side), r1 = new Vector3f(p1).add(side);
+        float[] none = { c[0], c[1], c[2], 0.0f };
+        float[] full = { c[0], c[1], c[2], alpha };
+        quad(out, pose, l0, p0, m, lm, none, none, none, none);
+        quad(out, pose, p0, r0, rm, m, none, none, none, full);
+        quad(out, pose, p0, m, rm, r0, none, full, none, none);
+        quad(out, pose, lm, m, p1, l1, none, full, none, none);
+        quad(out, pose, m, rm, r1, p1, full, none, none, none);
+    }
+
+    /** One quad, with a colour at each corner so the light fades smoothly across it, drawn from both sides. */
+    private static void quad(VertexConsumer out, Matrix4f pose, Vector3f a, Vector3f b, Vector3f c, Vector3f d,
+                             float[] ca, float[] cb, float[] cc, float[] cd) {
+        vertex(out, pose, a, ca);
+        vertex(out, pose, b, cb);
+        vertex(out, pose, c, cc);
+        vertex(out, pose, d, cd);
+        vertex(out, pose, d, cd);
+        vertex(out, pose, c, cc);
+        vertex(out, pose, b, cb);
+        vertex(out, pose, a, ca);
+    }
+
+    private static void vertex(VertexConsumer out, Matrix4f pose, Vector3f p, float[] c) {
+        out.vertex(pose, p.x, p.y, p.z).color((int) (Mth.clamp(c[0], 0.0f, 1.0f) * 255.0f),
+                (int) (Mth.clamp(c[1], 0.0f, 1.0f) * 255.0f), (int) (Mth.clamp(c[2], 0.0f, 1.0f) * 255.0f),
+                (int) (Mth.clamp(c[3], 0.0f, 1.0f) * 255.0f)).endVertex();
     }
 }
