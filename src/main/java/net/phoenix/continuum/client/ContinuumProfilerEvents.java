@@ -25,10 +25,23 @@ public final class ContinuumProfilerEvents {
             GlStateDump.sampleStage("after sky");
         } else if (stage == net.minecraftforge.client.event.RenderLevelStageEvent.Stage.AFTER_SOLID_BLOCKS) {
             GlStateDump.sampleStage("after solid blocks");
+        } else if (stage == net.minecraftforge.client.event.RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
+            GlStateDump.sampleStage("after particles");
         } else if (stage == net.minecraftforge.client.event.RenderLevelStageEvent.Stage.AFTER_WEATHER) {
             GlStateDump.sampleStage("after weather");
-            GlStateDump.endLevelFrame();
+        } else if (stage == net.minecraftforge.client.event.RenderLevelStageEvent.Stage.AFTER_LEVEL) {
+            GlStateDump.sampleStage("after level");
         }
+    }
+
+    @SubscribeEvent
+    public static void onGuiPre(RenderGuiEvent.Pre event) {
+        GlStateDump.sampleStage("gui pre");
+    }
+
+    @SubscribeEvent
+    public static void onRenderTickStart(TickEvent.RenderTickEvent event) {
+        if (event.phase == TickEvent.Phase.END) GlStateDump.endLevelFrame();
     }
 
     @SubscribeEvent

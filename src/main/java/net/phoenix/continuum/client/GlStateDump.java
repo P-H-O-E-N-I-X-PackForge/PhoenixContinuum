@@ -153,6 +153,9 @@ public final class GlStateDump {
         var proj = RenderSystem.getProjectionMatrix();
         sb.append(" proj(m00=").append(proj.m00()).append(" m11=").append(proj.m11()).append(" m22=").append(proj.m22())
                 .append(" m32=").append(proj.m32()).append(")");
+        sb.append(" graphics=").append(mc.options.graphicsMode().get()).append(" postEffect=")
+                .append(mc.gameRenderer.currentEffect() != null).append(" transparencyChain=")
+                .append(net.minecraft.client.Minecraft.useShaderTransparency());
         sb.append(" colorMask=");
         ByteBuffer mask = BufferUtils.createByteBuffer(16);
         GL11.glGetBooleanv(GL11.GL_COLOR_WRITEMASK, mask);
