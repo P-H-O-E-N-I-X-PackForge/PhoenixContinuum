@@ -352,6 +352,9 @@ final class ContinuumAdminCommands {
     static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(literal("continuumadmin")
                 .requires(source -> source.hasPermission(2))
+                .then(literal("worldgentimes")
+                        .executes(ctx -> worldgenTimes(ctx.getSource(), false))
+                        .then(literal("reset").executes(ctx -> worldgenTimes(ctx.getSource(), true))))
                 .then(literal("rocket")
                         .then(literal("give").executes(ctx -> giveRocket(ctx.getSource())))
                         .then(literal("repair").executes(ctx -> setWear(ctx.getSource(), 0.0f)))
@@ -554,6 +557,18 @@ final class ContinuumAdminCommands {
 
     private static UUID team(CommandSourceStack source) throws CommandSyntaxException {
         return net.phoenix.continuum.api.ContinuumHost.teamOf(source.getPlayerOrException().getUUID());
+    }
+
+    private static int worldgenTimes(CommandSourceStack source, boolean reset) {
+        if (reset) {
+            net.phoenix.continuum.pdim.WorldgenTimes.reset();
+            source.sendSuccess(() -> Component.literal("Chunk generation times reset."), false);
+            return 1;
+        }
+        for (String line : net.phoenix.continuum.pdim.WorldgenTimes.report()) {
+            source.sendSuccess(() -> Component.literal(line), false);
+        }
+        return 1;
     }
 
     private static int giveRocket(CommandSourceStack source) throws CommandSyntaxException {
