@@ -920,7 +920,116 @@ public final class SceneRenderer {
         }
     }
 
+    private static final int PUFF_SIZE = 256;
+    private static final int PUFF_CACHE = 192;
+    private static final int PUFFS_PER_FRAME = 3;
+
+    private record PuffKey(float seed, int color1, int color2, float density, int octaves) {}
+
+    private record Puff(PuffKey key, Matrix4f model) {}
+
+    private static final java.util.Map<PuffKey, com.mojang.blaze3d.pipeline.TextureTarget> PUFFS =
+            new java.util.LinkedHashMap<>(64, 0.75f, true);
+
+    /**
+     * A puff of a nebula is a fixed cloud (it only ever drifts a little), but it is several layers of warped noise at
+     * every pixel it covers, and a nebula is many large puffs laid over each other. So each puff is worked out once into
+     * a small picture, a few a frame so nothing stalls, and drawn from that: one texture read a pixel. A puff whose
+     * picture is not made yet is left out for a frame or two.
+     */
     private static void drawNebulas$timed(java.util.List<Nebula> nebulas, Matrix4f view, Matrix4f projection, float scale){
+        ShaderInstance bake = ContinuumShaders.NEBULA;
+        ShaderInstance tex = ContinuumShaders.NEBULA_TEX;
+        if (bake == null || nebulas.isEmpty()) return;
+        if (tex == null) {
+            drawNebulasLive(nebulas, view, projection, scale);
+            return;
+        }
+        int octaves = Math.min(5, net.phoenix.continuum.client.ContinuumVisuals.quality().octaves);
+        java.util.List<Puff> placed = new java.util.ArrayList<>();
+        for (Nebula nebula : nebulas) {
+            java.util.Random random = new java.util.Random((long) (nebula.seed() * 7919.0f));
+            for (int i = 0; i < nebula.puffs(); i++) {
+                Vector3f offset = new Vector3f(random.nextFloat() - 0.5f, (random.nextFloat() - 0.5f) * 0.5f,
+                        random.nextFloat() - 0.5f).mul(nebula.radius() * 1.3f);
+                float size = nebula.radius() * scale * (0.65f + random.nextFloat() * 0.6f);
+                float spin = random.nextFloat() * 6.2831853f;
+                Vector3f centre = view.transformPosition(new Vector3f(nebula.center()).add(offset).mul(scale));
+                if (centre.z > -0.5f) continue;
+                placed.add(new Puff(new PuffKey(nebula.seed() + i * 3.7f, nebula.color1(), nebula.color2(),
+                        nebula.density(), octaves), new Matrix4f().translate(centre).rotateZ(spin).scale(size)));
+            }
+        }
+        if (placed.isEmpty()) return;
+
+        RenderTarget destination = current != null ? current : Minecraft.getInstance().getMainRenderTarget();
+        int made = 0;
+        for (Puff puff : placed) {
+            if (made >= PUFFS_PER_FRAME) break;
+            if (PUFFS.containsKey(puff.key())) continue;
+            bakePuff(bake, puff.key(), destination);
+            made++;
+        }
+
+        ensureNebulaTarget(destination);
+        nebulaTarget.setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        nebulaTarget.clear(Minecraft.ON_OSX);
+        nebulaTarget.bindWrite(true);
+        RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
+        RenderSystem.disableCull();
+        blendPremultiplied();
+        VertexBuffer quad = holeQuad();
+        quad.bind();
+        for (Puff puff : placed) {
+            var picture = PUFFS.get(puff.key());
+            if (picture == null) continue;
+            tex.setSampler("Puff", picture.getColorTextureId());
+            quad.drawWithShader(puff.model(), projection, tex);
+        }
+        unbindBuffers();
+        destination.bindWrite(true);
+
+        compositeHole(nebulaTarget);
+
+        RenderSystem.enableCull();
+        RenderSystem.depthMask(true);
+        RenderSystem.enableDepthTest();
+        RenderSystem.disableBlend();
+        RenderSystem.defaultBlendFunc();
+    }
+
+    private static void bakePuff(ShaderInstance shader, PuffKey key, RenderTarget destination) {
+        var picture = new com.mojang.blaze3d.pipeline.TextureTarget(PUFF_SIZE, PUFF_SIZE, false, Minecraft.ON_OSX);
+        picture.setFilterMode(9729);
+        picture.setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        picture.clear(Minecraft.ON_OSX);
+        picture.bindWrite(true);
+        RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
+        RenderSystem.disableCull();
+        blendPremultiplied();
+        shader.safeGetUniform("Time").set(0.0f);
+        shader.safeGetUniform("Octaves").set((float) key.octaves());
+        setColor(shader, "Color1", key.color1());
+        setColor(shader, "Color2", key.color2());
+        shader.safeGetUniform("Density").set(key.density());
+        shader.safeGetUniform("Seed").set(key.seed());
+        VertexBuffer quad = holeQuad();
+        quad.bind();
+        quad.drawWithShader(new Matrix4f(), new Matrix4f(), shader);
+        unbindBuffers();
+        destination.bindWrite(true);
+        PUFFS.put(key, picture);
+        while (PUFFS.size() > PUFF_CACHE) {
+            var eldest = PUFFS.entrySet().iterator();
+            eldest.next().getValue().destroyBuffers();
+            eldest.remove();
+        }
+    }
+
+    /** The nebulas drawn live, puff by puff: what is used if the baked-puff shader is not there. */
+    private static void drawNebulasLive(java.util.List<Nebula> nebulas, Matrix4f view, Matrix4f projection, float scale) {
         ShaderInstance shader = ContinuumShaders.NEBULA;
         if (shader == null || nebulas.isEmpty()) return;
 

@@ -31,6 +31,7 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
     }
 
     private static volatile Vec3 horizonFog = null;
+    private static int unbakedFrames;
 
     @Override
     public Vec3 getBrightnessDependentFogColor(Vec3 fogColor, float brightness) {
@@ -46,6 +47,12 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
     @Override
     public boolean renderSky(ClientLevel level, int ticks, float partialTick, Matrix4f modelViewMatrix, Camera camera,
                              Matrix4f projectionMatrix, boolean isFoggy, Runnable setupFog) {
+        // the sky screen draws the whole sky itself, opaque, over the world: drawing it here as well is a second full
+        // screen of the same thing, hidden
+        if (net.minecraft.client.Minecraft.getInstance().screen instanceof
+                net.phoenix.continuum.client.screen.ContinuumSkyScreen) {
+            return true;
+        }
         PoseStack poseStack = new PoseStack();
         poseStack.mulPose(modelViewMatrix);
         ResourceLocation id = PdimDimensions.bodyOf(level.dimension());
@@ -157,6 +164,18 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
         
         var baked = net.phoenix.continuum.client.render.NebulaBake.get(primaryRgb, secondaryRgb,
                 ContinuumVisuals.backdropOctaves());
+
+        // the baked nebula should be there a few frames after the sky first draws; if it never is, the sky is worked out
+        // per pixel every frame, which is several times as costly, so say so once
+        if (baked == null) {
+            if (++unbakedFrames == 180) {
+                net.phoenix.continuum.PhoenixContinuum.LOGGER.warn(
+                        "[sky] the baked nebula is still not ready after 180 frames (shader loaded: {}); the sky is being worked out per pixel",
+                        ContinuumShaders.NEBULA_BAKE != null);
+            }
+        } else {
+            unbakedFrames = 0;
+        }
 
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);

@@ -27,6 +27,8 @@ public final class ContinuumShaders {
     public static ShaderInstance SKY;
     public static ShaderInstance RING;
     public static ShaderInstance NEBULA;
+    /** A nebula puff read from its baked picture. */
+    public static ShaderInstance NEBULA_TEX;
     public static ShaderInstance WOLFRAYET;
     public static ShaderInstance PULSAR;
     public static ShaderInstance PLANETARY;
@@ -53,6 +55,7 @@ public final class ContinuumShaders {
         register(event, "phoenix_continuum:continuum_sky", DefaultVertexFormat.POSITION, s -> SKY = s);
         register(event, "phoenix_continuum:continuum_ring", DefaultVertexFormat.POSITION, s -> RING = s);
         register(event, "phoenix_continuum:continuum_nebula", DefaultVertexFormat.POSITION, s -> NEBULA = s);
+        register(event, "phoenix_continuum:continuum_nebula_tex", DefaultVertexFormat.POSITION, s -> NEBULA_TEX = s);
         register(event, "phoenix_continuum:continuum_wolfrayet", DefaultVertexFormat.POSITION, s -> WOLFRAYET = s);
         register(event, "phoenix_continuum:continuum_pulsar", DefaultVertexFormat.POSITION, s -> PULSAR = s);
         register(event, "phoenix_continuum:continuum_planetary", DefaultVertexFormat.POSITION, s -> PLANETARY = s);
