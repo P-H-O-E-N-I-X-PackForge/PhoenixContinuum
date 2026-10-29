@@ -153,6 +153,19 @@ public final class GlStateDump {
         var proj = RenderSystem.getProjectionMatrix();
         sb.append(" proj(m00=").append(proj.m00()).append(" m11=").append(proj.m11()).append(" m22=").append(proj.m22())
                 .append(" m32=").append(proj.m32()).append(")");
+        // what is really bound on units 0 to 2 and whether the game's own record agrees (a wrong texture under a
+        // darkening overlay would black the screen)
+        int activeNow = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
+        sb.append(" tex(");
+        for (int unit = 0; unit < 3; unit++) {
+            GL13.glActiveTexture(GL13.GL_TEXTURE0 + unit);
+            sb.append(unit > 0 ? "," : "").append(GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D));
+        }
+        GL13.glActiveTexture(activeNow);
+        sb.append(") cache=").append(cacheComparison());
+        sb.append(" blend=").append(GL11.glIsEnabled(GL11.GL_BLEND)).append('(')
+                .append(GL11.glGetInteger(GL30.GL_BLEND_SRC_RGB)).append('/').append(GL11.glGetInteger(GL30.GL_BLEND_DST_RGB))
+                .append(')');
         sb.append(" graphics=").append(mc.options.graphicsMode().get()).append(" postEffect=")
                 .append(mc.gameRenderer.currentEffect() != null).append(" transparencyChain=")
                 .append(net.minecraft.client.Minecraft.useShaderTransparency());

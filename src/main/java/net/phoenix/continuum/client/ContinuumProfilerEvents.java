@@ -35,6 +35,16 @@ public final class ContinuumProfilerEvents {
     }
 
     @SubscribeEvent
+    public static void onOverlayPre(net.minecraftforge.client.event.RenderGuiOverlayEvent.Pre event) {
+        GlStateDump.sampleStage("overlay pre " + event.getOverlay().id());
+    }
+
+    @SubscribeEvent
+    public static void onOverlayPost(net.minecraftforge.client.event.RenderGuiOverlayEvent.Post event) {
+        GlStateDump.sampleStage("overlay post " + event.getOverlay().id());
+    }
+
+    @SubscribeEvent
     public static void onGuiPre(RenderGuiEvent.Pre event) {
         GlStateDump.sampleStage("gui pre");
     }
