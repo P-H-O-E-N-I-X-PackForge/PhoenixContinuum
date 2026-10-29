@@ -1537,8 +1537,10 @@ public final class SceneRenderer {
 
     private static void drawBuiltinBackdrop$timed(ShaderInstance g, float width, float height, float yawDeg){
 
+        net.phoenix.continuum.client.GlStateDump.dumpFew("backdrop: before the baked nebula is asked for");
         var baked = !USE_BAKED_BACKDROP ? null : NebulaBake.get(new float[] {0.42f, 0.2f, 0.85f}, new float[] {0.1f, 0.35f, 0.9f},
                 net.phoenix.continuum.client.ContinuumVisuals.backdropOctaves());
+        net.phoenix.continuum.client.GlStateDump.dumpFew("backdrop: after it (baked " + (baked != null) + ")");
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
         RenderSystem.disableCull();
@@ -1564,6 +1566,7 @@ public final class SceneRenderer {
 
         g.safeGetUniform("Mode").set(0.0f);
         g.safeGetUniform("UseBake").set(0.0f);
+        net.phoenix.continuum.client.GlStateDump.dumpFew("backdrop: after drawing it");
 
         RenderSystem.enableCull();
         RenderSystem.disableBlend();

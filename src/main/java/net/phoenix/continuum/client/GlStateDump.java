@@ -28,6 +28,16 @@ public final class GlStateDump {
 
     public static void setEnabled(boolean on) {
         enabled = on;
+        few = 0;
+    }
+
+    private static int few;
+
+    /** Like dump, but only the first 15 calls since logging was turned on, for places that run every frame. */
+    public static void dumpFew(String when) {
+        if (!enabled || few >= 15) return;
+        few++;
+        dump(when);
     }
 
     /** Logs the state now. */
@@ -80,7 +90,40 @@ public final class GlStateDump {
         sb.append(" shaderColor=").append(color[0]).append(',').append(color[1]).append(',').append(color[2])
                 .append(',').append(color[3]);
         sb.append(" glError=").append(GL11.glGetError());
+        sb.append(" main=").append(mc.getMainRenderTarget().width).append('x').append(mc.getMainRenderTarget().height)
+                .append("/view").append(mc.getMainRenderTarget().viewWidth).append('x')
+                .append(mc.getMainRenderTarget().viewHeight).append(" mainColorTex=")
+                .append(mc.getMainRenderTarget().getColorTextureId());
+        sb.append(" cacheVsReal=").append(cacheComparison());
         net.phoenix.continuum.PhoenixContinuum.LOGGER.info("[glstate] {}", sb);
+    }
+
+    /**
+     * The game keeps its own record of which texture is bound on each unit and skips a bind it thinks is already done, so
+     * if that record and the real binding disagree a draw samples the wrong texture (black). Reads the record by reflection
+     * (it is private) and lists the units where the two differ.
+     */
+    private static String cacheComparison() {
+        try {
+            var texturesField = com.mojang.blaze3d.platform.GlStateManager.class.getDeclaredField("TEXTURES");
+            texturesField.setAccessible(true);
+            Object[] states = (Object[]) texturesField.get(null);
+            StringBuilder out = new StringBuilder();
+            int active = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
+            for (int unit = 0; unit < Math.min(8, states.length); unit++) {
+                var bindingField = states[unit].getClass().getDeclaredField("binding");
+                bindingField.setAccessible(true);
+                int cached = bindingField.getInt(states[unit]);
+                GL13.glActiveTexture(GL13.GL_TEXTURE0 + unit);
+                int real = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+                if (cached != real) out.append("unit").append(unit).append("(cached ").append(cached).append(" real ")
+                        .append(real).append(") ");
+            }
+            GL13.glActiveTexture(active);
+            return out.length() == 0 ? "ok" : out.toString().trim();
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return "unavailable:" + e.getClass().getSimpleName();
+        }
     }
 
     /** Logs the state at the start of each of the next few frames (before the game binds anything for them). */
