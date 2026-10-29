@@ -927,6 +927,13 @@ public final class SceneRenderer {
         }
     }
 
+    /**
+     * 1.20.1 workaround, as for USE_BAKED_BACKDROP: sampling a baked render target in the map leaves the world black after
+     * the map closes on some AMD iGPUs, and the puffs are exactly that. Off, they are drawn live (slower, but safe). Flip
+     * to true to retest.
+     */
+    public static final boolean USE_BAKED_PUFFS = false;
+
     private static final int PUFF_SIZE = 256;
     private static final int PUFF_CACHE = 192;
     private static final int PUFFS_PER_FRAME = 3;
@@ -948,7 +955,7 @@ public final class SceneRenderer {
         ShaderInstance bake = ContinuumShaders.NEBULA;
         ShaderInstance tex = ContinuumShaders.NEBULA_TEX;
         if (bake == null || nebulas.isEmpty()) return;
-        if (tex == null) {
+        if (tex == null || !USE_BAKED_PUFFS) {
             drawNebulasLive(nebulas, view, projection, scale);
             return;
         }
