@@ -100,6 +100,60 @@ public final class GlStateDump {
         net.phoenix.continuum.PhoenixContinuum.LOGGER.info("[glstate] {}", sb);
     }
 
+    private static Object field(Object owner, String name) throws ReflectiveOperationException {
+        var f = owner.getClass().getDeclaredField(name);
+        f.setAccessible(true);
+        return f.get(owner);
+    }
+
+    private static Object staticField(String name) throws ReflectiveOperationException {
+        var f = com.mojang.blaze3d.platform.GlStateManager.class.getDeclaredField(name);
+        f.setAccessible(true);
+        return f.get(null);
+    }
+
+    /**
+     * Compares the game's record of blend, depth, cull and colour mask with what the GPU really has. The game skips a state
+     * change it believes is already made, so a record that is wrong makes later drawing use the wrong state (an overlay that
+     * should darken overwrites instead).
+     */
+    private static String stateCacheComparison() {
+        try {
+            StringBuilder out = new StringBuilder();
+            Object blend = staticField("BLEND");
+            boolean cachedBlend = (boolean) field(field(blend, "mode"), "enabled");
+            boolean realBlend = GL11.glIsEnabled(GL11.GL_BLEND);
+            if (cachedBlend != realBlend) out.append("blendEnabled(cached ").append(cachedBlend).append(" real ")
+                    .append(realBlend).append(") ");
+            String[] names = { "srcRgb", "dstRgb", "srcAlpha", "dstAlpha" };
+            int[] reals = { GL11.glGetInteger(GL30.GL_BLEND_SRC_RGB), GL11.glGetInteger(GL30.GL_BLEND_DST_RGB),
+                    GL11.glGetInteger(GL30.GL_BLEND_SRC_ALPHA), GL11.glGetInteger(GL30.GL_BLEND_DST_ALPHA) };
+            for (int i = 0; i < 4; i++) {
+                int cached = (int) field(blend, names[i]);
+                if (cached != reals[i]) out.append("blend.").append(names[i]).append("(cached ").append(cached)
+                        .append(" real ").append(reals[i]).append(") ");
+            }
+            Object depth = staticField("DEPTH");
+            boolean cachedDepth = (boolean) field(field(depth, "mode"), "enabled");
+            if (cachedDepth != GL11.glIsEnabled(GL11.GL_DEPTH_TEST)) out.append("depthTest(cached ").append(cachedDepth)
+                    .append(") ");
+            boolean cachedMask = (boolean) field(depth, "mask");
+            if (cachedMask != GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK)) out.append("depthMask(cached ")
+                    .append(cachedMask).append(") ");
+            try {
+                Object cull = staticField("CULL");
+                boolean cachedCull = (boolean) field(field(cull, "enable"), "enabled");
+                if (cachedCull != GL11.glIsEnabled(GL11.GL_CULL_FACE)) out.append("cull(cached ").append(cachedCull)
+                        .append(") ");
+            } catch (ReflectiveOperationException | RuntimeException e) {
+                out.append("cull?");
+            }
+            return out.length() == 0 ? "ok" : out.toString().trim();
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return "unavailable:" + e.getClass().getSimpleName() + ":" + e.getMessage();
+        }
+    }
+
     /**
      * The game keeps its own record of which texture is bound on each unit and skips a bind it thinks is already done, so
      * if that record and the real binding disagree a draw samples the wrong texture (black). Reads the record by reflection
@@ -163,6 +217,7 @@ public final class GlStateDump {
         }
         GL13.glActiveTexture(activeNow);
         sb.append(") cache=").append(cacheComparison());
+        sb.append(" stateCache=").append(stateCacheComparison());
         sb.append(" blend=").append(GL11.glIsEnabled(GL11.GL_BLEND)).append('(')
                 .append(GL11.glGetInteger(GL30.GL_BLEND_SRC_RGB)).append('/').append(GL11.glGetInteger(GL30.GL_BLEND_DST_RGB))
                 .append(')');
