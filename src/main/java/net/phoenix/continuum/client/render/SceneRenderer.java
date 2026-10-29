@@ -932,7 +932,7 @@ public final class SceneRenderer {
      * the map closes on some AMD iGPUs, and the puffs are exactly that. Off, they are drawn live (slower, but safe). Flip
      * to true to retest.
      */
-    public static boolean USE_BAKED_PUFFS = false;
+    public static boolean USE_BAKED_PUFFS = true;
 
     private static final int PUFF_SIZE = 256;
     private static final int PUFF_CACHE = 192;
@@ -1520,7 +1520,7 @@ public final class SceneRenderer {
      * after the map screen closes (seen on an AMD Radeon iGPU). With this off the backdrop renders the nebula noise
      * live in the shader instead. Flip to true to use the baked texture again (e.g. to retest after a driver update).
      */
-    public static boolean USE_BAKED_BACKDROP = false;
+    public static boolean USE_BAKED_BACKDROP = true;
 
     private static void drawBuiltinBackdrop(ShaderInstance g, float width, float height, float yawDeg) {
         try (var timer = net.phoenix.continuum.client.ContinuumProfiler.scope("backdrop.builtin")) {
