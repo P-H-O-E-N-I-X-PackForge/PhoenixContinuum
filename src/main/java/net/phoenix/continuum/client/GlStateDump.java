@@ -29,6 +29,8 @@ public final class GlStateDump {
     public static void setEnabled(boolean on) {
         enabled = on;
         few = 0;
+        // a few world frames right away, to have a normal one to compare the black ones with
+        stageFrames = on ? 3 : 0;
     }
 
     private static int few;
@@ -127,10 +129,50 @@ public final class GlStateDump {
     }
 
     private static int pixelFrames;
+    private static int stageFrames;
+
+    /** Where in the frame the world's colour first goes black: samples after the sky, the solid blocks and the whole level. */
+    public static void sampleStage(String stage) {
+        if (!enabled || stageFrames <= 0) return;
+        Minecraft mc = Minecraft.getInstance();
+        var main = mc.getMainRenderTarget();
+        ByteBuffer px = BufferUtils.createByteBuffer(4);
+        StringBuilder sb = new StringBuilder("level stage ").append(stage).append(": fbo=")
+                .append(GL11.glGetInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING)).append("/main").append(main.frameBufferId);
+        int[][] points = { { main.width / 4, main.height * 3 / 4 }, { main.width / 4, main.height / 2 } };
+        for (int[] p : points) {
+            px.clear();
+            GL11.glReadPixels(p[0], p[1], 1, 1, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, px);
+            sb.append(" [").append(p[0]).append(',').append(p[1]).append("]=").append(px.get(0) & 255).append(',')
+                    .append(px.get(1) & 255).append(',').append(px.get(2) & 255).append(',').append(px.get(3) & 255);
+        }
+        float[] fog = RenderSystem.getShaderFogColor();
+        sb.append(" fog(start=").append(RenderSystem.getShaderFogStart()).append(" end=")
+                .append(RenderSystem.getShaderFogEnd()).append(" color=").append(fog[0]).append(',').append(fog[1])
+                .append(',').append(fog[2]).append(',').append(fog[3]).append(")");
+        var proj = RenderSystem.getProjectionMatrix();
+        sb.append(" proj(m00=").append(proj.m00()).append(" m11=").append(proj.m11()).append(" m22=").append(proj.m22())
+                .append(" m32=").append(proj.m32()).append(")");
+        sb.append(" colorMask=");
+        ByteBuffer mask = BufferUtils.createByteBuffer(16);
+        GL11.glGetBooleanv(GL11.GL_COLOR_WRITEMASK, mask);
+        sb.append(mask.get(0)).append(mask.get(1)).append(mask.get(2)).append(mask.get(3));
+        float[] c = RenderSystem.getShaderColor();
+        sb.append(" shaderColor=").append(c[0]).append(',').append(c[1]).append(',').append(c[2]).append(',').append(c[3]);
+        net.phoenix.continuum.PhoenixContinuum.LOGGER.info("[glstate] {}", sb);
+    }
+
+    /** Called once a frame, at the end of the level, to count the sampled frames down. */
+    public static void endLevelFrame() {
+        if (stageFrames > 0) stageFrames--;
+    }
 
     /** Asks for the next few frames to have their pixels sampled once the HUD has drawn (see samplePixels). */
     public static void samplePixelsForFrames(int frames) {
-        if (enabled) pixelFrames = frames;
+        if (enabled) {
+            pixelFrames = frames;
+            stageFrames = frames;
+        }
     }
 
     /**

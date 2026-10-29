@@ -19,6 +19,19 @@ public final class ContinuumProfilerEvents {
     }
 
     @SubscribeEvent
+    public static void onLevelStage(net.minecraftforge.client.event.RenderLevelStageEvent event) {
+        var stage = event.getStage();
+        if (stage == net.minecraftforge.client.event.RenderLevelStageEvent.Stage.AFTER_SKY) {
+            GlStateDump.sampleStage("after sky");
+        } else if (stage == net.minecraftforge.client.event.RenderLevelStageEvent.Stage.AFTER_SOLID_BLOCKS) {
+            GlStateDump.sampleStage("after solid blocks");
+        } else if (stage == net.minecraftforge.client.event.RenderLevelStageEvent.Stage.AFTER_WEATHER) {
+            GlStateDump.sampleStage("after weather");
+            GlStateDump.endLevelFrame();
+        }
+    }
+
+    @SubscribeEvent
     public static void onGui(RenderGuiEvent.Post event) {
         GlStateDump.samplePixels();
         ContinuumProfiler.drawOverlay(event.getGuiGraphics());
