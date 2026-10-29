@@ -24,6 +24,10 @@ public final class ContinuumCommand {
                         .then(literal("test").executes(ctx -> open(ContinuumTestScreen::new)))
                         .then(literal("map").executes(ctx -> open(ContinuumMapScreen::new)))
                         .then(literal("goals").executes(ctx -> goals()))
+                        .then(literal("rescue")
+                                .then(literal("textures").executes(ctx -> rescue("textures")))
+                                .then(literal("chunks").executes(ctx -> rescue("chunks")))
+                                .then(literal("target").executes(ctx -> rescue("target"))))
                         .then(literal("glstate")
                                 .then(literal("on").executes(ctx -> glState(true)))
                                 .then(literal("off").executes(ctx -> glState(false))))
@@ -73,6 +77,26 @@ public final class ContinuumCommand {
                 mc.player.displayClientMessage(net.minecraft.network.chat.Component.literal(line), false);
             }
         }
+        return 1;
+    }
+
+    /** For when the screen has gone black: each tries one thing, and which of them brings the world back says what broke. */
+    private static int rescue(String what) {
+        Minecraft mc = Minecraft.getInstance();
+        switch (what) {
+            case "textures" -> {
+                for (int unit = 0; unit < 12; unit++) {
+                    com.mojang.blaze3d.systems.RenderSystem.activeTexture(33984 + unit);
+                    com.mojang.blaze3d.systems.RenderSystem.bindTexture(0);
+                }
+                com.mojang.blaze3d.systems.RenderSystem.activeTexture(33984);
+            }
+            case "chunks" -> mc.levelRenderer.allChanged();
+            case "target" -> mc.getMainRenderTarget().resize(mc.getWindow().getWidth(), mc.getWindow().getHeight(),
+                    Minecraft.ON_OSX);
+            default -> {}
+        }
+        say("Tried: " + what + ". Is the world back?");
         return 1;
     }
 

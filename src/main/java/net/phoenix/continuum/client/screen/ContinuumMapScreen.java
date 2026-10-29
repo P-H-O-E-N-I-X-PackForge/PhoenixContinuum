@@ -1963,6 +1963,7 @@ public class ContinuumMapScreen extends Screen {
         Minecraft mc = Minecraft.getInstance();
         net.phoenix.continuum.client.GlStateDump.dump("map removed, before anything is reset");
         net.phoenix.continuum.client.GlStateDump.dumpNextFrames("after the map closed", 4);
+        net.phoenix.continuum.client.GlStateDump.samplePixelsForFrames(8);
         if (mc.getMainRenderTarget() != null) {
             mc.getMainRenderTarget().bindWrite(true);
         }

@@ -126,6 +126,50 @@ public final class GlStateDump {
         }
     }
 
+    private static int pixelFrames;
+
+    /** Asks for the next few frames to have their pixels sampled once the HUD has drawn (see samplePixels). */
+    public static void samplePixelsForFrames(int frames) {
+        if (enabled) pixelFrames = frames;
+    }
+
+    /**
+     * Reads a few pixels of the framebuffer being drawn (the world, before the final copy to the window) and the main
+     * target's texture settings, to tell "the world was drawn black" from "it was drawn but is shown black".
+     */
+    public static void samplePixels() {
+        if (!enabled || pixelFrames <= 0) return;
+        pixelFrames--;
+        Minecraft mc = Minecraft.getInstance();
+        var main = mc.getMainRenderTarget();
+        int w = main.width;
+        int h = main.height;
+        StringBuilder sb = new StringBuilder("world pixels (").append(pixelFrames).append(" frames left): drawFbo=")
+                .append(GL11.glGetInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING)).append(" mainFbo=").append(main.frameBufferId);
+        int[][] points = { { w / 4, h * 3 / 4 }, { w / 4, h / 2 }, { w * 3 / 4, h / 3 }, { w / 2, h * 7 / 8 } };
+        ByteBuffer px = BufferUtils.createByteBuffer(4);
+        for (int[] p : points) {
+            px.clear();
+            GL11.glReadPixels(p[0], p[1], 1, 1, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, px);
+            sb.append(" [").append(p[0]).append(',').append(p[1]).append("]=").append(px.get(0) & 255).append(',')
+                    .append(px.get(1) & 255).append(',').append(px.get(2) & 255).append(',').append(px.get(3) & 255);
+        }
+        // the main target's texture, read on a spare unit so nothing the game bound is disturbed
+        int active = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
+        GL13.glActiveTexture(GL13.GL_TEXTURE0 + 12);
+        int was = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, main.getColorTextureId());
+        sb.append(" mainTex(min=").append(GL11.glGetTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER))
+                .append(" mag=").append(GL11.glGetTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER))
+                .append(" wrap=").append(GL11.glGetTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S))
+                .append(" size=").append(GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_WIDTH))
+                .append("x").append(GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_HEIGHT))
+                .append(")");
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, was);
+        GL13.glActiveTexture(active);
+        net.phoenix.continuum.PhoenixContinuum.LOGGER.info("[glstate] {}", sb);
+    }
+
     /** Logs the state at the start of each of the next few frames (before the game binds anything for them). */
     public static void dumpNextFrames(String when, int frames) {
         if (!enabled || frames <= 0) return;

@@ -20,6 +20,7 @@ public final class ContinuumProfilerEvents {
 
     @SubscribeEvent
     public static void onGui(RenderGuiEvent.Post event) {
+        GlStateDump.samplePixels();
         ContinuumProfiler.drawOverlay(event.getGuiGraphics());
     }
 
