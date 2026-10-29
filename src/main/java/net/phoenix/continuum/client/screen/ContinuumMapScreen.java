@@ -310,7 +310,7 @@ public class ContinuumMapScreen extends Screen {
         if (planner.isOpen() && body != null) {
             planner.draw(graphics, font, width, height, mouseX, mouseY, body, pad,
                     ContinuumClientState.stage(body.id()), findRocket(), countProbes(), countKits(), countRockets(),
-                    countCollectors(), countSegments(),
+                    countCollectors(body), countSegments(body),
                     ContinuumClientState.outpost(body.id()), ContinuumClientState.now());
         }
 
@@ -1225,14 +1225,23 @@ public class ContinuumMapScreen extends Screen {
         return total;
     }
 
-    private int countCollectors() {
-        if (ContinuumClientState.padUsesBuses(pad)) return ContinuumClientState.padCollectors();
-        return countInventory(stack -> stack.getItem() instanceof net.phoenix.continuum.item.ContinuumSwarmCollectorItem);
+    /** The pods that go to this body: Penrose ones for a black hole, swarm ones for a star. */
+    private int countCollectors(net.phoenix.continuum.data.ContinuumBody body) {
+        boolean penrose = net.phoenix.continuum.common.Swarms.isPenrose(body);
+        if (ContinuumClientState.padUsesBuses(pad)) {
+            return penrose ? ContinuumClientState.padPenroseCollectors() : ContinuumClientState.padCollectors();
+        }
+        return penrose ? countInventory(stack -> stack.getItem() instanceof net.phoenix.continuum.item.ContinuumPenroseCollectorItem) :
+                countInventory(stack -> stack.getItem() instanceof net.phoenix.continuum.item.ContinuumSwarmCollectorItem);
     }
 
-    private int countSegments() {
-        if (ContinuumClientState.padUsesBuses(pad)) return ContinuumClientState.padSegments();
-        return countInventory(stack -> stack.getItem() instanceof net.phoenix.continuum.item.ContinuumShellSegmentItem);
+    private int countSegments(net.phoenix.continuum.data.ContinuumBody body) {
+        boolean penrose = net.phoenix.continuum.common.Swarms.isPenrose(body);
+        if (ContinuumClientState.padUsesBuses(pad)) {
+            return penrose ? ContinuumClientState.padPenroseSegments() : ContinuumClientState.padSegments();
+        }
+        return penrose ? countInventory(stack -> stack.getItem() instanceof net.phoenix.continuum.item.ContinuumPenroseSegmentItem) :
+                countInventory(stack -> stack.getItem() instanceof net.phoenix.continuum.item.ContinuumShellSegmentItem);
     }
 
     private static int countInventory(java.util.function.Predicate<ItemStack> matches) {

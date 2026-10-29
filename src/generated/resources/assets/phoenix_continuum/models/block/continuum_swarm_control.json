@@ -1,8 +1,8 @@
 {
   "parent": "minecraft:block/cube_bottom_top",
   "textures": {
-    "bottom": "minecraft:block/polished_blackstone",
-    "side": "minecraft:block/polished_blackstone",
-    "top": "minecraft:block/crying_obsidian"
+    "bottom": "phoenix_continuum:block/continuum_swarm_control_bottom",
+    "side": "phoenix_continuum:block/continuum_swarm_control_side",
+    "top": "phoenix_continuum:block/continuum_swarm_control_top"
   }
 }

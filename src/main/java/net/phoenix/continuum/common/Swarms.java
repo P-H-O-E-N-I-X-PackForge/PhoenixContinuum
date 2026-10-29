@@ -47,8 +47,16 @@ public final class Swarms {
     }
 
     public static String payloadName(boolean shell, int count) {
-        return shell ? count + " shell segment" + (count == 1 ? "" : "s") :
-                count + " swarm collector pod" + (count == 1 ? "" : "s");
+        return payloadName(shell, count, false);
+    }
+
+    /** What is carried, named for the body it goes to: a black hole gets Penrose items, a star the Dyson ones. */
+    public static String payloadName(boolean shell, int count, boolean penrose) {
+        String plural = count == 1 ? "" : "s";
+        if (penrose) {
+            return shell ? count + " Penrose segment" + plural : count + " Penrose collector pod" + plural;
+        }
+        return shell ? count + " shell segment" + plural : count + " swarm collector pod" + plural;
     }
 
     public static double shadow(ContinuumTeamData data, UUID team, ContinuumBody outpost) {

@@ -184,7 +184,9 @@ final class MissionPlannerPanel {
         boolean specialStation = swarm && (shellMode || mode == Mission.Type.STATION);
         int stationProbes = specialStation ? Swarms.payloadPerLevel(body, shellMode) : Stations.probesPerLevel(body);
         int stationOwned = specialStation ? (shellMode ? segmentsOwned : collectorsOwned) : probesOwned;
-        String stationLabel = specialStation ? (shellMode ? "Shell segments" : "Swarm collectors") : "Probes";
+        boolean penrose = Swarms.isPenrose(body);
+        String stationLabel = specialStation ? (shellMode ? (penrose ? "Penrose segments" : "Shell segments") :
+                (penrose ? "Penrose collectors" : "Swarm collectors")) : "Probes";
         int strandedCount = 0;
         for (var m : ContinuumClientState.missions()) {
             if (m.stranded() && !m.rescuing() && m.destination().equals(body.id())) strandedCount++;

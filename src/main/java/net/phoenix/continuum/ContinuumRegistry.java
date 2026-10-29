@@ -26,6 +26,8 @@ import net.phoenix.continuum.item.ContinuumProbeItem;
 import net.phoenix.continuum.item.ContinuumRefitKitItem;
 import net.phoenix.continuum.item.ContinuumRepairKitItem;
 import net.phoenix.continuum.item.ContinuumRocketItem;
+import net.phoenix.continuum.item.ContinuumPenroseCollectorItem;
+import net.phoenix.continuum.item.ContinuumPenroseSegmentItem;
 import net.phoenix.continuum.item.ContinuumShellSegmentItem;
 import net.phoenix.continuum.item.ContinuumSwarmCollectorItem;
 import net.phoenix.continuum.item.ContinuumUpgradeItem;
@@ -147,6 +149,12 @@ public final class ContinuumRegistry {
 
     public static final ItemRef<ContinuumShellSegmentItem> SHELL_SEGMENT = item("continuum_shell_segment",
             () -> new ContinuumShellSegmentItem(new Item.Properties()));
+
+    public static final ItemRef<ContinuumPenroseCollectorItem> PENROSE_COLLECTOR = item(
+            "continuum_penrose_collector", () -> new ContinuumPenroseCollectorItem(new Item.Properties()));
+
+    public static final ItemRef<ContinuumPenroseSegmentItem> PENROSE_SEGMENT = item("continuum_penrose_segment",
+            () -> new ContinuumPenroseSegmentItem(new Item.Properties()));
 
     public static final ItemRef<ContinuumRepairKitItem> REPAIR_KIT = item("continuum_repair_kit",
             () -> new ContinuumRepairKitItem(new Item.Properties()));
