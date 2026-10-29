@@ -77,7 +77,15 @@ public final class ContinuumShaders {
     private static void register(RegisterShadersEvent event, String name, VertexFormat format,
                                  Consumer<ShaderInstance> onLoad) {
         try {
-            event.registerShader(new ShaderInstance(event.getResourceProvider(), name, format), onLoad);
+            // applying one of ours notes the game's blend-mode record first (see BlendModeGuard)
+            event.registerShader(new ShaderInstance(event.getResourceProvider(), name, format) {
+
+                @Override
+                public void apply() {
+                    BlendModeGuard.enter();
+                    super.apply();
+                }
+            }, onLoad);
         } catch (IOException e) {
             LOGGER.error("[PhoenixCore/Continuum] Failed to register shader '{}': {}", name, e.getMessage());
         }

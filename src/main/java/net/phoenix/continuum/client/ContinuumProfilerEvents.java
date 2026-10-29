@@ -46,6 +46,7 @@ public final class ContinuumProfilerEvents {
 
     @SubscribeEvent
     public static void onGuiPre(RenderGuiEvent.Pre event) {
+        net.phoenix.continuum.client.render.BlendModeGuard.restoreBeforeGui();
         GlStateDump.sampleStage("gui pre");
     }
 
