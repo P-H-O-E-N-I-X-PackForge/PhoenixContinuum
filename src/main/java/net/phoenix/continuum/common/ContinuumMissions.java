@@ -47,11 +47,15 @@ public final class ContinuumMissions {
             .getItem() instanceof net.phoenix.continuum.item.ContinuumSwarmCollectorItem;
     private static final java.util.function.Predicate<ItemStack> IS_SEGMENT = s -> s
             .getItem() instanceof net.phoenix.continuum.item.ContinuumShellSegmentItem;
+    private static final java.util.function.Predicate<ItemStack> IS_PENROSE_COLLECTOR = s -> s
+            .getItem() instanceof net.phoenix.continuum.item.ContinuumPenroseCollectorItem;
+    private static final java.util.function.Predicate<ItemStack> IS_PENROSE_SEGMENT = s -> s
+            .getItem() instanceof net.phoenix.continuum.item.ContinuumPenroseSegmentItem;
 
     /** Anything a launch spends: what a pad accepts into its input. */
     public static boolean isStockItem(ItemStack stack) {
         return IS_ROCKET.test(stack) || IS_PROBE.test(stack) || IS_KIT.test(stack) || IS_COLLECTOR.test(stack) ||
-                IS_SEGMENT.test(stack);
+                IS_SEGMENT.test(stack) || IS_PENROSE_COLLECTOR.test(stack) || IS_PENROSE_SEGMENT.test(stack);
     }
 
     private interface Stock {
@@ -186,7 +190,7 @@ public final class ContinuumMissions {
     }
 
     public record PadStockView(boolean buses, ItemStack rocket, int probes, int kits, int rockets, int collectors,
-                               int segments) {}
+                               int segments, int penroseCollectors, int penroseSegments) {}
 
     public static PadStockView padStock(ServerPlayer player, BlockPos pad) {
         var level = player.level();
@@ -194,11 +198,13 @@ public final class ContinuumMissions {
         if (complex != null && complex.isFormed() && complex.hasBuses()) {
             BusStock stock = new BusStock(complex);
             return new PadStockView(true, stock.peekRocket(), stock.probes(), stock.kits(), stock.rockets(),
-                    stock.count(IS_COLLECTOR), stock.count(IS_SEGMENT));
+                    stock.count(IS_COLLECTOR), stock.count(IS_SEGMENT), stock.count(IS_PENROSE_COLLECTOR),
+                    stock.count(IS_PENROSE_SEGMENT));
         }
         PlayerStock stock = new PlayerStock(player);
         return new PadStockView(false, stock.peekRocket(), stock.probes(), stock.kits(), stock.rockets(),
-                stock.count(IS_COLLECTOR), stock.count(IS_SEGMENT));
+                stock.count(IS_COLLECTOR), stock.count(IS_SEGMENT), stock.count(IS_PENROSE_COLLECTOR),
+                stock.count(IS_PENROSE_SEGMENT));
     }
 
     public static @Nullable String launchMany(ServerPlayer player, ResourceLocation destinationId, BlockPos pad,
@@ -398,8 +404,9 @@ public final class ContinuumMissions {
                     }
                 }
                 carried = Swarms.payloadPerLevel(body, true);
-                special = IS_SEGMENT;
-                if (stock.count(IS_SEGMENT) < carried) return notEnoughPayload(carried, true, stock);
+                boolean penroseShell = Swarms.isPenrose(body);
+                special = penroseShell ? IS_PENROSE_SEGMENT : IS_SEGMENT;
+                if (stock.count(special) < carried) return notEnoughPayload(carried, true, penroseShell, stock);
             }
             case STATION -> {
                 if (Swarms.isSwarm(body) && data.shellLevel(team, destinationId) > 0) {
@@ -418,8 +425,9 @@ public final class ContinuumMissions {
                 }
                 if (Swarms.isSwarm(body)) {
                     carried = Swarms.payloadPerLevel(body, false);
-                    special = IS_COLLECTOR;
-                    if (stock.count(IS_COLLECTOR) < carried) return notEnoughPayload(carried, false, stock);
+                    boolean penroseSwarm = Swarms.isPenrose(body);
+                    special = penroseSwarm ? IS_PENROSE_COLLECTOR : IS_COLLECTOR;
+                    if (stock.count(special) < carried) return notEnoughPayload(carried, false, penroseSwarm, stock);
                 } else {
                     carried = Stations.probesPerLevel(body);
                     if (stock.probes() < carried) return notEnoughProbes(carried, stock);
@@ -611,14 +619,14 @@ public final class ContinuumMissions {
         return PadTiers.name(tier);
     }
 
-    private static String notEnoughPayload(int needed, boolean shell, Stock stock) {
-        return "You need " + Swarms.payloadName(shell, needed) + " " + stock.place() + ".";
+    private static String notEnoughPayload(int needed, boolean shell, boolean penrose, Stock stock) {
+        return "You need " + Swarms.payloadName(shell, needed, penrose) + " " + stock.place() + ".";
     }
 
     private static String lostPayload(Mission mission) {
         ContinuumBody body = ContinuumData.body(mission.destination);
-        if (mission.type == Mission.Type.SHELL) return Swarms.payloadName(true, mission.probes);
-        if (Swarms.isSwarm(body)) return Swarms.payloadName(false, mission.probes);
+        if (mission.type == Mission.Type.SHELL) return Swarms.payloadName(true, mission.probes, Swarms.isPenrose(body));
+        if (Swarms.isSwarm(body)) return Swarms.payloadName(false, mission.probes, Swarms.isPenrose(body));
         return mission.probes + " probe" + (mission.probes == 1 ? "" : "s");
     }
 

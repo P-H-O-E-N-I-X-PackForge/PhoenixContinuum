@@ -81,8 +81,10 @@ final class ContinuumServerInfo implements IServerDataProvider<BlockAccessor> {
                 complex.energyCapacity(), unit)));
         int rockets = complex.count(s -> s.getItem() instanceof ContinuumRocketItem);
         int probes = complex.count(s -> s.getItem() instanceof ContinuumProbeItem);
-        int pods = complex.count(s -> s.getItem() instanceof ContinuumSwarmCollectorItem);
-        int segments = complex.count(s -> s.getItem() instanceof ContinuumShellSegmentItem);
+        int pods = complex.count(s -> s.getItem() instanceof ContinuumSwarmCollectorItem ||
+                s.getItem() instanceof net.phoenix.continuum.item.ContinuumPenroseCollectorItem);
+        int segments = complex.count(s -> s.getItem() instanceof ContinuumShellSegmentItem ||
+                s.getItem() instanceof net.phoenix.continuum.item.ContinuumPenroseSegmentItem);
         if (complex.hasBuses() || rockets + probes + pods + segments > 0) {
             lines.add(line(complex.hasBuses() ? "In the buses" : "Stocked", rockets + " rockets, " + probes +
                     " probes" + (pods + segments > 0 ? ", " + pods + " pods, " + segments + " segments" : "")));

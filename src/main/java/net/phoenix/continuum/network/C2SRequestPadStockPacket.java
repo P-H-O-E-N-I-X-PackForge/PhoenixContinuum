@@ -38,7 +38,8 @@ public class C2SRequestPadStockPacket {
             var stock = ContinuumMissions.padStock(player, msg.pad);
             net.phoenix.continuum.network.ContinuumNetwork.sendToPlayer(player,
                     new S2CPadStockPacket(msg.pad, stock.buses(), stock.rocket(), stock.probes(), stock.kits(),
-                            stock.rockets(), stock.collectors(), stock.segments()));
+                            stock.rockets(), stock.collectors(), stock.segments(), stock.penroseCollectors(),
+                            stock.penroseSegments()));
         });
         ctx.get().setPacketHandled(true);
     }

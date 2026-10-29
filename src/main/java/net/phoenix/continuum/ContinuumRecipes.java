@@ -153,6 +153,26 @@ public final class ContinuumRecipes {
                 .duration(400).EUt(VA[EV])
                 .save(provider);
 
+        ASSEMBLER_RECIPES.recipeBuilder("continuum_penrose_collector")
+                .inputItems(plate, Iridium, 4)
+                .inputItems(SENSOR_IV, 1)
+                .inputItems(EMITTER_IV, 1)
+                .inputItems(CustomTags.IV_CIRCUITS, 2)
+                .inputFluids(SolderingAlloy, 288)
+                .outputItems(ContinuumRegistry.PENROSE_COLLECTOR.asStack(4))
+                .duration(300).EUt(VA[IV])
+                .save(provider);
+
+        ASSEMBLER_RECIPES.recipeBuilder("continuum_penrose_segment")
+                .inputItems(plate, TungstenSteel, 6)
+                .inputItems(plate, Iridium, 4)
+                .inputItems(frameGt, TungstenSteel, 1)
+                .inputItems(CustomTags.LuV_CIRCUITS, 2)
+                .inputFluids(SolderingAlloy, 576)
+                .outputItems(ContinuumRegistry.PENROSE_SEGMENT.asStack(2))
+                .duration(400).EUt(VA[LuV])
+                .save(provider);
+
         ASSEMBLER_RECIPES.recipeBuilder("continuum_swarm_array")
                 .inputItems(GTMachines.HULL[IV].asStack())
                 .inputItems(CASING_STEEL_SOLID, 8)

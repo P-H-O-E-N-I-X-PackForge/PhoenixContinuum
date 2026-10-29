@@ -18,9 +18,13 @@ public class S2CPadStockPacket {
     private final int rockets;
     private final int collectors;
     private final int segments;
+    private final int penroseCollectors;
+    private final int penroseSegments;
 
     public S2CPadStockPacket(BlockPos pad, boolean buses, ItemStack rocket, int probes, int kits, int rockets,
-                             int collectors, int segments) {
+                             int collectors, int segments, int penroseCollectors, int penroseSegments) {
+        this.penroseCollectors = penroseCollectors;
+        this.penroseSegments = penroseSegments;
         this.collectors = collectors;
         this.segments = segments;
         this.rockets = rockets;
@@ -40,6 +44,8 @@ public class S2CPadStockPacket {
         this.rockets = buf.readVarInt();
         this.collectors = buf.readVarInt();
         this.segments = buf.readVarInt();
+        this.penroseCollectors = buf.readVarInt();
+        this.penroseSegments = buf.readVarInt();
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -51,13 +57,15 @@ public class S2CPadStockPacket {
         buf.writeVarInt(rockets);
         buf.writeVarInt(collectors);
         buf.writeVarInt(segments);
+        buf.writeVarInt(penroseCollectors);
+        buf.writeVarInt(penroseSegments);
     }
 
     public static void handle(S2CPadStockPacket msg, java.util.function.Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             if (FMLEnvironment.dist.isClient()) {
                 ContinuumClientState.acceptPadStock(msg.pad, msg.buses, msg.rocket, msg.probes, msg.kits,
-                        msg.rockets, msg.collectors, msg.segments);
+                        msg.rockets, msg.collectors, msg.segments, msg.penroseCollectors, msg.penroseSegments);
             }
         });
         ctx.get().setPacketHandled(true);
