@@ -174,6 +174,11 @@ public final class ContinuumRender {
 
     private static @Nullable Preview shared;
 
+    /** A preview of your own, with its own render target, for when more than one picture is needed at once. */
+    public static Preview newPreview() {
+        return new Preview();
+    }
+
     /** One preview for everyone to share: it keeps a single render target, so screens need not manage their own. */
     public static synchronized Preview preview() {
         if (shared == null) shared = new Preview();
@@ -191,6 +196,8 @@ public final class ContinuumRender {
         private com.mojang.blaze3d.pipeline.@Nullable RenderTarget target;
         private float yaw = 20.0f;
         private float pitch = 14.0f;
+        /** The body turned about its up axis by this many degrees (0 for the shared preview, which spins its backdrop instead). */
+        private float viewYaw = 0.0f;
         private float distance = 4.6f;
         private long last = net.minecraft.Util.getMillis();
 
@@ -226,14 +233,8 @@ public final class ContinuumRender {
             return draw(g, body, rgb, size01, x, y, size, backdrop, -1);
         }
 
-        /** As above; {@code holeTint} (0xRRGGBB, or -1) colours a black hole's disk. */
-        public boolean draw(net.minecraft.client.gui.GuiGraphics g, Body body, int rgb, float size01, int x, int y,
-                            int size, boolean backdrop, int holeTint) {
-            if (!ContinuumShaders.ready()) return false;
-            long now = net.minecraft.Util.getMillis();
-            float dt = Math.min(0.1f, (now - last) / 1000.0f);
-            last = now;
-            yaw += dt * 4.0f;
+        /** Draws the body into this preview's own render target (made when first needed); false if it could not be. */
+        private boolean renderScene(Body body, int rgb, float size01, boolean backdrop, int holeTint) {
             if (target == null) {
                 target = new com.mojang.blaze3d.pipeline.TextureTarget(PIXELS, PIXELS, true,
                         net.minecraft.client.Minecraft.ON_OSX);
@@ -249,7 +250,7 @@ public final class ContinuumRender {
                 SceneRenderer.begin(target, yaw, backdrop);
                 Matrix4f projection = SceneRenderer.projection(target.width, target.height, 32.0f);
                 Matrix4f view = new Matrix4f().translate(0.0f, 0.0f, -(distance + 1.5f))
-                        .rotateX((float) Math.toRadians(pitch));
+                        .rotateX((float) Math.toRadians(pitch)).rotateY((float) Math.toRadians(viewYaw));
                 Vector3f at = new Vector3f();
                 float radius = 0.6f + 0.9f * Math.max(0.0f, Math.min(1.0f, size01));
                 // clouds and protostars carry their glow far out from the core: scale them to fit the frame
@@ -276,6 +277,35 @@ public final class ContinuumRender {
             } finally {
                 if (scissored) com.mojang.blaze3d.systems.RenderSystem.enableScissor(box[0], box[1], box[2], box[3]);
             }
+
+            return true;
+        }
+
+        /**
+         * For something that draws the picture itself (a screen in the world, say): renders the body, seen from the angles
+         * given (degrees; 0 and 0 looks at it from the front and slightly above), into this preview's render target and
+         * returns the id of its colour texture, or -1 if it could not be drawn. It does not spin by itself. Make your own
+         * preview with {@link ContinuumRender#newPreview()} if the shared one may be in use.
+         */
+        public int renderTexture(Body body, int rgb, float size01, boolean backdrop, int holeTint, float yawDeg,
+                                 float pitchDeg) {
+            if (!ContinuumShaders.ready()) return -1;
+            this.yaw = yawDeg;
+            this.viewYaw = yawDeg;
+            this.pitch = pitchDeg;
+            if (!renderScene(body, rgb, size01, backdrop, holeTint)) return -1;
+            return target != null ? target.getColorTextureId() : -1;
+        }
+
+        /** As above; {@code holeTint} (0xRRGGBB, or -1) colours a black hole's disk. */
+        public boolean draw(net.minecraft.client.gui.GuiGraphics g, Body body, int rgb, float size01, int x, int y,
+                            int size, boolean backdrop, int holeTint) {
+            if (!ContinuumShaders.ready()) return false;
+            long now = net.minecraft.Util.getMillis();
+            float dt = Math.min(0.1f, (now - last) / 1000.0f);
+            last = now;
+            yaw += dt * 4.0f;
+            if (!renderScene(body, rgb, size01, backdrop, holeTint)) return false;
 
             com.mojang.blaze3d.systems.RenderSystem.disableBlend();
             com.mojang.blaze3d.systems.RenderSystem.setShader(net.minecraft.client.renderer.GameRenderer::getPositionTexShader);
