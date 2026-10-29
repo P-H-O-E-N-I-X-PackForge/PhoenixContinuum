@@ -207,6 +207,8 @@ public final class ContinuumRender {
         private float pitch = 14.0f;
         /** The body turned about its up axis by this many degrees (0 for the shared preview, which spins its backdrop instead). */
         private float viewYaw = 0.0f;
+        /** How many times farther the camera is than usual (1 for the shared preview): a smaller body costs less to draw. */
+        private float zoomOut = 1.0f;
         private float distance = 4.6f;
         private long last = net.minecraft.Util.getMillis();
 
@@ -273,7 +275,7 @@ public final class ContinuumRender {
             try {
                 SceneRenderer.begin(target, yaw, backdrop);
                 Matrix4f projection = SceneRenderer.projection(target.width, target.height, 32.0f);
-                Matrix4f view = new Matrix4f().translate(0.0f, 0.0f, -(distance + 1.5f))
+                Matrix4f view = new Matrix4f().translate(0.0f, 0.0f, -(distance * zoomOut + 1.5f))
                         .rotateX((float) Math.toRadians(pitch)).rotateY((float) Math.toRadians(viewYaw));
                 Vector3f at = new Vector3f();
                 float radius = 0.6f + 0.9f * Math.max(0.0f, Math.min(1.0f, size01));
@@ -313,7 +315,17 @@ public final class ContinuumRender {
          */
         public int renderTexture(Body body, int rgb, float size01, boolean backdrop, int holeTint, float yawDeg,
                                  float pitchDeg) {
+            return renderTexture(body, rgb, size01, backdrop, holeTint, yawDeg, pitchDeg, 1.0f);
+        }
+
+        /**
+         * As above, with the camera {@code zoomOut} times farther away (1 or more). The shaders cost in proportion to
+         * the pixels the body covers, so a body that fills a third of the width costs about a ninth of one that fills it.
+         */
+        public int renderTexture(Body body, int rgb, float size01, boolean backdrop, int holeTint, float yawDeg,
+                                 float pitchDeg, float zoomOut) {
             if (!ContinuumShaders.ready()) return -1;
+            this.zoomOut = Math.max(1.0f, zoomOut);
             this.yaw = yawDeg;
             this.viewYaw = yawDeg;
             this.pitch = pitchDeg;
