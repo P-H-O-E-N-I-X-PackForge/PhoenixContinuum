@@ -179,6 +179,14 @@ public final class ContinuumRender {
         return new Preview();
     }
 
+    /**
+     * A preview that is cheap to draw, for pictures that are small on screen or many at once: a render target of
+     * {@code pixels} on a side and the lowest quality.
+     */
+    public static Preview newCheapPreview(int pixels) {
+        return new Preview(Math.max(64, Math.min(512, pixels)), true);
+    }
+
     /** One preview for everyone to share: it keeps a single render target, so screens need not manage their own. */
     public static synchronized Preview preview() {
         if (shared == null) shared = new Preview();
@@ -191,7 +199,8 @@ public final class ContinuumRender {
      */
     public static final class Preview {
 
-        private static final int PIXELS = 512;
+        private final int pixels;
+        private final boolean lowQuality;
 
         private com.mojang.blaze3d.pipeline.@Nullable RenderTarget target;
         private float yaw = 20.0f;
@@ -201,7 +210,14 @@ public final class ContinuumRender {
         private float distance = 4.6f;
         private long last = net.minecraft.Util.getMillis();
 
-        private Preview() {}
+        private Preview() {
+            this(512, false);
+        }
+
+        private Preview(int pixels, boolean lowQuality) {
+            this.pixels = pixels;
+            this.lowQuality = lowQuality;
+        }
 
         /** Frees the render target; the preview makes a new one if it is drawn again. */
         public void release() {
@@ -244,7 +260,7 @@ public final class ContinuumRender {
         /** Draws the body into this preview's own render target (made when first needed); false if it could not be. */
         private boolean renderScene(Body body, int rgb, float size01, boolean backdrop, int holeTint) {
             if (target == null) {
-                target = new com.mojang.blaze3d.pipeline.TextureTarget(PIXELS, PIXELS, true,
+                target = new com.mojang.blaze3d.pipeline.TextureTarget(pixels, pixels, true,
                         net.minecraft.client.Minecraft.ON_OSX);
             }
             // the screen this is drawn in may have a scissor on (a page clips to its area); the offscreen picture must not
@@ -263,7 +279,7 @@ public final class ContinuumRender {
                 float radius = 0.6f + 0.9f * Math.max(0.0f, Math.min(1.0f, size01));
                 // clouds and protostars carry their glow far out from the core: scale them to fit the frame
                 if (body == Body.GAS_CLOUD || body == Body.PROTOSTAR) radius *= 0.067f;
-                var quality = quality();
+                var quality = lowQuality ? net.phoenix.continuum.client.render.PlanetRenderer.Quality.LOW : quality();
                 switch (body) {
                     case GAS_CLOUD -> SceneRenderer.drawPlanetaryNebula(rgb, view, projection, at, radius, quality, false);
                     case PROTOSTAR -> SceneRenderer.drawProtostar(rgb, view, projection, at, radius, quality, false,
