@@ -203,6 +203,14 @@ public final class ContinuumRender {
 
         private Preview() {}
 
+        /** Frees the render target; the preview makes a new one if it is drawn again. */
+        public void release() {
+            if (target != null) {
+                target.destroyBuffers();
+                target = null;
+            }
+        }
+
         public void rotate(float dx, float dy) {
             yaw += dx * 0.6f;
             pitch = ((pitch + dy * 0.6f + 180.0f) % 360.0f + 360.0f) % 360.0f - 180.0f;
