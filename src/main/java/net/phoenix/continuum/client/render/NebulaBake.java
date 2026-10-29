@@ -53,7 +53,26 @@ public final class NebulaBake {
         return pending.target;
     }
 
+    /**
+     * Making a render target clears it, which binds the window's framebuffer and sets the viewport to the new target's size,
+     * and sets its texture up on the active unit. This runs in the middle of a scene's frame, so without putting all of that
+     * back the rest of the frame is drawn to the window at 2048 x 1024 (and the bake then "restores" that wrong state).
+     */
     private static TextureTarget create() {
+        int fbo = GL11.glGetInteger(36006);
+        int[] viewport = new int[4];
+        GL11.glGetIntegerv(GL11.GL_VIEWPORT, viewport);
+        int texture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+        try {
+            return create$unguarded();
+        } finally {
+            GlStateManager._glBindFramebuffer(36160, fbo);
+            GlStateManager._viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+            GlStateManager._bindTexture(texture);
+        }
+    }
+
+    private static TextureTarget create$unguarded() {
         TextureTarget target = new TextureTarget(WIDTH, HEIGHT, false, Minecraft.ON_OSX);
         target.setFilterMode(GL11.GL_LINEAR);
 
