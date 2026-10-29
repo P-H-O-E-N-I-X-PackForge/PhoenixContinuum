@@ -28,7 +28,7 @@ public final class ContinuumClientSetup {
             Minecraft mc = Minecraft.getInstance();
             SuiteHudBar.register(
                     PhoenixContinuum.MOD_ID,
-                    90,
+                    SuiteHudBar.PRIORITY_CONTINUUM,
                     new ResourceLocation(PhoenixContinuum.MOD_ID, "textures/gui/suite_continuum.png"),
                     () -> Component.literal("\u00a7dContinuum Map \u00a77(view)"),
                     () -> 1,
