@@ -24,6 +24,16 @@ public final class ContinuumCommand {
                         .then(literal("test").executes(ctx -> open(ContinuumTestScreen::new)))
                         .then(literal("map").executes(ctx -> open(ContinuumMapScreen::new)))
                         .then(literal("goals").executes(ctx -> goals()))
+                        .then(literal("glstate")
+                                .then(literal("on").executes(ctx -> glState(true)))
+                                .then(literal("off").executes(ctx -> glState(false))))
+                        .then(literal("baked")
+                                .then(literal("backdrop")
+                                        .then(literal("on").executes(ctx -> baked(true, true)))
+                                        .then(literal("off").executes(ctx -> baked(true, false))))
+                                .then(literal("puffs")
+                                        .then(literal("on").executes(ctx -> baked(false, true)))
+                                        .then(literal("off").executes(ctx -> baked(false, false)))))
                         .then(literal("profile")
                                 .then(literal("start").executes(ctx -> profile("start")))
                                 .then(literal("stop").executes(ctx -> profile("stop")))
@@ -64,6 +74,25 @@ public final class ContinuumCommand {
             }
         }
         return 1;
+    }
+
+    private static int glState(boolean on) {
+        net.phoenix.continuum.client.GlStateDump.setEnabled(on);
+        say(on ? "GL state logging on: open and close the map, then read the [glstate] lines in latest.log." :
+                "GL state logging off.");
+        return 1;
+    }
+
+    private static int baked(boolean backdrop, boolean on) {
+        if (backdrop) net.phoenix.continuum.client.render.SceneRenderer.USE_BAKED_BACKDROP = on;
+        else net.phoenix.continuum.client.render.SceneRenderer.USE_BAKED_PUFFS = on;
+        say("Baked " + (backdrop ? "backdrop" : "nebula puffs") + (on ? " on." : " off."));
+        return 1;
+    }
+
+    private static void say(String text) {
+        var player = Minecraft.getInstance().player;
+        if (player != null) player.displayClientMessage(net.minecraft.network.chat.Component.literal(text), false);
     }
 
     private static int goals() {

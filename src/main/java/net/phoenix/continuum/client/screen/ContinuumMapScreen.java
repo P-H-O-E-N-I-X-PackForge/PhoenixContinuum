@@ -1961,6 +1961,8 @@ public class ContinuumMapScreen extends Screen {
     @Override
     public void removed() {
         Minecraft mc = Minecraft.getInstance();
+        net.phoenix.continuum.client.GlStateDump.dump("map removed, before anything is reset");
+        net.phoenix.continuum.client.GlStateDump.dumpNextFrames("after the map closed", 4);
         if (mc.getMainRenderTarget() != null) {
             mc.getMainRenderTarget().bindWrite(true);
         }
@@ -1973,6 +1975,7 @@ public class ContinuumMapScreen extends Screen {
             sceneWidth = -1;
             sceneHeight = -1;
         }
+        net.phoenix.continuum.client.GlStateDump.dump("map removed, after it reset what it could");
         super.removed();
     }
 
