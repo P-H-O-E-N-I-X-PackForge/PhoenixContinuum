@@ -17,6 +17,9 @@ import org.joml.Matrix4f;
 
 public final class SceneTarget implements AutoCloseable {
 
+    /** The most pixels a scene is drawn at (about 1440 x 810). */
+    private static final double PIXEL_BUDGET = 1_200_000.0;
+
     private @Nullable RenderTarget target;
     private int width = -1;
     private int height = -1;
@@ -25,10 +28,18 @@ public final class SceneTarget implements AutoCloseable {
         Minecraft mc = Minecraft.getInstance();
         int w = Math.max(64, mc.getWindow().getWidth());
         int h = Math.max(64, mc.getWindow().getHeight());
+        // these scenes are soft (nebulae, glows) and cost in proportion to the pixels, so a big window is drawn at
+        // fewer than it has and stretched: fullscreen on a large display would otherwise cost two and a half times a window
+        double scale = Math.min(1.0, Math.sqrt(PIXEL_BUDGET / ((double) w * h)));
+        if (scale < 1.0) {
+            w = Math.max(64, (int) (w * scale));
+            h = Math.max(64, (int) (h * scale));
+        }
         if (target != null && width == w && height == h) return target;
 
         close();
         target = new TextureTarget(w, h, true, Minecraft.ON_OSX);
+        target.setFilterMode(9729);
         width = w;
         height = h;
         return target;

@@ -174,6 +174,19 @@ public final class ContinuumRender {
 
     private static @Nullable Preview shared;
 
+    /** A preview of your own, with its own render target, for when more than one picture is needed at once. */
+    public static Preview newPreview() {
+        return new Preview();
+    }
+
+    /**
+     * A preview that is cheap to draw, for pictures that are small on screen or many at once: a render target of
+     * {@code pixels} on a side and the lowest quality.
+     */
+    public static Preview newCheapPreview(int pixels) {
+        return new Preview(Math.max(64, Math.min(512, pixels)), true);
+    }
+
     /** One preview for everyone to share: it keeps a single render target, so screens need not manage their own. */
     public static synchronized Preview preview() {
         if (shared == null) shared = new Preview();
@@ -186,15 +199,35 @@ public final class ContinuumRender {
      */
     public static final class Preview {
 
-        private static final int PIXELS = 512;
+        private final int pixels;
+        private final boolean lowQuality;
 
         private com.mojang.blaze3d.pipeline.@Nullable RenderTarget target;
         private float yaw = 20.0f;
         private float pitch = 14.0f;
+        /** The body turned about its up axis by this many degrees (0 for the shared preview, which spins its backdrop instead). */
+        private float viewYaw = 0.0f;
+        /** How many times farther the camera is than usual (1 for the shared preview): a smaller body costs less to draw. */
+        private float zoomOut = 1.0f;
         private float distance = 4.6f;
         private long last = net.minecraft.Util.getMillis();
 
-        private Preview() {}
+        private Preview() {
+            this(512, false);
+        }
+
+        private Preview(int pixels, boolean lowQuality) {
+            this.pixels = pixels;
+            this.lowQuality = lowQuality;
+        }
+
+        /** Frees the render target; the preview makes a new one if it is drawn again. */
+        public void release() {
+            if (target != null) {
+                target.destroyBuffers();
+                target = null;
+            }
+        }
 
         public void rotate(float dx, float dy) {
             yaw += dx * 0.6f;
@@ -226,16 +259,10 @@ public final class ContinuumRender {
             return draw(g, body, rgb, size01, x, y, size, backdrop, -1);
         }
 
-        /** As above; {@code holeTint} (0xRRGGBB, or -1) colours a black hole's disk. */
-        public boolean draw(net.minecraft.client.gui.GuiGraphics g, Body body, int rgb, float size01, int x, int y,
-                            int size, boolean backdrop, int holeTint) {
-            if (!ContinuumShaders.ready()) return false;
-            long now = net.minecraft.Util.getMillis();
-            float dt = Math.min(0.1f, (now - last) / 1000.0f);
-            last = now;
-            yaw += dt * 4.0f;
+        /** Draws the body into this preview's own render target (made when first needed); false if it could not be. */
+        private boolean renderScene(Body body, int rgb, float size01, boolean backdrop, int holeTint) {
             if (target == null) {
-                target = new com.mojang.blaze3d.pipeline.TextureTarget(PIXELS, PIXELS, true,
+                target = new com.mojang.blaze3d.pipeline.TextureTarget(pixels, pixels, true,
                         net.minecraft.client.Minecraft.ON_OSX);
             }
             // the screen this is drawn in may have a scissor on (a page clips to its area); the offscreen picture must not
@@ -248,13 +275,13 @@ public final class ContinuumRender {
             try {
                 SceneRenderer.begin(target, yaw, backdrop);
                 Matrix4f projection = SceneRenderer.projection(target.width, target.height, 32.0f);
-                Matrix4f view = new Matrix4f().translate(0.0f, 0.0f, -(distance + 1.5f))
-                        .rotateX((float) Math.toRadians(pitch));
+                Matrix4f view = new Matrix4f().translate(0.0f, 0.0f, -(distance * zoomOut + 1.5f))
+                        .rotateX((float) Math.toRadians(pitch)).rotateY((float) Math.toRadians(viewYaw));
                 Vector3f at = new Vector3f();
                 float radius = 0.6f + 0.9f * Math.max(0.0f, Math.min(1.0f, size01));
                 // clouds and protostars carry their glow far out from the core: scale them to fit the frame
                 if (body == Body.GAS_CLOUD || body == Body.PROTOSTAR) radius *= 0.067f;
-                var quality = quality();
+                var quality = lowQuality ? net.phoenix.continuum.client.render.PlanetRenderer.Quality.LOW : quality();
                 switch (body) {
                     case GAS_CLOUD -> SceneRenderer.drawPlanetaryNebula(rgb, view, projection, at, radius, quality, false);
                     case PROTOSTAR -> SceneRenderer.drawProtostar(rgb, view, projection, at, radius, quality, false,
@@ -276,6 +303,45 @@ public final class ContinuumRender {
             } finally {
                 if (scissored) com.mojang.blaze3d.systems.RenderSystem.enableScissor(box[0], box[1], box[2], box[3]);
             }
+
+            return true;
+        }
+
+        /**
+         * For something that draws the picture itself (a screen in the world, say): renders the body, seen from the angles
+         * given (degrees; 0 and 0 looks at it from the front and slightly above), into this preview's render target and
+         * returns the id of its colour texture, or -1 if it could not be drawn. It does not spin by itself. Make your own
+         * preview with {@link ContinuumRender#newPreview()} if the shared one may be in use.
+         */
+        public int renderTexture(Body body, int rgb, float size01, boolean backdrop, int holeTint, float yawDeg,
+                                 float pitchDeg) {
+            return renderTexture(body, rgb, size01, backdrop, holeTint, yawDeg, pitchDeg, 1.0f);
+        }
+
+        /**
+         * As above, with the camera {@code zoomOut} times farther away (1 or more). The shaders cost in proportion to
+         * the pixels the body covers, so a body that fills a third of the width costs about a ninth of one that fills it.
+         */
+        public int renderTexture(Body body, int rgb, float size01, boolean backdrop, int holeTint, float yawDeg,
+                                 float pitchDeg, float zoomOut) {
+            if (!ContinuumShaders.ready()) return -1;
+            this.zoomOut = Math.max(1.0f, zoomOut);
+            this.yaw = yawDeg;
+            this.viewYaw = yawDeg;
+            this.pitch = pitchDeg;
+            if (!renderScene(body, rgb, size01, backdrop, holeTint)) return -1;
+            return target != null ? target.getColorTextureId() : -1;
+        }
+
+        /** As above; {@code holeTint} (0xRRGGBB, or -1) colours a black hole's disk. */
+        public boolean draw(net.minecraft.client.gui.GuiGraphics g, Body body, int rgb, float size01, int x, int y,
+                            int size, boolean backdrop, int holeTint) {
+            if (!ContinuumShaders.ready()) return false;
+            long now = net.minecraft.Util.getMillis();
+            float dt = Math.min(0.1f, (now - last) / 1000.0f);
+            last = now;
+            yaw += dt * 4.0f;
+            if (!renderScene(body, rgb, size01, backdrop, holeTint)) return false;
 
             com.mojang.blaze3d.systems.RenderSystem.disableBlend();
             com.mojang.blaze3d.systems.RenderSystem.setShader(net.minecraft.client.renderer.GameRenderer::getPositionTexShader);
