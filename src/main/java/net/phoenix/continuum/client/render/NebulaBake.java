@@ -14,7 +14,8 @@ public final class NebulaBake {
 
     private static final int WIDTH = 2048;
     private static final int HEIGHT = 1024;
-    private static final int STRIP = 256;
+    /** Rows baked a frame: small, so the first time a nebula is baked it is spread over many frames instead of a few heavy ones. */
+    private static final int STRIP = 64;
 
     private record Key(float p0, float p1, float p2, float s0, float s1, float s2, int octaves) {}
 

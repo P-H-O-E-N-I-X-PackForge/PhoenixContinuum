@@ -110,10 +110,7 @@ public final class ContinuumCommand {
     private static int baked(boolean backdrop, boolean on) {
         if (backdrop) net.phoenix.continuum.client.render.SceneRenderer.USE_BAKED_BACKDROP = on;
         else net.phoenix.continuum.client.render.SceneRenderer.USE_BAKED_PUFFS = on;
-        // the logging is what is needed to find out why a baked texture blanks the screen, so it comes with the switch
-        if (on) net.phoenix.continuum.client.GlStateDump.setEnabled(true);
-        say("Baked " + (backdrop ? "backdrop" : "nebula puffs") + (on ? " on (GL state logging is on too; this build restores the " +
-                "framebuffer after making the baked target)." : " off."));
+        say("Baked " + (backdrop ? "backdrop" : "nebula puffs") + (on ? " on." : " off."));
         return 1;
     }
 
