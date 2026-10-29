@@ -107,6 +107,7 @@ public class ContinuumMapScreen extends Screen {
     private Phase phase = Phase.NONE;
     private float phaseTime;
     private float fade;
+    private long lastFrameLogged;
     private long phaseStarted;
     private int zoomDirection;
     private @Nullable Runnable onSwitch;
@@ -256,6 +257,23 @@ public class ContinuumMapScreen extends Screen {
 
         ensureScene();
         boolean sceneReady = scene != null && ContinuumShaders.ready();
+        if (net.phoenix.continuum.client.ContinuumScreenLog.enabled()) {
+            net.phoenix.continuum.client.ContinuumScreenLog.frame(this, String.format(java.util.Locale.ROOT,
+                    "level=%s phase=%s t=%.2f fade=%.2f dt=%.3f scene=%dx%d window=%dx%d ready=%s shaders=%s planner=%s",
+                    level, phase, phaseTime, fade, dt, sceneWidth, sceneHeight,
+                    Minecraft.getInstance().getWindow().getWidth(), Minecraft.getInstance().getWindow().getHeight(),
+                    sceneReady, ContinuumShaders.ready(), planner.isOpen()));
+            if (!sceneReady) {
+                net.phoenix.continuum.client.ContinuumScreenLog.anomaly("map scene not ready (scene=" + (scene != null) +
+                        ", shaders=" + ContinuumShaders.ready() + "): a plain dark frame is drawn instead");
+            }
+            if (dt >= 0.1f) {
+                net.phoenix.continuum.client.ContinuumScreenLog.anomaly(
+                        String.format(java.util.Locale.ROOT, "map frame took %.0f ms to come (dt is capped at 100 ms)",
+                                (now - lastFrameLogged) * 1.0f));
+            }
+        }
+        lastFrameLogged = now;
         ambience.update(level == Level.GALAXY ? null : system, level == Level.BODY ? body : null,
                 planner.isOpen() ? 0.5f : 1.0f);
 
@@ -308,6 +326,8 @@ public class ContinuumMapScreen extends Screen {
         int h = Math.max(64, mc.getWindow().getHeight());
         if (scene != null && sceneWidth == w && sceneHeight == h) return;
 
+        net.phoenix.continuum.client.ContinuumScreenLog.event("map scene picture made again: %dx%d -> %dx%d (%s)",
+                sceneWidth, sceneHeight, w, h, scene == null ? "first time" : "window size changed");
         if (scene != null) scene.destroyBuffers();
         scene = new TextureTarget(w, h, true, Minecraft.ON_OSX);
         sceneWidth = w;
@@ -1575,6 +1595,7 @@ public class ContinuumMapScreen extends Screen {
         planner.close();
         phase = Phase.OUT;
         phaseTime = 0.0f;
+        net.phoenix.continuum.client.ContinuumScreenLog.event("map transition out, direction %d from %s", direction, level);
         zoomDirection = direction;
         onSwitch = apply;
 
@@ -1602,7 +1623,11 @@ public class ContinuumMapScreen extends Screen {
             // ease in: the zoom is seen for most of it, the dark only closes at the end
             fade = t * t;
             if (t >= 1.0f) {
+                long switchStart = Util.getMillis();
                 if (onSwitch != null) onSwitch.run();
+                net.phoenix.continuum.client.ContinuumScreenLog.event("map switch applied in %d ms, now %s (screen is %s)",
+                        Util.getMillis() - switchStart, level, Minecraft.getInstance().screen == this ? "still the map" :
+                                String.valueOf(Minecraft.getInstance().screen));
                 onSwitch = null;
                 phase = Phase.IN;
                 phaseTime = 0.0f;
@@ -1615,6 +1640,7 @@ public class ContinuumMapScreen extends Screen {
             float shown = Math.min(1.0f, Math.max(0.0f, (phaseTime - hold) / (IN_SECONDS - hold)));
             fade = (1.0f - shown) * (1.0f - shown);
             if (t >= 1.0f) {
+                net.phoenix.continuum.client.ContinuumScreenLog.event("map transition done at %s", level);
                 phase = Phase.NONE;
                 fade = 0.0f;
             }

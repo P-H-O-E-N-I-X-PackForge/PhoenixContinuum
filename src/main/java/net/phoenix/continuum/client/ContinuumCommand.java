@@ -24,6 +24,9 @@ public final class ContinuumCommand {
                         .then(literal("test").executes(ctx -> open(ContinuumTestScreen::new)))
                         .then(literal("map").executes(ctx -> open(ContinuumMapScreen::new)))
                         .then(literal("goals").executes(ctx -> goals()))
+                        .then(literal("screenlog")
+                                .then(literal("on").executes(ctx -> screenLog(true)))
+                                .then(literal("off").executes(ctx -> screenLog(false))))
                         .then(literal("profile")
                                 .then(literal("start").executes(ctx -> profile("start")))
                                 .then(literal("stop").executes(ctx -> profile("stop")))
@@ -38,6 +41,17 @@ public final class ContinuumCommand {
                                                         builder))
                                         .executes(ctx -> tune(net.minecraft.commands.arguments.ResourceLocationArgument
                                                 .getId((com.mojang.brigadier.context.CommandContext) ctx, "body"))))));
+    }
+
+    private static int screenLog(boolean on) {
+        ContinuumScreenLog.setEnabled(on);
+        var player = Minecraft.getInstance().player;
+        if (player != null) {
+            player.displayClientMessage(net.minecraft.network.chat.Component.literal(on ?
+                    "Continuum screen log on: reproduce the flicker, then read the [screens] lines in latest.log." :
+                    "Continuum screen log off."), false);
+        }
+        return 1;
     }
 
     private static int profile(String what) {
