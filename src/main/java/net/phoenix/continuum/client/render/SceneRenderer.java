@@ -1165,6 +1165,12 @@ public final class SceneRenderer {
                                      net.phoenix.continuum.data.ContinuumSystem.HoleStyle style){
         ShaderInstance shader = ContinuumShaders.BLACKHOLE;
         if (shader == null) return;
+        // the faster shader reads its orbit and disk turbulence from tables, which are built in the background first
+        if (ContinuumShaders.BLACKHOLE_LUT != null && BlackHoleTables.ready()) {
+            shader = ContinuumShaders.BLACKHOLE_LUT;
+            shader.setSampler("OrbitLut", BlackHoleTables.orbit());
+            shader.setSampler("DiskNoise", BlackHoleTables.noise());
+        }
 
         float diskOuter = (quasar ? 9.0f : 5.6f) * style.diskSize();
         float reach = diskOuter * (1.0f + 0.35f * style.feeding());
