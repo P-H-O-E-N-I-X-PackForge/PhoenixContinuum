@@ -49,6 +49,7 @@ public class C2SCreatePacket implements CustomPacketPayload {
     public static void handle(C2SCreatePacket msg, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             if (!(ctx.player() instanceof ServerPlayer player)) return;
+            if (player == null || !net.phoenix.continuum.common.ContinuumGates.check(player, net.phoenix.continuum.common.ContinuumGates.SWARMS)) return;
             boolean allowed = player.hasPermissions(2) || player.server.isSingleplayerOwner(player.getGameProfile());
             if (!allowed) {
                 player.displayClientMessage(Component.literal("Only operators can create Continuum content."), true);

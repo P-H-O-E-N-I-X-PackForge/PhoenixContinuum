@@ -44,6 +44,7 @@ public class C2SInvestigatePacket implements CustomPacketPayload {
     public static void handle(C2SInvestigatePacket msg, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             ServerPlayer player = ((ServerPlayer) ctx.player());
+            if (player == null || !net.phoenix.continuum.common.ContinuumGates.check(player, net.phoenix.continuum.common.ContinuumGates.ANOMALIES)) return;
             if (player == null) return;
             String error = AnomalyActions.investigate(player, msg.body, msg.anomaly);
             if (error != null) player.sendSystemMessage(Component.literal(error).withStyle(ChatFormatting.RED));

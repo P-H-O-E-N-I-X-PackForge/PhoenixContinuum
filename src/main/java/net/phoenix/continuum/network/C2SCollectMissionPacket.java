@@ -42,6 +42,7 @@ public class C2SCollectMissionPacket implements CustomPacketPayload {
     public static void handle(C2SCollectMissionPacket msg, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             ServerPlayer player = ((net.minecraft.server.level.ServerPlayer) ctx.player());
+            if (player == null || !net.phoenix.continuum.common.ContinuumGates.check(player, net.phoenix.continuum.common.ContinuumGates.MISSIONS)) return;
             if (player == null) return;
 
             String error = ContinuumMissions.collect(player, msg.mission);

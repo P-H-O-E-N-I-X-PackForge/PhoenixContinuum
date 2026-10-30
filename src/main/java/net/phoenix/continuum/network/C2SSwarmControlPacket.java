@@ -56,6 +56,7 @@ public class C2SSwarmControlPacket implements CustomPacketPayload {
     public static void handle(C2SSwarmControlPacket msg, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             if (!(ctx.player() instanceof ServerPlayer player)) return;
+            if (player == null || !net.phoenix.continuum.common.ContinuumGates.check(player, net.phoenix.continuum.common.ContinuumGates.SWARMS)) return;
             double range = net.phoenix.continuum.config.ContinuumConfigs.INSTANCE.launchRangeBlocks;
             if (!player.level().isLoaded(msg.control) ||
                     player.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(msg.control)) > range * range) {

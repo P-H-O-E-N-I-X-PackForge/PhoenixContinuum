@@ -123,6 +123,7 @@ public class C2SScheduleActionPacket implements CustomPacketPayload {
     public static void handle(C2SScheduleActionPacket msg, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             if (!(ctx.player() instanceof ServerPlayer player)) return;
+            if (player == null || !net.phoenix.continuum.common.ContinuumGates.check(player, net.phoenix.continuum.common.ContinuumGates.MISSIONS)) return;
             String error = switch (msg.action) {
                 case CREATE -> ScheduleService.create(player, msg.pad, msg.destination, msg.missionType, msg.probes,
                         msg.count, msg.expedition, msg.crew, msg.delay, msg.interval, msg.cap, msg.autoCollect);

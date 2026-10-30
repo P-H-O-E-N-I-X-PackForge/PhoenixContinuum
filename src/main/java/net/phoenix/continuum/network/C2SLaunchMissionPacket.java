@@ -75,6 +75,7 @@ public class C2SLaunchMissionPacket implements CustomPacketPayload {
     public static void handle(C2SLaunchMissionPacket msg, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             ServerPlayer player = ((net.minecraft.server.level.ServerPlayer) ctx.player());
+            if (player == null || !net.phoenix.continuum.common.ContinuumGates.check(player, net.phoenix.continuum.common.ContinuumGates.MISSIONS)) return;
             if (player == null) return;
 
             String error = ContinuumMissions.launchMany(player, msg.destination, msg.pad, msg.type, msg.probes,

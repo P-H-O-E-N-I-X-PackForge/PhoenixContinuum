@@ -80,6 +80,7 @@ public class C2SPdimPacket implements CustomPacketPayload {
     public static void handle(C2SPdimPacket msg, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             ServerPlayer player = ((net.minecraft.server.level.ServerPlayer) ctx.player());
+            if (player == null || !net.phoenix.continuum.common.ContinuumGates.check(player, net.phoenix.continuum.common.ContinuumGates.TRAVEL)) return;
             if (player == null) return;
 
             String error = switch (msg.action) {
