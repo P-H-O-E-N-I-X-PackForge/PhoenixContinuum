@@ -79,6 +79,10 @@ public class LaunchPadBlock extends Block implements EntityBlock {
                     return InteractionResult.CONSUME;
                 }
             }
+            if (!net.phoenix.continuum.common.ContinuumGates.check(serverPlayer,
+                    net.phoenix.continuum.common.ContinuumGates.MAP)) {
+                return InteractionResult.CONSUME;
+            }
             net.phoenix.continuum.network.ContinuumNetwork.sendToPlayer(serverPlayer, new S2COpenMapPacket(pos));
         }
         return InteractionResult.sidedSuccess(level.isClientSide);

@@ -31,6 +31,7 @@ public class C2SRefitPacket {
     public static void handle(C2SRefitPacket msg, java.util.function.Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             ServerPlayer player = ctx.get().getSender();
+            if (player == null || !net.phoenix.continuum.common.ContinuumGates.check(player, net.phoenix.continuum.common.ContinuumGates.SWARMS)) return;
             if (player == null) return;
             String error = RocketRefit.apply(player, msg.action, msg.key);
             if (error != null) player.displayClientMessage(Component.literal(error), true);

@@ -29,6 +29,7 @@ public class C2SCollectMissionPacket {
     public static void handle(C2SCollectMissionPacket msg, java.util.function.Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             ServerPlayer player = ctx.get().getSender();
+            if (player == null || !net.phoenix.continuum.common.ContinuumGates.check(player, net.phoenix.continuum.common.ContinuumGates.MISSIONS)) return;
             if (player == null) return;
 
             String error = ContinuumMissions.collect(player, msg.mission);

@@ -61,6 +61,7 @@ public class C2SLaunchMissionPacket {
     public static void handle(C2SLaunchMissionPacket msg, java.util.function.Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             ServerPlayer player = ctx.get().getSender();
+            if (player == null || !net.phoenix.continuum.common.ContinuumGates.check(player, net.phoenix.continuum.common.ContinuumGates.MISSIONS)) return;
             if (player == null) return;
 
             String error = ContinuumMissions.launchMany(player, msg.destination, msg.pad, msg.type, msg.probes,

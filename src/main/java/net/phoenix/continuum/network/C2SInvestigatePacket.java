@@ -31,6 +31,7 @@ public class C2SInvestigatePacket {
     public static void handle(C2SInvestigatePacket msg, java.util.function.Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             ServerPlayer player = ctx.get().getSender();
+            if (player == null || !net.phoenix.continuum.common.ContinuumGates.check(player, net.phoenix.continuum.common.ContinuumGates.ANOMALIES)) return;
             if (player == null) return;
             String error = AnomalyActions.investigate(player, msg.body, msg.anomaly);
             if (error != null) player.sendSystemMessage(Component.literal(error).withStyle(ChatFormatting.RED));

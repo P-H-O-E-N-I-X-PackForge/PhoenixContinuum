@@ -30,6 +30,7 @@ public class C2SConfluxTravelPacket {
     public static void handle(C2SConfluxTravelPacket msg, java.util.function.Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             ServerPlayer player = ctx.get().getSender();
+            if (player == null || !net.phoenix.continuum.common.ContinuumGates.check(player, net.phoenix.continuum.common.ContinuumGates.TRAVEL)) return;
             if (player == null) return;
             String error = msg.back ? ConfluxTravel.back(player) : ConfluxTravel.travel(player, msg.body);
             if (error != null) player.displayClientMessage(Component.literal(error), true);

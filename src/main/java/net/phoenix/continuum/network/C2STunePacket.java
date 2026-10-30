@@ -64,6 +64,7 @@ public class C2STunePacket {
     public static void handle(C2STunePacket msg, java.util.function.Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             ServerPlayer player = ctx.get().getSender();
+            if (player == null || !net.phoenix.continuum.common.ContinuumGates.check(player, net.phoenix.continuum.common.ContinuumGates.SWARMS)) return;
             if (player == null) return;
             boolean allowed = player.hasPermissions(2) || player.server.isSingleplayerOwner(player.getGameProfile());
             if (!allowed) {

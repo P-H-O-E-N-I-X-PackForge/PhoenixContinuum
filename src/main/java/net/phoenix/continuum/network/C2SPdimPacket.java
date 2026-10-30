@@ -67,6 +67,7 @@ public class C2SPdimPacket {
     public static void handle(C2SPdimPacket msg, java.util.function.Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             ServerPlayer player = ctx.get().getSender();
+            if (player == null || !net.phoenix.continuum.common.ContinuumGates.check(player, net.phoenix.continuum.common.ContinuumGates.TRAVEL)) return;
             if (player == null) return;
 
             String error = switch (msg.action) {

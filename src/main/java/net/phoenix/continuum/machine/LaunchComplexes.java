@@ -56,6 +56,10 @@ public final class LaunchComplexes {
 
     public static InteractionResult use(Level level, BlockPos pos, Player player) {
         if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
+            if (!net.phoenix.continuum.common.ContinuumGates.check(serverPlayer,
+                    net.phoenix.continuum.common.ContinuumGates.MAP)) {
+                return InteractionResult.CONSUME;
+            }
             ContinuumServerEvents.engageAndSend(serverPlayer);
             ContinuumNetwork.sendToPlayer(serverPlayer, new S2COpenMapPacket(pos));
         }

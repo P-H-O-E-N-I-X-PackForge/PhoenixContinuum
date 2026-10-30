@@ -110,6 +110,7 @@ public class C2SScheduleActionPacket {
     public static void handle(C2SScheduleActionPacket msg, java.util.function.Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             ServerPlayer player = ctx.get().getSender();
+            if (player == null || !net.phoenix.continuum.common.ContinuumGates.check(player, net.phoenix.continuum.common.ContinuumGates.MISSIONS)) return;
             if (player == null) return;
             String error = switch (msg.action) {
                 case CREATE -> ScheduleService.create(player, msg.pad, msg.destination, msg.missionType, msg.probes,
