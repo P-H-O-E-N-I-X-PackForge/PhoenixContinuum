@@ -1,6 +1,5 @@
 package net.phoenix.continuum.common;
 
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.phoenixvine.wiki.api.gate.SuiteGates;
 
@@ -31,7 +30,7 @@ public final class ContinuumGates {
     /** Like {@link #allowed}, and tells the player when the answer is no. */
     public static boolean check(ServerPlayer player, String feature) {
         if (allowed(player, feature)) return true;
-        player.displayClientMessage(Component.literal("Your team has not researched this yet."), true);
+        player.displayClientMessage(SuiteGates.denial(feature, SuiteGates.ANY_SCOPE), false);
         return false;
     }
 }
