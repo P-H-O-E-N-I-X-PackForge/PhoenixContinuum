@@ -1,5 +1,6 @@
 package net.phoenix.continuum.network;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -41,14 +42,14 @@ public class C2SCreatePacket {
             if (player == null) return;
             boolean allowed = player.hasPermissions(2) || player.server.isSingleplayerOwner(player.getGameProfile());
             if (!allowed) {
-                player.displayClientMessage(Component.literal("Only operators can create Continuum content."), true);
+                player.displayClientMessage(ContinuumLang.tr("phoenix_continuum.c2_s_create_packet.only_operators_can_create_continuum"), true);
                 return;
             }
             JsonObject def;
             try {
                 def = JsonParser.parseString(msg.json).getAsJsonObject();
             } catch (RuntimeException e) {
-                player.displayClientMessage(Component.literal("That definition is not valid JSON."), true);
+                player.displayClientMessage(ContinuumLang.tr("phoenix_continuum.c2_s_create_packet.that_definition_is_not_valid"), true);
                 return;
             }
             var result = msg.system ? ContentCreator.createSystem(player.server, msg.id, def) :

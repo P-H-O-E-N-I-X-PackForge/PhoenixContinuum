@@ -1,5 +1,7 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -43,7 +45,7 @@ public class ContinuumPdimScreen extends Screen {
     private boolean pendFixed;
 
     public ContinuumPdimScreen(Screen parent, ContinuumBody body) {
-        super(Component.literal("Personal dimension"));
+        super(ContinuumLang.tr("phoenix_continuum.continuum_pdim_screen.personal_dimension"));
         this.parent = parent;
         this.body = body;
 
@@ -122,7 +124,7 @@ public class ContinuumPdimScreen extends Screen {
         rects.clear();
 
         boolean exists = existing() != null;
-        g.drawString(font, "Personal dimension  -  " + body.name(), x + 10, y + 9, MapUi.TITLE);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_pdim.personal_dimension", body.name()), x + 10, y + 9, MapUi.TITLE);
         int ty = y + 24;
         ty = wrapped(g, "An empty void with an obsidian platform, under the sky of " + body.name() +
                 ". Falling out of the bottom puts you back at the top." +
@@ -197,10 +199,10 @@ public class ContinuumPdimScreen extends Screen {
 
     private void costLine(GuiGraphics g, int x, int y, boolean charged, PdimCosts.Cost cost, int have, boolean canPay) {
         if (!charged) {
-            g.drawString(font, "This trip is free.", x, y, MapUi.GOOD);
+            g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_pdim.this_trip_is_free"), x, y, MapUi.GOOD);
             return;
         }
-        g.drawString(font, "Cost: " + cost.describe().getString() + "   (you have " + have + ")", x, y,
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_pdim.cost_you_have", cost.describe().getString(), have), x, y,
                 canPay ? MapUi.TEXT : MapUi.BAD);
     }
 

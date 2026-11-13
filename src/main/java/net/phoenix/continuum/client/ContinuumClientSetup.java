@@ -1,5 +1,6 @@
 package net.phoenix.continuum.client;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -30,7 +31,7 @@ public final class ContinuumClientSetup {
                     PhoenixContinuum.MOD_ID,
                     SuiteHudBar.PRIORITY_CONTINUUM,
                     new ResourceLocation(PhoenixContinuum.MOD_ID, "textures/gui/suite_continuum.png"),
-                    () -> Component.literal("\u00a7dContinuum Map \u00a77(view)"),
+                    () -> ContinuumLang.tr("phoenix_continuum.continuum_client_setup.continuum_map_view"),
                     () -> 1,
                     () -> mc.setScreen(new ContinuumMapScreen()),
                     16, 16, false);

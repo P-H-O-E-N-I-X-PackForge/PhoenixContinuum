@@ -1,5 +1,6 @@
 package net.phoenix.continuum.item;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -36,7 +37,7 @@ public class ContinuumUpgradeItem extends Item {
 
         if (!(rocket.getItem() instanceof ContinuumRocketItem)) {
             if (!level.isClientSide) {
-                player.displayClientMessage(Component.literal("Hold a Continuum Rocket in your other hand to fit this.")
+                player.displayClientMessage(ContinuumLang.tr("phoenix_continuum.continuum_upgrade_item.hold_a_continuum_rocket_in")
                         .withStyle(ChatFormatting.RED), true);
             }
             return InteractionResultHolder.fail(module);
@@ -59,7 +60,7 @@ public class ContinuumUpgradeItem extends Item {
             RocketStats.setLevel(rocket, upgrade, current + 1);
             if (!player.getAbilities().instabuild) module.shrink(1);
             level.playSound(null, player.blockPosition(), SoundEvents.ANVIL_USE, SoundSource.PLAYERS, 0.6f, 1.4f);
-            player.displayClientMessage(Component.literal("Rocket upgraded to level " + (current + 1) + ".")
+            player.displayClientMessage(ContinuumLang.tr("phoenix_continuum.continuum_upgrade_item.rocket_upgraded_to_level", (current + 1))
                     .withStyle(ChatFormatting.GREEN), true);
         }
         return InteractionResultHolder.sidedSuccess(module, level.isClientSide);
@@ -69,7 +70,7 @@ public class ContinuumUpgradeItem extends Item {
     public void appendHoverText(ItemStack stack, @org.jetbrains.annotations.Nullable Level level, List<Component> tooltip,
                                 TooltipFlag flag) {
         tooltip.add(Component.literal(effect).withStyle(ChatFormatting.AQUA));
-        tooltip.add(Component.literal("Up to level " + maxLevel).withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("Hold a rocket in your other hand and use.").withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_upgrade_item.up_to_level", maxLevel).withStyle(ChatFormatting.GRAY));
+        tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_repair_kit_item.hold_a_rocket_in_your").withStyle(ChatFormatting.DARK_GRAY));
     }
 }

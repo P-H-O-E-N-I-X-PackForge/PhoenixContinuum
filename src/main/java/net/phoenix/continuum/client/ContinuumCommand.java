@@ -1,5 +1,6 @@
 package net.phoenix.continuum.client;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraftforge.api.distmarker.Dist;
@@ -69,9 +70,7 @@ public final class ContinuumCommand {
         }
         if (mc.player == null) return 1;
         if (what.equals("start")) {
-            mc.player.displayClientMessage(net.minecraft.network.chat.Component.literal(
-                    "Profiling Continuum drawing. Open the map or a personal dimension; the heaviest passes are listed on screen. "
-                            + "/continuum profile report prints them, stop ends it."), false);
+            mc.player.displayClientMessage(ContinuumLang.tr("phoenix_continuum.continuum_command.profiling_continuum_drawing_open_the"), false);
         } else if (what.equals("report") || what.equals("stop")) {
             for (String line : net.phoenix.continuum.client.ContinuumProfiler.report()) {
                 mc.player.displayClientMessage(net.minecraft.network.chat.Component.literal(line), false);
@@ -132,8 +131,7 @@ public final class ContinuumCommand {
         Minecraft mc = Minecraft.getInstance();
         if (!net.phoenix.continuum.client.screen.ContinuumTunerScreen.allowed()) {
             if (mc.player != null) {
-                mc.player.displayClientMessage(net.minecraft.network.chat.Component.literal(
-                        "The Continuum tuner is for operators (or the single-player owner)."), false);
+                mc.player.displayClientMessage(ContinuumLang.tr("phoenix_continuum.continuum_command.the_continuum_tuner_is_for"), false);
             }
             return 0;
         }

@@ -1,5 +1,7 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -138,7 +140,7 @@ public class ContinuumMapScreen extends Screen {
     }
 
     public ContinuumMapScreen(@Nullable BlockPos pad) {
-        super(Component.literal("Continuum"));
+        super(ContinuumLang.tr("phoenix_continuum.continuum_map_screen.continuum"));
         this.pad = pad;
     }
 
@@ -267,7 +269,7 @@ public class ContinuumMapScreen extends Screen {
         }
 
         if (ContinuumData.systems().isEmpty()) {
-            graphics.drawCenteredString(font, "No Continuum data loaded", width / 2, height / 2 + 14, 0xFFff6b6b);
+            graphics.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_map.no_continuum_data_loaded"), width / 2, height / 2 + 14, 0xFFff6b6b);
         } else {
             switch (level) {
                 case GALAXY -> overlayGalaxy(graphics, mouseX, mouseY);
@@ -1032,7 +1034,7 @@ public class ContinuumMapScreen extends Screen {
         var launchWindow = net.phoenix.continuum.common.LaunchWindows.of(b, ContinuumClientState.now());
         if (launchWindow.applies() && stage != DiscoveryStage.UNKNOWN) {
             int pct = Math.round((launchWindow.factor() - 1.0f) * 100.0f);
-            graphics.drawString(font, "Window", x + 7, ty, DIM);
+            graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_map.window"), x + 7, ty, DIM);
             graphics.drawString(font, launchWindow.label() + (pct == 0 ? "" : String.format(Locale.ROOT, "  (%+d%%)", pct)),
                     x + 81, ty, launchWindow.openNow() ? MapUi.GOOD : launchWindow.factor() > 1.1f ? MapUi.BAD : TEXT);
             ty += 11;
@@ -1058,21 +1060,21 @@ public class ContinuumMapScreen extends Screen {
             ty = stat(graphics, "Ready", outpost.readyAt(ContinuumClientState.now()) + " of " + outpost.maxReady() +
                     " cycles", x + 7, ty);
             if (outpost.damaged()) {
-                graphics.drawString(font, "Status", x + 7, ty, DIM);
-                graphics.drawString(font, "DAMAGED", x + 81, ty, MapUi.BAD);
+                graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_map.status"), x + 7, ty, DIM);
+                graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_map.damaged"), x + 81, ty, MapUi.BAD);
                 ty += 11;
                 ty = stat(graphics, "Idle cycles", String.valueOf(outpost.brokenCycles()), x + 7, ty);
             }
             if (outpost.upkeepPerCycle() > 0) {
-                graphics.drawString(font, "Power", x + 7, ty, DIM);
-                graphics.drawString(font, outpost.powered() ? "OK" : "NO POWER", x + 81, ty,
+                graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_map.power"), x + 7, ty, DIM);
+                graphics.drawString(font, outpost.powered() ? "OK" : ContinuumText.str("phoenix_continuum.continuum_map.no_power"), x + 81, ty,
                         outpost.powered() ? MapUi.GOOD : MapUi.BAD);
                 ty += 11;
                 ty = stat(graphics, "Upkeep", String.format(Locale.ROOT, "%,d " + net.phoenix.continuum.machine.PadTiers.energyUnit() + " / cycle",
                                 outpost.upkeepPerCycle()),
                         x + 7, ty);
                 if (outpost.lostCycles() > 0) {
-                    graphics.drawString(font, "Lost cycles", x + 7, ty, DIM);
+                    graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_map.lost_cycles"), x + 7, ty, DIM);
                     graphics.drawString(font, String.valueOf(outpost.lostCycles()), x + 81, ty, MapUi.BAD);
                 }
             }
@@ -1100,7 +1102,7 @@ public class ContinuumMapScreen extends Screen {
         }
 
         if (!anomalies.isEmpty()) {
-            graphics.drawString(font, "Anomalies", x + 7, ty + 2, DIM);
+            graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_map.anomalies"), x + 7, ty + 2, DIM);
             ty += 14;
             for (ContinuumBody.Anomaly anomaly : anomalies) {
                 boolean done = ContinuumClientState.anomalyInvestigated(b.id(), anomaly.id());
@@ -1113,7 +1115,7 @@ public class ContinuumMapScreen extends Screen {
                 boolean hover = !done && MapUi.inside(mx, my, bx, ty - 1, bw, 14);
                 graphics.fill(bx, ty - 1, bx + bw, ty + 13, done ? MapUi.BUTTON_OFF : hover ? MapUi.BUTTON_HOVER : MapUi.BUTTON);
                 graphics.renderOutline(bx, ty - 1, bw, 14, done ? MapUi.BUTTON_LINE : MapUi.FRAME);
-                graphics.drawCenteredString(font, done ? "Done" : "Investigate", bx + bw / 2, ty + 2,
+                graphics.drawCenteredString(font, done ? ContinuumText.str("phoenix_continuum.continuum_expedition_screen.done") : ContinuumText.str("phoenix_continuum.continuum_map.investigate"), bx + bw / 2, ty + 2,
                         done ? MapUi.DIM : TITLE);
                 if (!done) anomalyRects.add(new Object[] { b.id(), anomaly.id(), bx, ty - 1, bw, 14 });
                 ty += 11;
@@ -1143,7 +1145,7 @@ public class ContinuumMapScreen extends Screen {
                             .isConfluxDimension(Minecraft.getInstance().level.dimension());
             graphics.fill(bx, y, bx + half, y + 18, enabled ? 0xFF2f4a2a : MapUi.BUTTON_OFF);
             graphics.renderOutline(bx, y, half, 18, enabled ? 0xFF6ad06a : MapUi.BUTTON_LINE);
-            graphics.drawCenteredString(font, inConflux ? "Return" : "Travel there", bx + half / 2, y + 5,
+            graphics.drawCenteredString(font, inConflux ? ContinuumText.str("phoenix_continuum.continuum_map.return") : ContinuumText.str("phoenix_continuum.continuum_map.travel_there"), bx + half / 2, y + 5,
                     enabled ? TITLE : MapUi.DIM);
             if (enabled) travelRect = new int[] { bx, y, half, 18 };
 
@@ -1151,14 +1153,14 @@ public class ContinuumMapScreen extends Screen {
             int rw = bw - half - 4;
             graphics.fill(rx, y, rx + rw, y + 18, enabled ? 0xFF1f2f4a : MapUi.BUTTON_OFF);
             graphics.renderOutline(rx, y, rw, 18, enabled ? 0xFF4aa0d0 : MapUi.BUTTON_LINE);
-            graphics.drawCenteredString(font, "Personal dim", rx + rw / 2, y + 5, enabled ? TITLE : MapUi.DIM);
+            graphics.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_map.personal_dim"), rx + rw / 2, y + 5, enabled ? TITLE : MapUi.DIM);
             if (enabled) pdimRect = new int[] { rx, y, rw, 18 };
             return;
         }
 
         graphics.fill(bx, y, bx + bw, y + 18, enabled ? 0xFF1f2f4a : MapUi.BUTTON_OFF);
         graphics.renderOutline(bx, y, bw, 18, enabled ? 0xFF4aa0d0 : MapUi.BUTTON_LINE);
-        graphics.drawCenteredString(font, "Personal dimension", bx + bw / 2, y + 5, enabled ? TITLE : MapUi.DIM);
+        graphics.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_pdim_screen.personal_dimension"), bx + bw / 2, y + 5, enabled ? TITLE : MapUi.DIM);
         if (enabled) pdimRect = new int[] { bx, y, bw, 18 };
     }
 
@@ -1171,7 +1173,7 @@ public class ContinuumMapScreen extends Screen {
         int bw = w - 14;
         graphics.fill(bx, y, bx + bw, y + 18, enabled ? MapUi.BUTTON_HOVER : MapUi.BUTTON_OFF);
         graphics.renderOutline(bx, y, bw, 18, enabled ? FRAME : MapUi.BUTTON_LINE);
-        graphics.drawCenteredString(font, pad == null ? "Plan mission  (view only)" : "Plan mission", bx + bw / 2,
+        graphics.drawCenteredString(font, pad == null ? ContinuumText.str("phoenix_continuum.continuum_map.plan_mission_view_only") : ContinuumText.str("phoenix_continuum.continuum_map.plan_mission"), bx + bw / 2,
                 y + 5,
                 enabled ? TITLE : MapUi.DIM);
         if (enabled) planRect = new int[] { bx, y, bw, 18 };
@@ -1420,7 +1422,7 @@ public class ContinuumMapScreen extends Screen {
         int y = 34;
         int h = 24 + lines.size() * 11 + (stage == DiscoveryStage.SURVEYED && split > 0 ? 8 : 0);
         panel(graphics, x, y, w, h);
-        graphics.drawString(font, "ARCHIVE", x + 8, y + 6, TITLE);
+        graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_archive.archive"), x + 8, y + 6, TITLE);
         int ty = y + 20;
         for (int i = 0; i < lines.size(); i++) {
             if (i == split && split > 0 && stage == DiscoveryStage.SURVEYED) ty += 8;
@@ -1460,7 +1462,7 @@ public class ContinuumMapScreen extends Screen {
         graphics.pose().scale(s, s, 1.0f);
 
         panel(graphics, 0, 0, w, h);
-        graphics.drawString(font, "Missions  (" + list.size() + ")", 6, 5, TITLE);
+        graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_map.missions", list.size()), 6, 5, TITLE);
 
         for (int i = 0; i < rows; i++) {
             ContinuumStateSnapshot.MissionView mission = list.get(i);
@@ -1529,7 +1531,7 @@ public class ContinuumMapScreen extends Screen {
             crumb += "  >  " + system.name();
             if (body != null && level == Level.BODY) crumb += "  >  " + body.name();
         }
-        graphics.drawString(font, "CONTINUUM", 10, 8, TITLE);
+        graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_map.continuum"), 10, 8, TITLE);
         graphics.drawString(font, crumb, 10, 19, DIM);
 
         if (!planner.isOpen()) {

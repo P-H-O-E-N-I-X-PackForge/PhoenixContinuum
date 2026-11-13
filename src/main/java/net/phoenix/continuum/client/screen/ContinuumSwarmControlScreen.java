@@ -1,5 +1,7 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -34,7 +36,7 @@ public class ContinuumSwarmControlScreen extends Screen {
     private int renderSize;
 
     public ContinuumSwarmControlScreen(SwarmControlView view) {
-        super(Component.literal("Swarm Control"));
+        super(ContinuumLang.tr("block.phoenix_continuum.continuum_swarm_control"));
         this.view = view;
     }
 
@@ -176,11 +178,11 @@ public class ContinuumSwarmControlScreen extends Screen {
 
         int x = panelX();
         MapUi.panel(g, x, 8, PANEL_W, height - 16);
-        g.drawString(font, "SWARM CONTROL", x + 8, 14, MapUi.TITLE);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_swarm_control.swarm_control"), x + 8, 14, MapUi.TITLE);
         String status = view.online() ? "ONLINE" : "OFFLINE";
         g.drawString(font, status, x + PANEL_W - 8 - font.width(status), 14, view.online() ? MapUi.GOOD : MapUi.BAD);
         if (current == null) {
-            g.drawString(font, "No target", x + 8, 76, MapUi.DIM);
+            g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_swarm_control.no_target"), x + 8, 76, MapUi.DIM);
             for (var line : font.split(Component.literal(view.note()), PANEL_W - 16)) {
                 g.drawString(font, line, x + 8, 90, MapUi.DIM, false);
             }
@@ -189,7 +191,7 @@ public class ContinuumSwarmControlScreen extends Screen {
         }
         g.drawCenteredString(font, font.plainSubstrByWidth(current.name(), PANEL_W - 64), x + PANEL_W / 2, 58,
                 MapUi.TITLE);
-        g.drawCenteredString(font, current.penrose() ? "Black hole  -  Penrose swarm" : "Star  -  Dyson swarm",
+        g.drawCenteredString(font, current.penrose() ? ContinuumText.str("phoenix_continuum.continuum_swarm_control.black_hole_penrose_swarm") : ContinuumText.str("phoenix_continuum.continuum_swarm_control.star_dyson_swarm"),
                 x + PANEL_W / 2, 72, MapUi.DIM);
 
         g.drawCenteredString(font, String.format(Locale.ROOT, "Hologram size %.2gx", view.scale()), x + PANEL_W / 2,
@@ -200,17 +202,17 @@ public class ContinuumSwarmControlScreen extends Screen {
         y = meter(g, x + 8, y, current.penrose() ? "Penrose sphere" : "Shell", current.shell(), current.shellMax(),
                 view.shellInFlight(), MapUi.WARN);
 
-        g.drawString(font, "Output now", x + 8, y + 2, MapUi.DIM);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_swarm_control.output_now"), x + 8, y + 2, MapUi.DIM);
         String now = String.format(Locale.ROOT, "%,d %s/t", view.powerNow(), view.unit());
         g.drawString(font, now, x + PANEL_W - 8 - font.width(now), y + 2,
                 view.powerNow() > 0 ? MapUi.GOOD : MapUi.WARN);
         y += 12;
-        g.drawString(font, "Finished shell", x + 8, y + 2, MapUi.DIM);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_swarm_control.finished_shell"), x + 8, y + 2, MapUi.DIM);
         String done = String.format(Locale.ROOT, "%,d %s/t", view.powerDone(), view.unit());
         g.drawString(font, done, x + PANEL_W - 8 - font.width(done), y + 2, MapUi.TEXT);
         y += 18;
 
-        g.drawString(font, "Launch pad", x + 8, y, MapUi.TITLE);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_swarm_control.launch_pad"), x + 8, y, MapUi.TITLE);
         y += 11;
         if (!view.padFound()) {
             for (var line : font.split(Component.literal(view.note()), PANEL_W - 16)) {
@@ -224,8 +226,7 @@ public class ContinuumSwarmControlScreen extends Screen {
             g.drawString(font, String.format(Locale.ROOT, "Energy %,d / %,d %s", view.energyStored(),
                     view.launchEnergy(), view.unit()), x + 8, y, enough ? MapUi.GOOD : MapUi.WARN);
             y += 11;
-            g.drawString(font, "Rockets " + view.rockets() + "   Pods " + view.collectors() + "   Segments " +
-                    view.segments(), x + 8, y, MapUi.TEXT);
+            g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_swarm_control.rockets_pods_segments", view.rockets(), view.collectors(), view.segments()), x + 8, y, MapUi.TEXT);
         }
         for (var renderable : this.renderables) renderable.render(g, mouseX, mouseY, partialTick);
     }

@@ -1,5 +1,6 @@
 package net.phoenix.continuum.common;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -75,8 +76,7 @@ public final class AnomalyActions {
 
         if (anomaly.research() != null && ContinuumHost.research() == BuiltinResearch.PROVIDER) {
             if (BuiltinResearch.get(player.server).grant(team, anomaly.research())) {
-                player.sendSystemMessage(Component.literal("\u00a7bResearch unlocked: \u00a7f" +
-                        ResearchGrants.pretty(anomaly.research())));
+                player.sendSystemMessage(ContinuumLang.tr("phoenix_continuum.anomaly_actions.research_unlocked", ResearchGrants.pretty(anomaly.research())));
                 ResearchGrants.sweep(player.server, team);
             }
         }
@@ -85,7 +85,7 @@ public final class AnomalyActions {
         player.sendSystemMessage(Component.literal(anomaly.name() + ": ").withStyle(ChatFormatting.GOLD)
                 .append(Component.literal(text).withStyle(ChatFormatting.WHITE)));
         if (found.length() > 0) {
-            player.sendSystemMessage(Component.literal("Recovered: " + found).withStyle(ChatFormatting.GRAY));
+            player.sendSystemMessage(ContinuumLang.tr("phoenix_continuum.anomaly_actions.recovered", found).withStyle(ChatFormatting.GRAY));
         }
         data.log(team, MissionLog.Kind.ANOMALY, bodyId, anomaly.name() + " investigated on " + body.name() + ".");
 

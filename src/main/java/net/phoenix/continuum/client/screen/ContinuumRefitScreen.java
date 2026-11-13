@@ -1,5 +1,7 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -32,7 +34,7 @@ public class ContinuumRefitScreen extends Screen {
     private float scale = 1.0f;
 
     public ContinuumRefitScreen() {
-        super(Component.literal("Rocket refit"));
+        super(ContinuumLang.tr("phoenix_continuum.continuum_refit_screen.rocket_refit"));
     }
 
     @Override
@@ -78,14 +80,14 @@ public class ContinuumRefitScreen extends Screen {
 
         g.fill(x + 1, y + 1, x + W - 1, y + 25, MapUi.CHROME);
         g.fill(x + 1, y + 25, x + W - 1, y + 26, MapUi.PANEL_LINE);
-        g.drawString(font, "Rocket refit", x + 10, y + 9, MapUi.TITLE);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_refit_screen.rocket_refit"), x + 10, y + 9, MapUi.TITLE);
 
         var player = Minecraft.getInstance().player;
         ItemStack rocket = player == null ? ItemStack.EMPTY : RocketRefit.heldRocket(player);
         if (rocket.isEmpty()) {
             RocketSprite.draw(g, x + W / 2.0f, y + 110, 70, 0.35f);
-            g.drawCenteredString(font, "Hold a Continuum Rocket to refit it.", x + W / 2, y + 128, MapUi.WARN);
-            g.drawCenteredString(font, "Sneak and use the rocket to open this screen.", x + W / 2, y + 142, MapUi.DIM);
+            g.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_refit.hold_a_continuum_rocket_to"), x + W / 2, y + 128, MapUi.WARN);
+            g.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_refit.sneak_and_use_the_rocket"), x + W / 2, y + 142, MapUi.DIM);
             button(g, x + W / 2 - 60, y + H - 28, 120, "Close", true, "close", mx, my);
             g.pose().popPose();
             return;
@@ -94,7 +96,7 @@ public class ContinuumRefitScreen extends Screen {
         int tier = RocketStats.tier(rocket);
         float wear = RocketStats.wear(rocket);
         String hull = RocketStats.tierName(tier);
-        g.drawString(font, "Hull " + hull, x + W - 10 - font.width("Hull " + hull), y + 9, MapUi.GOOD);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_refit.hull", hull), x + W - 10 - font.width("Hull " + hull), y + 9, MapUi.GOOD);
 
         int top = y + 33;
         int bottom = y + H - 34;
@@ -107,7 +109,7 @@ public class ContinuumRefitScreen extends Screen {
         RocketSprite.draw(g, lx + lw / 2.0f, top + 62, 48, 1.0f);
         g.drawCenteredString(font, hull, lx + lw / 2, top + 66, MapUi.TITLE);
 
-        g.drawString(font, "Wear", lx + 8, top + 80, MapUi.DIM);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_refit.wear"), lx + 8, top + 80, MapUi.DIM);
         String wearText = Math.round(wear * 100.0f) + "%";
         g.drawString(font, wearText, lx + lw - 8 - font.width(wearText), top + 80, MapUi.wearColor(wear));
         MapUi.bar(g, lx + 8, top + 91, lw - 16, 6, wear, MapUi.wearColor(wear));
@@ -120,7 +122,7 @@ public class ContinuumRefitScreen extends Screen {
         int hy = top + lh - 46;
         g.fill(lx + 6, hy - 4, lx + lw - 6, hy - 3, MapUi.PANEL_LINE);
         if (tier >= RocketStats.MAX_TIER) {
-            g.drawCenteredString(font, "The best hull", lx + lw / 2, hy + 14, MapUi.GOOD);
+            g.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_refit.the_best_hull"), lx + lw / 2, hy + 14, MapUi.GOOD);
         } else {
             Item kit = RocketRefit.refitKit(tier + 1);
             int have = player.getAbilities().instabuild ? 99 : RocketRefit.count(player, kit);
@@ -133,7 +135,7 @@ public class ContinuumRefitScreen extends Screen {
         int rw = x + W - 10 - rx;
         g.fill(rx, top, rx + rw, top + lh, MapUi.CHROME);
         g.renderOutline(rx, top, rw, lh, MapUi.BUTTON_LINE);
-        g.drawString(font, "Modules", rx + 8, top + 7, MapUi.TITLE);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_refit.modules"), rx + 8, top + 7, MapUi.TITLE);
         int ty = top + 22;
         for (String upgrade : MODULES) {
             int level = RocketStats.level(rocket, upgrade);
@@ -149,7 +151,7 @@ public class ContinuumRefitScreen extends Screen {
 
             int px = rx + 30 + font.width(moduleName(upgrade)) + 8;
             if (cap == 0) {
-                g.drawString(font, "locked", px, ty + 3, MapUi.BAD);
+                g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_refit.locked"), px, ty + 3, MapUi.BAD);
             } else {
                 for (int i = 0; i < cap; i++) {
                     int pxi = px + i * 9;

@@ -1,5 +1,7 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -61,7 +63,7 @@ public class ContinuumTransitScreen extends Screen {
     }
 
     public ContinuumTransitScreen(UUID missionId, @Nullable BlockPos pad) {
-        super(Component.literal("Transit"));
+        super(ContinuumLang.tr("phoenix_continuum.continuum_transit_screen.transit"));
         this.missionId = missionId;
         this.pad = pad;
     }
@@ -179,9 +181,9 @@ public class ContinuumTransitScreen extends Screen {
         boolean extraction = mission.type() == Mission.Type.EXTRACT;
         boolean payload = extraction || mission.type() == Mission.Type.DEPLOY;
         graphics.drawString(font, mission.type().label().toUpperCase(java.util.Locale.ROOT), 14, 12, MapUi.TITLE);
-        graphics.drawString(font, "Bound for " + name + (payload ? "  -  " + mission.probes() + " probe" +
-                (mission.probes() == 1 ? "" : "s") : ""), 14, 24, MapUi.TEXT);
-        graphics.drawString(font, "Launched by " + mission.launcherName(), 14, 35, MapUi.DIM);
+        graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_transit.bound_for", name, (payload ? "  -  " + mission.probes() + " probe" +
+                (mission.probes() == 1 ? "" : "s") : "")), 14, 24, MapUi.TEXT);
+        graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_transit.launched_by", mission.launcherName()), 14, 35, MapUi.DIM);
 
         int y = 56;
         for (int i = 0; i < WAYPOINT_AT.length; i++) {
@@ -194,12 +196,12 @@ public class ContinuumTransitScreen extends Screen {
         if (mission.state().finished()) {
             graphics.fill(replayX(), 8, replayX() + 70, 22, MapUi.CHROME);
             graphics.renderOutline(replayX(), 8, 70, 14, MapUi.PANEL_LINE);
-            graphics.drawCenteredString(font, "Replay landing", replayX() + 35, 11, MapUi.TEXT);
+            graphics.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_transit.replay_landing"), replayX() + 35, 11, MapUi.TEXT);
         }
 
         graphics.fill(backX(), 8, backX() + 52, 22, MapUi.CHROME);
         graphics.renderOutline(backX(), 8, 52, 14, MapUi.PANEL_LINE);
-        graphics.drawCenteredString(font, "< Map", backX() + 26, 11, MapUi.TEXT);
+        graphics.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_transit.map"), backX() + 26, 11, MapUi.TEXT);
 
         int barW = Math.min(420, width - 80);
         int barX = (width - barW) / 2;
@@ -259,7 +261,7 @@ public class ContinuumTransitScreen extends Screen {
             boolean hover = MapUi.inside(mouseX, mouseY, collectX(), collectY(), 124, 18);
             graphics.fill(collectX(), collectY(), collectX() + 124, collectY() + 18, hover ? 0xFF4a2c2c : 0xFF3a1d1d);
             graphics.renderOutline(collectX(), collectY(), 124, 18, MapUi.WARN);
-            graphics.drawCenteredString(font, "Plan rescue", collectX() + 62, collectY() + 5, MapUi.TITLE);
+            graphics.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_transit.plan_rescue"), collectX() + 62, collectY() + 5, MapUi.TITLE);
         }
         if (finished && !mission.stranded()) {
             boolean hover = MapUi.inside(mouseX, mouseY, collectX(), collectY(), 124, 18);
@@ -268,7 +270,7 @@ public class ContinuumTransitScreen extends Screen {
             graphics.renderOutline(collectX(), collectY(), 124, 18, MapUi.FRAME);
             boolean hasHaul = mission.state() == Mission.State.SUCCESS &&
                     (extraction || mission.type() == Mission.Type.HAUL);
-            graphics.drawCenteredString(font, hasHaul ? "Collect rocket + haul" : "Collect rocket", collectX() + 62,
+            graphics.drawCenteredString(font, hasHaul ? ContinuumText.str("phoenix_continuum.continuum_transit.collect_rocket_haul") : ContinuumText.str("phoenix_continuum.continuum_transit.collect_rocket"), collectX() + 62,
                     collectY() + 5, MapUi.TITLE);
         }
     }

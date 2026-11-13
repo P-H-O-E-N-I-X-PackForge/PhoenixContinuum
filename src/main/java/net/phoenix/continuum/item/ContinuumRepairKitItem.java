@@ -1,5 +1,6 @@
 package net.phoenix.continuum.item;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -31,7 +32,7 @@ public class ContinuumRepairKitItem extends Item {
         if (!(rocket.getItem() instanceof ContinuumRocketItem)) {
             if (!level.isClientSide) {
                 player.displayClientMessage(
-                        Component.literal("Hold a Continuum Rocket in your other hand to repair it.")
+                        ContinuumLang.tr("phoenix_continuum.continuum_repair_kit_item.hold_a_continuum_rocket_in")
                                 .withStyle(ChatFormatting.RED),
                         true);
             }
@@ -41,7 +42,7 @@ public class ContinuumRepairKitItem extends Item {
         float wear = RocketStats.wear(rocket);
         if (wear <= 0.0f) {
             if (!level.isClientSide) {
-                player.displayClientMessage(Component.literal("The rocket is in perfect condition.")
+                player.displayClientMessage(ContinuumLang.tr("phoenix_continuum.continuum_repair_kit_item.the_rocket_is_in_perfect")
                         .withStyle(ChatFormatting.YELLOW), true);
             }
             return InteractionResultHolder.fail(kit);
@@ -52,8 +53,7 @@ public class ContinuumRepairKitItem extends Item {
             RocketStats.setWear(rocket, wear - repaired);
             if (!player.getAbilities().instabuild) kit.shrink(1);
             level.playSound(null, player.blockPosition(), SoundEvents.ANVIL_USE, SoundSource.PLAYERS, 0.5f, 1.8f);
-            player.displayClientMessage(Component.literal("Rocket wear is now " +
-                    Math.round(RocketStats.wear(rocket) * 100.0f) + "%.").withStyle(ChatFormatting.GREEN), true);
+            player.displayClientMessage(ContinuumLang.tr("phoenix_continuum.continuum_repair_kit_item.rocket_wear_is_now", Math.round(RocketStats.wear(rocket) * 100.0f)).withStyle(ChatFormatting.GREEN), true);
         }
         return InteractionResultHolder.sidedSuccess(kit, level.isClientSide);
     }
@@ -61,8 +61,7 @@ public class ContinuumRepairKitItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, @org.jetbrains.annotations.Nullable Level level, List<Component> tooltip,
                                 TooltipFlag flag) {
-        tooltip.add(Component.literal("Removes " + Math.round(ContinuumConfigs.INSTANCE.repairKitWear * 100) +
-                "% wear from a rocket.").withStyle(ChatFormatting.AQUA));
-        tooltip.add(Component.literal("Hold a rocket in your other hand and use.").withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_repair_kit_item.removes_wear_from_a_rocket", Math.round(ContinuumConfigs.INSTANCE.repairKitWear * 100)).withStyle(ChatFormatting.AQUA));
+        tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_repair_kit_item.hold_a_rocket_in_your").withStyle(ChatFormatting.DARK_GRAY));
     }
 }

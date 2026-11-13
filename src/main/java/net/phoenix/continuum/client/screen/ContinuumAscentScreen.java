@@ -1,5 +1,7 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -46,7 +48,7 @@ public class ContinuumAscentScreen extends Screen {
     private final FlightProfiles.Ascent profile;
 
     public ContinuumAscentScreen(ResourceLocation destination, @Nullable BlockPos pad) {
-        super(Component.literal("Ascent"));
+        super(ContinuumLang.tr("phoenix_continuum.continuum_ascent_screen.ascent"));
         this.destination = destination;
         this.pad = pad;
         this.profile = FlightProfiles.Ascent.of(ContinuumData.body(destination));
@@ -201,8 +203,8 @@ public class ContinuumAscentScreen extends Screen {
         ContinuumBody body = ContinuumData.body(destination);
         String target = body != null ? body.name() : destination.getPath();
 
-        graphics.drawString(font, "ASCENT", 14, 12, MapUi.TITLE);
-        graphics.drawString(font, "Bound for " + target, 14, 24, MapUi.DIM);
+        graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_ascent.ascent"), 14, 12, MapUi.TITLE);
+        graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_ascent.bound_for", target), 14, 24, MapUi.DIM);
 
         int stage = Math.min(profile.stages.length - 1, (int) (t * profile.stages.length));
         graphics.drawString(font, profile.stages[stage], 14, 40, MapUi.WARN);
@@ -213,7 +215,7 @@ public class ContinuumAscentScreen extends Screen {
         graphics.drawString(font, "T+ " + MapUi.duration((long) (t * profile.seconds * 1000.0f)), 14, 67, MapUi.TEXT);
 
         MapUi.bar(graphics, width / 2 - 100, height - 22, 200, 6, t, MapUi.FRAME);
-        graphics.drawCenteredString(font, "Esc to skip", width / 2, height - 12, 0xFF6a6488);
+        graphics.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_arrival.esc_to_skip"), width / 2, height - 12, 0xFF6a6488);
     }
 
     private void finish() {

@@ -1,5 +1,7 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
@@ -48,7 +50,7 @@ public class ContinuumScheduleScreen extends Screen {
 
     public ContinuumScheduleScreen(Screen parent, ResourceLocation destination, BlockPos pad, Mission.Type type,
                                    int probes, int count) {
-        super(Component.literal("Schedule"));
+        super(ContinuumLang.tr("phoenix_continuum.continuum_schedule_screen.schedule"));
         this.parent = parent;
         this.destination = destination;
         this.pad = pad;
@@ -161,20 +163,20 @@ public class ContinuumScheduleScreen extends Screen {
         int y = panelY();
         MapUi.panel(g, x, y, W, panelH());
         ContinuumBody body = ContinuumData.body(destination);
-        g.drawString(font, "SCHEDULE A LAUNCH", x + 10, y + 9, MapUi.TITLE);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_schedule.schedule_a_launch"), x + 10, y + 9, MapUi.TITLE);
         g.drawString(font, type.label() + " to " + (body != null ? body.name() : destination.getPath()) +
                 (count > 1 ? "  x" + count : "") + (probes > 0 ? "  (" + probes + " probes)" : ""), x + 10, y + 24,
                 MapUi.DIM);
-        g.drawString(font, "Each run spends a rocket, its cargo and the launch energy from this pad.", x + 10,
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_schedule.each_run_spends_a_rocket"), x + 10,
                 y + 36, MapUi.DIM);
 
-        g.drawString(font, "Waits and tells you once if it cannot launch.", x + 10, y + 176, MapUi.DIM);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_schedule.waits_and_tells_you_once"), x + 10, y + 176, MapUi.DIM);
 
         int ry = y + 206;
         g.fill(x + 6, y + 190, x + W - 6, y + 191, MapUi.PANEL_LINE);
-        g.drawString(font, "THIS PAD'S SCHEDULES", x + 10, ry - 12, MapUi.TITLE);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_schedule.this_pad_s_schedules"), x + 10, ry - 12, MapUi.TITLE);
         if (shown.isEmpty()) {
-            g.drawString(font, "None yet.", x + 10, ry + 4, MapUi.DIM);
+            g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_schedule.none_yet"), x + 10, ry + 4, MapUi.DIM);
         }
         for (ScheduleService.View view : shown) {
             g.fill(x + 6, ry, x + W - 6, ry + ROW - 4, MapUi.PANEL_SOLID);

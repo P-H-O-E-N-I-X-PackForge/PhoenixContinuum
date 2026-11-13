@@ -1,5 +1,6 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -226,7 +227,7 @@ final class MissionPlannerPanel {
         }
         rockets = convoy ? Math.max(1, Math.min(rockets, maxRockets)) : 1;
 
-        g.drawString(font, "Plan mission  -  " + body.name(), x + 10, y + 9, MapUi.TITLE);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.mission_planner_panel.plan_mission", body.name()), x + 10, y + 9, MapUi.TITLE);
         expeditionRect = button(g, font, x + W - 118, y + 6, 108, 14,
                 font.plainSubstrByWidth(net.phoenix.continuum.client.ExpeditionDraft.isSet() ?
                         net.phoenix.continuum.client.ExpeditionDraft.summary() : "Name and crew", 98),
@@ -263,7 +264,7 @@ final class MissionPlannerPanel {
 
         boolean carriesProbes = mode == Mission.Type.EXTRACT || mode == Mission.Type.DEPLOY;
         if (carriesProbes) {
-            g.drawString(font, "Probes", x + 10, ty + 3, MapUi.DIM);
+            g.drawString(font, ContinuumText.str("phoenix_continuum.mission_planner_panel.probes"), x + 10, ty + 3, MapUi.DIM);
             minusRect = button(g, font, x + 92, ty, 16, 14, "-", probes > 1, false, mx, my);
             g.drawCenteredString(font, String.valueOf(probes), x + 124, ty + 3, MapUi.TITLE);
             plusRect = button(g, font, x + 140, ty, 16, 14, "+", probes < maxProbes, false, mx, my);
@@ -295,7 +296,7 @@ final class MissionPlannerPanel {
         rocketMinusRect = null;
         rocketPlusRect = null;
         if (convoy) {
-            g.drawString(font, "Rockets", x + 10, ty + 3, MapUi.DIM);
+            g.drawString(font, ContinuumText.str("phoenix_continuum.mission_planner_panel.rockets"), x + 10, ty + 3, MapUi.DIM);
             rocketMinusRect = button(g, font, x + 92, ty, 16, 14, "-", rockets > 1, false, mx, my);
             g.drawCenteredString(font, String.valueOf(rockets), x + 124, ty + 3, MapUi.TITLE);
             rocketPlusRect = button(g, font, x + 140, ty, 16, 14, "+", rockets < maxRockets, false, mx, my);

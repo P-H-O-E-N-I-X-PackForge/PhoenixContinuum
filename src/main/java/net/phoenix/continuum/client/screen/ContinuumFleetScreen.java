@@ -1,5 +1,7 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -39,7 +41,7 @@ public class ContinuumFleetScreen extends Screen {
     private int scroll;
 
     public ContinuumFleetScreen(Screen parent, @Nullable BlockPos pad) {
-        super(Component.literal("Fleet"));
+        super(ContinuumLang.tr("phoenix_continuum.continuum_fleet_screen.fleet"));
         this.parent = parent;
         this.pad = pad;
     }
@@ -88,7 +90,7 @@ public class ContinuumFleetScreen extends Screen {
         MapUi.refreshTheme();
         graphics.fill(0, 0, width, height, MapUi.SCREEN_BG);
         graphics.renderOutline(1, 1, width - 2, height - 2, MapUi.FRAME);
-        graphics.drawString(font, "FLEET", 10, 8, MapUi.TITLE);
+        graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_fleet.fleet"), 10, 8, MapUi.TITLE);
 
         List<ContinuumStateSnapshot.MissionView> list = sorted();
         long now = ContinuumClientState.now();
@@ -101,24 +103,23 @@ public class ContinuumFleetScreen extends Screen {
             else flying++;
         }
         graphics.drawString(font,
-                list.size() + " of " + ContinuumClientState.missionSlots() + " slots   -   " + flying +
-                        " in flight, " + landed + " landed, " + stranded + " stranded",
+                ContinuumText.str("phoenix_continuum.continuum_fleet.of_slots_in_flight_landed", list.size(), ContinuumClientState.missionSlots(), flying, landed, stranded),
                 10, 19, MapUi.DIM);
 
         graphics.fill(width - 62, 8, width - 10, 22, MapUi.CHROME);
         graphics.renderOutline(width - 62, 8, 52, 14, MapUi.PANEL_LINE);
-        graphics.drawCenteredString(font, "< Back", width - 36, 11, MapUi.TEXT);
+        graphics.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_archive.back"), width - 36, 11, MapUi.TEXT);
 
         boolean anyLanded = landed > 0;
         int historyX = width - 62 - 96 - 66;
         graphics.fill(historyX, 8, historyX + 60, 22, MapUi.CHROME);
         graphics.renderOutline(historyX, 8, 60, 14, MapUi.PANEL_LINE);
-        graphics.drawCenteredString(font, "History", historyX + 30, 11, MapUi.TEXT);
+        graphics.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_history_screen.history"), historyX + 30, 11, MapUi.TEXT);
 
         int allX = width - 62 - 96;
         graphics.fill(allX, 8, allX + 90, 22, anyLanded ? 0xAA2c2760 : MapUi.CHROME);
         graphics.renderOutline(allX, 8, 90, 14, anyLanded ? MapUi.FRAME : MapUi.PANEL_LINE);
-        graphics.drawCenteredString(font, "Collect all", allX + 45, 11, anyLanded ? MapUi.TITLE : MapUi.DIM);
+        graphics.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_fleet.collect_all"), allX + 45, 11, anyLanded ? MapUi.TITLE : MapUi.DIM);
 
         drawList(graphics, mouseX, mouseY, list, now);
         drawStations(graphics);
@@ -133,7 +134,7 @@ public class ContinuumFleetScreen extends Screen {
         int w = listW();
         MapUi.panel(graphics, x, top, w, height - top - 10);
         if (list.isEmpty()) {
-            graphics.drawString(font, "No rockets are out. Launch one from a Launch Complex.", x + 8, top + 10,
+            graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_fleet.no_rockets_are_out_launch"), x + 8, top + 10,
                     MapUi.DIM);
             return;
         }
@@ -183,13 +184,13 @@ public class ContinuumFleetScreen extends Screen {
         int top = 36;
         int w = width - x - 10;
         MapUi.panel(graphics, x, top, w, height - top - 10);
-        graphics.drawString(font, "Orbital stations", x + 8, top + 8, MapUi.TITLE);
-        graphics.drawString(font, "Each adds a mission slot.", x + 8, top + 20, MapUi.DIM);
+        graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_fleet.orbital_stations"), x + 8, top + 8, MapUi.TITLE);
+        graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_fleet.each_adds_a_mission_slot"), x + 8, top + 20, MapUi.DIM);
 
         Map<ResourceLocation, Integer> stations = ContinuumClientState.stations();
         if (stations.isEmpty() && ContinuumClientState.shells().isEmpty()) {
-            graphics.drawString(font, "None built yet. Plan a", x + 8, top + 38, MapUi.DIM);
-            graphics.drawString(font, "station run from a body's page.", x + 8, top + 49, MapUi.DIM);
+            graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_fleet.none_built_yet_plan_a"), x + 8, top + 38, MapUi.DIM);
+            graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_fleet.station_run_from_a_body"), x + 8, top + 49, MapUi.DIM);
             return;
         }
         int y = top + 38;

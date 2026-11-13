@@ -1,5 +1,7 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -51,7 +53,7 @@ public final class ContinuumBodyPickerScreen extends Screen {
 
     public ContinuumBodyPickerScreen(Screen parent, List<ContinuumBody> candidates, ResourceLocation current,
                                      Consumer<ResourceLocation> onPick, Consumer<ResourceLocation> onPickSystem) {
-        super(Component.literal("Pick a body"));
+        super(ContinuumLang.tr("phoenix_continuum.continuum_body_picker_screen.pick_a_body"));
         this.parent = parent;
         this.onPick = onPick;
         this.onPickSystem = onPickSystem;
@@ -81,9 +83,9 @@ public final class ContinuumBodyPickerScreen extends Screen {
     @Override
     protected void init() {
         String previous = search == null ? "" : search.getValue();
-        search = new EditBox(font, 16, 22, Math.min(width - 32, 360), 14, Component.literal("Search"));
+        search = new EditBox(font, 16, 22, Math.min(width - 32, 360), 14, ContinuumLang.tr("phoenix_continuum.continuum_body_picker_screen.search"));
         search.setMaxLength(48);
-        search.setHint(Component.literal("Search every system and body..."));
+        search.setHint(ContinuumLang.tr("phoenix_continuum.continuum_body_picker_screen.search_every_system_and_body"));
         search.setResponder(text -> bodyScroll = 0);
         search.setValue(previous);
         addRenderableWidget(search);
@@ -208,7 +210,7 @@ public final class ContinuumBodyPickerScreen extends Screen {
     public void render(GuiGraphics g, int mx, int my, float partialTick) {
         g.fill(0, 0, width, height, 0xF00A0E14);
         hits.clear();
-        g.drawString(font, "Pick a body to tune", 16, 10, 0xFFFFFFFF, false);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_body_picker.pick_a_body_to_tune"), 16, 10, 0xFFFFFFFF, false);
 
         int top = top();
         int bodiesX = 16 + SYSTEM_W + 10;
@@ -220,7 +222,7 @@ public final class ContinuumBodyPickerScreen extends Screen {
         int avail = bottom - top;
 
         // systems
-        g.drawString(font, "Systems (" + systemOrder.size() + ")", 16, top - 11, 0xFFFFD080, false);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_body_picker.systems", systemOrder.size()), 16, top - 11, 0xFFFFD080, false);
         int[] systemHeights = new int[systemOrder.size()];
         List<List<String>> systemLines = new ArrayList<>();
         for (int i = 0; i < systemOrder.size(); i++) {
@@ -275,7 +277,7 @@ public final class ContinuumBodyPickerScreen extends Screen {
                 g.fill(bodiesX + 3, y + 3, bodiesX + 9, y + 9, 0xFF000000 | starColor);
                 drawLines(g, wrap(systemName(systemId) + " (the star)", nameWidth(bodiesW, 0)), bodiesX + INDENT,
                         y + 3, 0xFFFFE8B0);
-                g.drawString(font, "System", bodiesX + bodiesW - detailW, y + 3, 0xFF7F8A99, false);
+                g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_body_picker.system"), bodiesX + bodiesW - detailW, y + 3, 0xFF7F8A99, false);
                 hits.add(new Object[] { "star", systemId, bodiesX, y, bodiesW, h });
                 continue;
             }

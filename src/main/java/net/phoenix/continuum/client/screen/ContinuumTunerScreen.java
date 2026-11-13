@@ -1,5 +1,7 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
@@ -116,7 +118,7 @@ public final class ContinuumTunerScreen extends Screen {
     private final List<Object[]> hits = new ArrayList<>();
 
     public ContinuumTunerScreen(Screen parent, ResourceLocation start) {
-        super(Component.literal("Continuum tuner"));
+        super(ContinuumLang.tr("phoenix_continuum.continuum_tuner_screen.continuum_tuner"));
         this.parent = parent;
         // every body of every system, stars and black holes included
         bodies.addAll(ContinuumData.allBodies());
@@ -460,7 +462,7 @@ public final class ContinuumTunerScreen extends Screen {
         g.fill(0, 0, vw, vh, 0xF00A0E14);
         hits.clear();
         if (bodies.isEmpty()) {
-            g.drawCenteredString(font, "No bodies loaded.", vw / 2, vh / 2, 0xFFFFFFFF);
+            g.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_tuner.no_bodies_loaded"), vw / 2, vh / 2, 0xFFFFFFFF);
             return;
         }
 
@@ -471,12 +473,12 @@ public final class ContinuumTunerScreen extends Screen {
 
         ContinuumBody body = body();
         int x = left();
-        g.drawString(font, "Continuum tuner", x, 8, 0xFFFFFFFF, false);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_tuner_screen.continuum_tuner"), x, 8, 0xFFFFFFFF, false);
         String title = "<  " + body.name() + "  (" + body.id() + ")  >";
-        g.drawString(font, "click the name to pick a body", x + 90, 8, 0xFF7F8A99, false);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_tuner.click_the_name_to_pick"), x + 90, 8, 0xFF7F8A99, false);
         g.drawString(font, title, x, 22, 0xFFC8D4E8, false);
         hit(g, mx, my, x, 20, font.width(title) + 4, 12, "body", false);
-        if (ContinuumTuner.isTuned(body.id())) g.drawString(font, "tuned", x + LIST_W - 30, 8, 0xFFFFB040, false);
+        if (ContinuumTuner.isTuned(body.id())) g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_tuner.tuned"), x + LIST_W - 30, 8, 0xFFFFB040, false);
 
         scroll = Math.max(0, Math.min(scroll, maxScroll()));
         int cursor = top();
@@ -550,23 +552,23 @@ public final class ContinuumTunerScreen extends Screen {
                 case BOOL -> {
                     boolean on = bool(field);
                     g.fill(vx, y + 2, vx + 28, y + 13, on ? 0xFF2F8F5F : 0xFF3A4452);
-                    g.drawCenteredString(font, on ? "on" : "off", vx + 14, y + 4, 0xFFFFFFFF);
+                    g.drawCenteredString(font, on ? "on" : ContinuumText.str("phoenix_continuum.continuum_tuner.off"), vx + 14, y + 4, 0xFFFFFFFF);
                     hit(g, mx, my, vx, y + 1, 28, 13, field, "toggle");
                 }
             }
         }
 
         int px = x + LIST_W + 12;
-        g.drawString(font, "Preview", px, top() - 12, 0xFFAEBBCF, false);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_system.preview"), px, top() - 12, 0xFFAEBBCF, false);
         ContinuumSystem owner = body.isCentral() ? ContinuumData.system(body.system()) : null;
         if (owner != null && (body.type() == ContinuumBody.Type.STAR ||
                 body.type() == ContinuumBody.Type.BLACK_HOLE)) {
             // a system's star or black hole is drawn as the system draws it
             preview.drawSystem(g, owner, px, top(), 200);
-            g.drawString(font, "drag to turn, scroll to zoom", px, top() + 204, 0xFF7F8A99, false);
+            g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_system.drag_to_turn_scroll_to"), px, top() + 204, 0xFF7F8A99, false);
         } else if (body.type() != ContinuumBody.Type.BLACK_HOLE) {
             preview.drawPlanet(g, body.params(), px, top(), 200);
-            g.drawString(font, "drag to turn, scroll to zoom", px, top() + 204, 0xFF7F8A99, false);
+            g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_system.drag_to_turn_scroll_to"), px, top() + 204, 0xFF7F8A99, false);
         } else {
             g.fill(px, top(), px + 200, top() + 200, 0xFF05070C);
             List<String> holeLines = wrap("tune black holes in the system screen", 180);

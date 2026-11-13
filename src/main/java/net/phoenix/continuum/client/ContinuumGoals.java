@@ -1,5 +1,6 @@
 package net.phoenix.continuum.client;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.phoenix.continuum.data.ContinuumBody;
@@ -31,14 +32,13 @@ public final class ContinuumGoals {
         }
 
         List<Component> out = new ArrayList<>();
-        out.add(Component.literal("\u00a76Continuum goals"));
+        out.add(ContinuumLang.tr("phoenix_continuum.continuum_goals.continuum_goals"));
         goals.sort((a, b) -> Boolean.compare(b.leadsOn(), a.leadsOn()));
         if (goals.isEmpty()) {
-            out.add(Component.literal("\u00a77  Nothing left to survey. Try outposts, hauling and personal dimensions."));
+            out.add(ContinuumLang.tr("phoenix_continuum.continuum_goals.nothing_left_to_survey_try"));
         }
         for (Goal goal : goals) {
-            out.add(Component.literal(goal.leadsOn() ? "\u00a7e  * " + goal.text() + " \u00a77- this will open something new" :
-                    "\u00a77  - " + goal.text()));
+            out.add(Component.literal(goal.leadsOn() ? ContinuumText.str("phoenix_continuum.continuum_goals.this_will_open_something_new", goal.text()) : "\u00a77  - " + goal.text()));
         }
         return out;
     }

@@ -1,5 +1,6 @@
 package net.phoenix.continuum.block;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -63,8 +64,7 @@ public class LaunchPadBlock extends Block implements EntityBlock {
                 stocked.stock(held);
                 int moved = before - held.getCount();
                 if (moved > 0) {
-                    player.displayClientMessage(Component.literal("Stocked " + moved +
-                            " in the pad, for its schedules.").withStyle(ChatFormatting.GRAY), true);
+                    player.displayClientMessage(ContinuumLang.tr("phoenix_continuum.launch_pad_block.stocked_in_the_pad_for", moved).withStyle(ChatFormatting.GRAY), true);
                 }
             }
             return InteractionResult.sidedSuccess(level.isClientSide);

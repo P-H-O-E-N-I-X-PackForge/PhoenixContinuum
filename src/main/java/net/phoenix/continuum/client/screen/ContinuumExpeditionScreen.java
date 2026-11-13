@@ -1,5 +1,7 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -20,7 +22,7 @@ public class ContinuumExpeditionScreen extends Screen {
     private final List<String> players = new ArrayList<>();
 
     public ContinuumExpeditionScreen(Screen parent) {
-        super(Component.literal("Name and crew"));
+        super(ContinuumLang.tr("phoenix_continuum.continuum_expedition_screen.name_and_crew"));
         this.parent = parent;
     }
 
@@ -39,11 +41,11 @@ public class ContinuumExpeditionScreen extends Screen {
 
         int cx = width / 2;
         int top = height / 2 - 74;
-        nameBox = new EditBox(font, cx - 100, top + 22, 200, 18, Component.literal("Expedition name"));
+        nameBox = new EditBox(font, cx - 100, top + 22, 200, 18, ContinuumLang.tr("phoenix_continuum.continuum_expedition_screen.expedition_name"));
         nameBox.setMaxLength(24);
         nameBox.setValue(ExpeditionDraft.name);
         nameBox.setResponder(value -> ExpeditionDraft.name = value);
-        nameBox.setHint(Component.literal("Name this expedition"));
+        nameBox.setHint(ContinuumLang.tr("phoenix_continuum.continuum_expedition_screen.name_this_expedition"));
         addRenderableWidget(nameBox);
         setInitialFocus(nameBox);
 
@@ -57,9 +59,9 @@ public class ContinuumExpeditionScreen extends Screen {
             }).bounds(cx - 100, y, 200, 16).build());
             y += 18;
         }
-        addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose())
+        addRenderableWidget(Button.builder(ContinuumLang.tr("phoenix_continuum.continuum_expedition_screen.done"), b -> onClose())
                 .bounds(cx - 100, height / 2 + 62, 98, 18).build());
-        addRenderableWidget(Button.builder(Component.literal("Clear"), b -> {
+        addRenderableWidget(Button.builder(ContinuumLang.tr("phoenix_continuum.continuum_expedition_screen.clear"), b -> {
             ExpeditionDraft.name = "";
             ExpeditionDraft.crew.clear();
             nameBox.setValue("");
@@ -76,12 +78,12 @@ public class ContinuumExpeditionScreen extends Screen {
         super.render(g, mouseX, mouseY, partialTick);
         int cx = width / 2;
         int top = height / 2 - 74;
-        g.drawCenteredString(font, "Name and crew", cx, top + 6, 0xFFFFFFFF);
+        g.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_expedition_screen.name_and_crew"), cx, top + 6, 0xFFFFFFFF);
         g.drawString(font, "Crew (" + ExpeditionDraft.crewCount() + " of " + ContinuumMissions.MAX_CREW +
                 "): each lowers the flight's chance of failing by " +
                 Math.round(ContinuumMissions.CREW_RISK_REDUCTION * 100) + "%", cx - 100, top + 48, 0xFFb0b8c8);
         if (players.isEmpty()) {
-            g.drawString(font, "No other players are online.", cx - 100, top + 64, 0xFF8890a0);
+            g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_expedition.no_other_players_are_online"), cx - 100, top + 64, 0xFF8890a0);
         }
     }
 

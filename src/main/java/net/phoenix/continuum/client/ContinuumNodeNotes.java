@@ -16,13 +16,13 @@ public final class ContinuumNodeNotes {
     public static List<String> notes(ResourceLocation nodeId) {
         List<String> out = new ArrayList<>();
         for (var body : ContinuumData.allBodies()) {
-            if (nodeId.equals(body.surveyedResearch())) out.add("\u00a7b\u25ce Surveys " + body.name());
-            else if (nodeId.equals(body.detectedResearch())) out.add("\u00a7e\u25ce Detects " + body.name());
+            if (nodeId.equals(body.surveyedResearch())) out.add(ContinuumText.str("phoenix_continuum.continuum_node_notes.surveys", body.name()));
+            else if (nodeId.equals(body.detectedResearch())) out.add(ContinuumText.str("phoenix_continuum.continuum_node_notes.detects", body.name()));
         }
         for (var system : ContinuumData.systems()) {
-            if (nodeId.equals(system.surveyedResearch())) out.add("\u00a7b\u25ce Surveys the " + system.name() + " system");
+            if (nodeId.equals(system.surveyedResearch())) out.add(ContinuumText.str("phoenix_continuum.continuum_node_notes.surveys_the_system", system.name()));
             else if (nodeId.equals(system.detectedResearch())) {
-                out.add("\u00a7e\u25ce Detects the " + system.name() + " system");
+                out.add(ContinuumText.str("phoenix_continuum.continuum_node_notes.detects_the_system", system.name()));
             }
         }
         return out;

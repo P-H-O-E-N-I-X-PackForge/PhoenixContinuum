@@ -1,5 +1,6 @@
 package net.phoenix.continuum.item;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
@@ -21,9 +22,9 @@ public class ContinuumPenroseCollectorItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip,
                                 TooltipFlag flag) {
-        tooltip.add(Component.literal("Carried by a rocket to a surveyed black hole.").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("Enough of them grow a level of its Penrose swarm.")
+        tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_penrose_collector_item.carried_by_a_rocket_to").withStyle(ChatFormatting.GRAY));
+        tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_penrose_collector_item.enough_of_them_grow_a")
                 .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("Lost if the mission fails.").withStyle(ChatFormatting.RED));
+        tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_penrose_collector_item.lost_if_the_mission_fails").withStyle(ChatFormatting.RED));
     }
 }

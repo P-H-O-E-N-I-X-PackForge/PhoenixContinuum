@@ -1,5 +1,6 @@
 package net.phoenix.continuum.common;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -330,9 +331,7 @@ public class ContinuumTeamData extends SavedData {
                 newlyDamaged.add(team.getKey());
                 ContinuumBody body = ContinuumData.body(entry.getKey());
                 String name = body != null ? body.name() : entry.getKey().getPath();
-                ContinuumMissions.notifyTeam(server, team.getKey(), net.minecraft.network.chat.Component
-                        .literal("The outpost on " + name + " has been damaged and stopped producing. " +
-                                "Fly a repair run to fix it.")
+                ContinuumMissions.notifyTeam(server, team.getKey(), ContinuumLang.tr("phoenix_continuum.continuum_team_data.the_outpost_on_has_been", name)
                         .withStyle(net.minecraft.ChatFormatting.RED));
             }
         }

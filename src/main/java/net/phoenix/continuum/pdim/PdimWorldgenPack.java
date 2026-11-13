@@ -1,5 +1,6 @@
 package net.phoenix.continuum.pdim;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.PathPackResources;
@@ -69,7 +70,7 @@ public final class PdimWorldgenPack {
         }
 
         event.addRepositorySource(consumer -> {
-            Pack pack = Pack.readMetaAndCreate(ID, Component.literal("Continuum personal dimension worldgen"), true,
+            Pack pack = Pack.readMetaAndCreate(ID, ContinuumLang.tr("phoenix_continuum.pdim_worldgen_pack.continuum_personal_dimension_worldgen"), true,
                     name -> new PathPackResources(name, root, false), PackType.SERVER_DATA, Pack.Position.TOP,
                     PackSource.BUILT_IN);
             if (pack != null) consumer.accept(pack);

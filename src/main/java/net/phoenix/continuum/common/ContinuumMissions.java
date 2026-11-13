@@ -1,5 +1,6 @@
 package net.phoenix.continuum.common;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -234,8 +235,7 @@ public final class ContinuumMissions {
             ContinuumBody body = ContinuumData.body(destinationId);
             String where = body != null ? body.name() : destinationId.getPath();
             player.sendSystemMessage(
-                    Component.literal("Launched " + launched + " of " + wanted + " rockets to " + where +
-                            (error != null ? " (stopped: " + error + ")" : ".")).withStyle(
+                    ContinuumLang.tr("phoenix_continuum.continuum_missions.launched_of_rockets_to", launched, wanted, where, (error != null ? " (stopped: " + error + ")" : ".")).withStyle(
                                     error != null ? ChatFormatting.GOLD : ChatFormatting.GREEN));
         }
         return null;
@@ -776,9 +776,7 @@ public final class ContinuumMissions {
                 ContinuumBody where = ContinuumData.body(mission.destination);
                 data.removeMission(team, mission.id);
                 notifyLogged(server, data, team, MissionLog.Kind.LOST, mission.destination,
-                        Component.literal("The distress signal from " +
-                                (where != null ? where.name() : mission.destination.getPath()) +
-                                " faded. The stranded rocket is lost.").withStyle(ChatFormatting.DARK_RED));
+                        ContinuumLang.tr("phoenix_continuum.continuum_missions.the_distress_signal_from_faded", (where != null ? where.name() : mission.destination.getPath())).withStyle(ChatFormatting.DARK_RED));
                 changed = true;
             }
             if (changed) {
@@ -828,8 +826,7 @@ public final class ContinuumMissions {
         if (!mission.fullNoticeSent) {
             mission.fullNoticeSent = true;
             data.setDirty();
-            notifyTeam(server, mission.team, Component.literal("A scheduled return does not fit in the pad. " +
-                    "Empty its output and it will be taken in, or collect it by hand.").withStyle(ChatFormatting.GOLD));
+            notifyTeam(server, mission.team, ContinuumLang.tr("phoenix_continuum.continuum_missions.a_scheduled_return_does_not").withStyle(ChatFormatting.GOLD));
         }
         return changed;
     }
@@ -843,7 +840,7 @@ public final class ContinuumMissions {
             if (collect(player, mission.id) == null) collected++;
         }
         if (collected == 0) {
-            player.sendSystemMessage(Component.literal("Nothing is ready to collect.").withStyle(ChatFormatting.GRAY));
+            player.sendSystemMessage(ContinuumLang.tr("phoenix_continuum.continuum_missions.nothing_is_ready_to_collect").withStyle(ChatFormatting.GRAY));
         }
         return collected;
     }
@@ -987,15 +984,10 @@ public final class ContinuumMissions {
                     RandomSource.create().nextDouble() < cfg.distressChance) {
                 mission.distressUntil = System.currentTimeMillis() + cfg.distressWindowMinutes * 60_000L;
                 notifyLogged(server, data, mission.team, MissionLog.Kind.STRANDED, mission.destination,
-                        Component.literal("DISTRESS SIGNAL from " + name + ": the " +
-                                mission.type.label().toLowerCase() + " failed and the rocket is stranded." + lost +
-                                " Send a rescue run with " + Math.max(1, cfg.rescueKits) + " repair kits within " +
-                                durationText(cfg.distressWindowMinutes * 60_000L) + " or it is lost." +
-                                eventText(mission)).withStyle(ChatFormatting.GOLD));
+                        ContinuumLang.tr("phoenix_continuum.continuum_missions.distress_signal_from_the_failed", name, mission.type.label().toLowerCase(), lost, Math.max(1, cfg.rescueKits), durationText(cfg.distressWindowMinutes * 60_000L), eventText(mission)).withStyle(ChatFormatting.GOLD));
             } else {
                 notifyLogged(server, data, mission.team, MissionLog.Kind.FAILED, mission.destination,
-                        Component.literal(mission.type.label() + " to " + name + " failed. The rocket came back " +
-                                "damaged." + lost + eventText(mission)).withStyle(ChatFormatting.RED));
+                        ContinuumLang.tr("phoenix_continuum.continuum_missions.to_failed_the_rocket_came", mission.type.label(), name, lost, eventText(mission)).withStyle(ChatFormatting.RED));
             }
         }
     }
@@ -1098,7 +1090,7 @@ public final class ContinuumMissions {
                     delivered > 0 ? delivered + " in the output buses, the rest in your inventory" :
                             "in your inventory";
             player.sendSystemMessage(
-                    Component.literal("Collected the rocket and " + items + " resources (" + where + ").")
+                    ContinuumLang.tr("phoenix_continuum.continuum_missions.collected_the_rocket_and_resources", items, where)
                             .withStyle(ChatFormatting.GREEN));
         }
         return null;

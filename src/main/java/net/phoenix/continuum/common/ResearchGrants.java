@@ -1,5 +1,6 @@
 package net.phoenix.continuum.common;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.server.ServerLifecycleHooks;
@@ -55,8 +56,7 @@ public final class ResearchGrants {
             for (var player : server.getPlayerList().getPlayers()) {
                 if (!ContinuumHost.teams().onTeam(player, team)) continue;
                 for (ResourceLocation id : fresh) {
-                    player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                            "\u00a7bResearch unlocked: \u00a7f" + pretty(id)));
+                    player.sendSystemMessage(ContinuumLang.tr("phoenix_continuum.anomaly_actions.research_unlocked", pretty(id)));
                 }
             }
         }

@@ -1,5 +1,6 @@
 package net.phoenix.continuum.item;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
@@ -18,10 +19,10 @@ public class ContinuumProbeItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, @org.jetbrains.annotations.Nullable Level level, List<Component> tooltip,
                                 TooltipFlag flag) {
-        tooltip.add(Component.literal("Carried by extraction missions to a surveyed body.")
+        tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_probe_item.carried_by_extraction_missions_to")
                 .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("Each probe brings back a share of the body's resources.")
+        tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_probe_item.each_probe_brings_back_a")
                 .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("Lost if the mission fails.").withStyle(ChatFormatting.RED));
+        tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_penrose_collector_item.lost_if_the_mission_fails").withStyle(ChatFormatting.RED));
     }
 }

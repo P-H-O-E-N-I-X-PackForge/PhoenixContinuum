@@ -1,5 +1,7 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -61,7 +63,7 @@ public final class ContinuumSkyScreen extends Screen {
 
     public ContinuumSkyScreen(Screen parent, ContinuumBody start,
                               @org.jetbrains.annotations.Nullable ContinuumSystem systemOverride) {
-        super(Component.literal("Sky view"));
+        super(ContinuumLang.tr("phoenix_continuum.continuum_sky_screen.sky_view"));
         this.parent = parent;
         this.systemOverride = systemOverride;
         for (ContinuumBody b : ContinuumData.bodiesOf(start.system())) {
@@ -146,7 +148,7 @@ public final class ContinuumSkyScreen extends Screen {
             target.blit(g, width, height);
         } else {
             g.fill(0, 0, width, height, 0xFF05060F);
-            g.drawCenteredString(font, ContinuumShaders.ready() ? "The sky is unavailable" : "Shaders not loaded",
+            g.drawCenteredString(font, ContinuumShaders.ready() ? ContinuumText.str("phoenix_continuum.continuum_sky.the_sky_is_unavailable") : ContinuumText.str("phoenix_continuum.continuum_sky.shaders_not_loaded"),
                     width / 2, height / 2, 0xFFFF6B6B);
         }
 
@@ -166,7 +168,7 @@ public final class ContinuumSkyScreen extends Screen {
         g.fill(x - 4, y - 4, x + PANEL_W + 4, bottom + 4, 0xC00A0E14);
         g.renderOutline(x - 4, y - 4, PANEL_W + 8, bottom - y + 8, 0xFF3A4452);
 
-        g.drawString(font, "Sky view", x, y, 0xFFFFFFFF, false);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_sky_screen.sky_view"), x, y, 0xFFFFFFFF, false);
         button(g, mx, my, x + PANEL_W - 54, y - 2, 54, "Hide  H", "panel");
         y += 12;
         String title = "<  " + font.plainSubstrByWidth(body.name(), PANEL_W - 40) + "  >";
@@ -190,7 +192,7 @@ public final class ContinuumSkyScreen extends Screen {
 
         button(g, mx, my, x, y, 76, "Speed: " + SPEED_LABELS[speed], "speed");
         button(g, mx, my, x + 82, y, 12, "-", "daydec");
-        g.drawCenteredString(font, "Day " + day, x + 82 + 12 + 34, y + 3, 0xFFFFFFFF);
+        g.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_sky.day", day), x + 82 + 12 + 34, y + 3, 0xFFFFFFFF);
         button(g, mx, my, x + 82 + 12 + 68, y, 12, "+", "dayinc");
         y += 18;
 
@@ -204,7 +206,7 @@ public final class ContinuumSkyScreen extends Screen {
 
         g.fill(x, y, x + PANEL_W, y + 1, 0xFF404040);
         y += 5;
-        g.drawString(font, "In the sky", x, y, 0xFFFFD080, false);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_sky.in_the_sky"), x, y, 0xFFFFD080, false);
         y += 12;
         if (sample != null) {
             float sunElevation = (float) Math.toDegrees(Math.asin(Math.max(-1.0f, Math.min(1.0f, sample.sunDir().y))));
@@ -217,7 +219,7 @@ public final class ContinuumSkyScreen extends Screen {
                 hit(x, y - 1, PANEL_W, 10, "look", new float[] { sunAzimuth, sunElevation });
                 y += 11;
             } else {
-                g.drawString(font, "No star in this sky", x, y, 0xFF7F8A99, false);
+                g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_sky.no_star_in_this_sky"), x, y, 0xFF7F8A99, false);
                 y += 11;
             }
             for (var item : PdimSkyBodies.describe(view0, body, sample)) {
@@ -242,7 +244,7 @@ public final class ContinuumSkyScreen extends Screen {
             g.drawString(font, font.plainSubstrByWidth(message, PANEL_W), x, bottom - 8, 0xFFFF6B6B, false);
         }
         button(g, mx, my, x, bottom - 16, 60, "Close", "close");
-        g.drawString(font, "drag: look   scroll: zoom", x + 66, bottom - 12, 0xFF7F8A99, false);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_sky.drag_look_scroll_zoom"), x + 66, bottom - 12, 0xFF7F8A99, false);
     }
 
     private void drawFoldedPanel(GuiGraphics g, int mx, int my, ContinuumBody body, PdimSkyView view0,
