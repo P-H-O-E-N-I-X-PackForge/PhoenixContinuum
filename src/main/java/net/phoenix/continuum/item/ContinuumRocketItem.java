@@ -1,5 +1,6 @@
 package net.phoenix.continuum.item;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -59,13 +60,13 @@ public class ContinuumRocketItem extends Item {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip,
                                 TooltipFlag flag) {
         Level level = context.level();
-        tooltip.add(Component.literal("Hull: " + RocketStats.tierName(RocketStats.tier(stack)))
+        tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_rocket_item.hull", RocketStats.tierName(RocketStats.tier(stack)))
                 .withStyle(ChatFormatting.GOLD));
-        tooltip.add(Component.literal("Sneak + use to refit").withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_rocket_item.sneak_use_to_refit").withStyle(ChatFormatting.DARK_GRAY));
         float wear = RocketStats.wear(stack);
         ChatFormatting wearColor = wear < 0.35f ? ChatFormatting.GREEN : wear < 0.7f ? ChatFormatting.YELLOW :
                 ChatFormatting.RED;
-        tooltip.add(Component.literal("Wear: ").withStyle(ChatFormatting.GRAY)
+        tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_rocket_item.wear").withStyle(ChatFormatting.GRAY)
                 .append(Component.literal(Math.round(wear * 100.0f) + "%").withStyle(wearColor)));
 
         int overdrive = RocketStats.level(stack, RocketStats.OVERDRIVE);
@@ -73,31 +74,31 @@ public class ContinuumRocketItem extends Item {
         boolean interlock = RocketStats.level(stack, RocketStats.HULL_INTERLOCK) > 0;
 
         if (overdrive > 0) {
-            tooltip.add(Component.literal("Overdrive " + overdrive + ": -" + overdrive * 10 + "% trip time")
+            tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_rocket_item.overdrive_trip_time", overdrive, overdrive * 10)
                     .withStyle(ChatFormatting.AQUA));
         }
         if (hull > 0) {
-            tooltip.add(Component.literal("Reinforced Hull " + hull + ": -" + Math.min(75, hull * 25) + "% wear")
+            tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_rocket_item.reinforced_hull_wear", hull, Math.min(75, hull * 25))
                     .withStyle(ChatFormatting.AQUA));
         }
         if (interlock) {
-            tooltip.add(Component.literal("Hull Interlock: refuses to launch when too worn")
+            tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_rocket_item.hull_interlock_refuses_to_launch")
                     .withStyle(ChatFormatting.AQUA));
             if (RocketStats.interlockRefuses(stack)) {
-                tooltip.add(Component.literal("Interlock engaged - repair needed").withStyle(ChatFormatting.RED));
+                tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_rocket_item.interlock_engaged_repair_needed").withStyle(ChatFormatting.RED));
             }
         }
         boolean stellar = RocketStats.level(stack, RocketStats.STELLAR_SHIELD) > 0;
         boolean singularity = RocketStats.level(stack, RocketStats.SINGULARITY_SHIELD) > 0;
         if (stellar) {
-            tooltip.add(Component.literal("Stellar Shielding: can work at stars").withStyle(ChatFormatting.AQUA));
+            tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_rocket_item.stellar_shielding_can_work_at").withStyle(ChatFormatting.AQUA));
         }
         if (singularity) {
-            tooltip.add(Component.literal("Singularity Shielding: can work at black holes")
+            tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_rocket_item.singularity_shielding_can_work_at")
                     .withStyle(ChatFormatting.AQUA));
         }
         if (overdrive == 0 && hull == 0 && !interlock && !stellar && !singularity) {
-            tooltip.add(Component.literal("No upgrades").withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_rocket_item.no_upgrades").withStyle(ChatFormatting.DARK_GRAY));
         }
     }
 }

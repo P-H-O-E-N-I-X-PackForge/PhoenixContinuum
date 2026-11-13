@@ -1,5 +1,6 @@
 package net.phoenix.continuum.integration.jade;
 
+import net.phoenix.continuum.client.ContinuumText;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -74,7 +75,7 @@ final class ContinuumServerInfo implements IServerDataProvider<BlockAccessor> {
 
     private static void pad(List<String> lines, Level level, BlockPos pos, LaunchComplex complex) {
         String unit = PadTiers.energyUnit();
-        lines.add(line("Status", complex.isFormed() ? "\u00a7aReady" : "\u00a7cNot formed"));
+        lines.add(line("Status", complex.isFormed() ? ContinuumText.str("phoenix_continuum.continuum_server_info.ready") : ContinuumText.str("phoenix_continuum.continuum_server_info.not_formed")));
         if (!complex.isFormed()) return;
         lines.add(line("Tier", PadTiers.name(complex.padTier())));
         lines.add(line("Energy", String.format(Locale.ROOT, "%,d / %,d %s", complex.storedEnergy(),
@@ -102,7 +103,7 @@ final class ContinuumServerInfo implements IServerDataProvider<BlockAccessor> {
                 GregTech.loaded() ? net.phoenix.continuum.integration.gtceu.ContinuumGt.receiverAt(level, pos) : null;
         if (receiver == null) return;
         var report = receiver.report(level.getServer());
-        lines.add(line("Status", source.active() ? "\u00a7aReceiving" : "\u00a7eIdle"));
+        lines.add(line("Status", source.active() ? ContinuumText.str("phoenix_continuum.continuum_server_info.receiving") : ContinuumText.str("phoenix_continuum.continuum_server_info.idle")));
         lines.add(line("Team swarms make", String.format(Locale.ROOT, "%,d %s/t", report.teamPerTick(),
                 report.unit())));
         if (report.capacity() > 0) {
@@ -115,14 +116,14 @@ final class ContinuumServerInfo implements IServerDataProvider<BlockAccessor> {
     }
 
     private static void control(List<String> lines, Level level, BlockPos pos, SwarmHolograms.Source source) {
-        lines.add(line("Status", source.active() ? "\u00a7aOnline" : "\u00a7cOffline"));
+        lines.add(line("Status", source.active() ? ContinuumText.str("phoenix_continuum.continuum_server_info.online") : ContinuumText.str("phoenix_continuum.continuum_server_info.offline")));
         UUID owner = source.owner();
         if (owner == null) return;
         UUID team = ContinuumHost.teamOf(owner);
         ResourceLocation target = SwarmControlService.targetOf(level.getServer(), level, pos, team);
         ContinuumBody body = target == null ? null : ContinuumData.body(target);
         if (body == null) {
-            lines.add(line("Target", "\u00a77none surveyed yet"));
+            lines.add(line("Target", ContinuumText.str("phoenix_continuum.continuum_server_info.none_surveyed_yet")));
             return;
         }
         var data = ContinuumTeamData.get(level.getServer());

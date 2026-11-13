@@ -10,7 +10,7 @@ public final class HostSounds {
 
     private HostSounds() {}
 
-    public static final String NAMESPACE = "phoenixcore";
+    public static final String NAMESPACE = "phoenixconflux";
 
     public static @Nullable SoundEvent void_cosmic_drone() {
         return get("ambient/void/cosmic_drone");

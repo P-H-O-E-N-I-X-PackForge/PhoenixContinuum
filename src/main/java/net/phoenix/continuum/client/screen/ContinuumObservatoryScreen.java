@@ -1,5 +1,7 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -38,7 +40,7 @@ public class ContinuumObservatoryScreen extends Screen {
     private record Entry(ContinuumSystem system, ContinuumBody body) {}
 
     public ContinuumObservatoryScreen() {
-        super(Component.literal("Observatory"));
+        super(ContinuumLang.tr("block.phoenix_continuum.continuum_observatory"));
     }
 
     @Override
@@ -96,11 +98,11 @@ public class ContinuumObservatoryScreen extends Screen {
     private void draw(GuiGraphics g, int mouseX, int mouseY, int x, int y, int w, int h) {
         g.fill(x, y, x + w, y + h, MapUi.PANEL_SOLID);
         g.renderOutline(x, y, w, h, MapUi.PANEL_LINE);
-        g.drawString(font, "Observatory", x + 8, y + 7, MapUi.TITLE);
+        g.drawString(font, ContinuumText.str("block.phoenix_continuum.continuum_observatory"), x + 8, y + 7, MapUi.TITLE);
         rowRects.clear();
 
         if (selected < 0) {
-            g.drawString(font, "Nothing observed yet. Detect a signal on the map first.", x + 8, y + 26, MapUi.DIM);
+            g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_observatory.nothing_observed_yet_detect_a"), x + 8, y + 26, MapUi.DIM);
             return;
         }
 
@@ -162,7 +164,7 @@ public class ContinuumObservatoryScreen extends Screen {
                 surveyed ? MapUi.GOOD : MapUi.WARN);
         ty += 14;
 
-        g.drawString(font, "Readings", tx, ty, MapUi.TITLE);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_observatory.readings"), tx, ty, MapUi.TITLE);
         ty += 11;
         if (!surveyed) {
             ty = wrapped(g, "Only a scan return so far. Survey it to resolve the instruments.", tx, ty, tw, MapUi.DIM);
@@ -182,11 +184,11 @@ public class ContinuumObservatoryScreen extends Screen {
         }
 
         ty += 3;
-        g.drawString(font, "Spectrograph", tx, ty, MapUi.TITLE);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_observatory.spectrograph"), tx, ty, MapUi.TITLE);
         ty += 11;
         List<Item> lines = ObservatoryReadings.spectrum(body);
         if (lines.isEmpty()) {
-            g.drawString(font, "no lines", tx, ty, MapUi.DIM);
+            g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_observatory.no_lines"), tx, ty, MapUi.DIM);
             ty += 12;
         } else {
             int ix = tx;
@@ -199,10 +201,10 @@ public class ContinuumObservatoryScreen extends Screen {
         }
 
         if (!body.isMoon() && !body.isCentral() && surveyed) {
-            g.drawString(font, "Sky", tx, ty, MapUi.TITLE);
+            g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_observatory.sky"), tx, ty, MapUi.TITLE);
             ty += 11;
             if (ContinuumData.moonsOf(body.id()).isEmpty()) {
-                g.drawString(font, "no moons, no eclipses", tx, ty, MapUi.DIM);
+                g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_observatory.no_moons_no_eclipses"), tx, ty, MapUi.DIM);
                 ty += 11;
             } else if (eclipse == null) {
                 ty = wrapped(g, "No eclipse in the next 800 days.", tx, ty, tw, MapUi.DIM);

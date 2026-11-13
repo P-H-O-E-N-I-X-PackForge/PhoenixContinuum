@@ -1,5 +1,6 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
 import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
@@ -98,13 +99,13 @@ public class ContinuumPowerScreen extends Screen {
         String status = live ? "RECEIVING" : "IDLE";
         g.drawString(font, status, x + W - 10 - font.width(status), y + 9, live ? MapUi.GOOD : MapUi.WARN);
 
-        g.drawString(font, "Your swarms and shells make", x + 10, y + 26, MapUi.DIM);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_power.your_swarms_and_shells_make"), x + 10, y + 26, MapUi.DIM);
         String total = per(report.teamPerTick());
         g.drawString(font, total, x + W - 10 - font.width(total), y + 26, live ? MapUi.GOOD : MapUi.WARN);
 
         int ty = y + 42;
         if (report.capacity() > 0) {
-            g.drawString(font, "Stored here", x + 10, ty, MapUi.DIM);
+            g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_power.stored_here"), x + 10, ty, MapUi.DIM);
             String stored = String.format(Locale.ROOT, "%,d / %,d %s", report.stored(), report.capacity(),
                     report.unit());
             g.drawString(font, font.plainSubstrByWidth(stored, W - 100), x + W - 10 -
@@ -114,17 +115,17 @@ public class ContinuumPowerScreen extends Screen {
             ty += 26;
         }
         if (report.maxOut() > 0) {
-            g.drawString(font, "Passes on up to " + per(report.maxOut()), x + 10, ty, MapUi.DIM);
+            g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_power.passes_on_up_to", per(report.maxOut())), x + 10, ty, MapUi.DIM);
             ty += 12;
         }
 
         graph(g, x + 10, ty + 4, W - 20, GRAPH_H);
         ty += GRAPH_H + 18;
 
-        g.drawString(font, "BUILT", x + 10, ty, MapUi.TITLE);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_power.built"), x + 10, ty, MapUi.TITLE);
         ty += 13;
         if (report.entries().isEmpty()) {
-            g.drawString(font, "Nothing yet. Build swarms and shells from a Swarm Control block.", x + 10, ty,
+            g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_power.nothing_yet_build_swarms_and"), x + 10, ty,
                     MapUi.DIM);
             ty += 13;
         }
@@ -158,7 +159,7 @@ public class ContinuumPowerScreen extends Screen {
         g.renderOutline(x, y, w, h, MapUi.BUTTON_LINE);
         for (int i = 1; i < 4; i++) g.fill(x + 1, y + h * i / 4, x + w - 1, y + h * i / 4 + 1, 0x22ffffff);
         if (history.size() < 2) {
-            g.drawCenteredString(font, "Gathering readings...", x + w / 2, y + h / 2 - 4, MapUi.DIM);
+            g.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_power.gathering_readings"), x + w / 2, y + h / 2 - 4, MapUi.DIM);
             return;
         }
         long maxOut = 1L;
@@ -183,8 +184,8 @@ public class ContinuumPowerScreen extends Screen {
             previousY = lineY;
             i++;
         }
-        g.drawString(font, "output", x + 4, y + 3, 0xFF6affb0);
-        g.drawString(font, "stored", x + 4 + font.width("output") + 8, y + 3, 0xFFffd27a);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_power.output"), x + 4, y + 3, 0xFF6affb0);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_power.stored"), x + 4 + font.width("output") + 8, y + 3, 0xFFffd27a);
         String peak = per(maxOut);
         g.drawString(font, peak, x + w - 4 - font.width(peak), y + 3, MapUi.DIM);
     }

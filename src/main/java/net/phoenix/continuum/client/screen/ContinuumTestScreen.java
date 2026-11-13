@@ -1,5 +1,6 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -47,7 +48,7 @@ public class ContinuumTestScreen extends Screen {
     private long lastFrameMillis = Util.getMillis();
 
     public ContinuumTestScreen() {
-        super(Component.literal("Continuum"));
+        super(ContinuumLang.tr("phoenix_continuum.continuum_map_screen.continuum"));
     }
 
     private PlanetParams current() {
@@ -90,7 +91,7 @@ public class ContinuumTestScreen extends Screen {
 
         graphics.renderOutline(1, 1, width - 2, height - 2, FRAME);
 
-        graphics.drawCenteredString(font, Component.literal("CONTINUUM  -  renderer prototype"), width / 2, 12,
+        graphics.drawCenteredString(font, ContinuumLang.tr("phoenix_continuum.continuum_test_screen.continuum_renderer_prototype"), width / 2, 12,
                 0xFFd9ccff);
         graphics.drawCenteredString(font, Component.literal(params.name() + "  -  " + params.description()),
                 width / 2, 22, 0xFFa8a0c8);

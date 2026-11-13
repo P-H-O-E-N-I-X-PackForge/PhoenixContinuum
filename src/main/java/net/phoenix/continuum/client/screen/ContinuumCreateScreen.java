@@ -1,5 +1,7 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -47,7 +49,7 @@ public final class ContinuumCreateScreen extends Screen {
     private String error = "";
 
     public ContinuumCreateScreen(Screen parent, @Nullable ResourceLocation startSystem) {
-        super(Component.literal("New body"));
+        super(ContinuumLang.tr("phoenix_continuum.continuum_create_screen.new_body"));
         this.parent = parent;
         systems.addAll(ContinuumData.systems());
         systems.sort(Comparator.comparing(ContinuumSystem::name));
@@ -114,8 +116,8 @@ public final class ContinuumCreateScreen extends Screen {
         int x = (width - w) / 2;
         int y = 40;
 
-        name = new EditBox(font, x, y + 12, w, 16, Component.literal("Name"));
-        name.setHint(Component.literal("Name"));
+        name = new EditBox(font, x, y + 12, w, 16, ContinuumLang.tr("phoenix_continuum.continuum_create_screen.name"));
+        name.setHint(ContinuumLang.tr("phoenix_continuum.continuum_create_screen.name"));
         name.setMaxLength(32);
         addRenderableWidget(name);
         setInitialFocus(name);
@@ -144,27 +146,27 @@ public final class ContinuumCreateScreen extends Screen {
         }).bounds(x, y + 12, w, 16).build());
         y += 44;
 
-        addRenderableWidget(Button.builder(Component.literal("Create"), b -> submit())
+        addRenderableWidget(Button.builder(ContinuumLang.tr("phoenix_continuum.continuum_create_screen.create"), b -> submit())
                 .bounds(x, y + 6, w / 2 - 3, 18).build());
-        addRenderableWidget(Button.builder(Component.literal("Cancel"), b -> onClose())
+        addRenderableWidget(Button.builder(ContinuumLang.tr("phoenix_continuum.continuum_create_screen.cancel"), b -> onClose())
                 .bounds(x + w / 2 + 3, y + 6, w / 2 - 3, 18).build());
         refreshLabels();
     }
 
     private void refreshLabels() {
         ContinuumSystem sys = currentSystem();
-        Component systemLabel = Component.literal("System: " + (sys == null ? "none" : sys.name()));
+        Component systemLabel = ContinuumLang.tr("phoenix_continuum.continuum_create_screen.system", (sys == null ? "none" : sys.name()));
         systemButton.setMessage(systemLabel);
         systemButton.setTooltip(Tooltip.create(systemLabel));
-        kindButton.setMessage(Component.literal("Kind: " + KINDS[kindIndex]));
+        kindButton.setMessage(ContinuumLang.tr("phoenix_continuum.continuum_create_screen.kind", KINDS[kindIndex]));
         ContinuumBody orbit = orbited();
         parentButton.active = isMoon();
-        Component parentLabel = Component.literal(isMoon() ? "Orbits: " + (orbit == null ? "no planet in this system" :
-                orbit.name()) : "Orbits: the star");
+        Component parentLabel = Component.literal(isMoon() ? ContinuumText.str("phoenix_continuum.continuum_create.orbits", (orbit == null ? "no planet in this system" :
+                orbit.name())) : ContinuumText.str("phoenix_continuum.continuum_create.orbits_the_star"));
         parentButton.setMessage(parentLabel);
         parentButton.setTooltip(Tooltip.create(parentLabel));
         ContinuumBody template = template();
-        Component templateLabel = Component.literal("Start from: " + (template == null ? "nothing" :
+        Component templateLabel = ContinuumLang.tr("phoenix_continuum.continuum_create_screen.start_from", (template == null ? "nothing" :
                 template.name() + " (" + template.id().getPath() + ")"));
         templateButton.setMessage(templateLabel);
         templateButton.setTooltip(Tooltip.create(templateLabel));
@@ -276,7 +278,7 @@ public final class ContinuumCreateScreen extends Screen {
         int w = formW();
         int x = (width - w) / 2;
         g.drawCenteredString(font, title, width / 2, 16, 0xFFFFFFFF);
-        g.drawString(font, "Name", x, 40, 0xFFAEBBCF, false);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_create_screen.name"), x, 40, 0xFFAEBBCF, false);
 
         int maxW = width - 32;
         List<FormattedCharSequence> errorLines = error.isEmpty() ? List.of() :

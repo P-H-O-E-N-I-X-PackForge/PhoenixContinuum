@@ -1,5 +1,6 @@
 package net.phoenix.continuum.common;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -136,9 +137,7 @@ public final class ContinuumSchedules extends SavedData {
             schedule.retryAt = now + RETRY_MILLIS;
             if (!error.equals(schedule.lastFailure)) {
                 schedule.lastFailure = error;
-                ContinuumMissions.notifyTeam(server, schedule.team, Component.literal("Scheduled " +
-                        schedule.type.label().toLowerCase(java.util.Locale.ROOT) + " to " + body.name() +
-                        " is waiting: " + error).withStyle(ChatFormatting.GOLD));
+                ContinuumMissions.notifyTeam(server, schedule.team, ContinuumLang.tr("phoenix_continuum.continuum_schedules.scheduled_to_is_waiting", schedule.type.label().toLowerCase(java.util.Locale.ROOT), body.name(), error).withStyle(ChatFormatting.GOLD));
             }
             setDirty();
             return;
@@ -148,9 +147,7 @@ public final class ContinuumSchedules extends SavedData {
         schedule.runs++;
         if (schedule.finished() || schedule.intervalMillis <= 0) {
             schedule.enabled = false;
-            ContinuumMissions.notifyTeam(server, schedule.team, Component.literal("Scheduled " +
-                    schedule.type.label().toLowerCase(java.util.Locale.ROOT) + " to " + body.name() +
-                    " has made its last run.").withStyle(ChatFormatting.GRAY));
+            ContinuumMissions.notifyTeam(server, schedule.team, ContinuumLang.tr("phoenix_continuum.continuum_schedules.scheduled_to_has_made_its", schedule.type.label().toLowerCase(java.util.Locale.ROOT), body.name()).withStyle(ChatFormatting.GRAY));
         } else {
             schedule.nextFire = now + schedule.intervalMillis;
         }
@@ -160,8 +157,7 @@ public final class ContinuumSchedules extends SavedData {
     private void stop(MinecraftServer server, Schedule schedule, String why) {
         schedule.enabled = false;
         setDirty();
-        ContinuumMissions.notifyTeam(server, schedule.team, Component.literal("A scheduled launch was switched off: " +
-                why).withStyle(ChatFormatting.RED));
+        ContinuumMissions.notifyTeam(server, schedule.team, ContinuumLang.tr("phoenix_continuum.continuum_schedules.a_scheduled_launch_was_switched", why).withStyle(ChatFormatting.RED));
     }
 
     public static ContinuumSchedules load(CompoundTag tag, HolderLookup.Provider registries) {

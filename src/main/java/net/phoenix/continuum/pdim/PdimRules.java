@@ -1,5 +1,6 @@
 package net.phoenix.continuum.pdim;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -85,7 +86,7 @@ public final class PdimRules {
         if (spec.oxygenGear() != null && player.tickCount % 20 == 0 && !player.isCreative() &&
                 !player.isSpectator() && !wearing(player, spec.oxygenGear())) {
             player.hurt(player.damageSources().drown(), 1.0f);
-            player.displayClientMessage(Component.literal("There is no air here."), true);
+            player.displayClientMessage(ContinuumLang.tr("phoenix_continuum.pdim_rules.there_is_no_air_here"), true);
         }
 
         if (spec.plotRadius() > 0 && plotsOn(spec) && !player.hasPermissions(2)) {
@@ -100,7 +101,7 @@ public final class PdimRules {
                     double x = origin.getX() + Math.max(-reach + 1, Math.min(reach - 1, dx));
                     double z = origin.getZ() + Math.max(-reach + 1, Math.min(reach - 1, dz));
                     player.teleportTo(level, x, player.getY(), z, player.getYRot(), player.getXRot());
-                    player.displayClientMessage(Component.literal("That is as far from your plot as you can go."), true);
+                    player.displayClientMessage(ContinuumLang.tr("phoenix_continuum.pdim_rules.that_is_as_far_from"), true);
                 }
             }
         }
@@ -134,7 +135,7 @@ public final class PdimRules {
     }
 
     private static void refuse(ServerPlayer player) {
-        player.displayClientMessage(Component.literal("That is somebody else's plot."), true);
+        player.displayClientMessage(ContinuumLang.tr("phoenix_continuum.pdim_rules.that_is_somebody_else_s"), true);
     }
 
     @SubscribeEvent

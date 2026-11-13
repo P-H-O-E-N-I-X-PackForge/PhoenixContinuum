@@ -80,9 +80,7 @@ public final class ContinuumClientHooks {
         ContinuumBody body = ContinuumData.body(mission.destination());
         String name = body != null ? body.name() : mission.destination().getPath();
         if (mc.player != null) {
-            mc.player.displayClientMessage(Component.literal(crash ?
-                    "Mission to " + name + " failed. Open the map to collect the rocket." :
-                    "Mission to " + name + " has landed. Open the map to collect.")
+            mc.player.displayClientMessage(Component.literal(crash ? ContinuumText.str("phoenix_continuum.continuum_client_hooks.mission_to_failed_open_the", name) : ContinuumText.str("phoenix_continuum.continuum_client_hooks.mission_to_has_landed_open", name))
                     .withStyle(crash ? ChatFormatting.RED : ChatFormatting.AQUA), true);
         }
     }

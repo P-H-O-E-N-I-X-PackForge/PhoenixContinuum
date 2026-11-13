@@ -18,7 +18,7 @@ public final class ConfluxTravel {
 
     private ConfluxTravel() {}
 
-    private static final String RETURN_KEY = "phoenixcore_conflux_return";
+    private static final String RETURN_KEY = "phoenixconflux_conflux_return";
 
     public static @Nullable String disciplineOf(ContinuumBody body) {
         String discipline = body.discipline();
@@ -28,7 +28,7 @@ public final class ConfluxTravel {
 
     public static boolean isConfluxDimension(ResourceKey<Level> dimension) {
         ResourceLocation id = dimension.location();
-        return "phoenixcore".equals(id.getNamespace()) && id.getPath().startsWith("conflux/");
+        return "phoenixconflux".equals(id.getNamespace()) && id.getPath().startsWith("conflux/");
     }
 
     public static @Nullable String travel(ServerPlayer player, ResourceLocation bodyId) {

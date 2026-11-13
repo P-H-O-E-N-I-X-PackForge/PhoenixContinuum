@@ -1,5 +1,6 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -161,8 +162,7 @@ public final class ScenePreview {
         g.fill(x - 1, y - 1, x + size + 1, y + size + 1, 0xFF3A4452);
         if (!drawn) {
             g.fill(x, y, x + size, y + size, 0xFF05060F);
-            g.drawCenteredString(Minecraft.getInstance().font, ContinuumShaders.ready() ? "Preview unavailable" :
-                    "Shaders not loaded", x + size / 2, y + size / 2 - 4, 0xFFFF6B6B);
+            g.drawCenteredString(Minecraft.getInstance().font, ContinuumShaders.ready() ? ContinuumText.str("phoenix_continuum.scene_preview.preview_unavailable") : ContinuumText.str("phoenix_continuum.continuum_sky.shaders_not_loaded"), x + size / 2, y + size / 2 - 4, 0xFFFF6B6B);
             return;
         }
         RenderSystem.disableBlend();

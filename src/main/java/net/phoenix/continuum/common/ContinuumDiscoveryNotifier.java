@@ -1,5 +1,6 @@
 package net.phoenix.continuum.common;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
@@ -67,14 +68,13 @@ public final class ContinuumDiscoveryNotifier {
 
         List<Component> lines = new ArrayList<>();
         for (ContinuumBody b : surveyed) {
-            lines.add(Component.literal("§6[Continuum] §bSurvey complete: §f" + b.name() + "§7. " +
-                    "It can now be travelled to."));
+            lines.add(ContinuumLang.tr("phoenix_continuum.continuum_discovery_notifier.continuum_survey_complete_it_can", b.name()));
         }
         for (ContinuumBody b : detected) {
-            lines.add(Component.literal("§6[Continuum] §eSignal detected: §f" + b.name() + "§7."));
+            lines.add(ContinuumLang.tr("phoenix_continuum.continuum_discovery_notifier.continuum_signal_detected", b.name()));
         }
         for (ContinuumSystem s : systems) {
-            lines.add(Component.literal("§6[Continuum] §eNew system on the charts: §f" + s.name() + "§7."));
+            lines.add(ContinuumLang.tr("phoenix_continuum.continuum_discovery_notifier.continuum_new_system_on_the", s.name()));
         }
 
         boolean survey = !surveyed.isEmpty();

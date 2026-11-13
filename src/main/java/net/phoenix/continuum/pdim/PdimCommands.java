@@ -1,5 +1,6 @@
 package net.phoenix.continuum.pdim;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
@@ -95,15 +96,15 @@ public final class PdimCommands {
         ServerPlayer player = source.getPlayerOrException();
         ResourceLocation body = PdimDimensions.bodyOf(player.level().dimension());
         if (body == null) {
-            source.sendFailure(Component.literal("Stand in your personal dimension to change it."));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.pdim_commands.stand_in_your_personal_dimension"));
             return 0;
         }
         if (PdimData.get(player.server).update(player.getUUID(), body, change) == null) {
-            source.sendFailure(Component.literal("You have no personal dimension on " + body + "."));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.pdim_commands.you_have_no_personal_dimension", body));
             return 0;
         }
         PdimActions.sendState(player);
-        source.sendSuccess(() -> Component.literal("Set " + what + " (sky changes are shown only to you)."), false);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.pdim_commands.set_sky_changes_are_shown", what), false);
         return 1;
     }
 
@@ -120,21 +121,20 @@ public final class PdimCommands {
         ServerPlayer player = source.getPlayerOrException();
         var entries = PdimData.get(player.server).entries(player.getUUID());
         if (entries.isEmpty()) {
-            source.sendSuccess(() -> Component.literal("You have no personal dimensions."), false);
+            source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.pdim_commands.you_have_no_personal_dimensions"), false);
             return 0;
         }
-        entries.forEach((body, entry) -> source.sendSuccess(() -> Component.literal(
-                body + "  gravity x" + String.format(Locale.ROOT, "%.2f", entry.gravity())), false));
+        entries.forEach((body, entry) -> source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.pdim_commands.gravity_x", body, String.format(Locale.ROOT, "%.2f", entry.gravity())), false));
         return entries.size();
     }
 
     private static int delete(CommandSourceStack source, ResourceLocation id) throws CommandSyntaxException {
         boolean removed = PdimActions.delete(source.getPlayerOrException(), id);
         if (!removed) {
-            source.sendFailure(Component.literal("You have no personal dimension on " + id + "."));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.pdim_commands.you_have_no_personal_dimension", id));
             return 0;
         }
-        source.sendSuccess(() -> Component.literal("Forgot your dimension on " + id + "."), false);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.pdim_commands.forgot_your_dimension_on", id), false);
         return 1;
     }
 }

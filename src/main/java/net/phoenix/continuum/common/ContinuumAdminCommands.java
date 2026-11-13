@@ -1,5 +1,6 @@
 package net.phoenix.continuum.common;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
@@ -61,7 +62,7 @@ final class ContinuumAdminCommands {
     private static int setVisibility(CommandSourceStack source, ResourceLocation id, Boolean visible)
                                                                                                       throws CommandSyntaxException {
         if (ContinuumData.body(id) == null && ContinuumData.system(id) == null) {
-            source.sendFailure(Component.literal("No body or system " + id + "."));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.no_body_or_system", id));
             return 0;
         }
         ServerPlayer player = source.getPlayerOrException();
@@ -76,7 +77,7 @@ final class ContinuumAdminCommands {
     private static int explain(CommandSourceStack source, ResourceLocation id) throws CommandSyntaxException {
         var body = ContinuumData.body(id);
         if (body == null) {
-            source.sendFailure(Component.literal("No body " + id + "."));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.no_body", id));
             return 0;
         }
         UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(source.getPlayerOrException().getUUID());
@@ -93,11 +94,9 @@ final class ContinuumAdminCommands {
 
     private static int pdimWorldgenReport(CommandSourceStack source) {
         var server = source.getServer();
-        source.sendSuccess(() -> Component.literal("Personal dimensions: " + (net.phoenix.continuum.pdim.PdimRuntime
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.personal_dimensions_spec_s_rule", (net.phoenix.continuum.pdim.PdimRuntime
                 .available() ? "made while the game runs (Infiniverse), no restart needed" :
-                "read when the world loads (a change needs a restart)") + "; " +
-                net.phoenix.continuum.api.PdimWorldgen.all().size() + " spec(s), " +
-                net.phoenix.continuum.api.PdimWorldgen.ruleCount() + " rule(s)"), false);
+                "read when the world loads (a change needs a restart)"), net.phoenix.continuum.api.PdimWorldgen.all().size(), net.phoenix.continuum.api.PdimWorldgen.ruleCount()), false);
         int shown = 0;
         for (var body : ContinuumData.allBodies()) {
             var spec = net.phoenix.continuum.api.PdimWorldgen.resolve(body.id(), body);
@@ -111,15 +110,14 @@ final class ContinuumAdminCommands {
         }
         if (shown > 40) {
             int more = shown - 40;
-            source.sendSuccess(() -> Component.literal("... and " + more + " more"), false);
+            source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.and_more", more), false);
         }
         return shown;
     }
 
     private static int pdimWorldgenReset(CommandSourceStack source, ResourceLocation body) {
         if (!net.phoenix.continuum.pdim.PdimRuntime.available()) {
-            source.sendFailure(Component.literal("Needs Infiniverse (and runtimePersonalDimensions on): without it a " +
-                    "dimension is only read when the world loads."));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.needs_infiniverse_and_runtimepersonaldim"));
             return 0;
         }
         boolean done = net.phoenix.continuum.pdim.PdimRuntime.unload(source.getServer(), body);
@@ -166,7 +164,7 @@ final class ContinuumAdminCommands {
                 written++;
             }
         } catch (java.io.IOException e) {
-            source.sendFailure(Component.literal("Could not write the files: " + e.getMessage()));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.could_not_write_the_files", e.getMessage()));
             return 0;
         }
         int count = written;
@@ -189,12 +187,11 @@ final class ContinuumAdminCommands {
             }
         }
         if (issues.isEmpty()) {
-            source.sendSuccess(() -> Component.literal("Continuum data: no problems found.")
+            source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.continuum_data_no_problems_found")
                     .withStyle(ChatFormatting.GREEN), false);
             return 1;
         }
-        source.sendSuccess(() -> Component.literal("Continuum data: " + report.errors() + " errors, " +
-                report.warnings() + " warnings" + (all || issues.size() <= SHOWN_ISSUES ? "" :
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.continuum_data_errors_warnings", report.errors(), report.warnings(), (all || issues.size() <= SHOWN_ISSUES ? "" :
                         " (first " + SHOWN_ISSUES + "; /continuumadmin validate all for the rest)"))
                 .withStyle(report.errors() > 0 ? ChatFormatting.RED : ChatFormatting.YELLOW), false);
         int shown = 0;
@@ -210,9 +207,7 @@ final class ContinuumAdminCommands {
 
     private static int reloadData(CommandSourceStack source) {
         var report = ContinuumData.reloadNow(source.getServer());
-        source.sendSuccess(() -> Component.literal("Reloaded Continuum data: " + ContinuumData.systems().size() +
-                " systems, " + ContinuumData.allBodies().size() + " bodies, " + report.errors() + " errors, " +
-                report.warnings() + " warnings. /continuumadmin validate lists them.")
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.reloaded_continuum_data_systems_bodies", ContinuumData.systems().size(), ContinuumData.allBodies().size(), report.errors(), report.warnings())
                 .withStyle(report.errors() > 0 ? ChatFormatting.RED : ChatFormatting.GREEN), true);
         return 1;
     }
@@ -220,7 +215,7 @@ final class ContinuumAdminCommands {
     private static int dump(CommandSourceStack source, ResourceLocation id) {
         String json = ContinuumData.snapshot().bodies().get(id);
         if (json == null) {
-            source.sendFailure(Component.literal("No body " + id + "."));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.no_body", id));
             return 0;
         }
         String pretty = new com.google.gson.GsonBuilder().setPrettyPrinting().create()
@@ -314,11 +309,7 @@ final class ContinuumAdminCommands {
 
         var report = ContinuumData.reloadNow(server);
         int changed = reconcileGeneratedDimensions(server);
-        source.sendSuccess(() -> Component.literal("Generated " + count + " systems and " + generatedBodyCount() +
-                " worlds from seed " + seed + " for this world (" + report.errors() + " errors). " +
-                (changed > 0 ? "Their personal dimensions need a server restart to exist. " : "") +
-                "/continuumadmin generate undo puts back what was there before (until you leave this world); " +
-                "generate clear removes them.").withStyle(ChatFormatting.GREEN), true);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.generated_systems_and_worlds_from", count, generatedBodyCount(), seed, report.errors(), (changed > 0 ? "Their personal dimensions need a server restart to exist. " : "")).withStyle(ChatFormatting.GREEN), true);
         return count;
     }
 
@@ -329,23 +320,21 @@ final class ContinuumAdminCommands {
         data.set(GeneratedGalaxy.Setup.NONE);
         ContinuumData.reloadNow(server);
         reconcileGeneratedDimensions(server);
-        source.sendSuccess(() -> Component.literal("Removed this world's generated systems. generate undo brings " +
-                "them back (until you leave this world)."), true);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.removed_this_world_s_generated"), true);
         return 1;
     }
 
     private static int undoGenerate(CommandSourceStack source) {
         GenerateUndo undo = lastGenerate;
         if (undo == null || undo.server() != source.getServer()) {
-            source.sendFailure(Component.literal("Nothing to undo in this world."));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.nothing_to_undo_in_this"));
             return 0;
         }
         GeneratedGalaxy.get(source.getServer()).set(undo.previous());
         lastGenerate = null;
         ContinuumData.reloadNow(source.getServer());
         int changed = reconcileGeneratedDimensions(source.getServer());
-        source.sendSuccess(() -> Component.literal("Undid the last generate: this world's systems are as they were." +
-                (changed > 0 ? " Restart the server to match the personal dimensions." : "")), true);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.undid_the_last_generate_this", (changed > 0 ? " Restart the server to match the personal dimensions." : "")), true);
         return 1;
     }
 
@@ -562,7 +551,7 @@ final class ContinuumAdminCommands {
     private static int worldgenTimes(CommandSourceStack source, boolean reset) {
         if (reset) {
             net.phoenix.continuum.pdim.WorldgenTimes.reset();
-            source.sendSuccess(() -> Component.literal("Chunk generation times reset."), false);
+            source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.chunk_generation_times_reset"), false);
             return 1;
         }
         for (String line : net.phoenix.continuum.pdim.WorldgenTimes.report()) {
@@ -574,14 +563,14 @@ final class ContinuumAdminCommands {
     private static int giveRocket(CommandSourceStack source) throws CommandSyntaxException {
         ServerPlayer player = source.getPlayerOrException();
         ItemHandlerHelper.giveItemToPlayer(player, new ItemStack(ContinuumRegistry.ROCKET.get()));
-        source.sendSuccess(() -> Component.literal("Gave a Continuum Rocket."), false);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.gave_a_continuum_rocket"), false);
         return 1;
     }
 
     private static ItemStack heldRocket(CommandSourceStack source) throws CommandSyntaxException {
         ItemStack stack = source.getPlayerOrException().getItemInHand(InteractionHand.MAIN_HAND);
         if (!(stack.getItem() instanceof ContinuumRocketItem)) {
-            source.sendFailure(Component.literal("Hold a Continuum Rocket in your main hand."));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.hold_a_continuum_rocket_in"));
             return ItemStack.EMPTY;
         }
         return stack;
@@ -590,7 +579,7 @@ final class ContinuumAdminCommands {
     private static int cometSpawn(CommandSourceStack source, ResourceLocation bodyId, int minutes) {
         var body = ContinuumData.body(bodyId);
         if (body == null || body.transientInfo() == null) {
-            source.sendFailure(Component.literal(bodyId + " is not a comet."));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.is_not_a_comet", bodyId));
             return 0;
         }
         int length = minutes > 0 ? minutes : body.transientInfo().durationMinutes();
@@ -601,11 +590,11 @@ final class ContinuumAdminCommands {
     private static int cometClear(CommandSourceStack source, ResourceLocation bodyId) {
         var body = ContinuumData.body(bodyId);
         if (body == null || body.transientInfo() == null) {
-            source.sendFailure(Component.literal(bodyId + " is not a comet."));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.is_not_a_comet", bodyId));
             return 0;
         }
         ContinuumTransients.get(source.getServer()).close(source.getServer(), body);
-        source.sendSuccess(() -> Component.literal(body.name() + " has left."), false);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.has_left", body.name()), false);
         return 1;
     }
 
@@ -613,7 +602,7 @@ final class ContinuumAdminCommands {
         ItemStack rocket = heldRocket(source);
         if (rocket.isEmpty()) return 0;
         RocketStats.setTier(rocket, tier);
-        source.sendSuccess(() -> Component.literal("Rocket hull set to " + RocketStats.tierName(tier) + "."), false);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.rocket_hull_set_to", RocketStats.tierName(tier)), false);
         return 1;
     }
 
@@ -621,7 +610,7 @@ final class ContinuumAdminCommands {
         ItemStack rocket = heldRocket(source);
         if (rocket.isEmpty()) return 0;
         RocketStats.setWear(rocket, wear);
-        source.sendSuccess(() -> Component.literal("Rocket wear set to " + Math.round(wear * 100) + "%."), false);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.rocket_wear_set_to", Math.round(wear * 100)), false);
         return 1;
     }
 
@@ -631,11 +620,11 @@ final class ContinuumAdminCommands {
 
         String id = upgrade.toLowerCase(Locale.ROOT);
         if (!RocketStats.isKnownUpgrade(id)) {
-            source.sendFailure(Component.literal("Unknown upgrade. Use hull_interlock, overdrive or reinforced_hull."));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.unknown_upgrade_use_hull_interlock"));
             return 0;
         }
         RocketStats.setLevel(rocket, id, level);
-        source.sendSuccess(() -> Component.literal("Set " + id + " to level " + level + "."), false);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.set_to_level", id, level), false);
         return 1;
     }
 
@@ -659,32 +648,32 @@ final class ContinuumAdminCommands {
 
     private static int flag(CommandSourceStack source, String name, boolean on) throws CommandSyntaxException {
         net.phoenix.continuum.api.ContinuumAPI.setResearchFlag(team(source), name, on);
-        source.sendSuccess(() -> Component.literal("Flag " + name + " is " + (on ? "on" : "off") + "."), false);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.flag_is", name, (on ? "on" : "off")), false);
         return 1;
     }
 
     private static int discipline(CommandSourceStack source, String name) throws CommandSyntaxException {
         net.phoenix.continuum.api.ContinuumAPI.setDiscipline(team(source), name.equals("none") ? "" : name);
-        source.sendSuccess(() -> Component.literal("Discipline is now " + name + "."), false);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.discipline_is_now", name), false);
         return 1;
     }
 
     private static int discover(CommandSourceStack source, ResourceLocation target, String stageName)
                                                                                                       throws CommandSyntaxException {
         if (ContinuumData.body(target) == null && ContinuumData.system(target) == null) {
-            source.sendFailure(Component.literal("No such system or body: " + target));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.no_such_system_or_body", target));
             return 0;
         }
         DiscoveryStage stage = DiscoveryStage.parse(stageName, null);
         if (stage == null) {
-            source.sendFailure(Component.literal("Stage must be unknown, detected or surveyed."));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.stage_must_be_unknown_detected"));
             return 0;
         }
 
         UUID team = team(source);
         ContinuumTeamData.get(source.getServer()).force(team, target, stage);
         ContinuumServerEvents.engageTeam(source.getServer(), team);
-        source.sendSuccess(() -> Component.literal(target + " is now " + stage.name().toLowerCase(Locale.ROOT) + "."),
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.is_now", target, stage.name().toLowerCase(Locale.ROOT)),
                 false);
         return 1;
     }
@@ -692,7 +681,7 @@ final class ContinuumAdminCommands {
     private static int discoverAll(CommandSourceStack source, String stageName) throws CommandSyntaxException {
         DiscoveryStage stage = DiscoveryStage.parse(stageName, null);
         if (stage == null) {
-            source.sendFailure(Component.literal("Stage must be unknown, detected or surveyed."));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.stage_must_be_unknown_detected"));
             return 0;
         }
 
@@ -709,8 +698,7 @@ final class ContinuumAdminCommands {
         }
         ContinuumServerEvents.engageTeam(source.getServer(), team);
         int total = count;
-        source.sendSuccess(() -> Component.literal("All " + total + " systems and bodies are now " +
-                stage.name().toLowerCase(Locale.ROOT) + "."), false);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.all_systems_and_bodies_are", total, stage.name().toLowerCase(Locale.ROOT)), false);
         return total;
     }
 
@@ -749,7 +737,7 @@ final class ContinuumAdminCommands {
                     for (Schedule schedule : ContinuumSchedules.get(ctx.getSource().getServer()).all()) {
                         if (schedule.id.toString().startsWith(wanted)) return action.run(ctx.getSource(), schedule);
                     }
-                    ctx.getSource().sendFailure(Component.literal("No schedule starts with " + wanted + "."));
+                    ctx.getSource().sendFailure(ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.no_schedule_starts_with", wanted));
                     return 0;
                 });
     }
@@ -757,7 +745,7 @@ final class ContinuumAdminCommands {
     private static int listSchedules(CommandSourceStack source) {
         List<Schedule> all = ContinuumSchedules.get(source.getServer()).all();
         if (all.isEmpty()) {
-            source.sendSuccess(() -> Component.literal("No schedules."), false);
+            source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.no_schedules"), false);
             return 0;
         }
         for (Schedule s : all) {
@@ -778,13 +766,13 @@ final class ContinuumAdminCommands {
             if (store.remove(s.id)) count++;
         }
         int removed = count;
-        source.sendSuccess(() -> Component.literal("Removed " + removed + " schedules."), true);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.removed_schedules", removed), true);
         return removed;
     }
 
     private static int removeSchedule(CommandSourceStack source, Schedule schedule) {
         ContinuumSchedules.get(source.getServer()).remove(schedule.id);
-        source.sendSuccess(() -> Component.literal("Removed the schedule."), true);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.removed_the_schedule"), true);
         return 1;
     }
 
@@ -795,7 +783,7 @@ final class ContinuumAdminCommands {
             schedule.retryAt = 0;
         }
         ContinuumSchedules.get(source.getServer()).setDirty();
-        source.sendSuccess(() -> Component.literal("The schedule is now " + (schedule.enabled ? "on" : "off") + "."), true);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.the_schedule_is_now", (schedule.enabled ? "on" : "off")), true);
         return 1;
     }
 
@@ -803,7 +791,7 @@ final class ContinuumAdminCommands {
                                    boolean absolute) throws CommandSyntaxException {
         var body = ContinuumData.body(id);
         if (body == null) {
-            source.sendFailure(Component.literal("No such body: " + id));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.no_such_body", id));
             return 0;
         }
         UUID team = team(source);
@@ -816,8 +804,7 @@ final class ContinuumAdminCommands {
         ContinuumServerEvents.sendStateToTeam(source.getServer(), team);
         String name = Swarms.kindName(body);
         String power = Swarms.isSwarm(body) && next > 0 ? " (" + Swarms.describe(body, next) + ")" : "";
-        source.sendSuccess(() -> Component.literal(name + " at " + body.name() + " is now level " + next + " of " + max +
-                power + "."), false);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.at_is_now_level_of", name, body.name(), next, max, power), false);
         return next;
     }
 
@@ -825,7 +812,7 @@ final class ContinuumAdminCommands {
                                    boolean absolute) throws CommandSyntaxException {
         var body = ContinuumData.body(id);
         if (body == null || !Swarms.isSwarm(body)) {
-            source.sendFailure(Component.literal("Shells go round a star or a black hole: " + id));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.shells_go_round_a_star", id));
             return 0;
         }
         UUID team = team(source);
@@ -836,21 +823,20 @@ final class ContinuumAdminCommands {
         ContinuumServerEvents.engageTeam(source.getServer(), team);
         ContinuumServerEvents.sendStateToTeam(source.getServer(), team);
         String name = Swarms.shellName(body);
-        source.sendSuccess(() -> Component.literal(name + " at " + body.name() + " is now level " + next + " of " +
-                max + (next > 0 ? " (" + Swarms.describeShell(body, next) + ")" : "") + "."), false);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.at_is_now_level_of", name, body.name(), next, max, (next > 0 ? " (" + Swarms.describeShell(body, next) + ")" : "")), false);
         return next;
     }
 
     private static int grantOutpost(CommandSourceStack source, ResourceLocation body, int probes)
                                                                                                   throws CommandSyntaxException {
         if (ContinuumData.body(body) == null) {
-            source.sendFailure(Component.literal("No such body: " + body));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.no_such_body", body));
             return 0;
         }
         UUID team = team(source);
         ContinuumTeamData.get(source.getServer()).deployProbes(team, body, probes, System.currentTimeMillis());
         ContinuumServerEvents.engageTeam(source.getServer(), team);
-        source.sendSuccess(() -> Component.literal("Added " + probes + " probe(s) to the outpost on " + body + "."),
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.added_probe_s_to_the", probes, body),
                 false);
         return 1;
     }
@@ -870,7 +856,7 @@ final class ContinuumAdminCommands {
         data.setDirty();
         ContinuumServerEvents.engageTeam(source.getServer(), team);
         int filled = count;
-        source.sendSuccess(() -> Component.literal("Filled " + filled + " outpost(s)."), false);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.filled_outpost_s", filled), false);
         return count;
     }
 
@@ -895,7 +881,7 @@ final class ContinuumAdminCommands {
         UUID team = team(source);
         ContinuumTeamData.get(source.getServer()).clearOutposts(team);
         ContinuumServerEvents.engageTeam(source.getServer(), team);
-        source.sendSuccess(() -> Component.literal("All outposts removed."), false);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.all_outposts_removed"), false);
         return 1;
     }
 
@@ -903,7 +889,7 @@ final class ContinuumAdminCommands {
         UUID team = team(source);
         ContinuumTeamData.get(source.getServer()).resetDiscovery(team);
         ContinuumServerEvents.engageTeam(source.getServer(), team);
-        source.sendSuccess(() -> Component.literal("Discovery reset to the starting state."), false);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.discovery_reset_to_the_starting"), false);
         return 1;
     }
 
@@ -912,7 +898,7 @@ final class ContinuumAdminCommands {
         ServerPlayer player = source.getPlayerOrException();
         var body = ContinuumData.body(bodyId);
         if (body == null) {
-            source.sendFailure(Component.literal("Unknown body " + bodyId));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.unknown_body", bodyId));
             return 0;
         }
         Mission.Type type;
@@ -920,7 +906,7 @@ final class ContinuumAdminCommands {
             type = Mission.Type.valueOf("swarm".equalsIgnoreCase(typeName) ? "STATION" :
                     typeName.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
-            source.sendFailure(Component.literal("Unknown mission type " + typeName));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.unknown_mission_type", typeName));
             return 0;
         }
 
@@ -959,9 +945,7 @@ final class ContinuumAdminCommands {
         }
         data.setDirty();
         ContinuumServerEvents.engageTeam(source.getServer(), team);
-        source.sendSuccess(() -> Component.literal("Sent " + count + " " + type.label().toLowerCase(Locale.ROOT) +
-                (count == 1 ? "" : "s") + " to " + body.name() + " (" + seconds + "s, " +
-                (succeeds ? "will succeed" : "will fail") + ")."), false);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.sent_to_s", count, type.label().toLowerCase(Locale.ROOT), (count == 1 ? "" : "s"), body.name(), seconds, (succeeds ? "will succeed" : "will fail")), false);
         return count;
     }
 
@@ -970,7 +954,7 @@ final class ContinuumAdminCommands {
         ServerPlayer player = source.getPlayerOrException();
         var body = ContinuumData.body(bodyId);
         if (body == null) {
-            source.sendFailure(Component.literal("Unknown body " + bodyId));
+            source.sendFailure(ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.unknown_body", bodyId));
             return 0;
         }
         UUID team = team(source);
@@ -983,8 +967,7 @@ final class ContinuumAdminCommands {
         data.addMission(mission);
         data.setDirty();
         ContinuumServerEvents.engageTeam(source.getServer(), team);
-        source.sendSuccess(() -> Component.literal("A rocket is stranded at " + body.name() + "; its signal fades in " +
-                seconds + "s."), false);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.a_rocket_is_stranded_at", body.name(), seconds), false);
         return 1;
     }
 
@@ -1002,7 +985,7 @@ final class ContinuumAdminCommands {
         data.setDirty();
         ContinuumServerEvents.engageTeam(source.getServer(), team);
         int changed = count;
-        source.sendSuccess(() -> Component.literal(changed + " running mission(s) will land in " + seconds + "s."),
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.running_mission_s_will_land", changed, seconds),
                 false);
         return count;
     }
@@ -1021,7 +1004,7 @@ final class ContinuumAdminCommands {
         }
         ContinuumMissions.resolveDue(source.getServer());
         int finished = count;
-        source.sendSuccess(() -> Component.literal("Landed " + finished + " mission(s)."), false);
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.landed_mission_s", finished), false);
         return count;
     }
 
@@ -1031,7 +1014,7 @@ final class ContinuumAdminCommands {
         int count = data.missions(team).size();
         for (Mission mission : List.copyOf(data.missions(team))) data.removeMission(team, mission.id);
         ContinuumServerEvents.engageTeam(source.getServer(), team);
-        source.sendSuccess(() -> Component.literal("Removed " + count + " mission(s) (rockets are gone).")
+        source.sendSuccess(() -> ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.removed_mission_s_rockets_are", count)
                 .withStyle(ChatFormatting.YELLOW), false);
         return count;
     }

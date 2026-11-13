@@ -1,5 +1,6 @@
 package net.phoenix.continuum.network;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
@@ -79,7 +80,7 @@ public class C2STunePacket implements CustomPacketPayload {
             if (player == null || !net.phoenix.continuum.common.ContinuumGates.check(player, net.phoenix.continuum.common.ContinuumGates.SWARMS)) return;
             boolean allowed = player.hasPermissions(2) || player.server.isSingleplayerOwner(player.getGameProfile());
             if (!allowed) {
-                player.displayClientMessage(Component.literal("Only operators can tune Continuum."), true);
+                player.displayClientMessage(ContinuumLang.tr("phoenix_continuum.c2_s_tune_packet.only_operators_can_tune_continuum"), true);
                 return;
             }
             boolean exists = msg.system ? ContinuumData.system(msg.subject) != null :
@@ -94,13 +95,13 @@ public class C2STunePacket implements CustomPacketPayload {
                 try {
                     value = msg.valueJson.isEmpty() ? null : JsonParser.parseString(msg.valueJson);
                 } catch (RuntimeException e) {
-                    player.displayClientMessage(Component.literal("That value is not valid JSON."), true);
+                    player.displayClientMessage(ContinuumLang.tr("phoenix_continuum.c2_s_tune_packet.that_value_is_not_valid"), true);
                     return;
                 }
                 error = TuningPatches.set(msg.subject, msg.path, value, msg.system);
             }
             if (error != null) {
-                player.displayClientMessage(Component.literal("Tuner: " + error), true);
+                player.displayClientMessage(ContinuumLang.tr("phoenix_continuum.c2_s_tune_packet.tuner", error), true);
                 return;
             }
             ContinuumData.reloadNow(player.server);

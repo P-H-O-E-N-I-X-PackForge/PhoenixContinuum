@@ -1,5 +1,7 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -43,7 +45,7 @@ public class ContinuumHistoryScreen extends Screen {
     private int refresh;
 
     public ContinuumHistoryScreen(Screen parent) {
-        super(Component.literal("History"));
+        super(ContinuumLang.tr("phoenix_continuum.continuum_history_screen.history"));
         this.parent = parent;
     }
 
@@ -128,12 +130,12 @@ public class ContinuumHistoryScreen extends Screen {
         MapUi.refreshTheme();
         graphics.fill(0, 0, width, height, MapUi.SCREEN_BG);
         graphics.renderOutline(1, 1, width - 2, height - 2, MapUi.FRAME);
-        graphics.drawString(font, "HISTORY", 10, 8, MapUi.TITLE);
-        graphics.drawString(font, "Every launch, landing and rescue, newest first", 10, 19, MapUi.DIM);
+        graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_history.history"), 10, 8, MapUi.TITLE);
+        graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_history.every_launch_landing_and_rescue"), 10, 19, MapUi.DIM);
 
         graphics.fill(width - 62, 8, width - 10, 22, MapUi.CHROME);
         graphics.renderOutline(width - 62, 8, 52, 14, MapUi.PANEL_LINE);
-        graphics.drawCenteredString(font, "< Back", width - 36, 11, MapUi.TEXT);
+        graphics.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_archive.back"), width - 36, 11, MapUi.TEXT);
 
         Filter[] filters = Filter.values();
         for (int i = 0; i < filters.length; i++) {
@@ -148,7 +150,7 @@ public class ContinuumHistoryScreen extends Screen {
         MapUi.panel(graphics, 10, top, width - 20, height - top - 10);
         List<MissionLog.Entry> list = visible();
         if (list.isEmpty()) {
-            graphics.drawString(font, "Nothing recorded yet.", 20, top + 8, MapUi.DIM);
+            graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_archive.nothing_recorded_yet"), 20, top + 8, MapUi.DIM);
             super.render(graphics, mouseX, mouseY, partialTick);
             return;
         }

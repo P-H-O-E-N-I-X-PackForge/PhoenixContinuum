@@ -1,5 +1,7 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
@@ -92,7 +94,7 @@ public final class ContinuumSystemScreen extends Screen {
     private final List<Object[]> hits = new ArrayList<>();
 
     public ContinuumSystemScreen(Screen parent, @Nullable ResourceLocation start) {
-        super(Component.literal("Continuum systems"));
+        super(ContinuumLang.tr("phoenix_continuum.continuum_system_screen.continuum_systems"));
         this.parent = parent;
         systems.addAll(ContinuumData.systems());
         systems.sort(Comparator.comparing(ContinuumSystem::name));
@@ -369,10 +371,10 @@ public final class ContinuumSystemScreen extends Screen {
         g.fill(0, 0, vw, vh, 0xF00A0E14);
         hits.clear();
         int x = left();
-        g.drawString(font, creating ? "New system" : "Tune a system", x, 8, 0xFFFFFFFF, false);
+        g.drawString(font, creating ? ContinuumText.str("phoenix_continuum.continuum_system.new_system") : ContinuumText.str("phoenix_continuum.continuum_system.tune_a_system"), x, 8, 0xFFFFFFFF, false);
 
         if (creating) {
-            g.drawString(font, "will be created as " + draftId, x, 22, 0xFFC8D4E8, false);
+            g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_system.will_be_created_as", draftId), x, 22, 0xFFC8D4E8, false);
         } else {
             ContinuumSystem system = systems.get(Math.floorMod(index, systems.size()));
             String title = "<  " + system.name() + "  (" + system.id() + ")  >";
@@ -428,14 +430,14 @@ public final class ContinuumSystemScreen extends Screen {
         }
 
         int px = x + LIST_W + 14;
-        g.drawString(font, "Preview", px, top() - 12, 0xFFAEBBCF, false);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_system.preview"), px, top() - 12, 0xFFAEBBCF, false);
         ContinuumSystem shown = draftSystem();
         if (shown != null) {
             preview.drawSystem(g, shown, px, top(), 200);
         } else {
             g.fill(px, top(), px + 200, top() + 200, 0xFF05070C);
         }
-        g.drawString(font, "drag to turn, scroll to zoom", px, top() + 204, 0xFF7F8A99, false);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_system.drag_to_turn_scroll_to"), px, top() + 204, 0xFF7F8A99, false);
 
         int ay = top() + 220;
         if (creating) {

@@ -1,5 +1,6 @@
 package net.phoenix.continuum.integration.emi;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -199,8 +200,7 @@ public final class ContinuumEmi {
                         yield.min() + "-" + yield.max();
                 widgets.addSlot(outputs.get(i), 44 + (i % COLUMNS) * 18, y + (i / COLUMNS) * 18)
                         .drawBack(true)
-                        .appendTooltip(Component.literal(range + " per roll, " + Math.round(yield.chance() * 100) +
-                                "% of rolls"))
+                        .appendTooltip(ContinuumLang.tr("phoenix_continuum.continuum_emi.per_roll_of_rolls", range, Math.round(yield.chance() * 100)))
                         .recipeContext(this);
             }
         }

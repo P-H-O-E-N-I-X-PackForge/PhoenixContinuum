@@ -1,5 +1,6 @@
 package net.phoenix.continuum.machine;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
@@ -11,14 +12,14 @@ public final class LaunchComplexShape {
     public static final String[][] SLICES = buildSlices();
 
     public static final List<Component> TOOLTIPS = List.of(
-            Component.literal("§6Where Continuum missions are launched from."),
-            Component.literal("§7Use the controller to open the map and launch."),
-            Component.literal("§7Its tier is the best energy input hatch it has; farther bodies need a higher"),
-            Component.literal("§7tier, and every launch draws power from the hatches."),
-            Component.literal("§7Rockets, probes and repair kits are taken from its item input buses;"),
-            Component.literal("§7returned rockets and hauled resources are delivered to its item output buses."),
-            Component.literal("§7Hatches and buses go anywhere on the slab's edge (not the corners)."),
-            Component.literal("§7Keep the 1x1 shaft in the middle of the gantry clear for the rocket."));
+            ContinuumLang.tr("phoenix_continuum.launch_complex_shape.where_continuum_missions_are_launched"),
+            ContinuumLang.tr("phoenix_continuum.launch_complex_shape.use_the_controller_to_open"),
+            ContinuumLang.tr("phoenix_continuum.launch_complex_shape.its_tier_is_the_best"),
+            ContinuumLang.tr("phoenix_continuum.launch_complex_shape.tier_and_every_launch_draws"),
+            ContinuumLang.tr("phoenix_continuum.launch_complex_shape.rockets_probes_and_repair_kits"),
+            ContinuumLang.tr("phoenix_continuum.launch_complex_shape.returned_rockets_and_hauled_resources"),
+            ContinuumLang.tr("phoenix_continuum.launch_complex_shape.hatches_and_buses_go_anywhere"),
+            ContinuumLang.tr("phoenix_continuum.launch_complex_shape.keep_the_1x1_shaft_in"));
 
     private static String[][] buildSlices() {
         int depth = 7;

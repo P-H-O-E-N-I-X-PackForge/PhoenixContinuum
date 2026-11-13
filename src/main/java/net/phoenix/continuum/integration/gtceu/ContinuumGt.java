@@ -26,6 +26,7 @@ public final class ContinuumGt {
         REGISTRATE.addRawLang("config.jade.plugin_phoenix_continuum.info", "Continuum Info");
         REGISTRATE.addRawLang("emi.category.phoenix_continuum.continuum_bodies", "Continuum Bodies");
         REGISTRATE.addRawLang("emi.category.phoenix_continuum.continuum_refit", "Continuum Refit");
+        ContinuumUiLang.register(REGISTRATE);
     }
 
     public static final RegistryEntry<CreativeModeTab, CreativeModeTab> CREATIVE_TAB = REGISTRATE

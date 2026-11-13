@@ -1,5 +1,7 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -30,7 +32,7 @@ public class ContinuumArchiveScreen extends Screen {
     private int scroll;
 
     public ContinuumArchiveScreen(Screen parent) {
-        super(Component.literal("Archive"));
+        super(ContinuumLang.tr("phoenix_continuum.continuum_archive_screen.archive"));
         this.parent = parent;
     }
 
@@ -48,12 +50,12 @@ public class ContinuumArchiveScreen extends Screen {
         MapUi.refreshTheme();
         graphics.fill(0, 0, width, height, MapUi.SCREEN_BG);
         graphics.renderOutline(1, 1, width - 2, height - 2, MapUi.FRAME);
-        graphics.drawString(font, "ARCHIVE", 10, 8, MapUi.TITLE);
-        graphics.drawString(font, "Entries are written as bodies are detected and surveyed", 10, 19, MapUi.DIM);
+        graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_archive.archive"), 10, 8, MapUi.TITLE);
+        graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_archive.entries_are_written_as_bodies"), 10, 19, MapUi.DIM);
 
         graphics.fill(width - 62, 8, width - 10, 22, MapUi.CHROME);
         graphics.renderOutline(width - 62, 8, 52, 14, MapUi.PANEL_LINE);
-        graphics.drawCenteredString(font, "< Back", width - 36, 11, MapUi.TEXT);
+        graphics.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_archive.back"), width - 36, 11, MapUi.TEXT);
 
         drawList(graphics, mouseX, mouseY);
         drawEntry(graphics);
@@ -96,7 +98,7 @@ public class ContinuumArchiveScreen extends Screen {
             y += 4;
         }
         if (known == 0) {
-            graphics.drawString(font, "Nothing recorded yet.", x + 6, top + 8, MapUi.DIM);
+            graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_archive.nothing_recorded_yet"), x + 6, top + 8, MapUi.DIM);
         }
     }
 
@@ -110,7 +112,7 @@ public class ContinuumArchiveScreen extends Screen {
         int w = width - x - 10;
         MapUi.panel(graphics, x, top, w, height - top - 10);
         if (selected == null) {
-            graphics.drawString(font, "Select a body.", x + 8, top + 8, MapUi.DIM);
+            graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_archive.select_a_body"), x + 8, top + 8, MapUi.DIM);
             return;
         }
 
@@ -124,7 +126,7 @@ public class ContinuumArchiveScreen extends Screen {
             y += 8;
             paragraph(graphics, "SURVEYED", selected.loreSurveyed(), x + 8, y, w - 16, MapUi.GOOD);
         } else {
-            graphics.drawString(font, "Survey this body to write the next entry.", x + 8, y + 10, MapUi.DIM);
+            graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_archive.survey_this_body_to_write"), x + 8, y + 10, MapUi.DIM);
         }
     }
 

@@ -1,5 +1,6 @@
 package net.phoenix.continuum.data;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackLocationInfo;
 import net.minecraft.server.packs.PackType;
@@ -61,7 +62,7 @@ public final class ContinuumPackFolder {
         }
 
         event.addRepositorySource(consumer -> {
-            PackLocationInfo info = new PackLocationInfo(ID, Component.literal("Continuum pack folder"),
+            PackLocationInfo info = new PackLocationInfo(ID, ContinuumLang.tr("phoenix_continuum.continuum_pack_folder.continuum_pack_folder"),
                     PackSource.BUILT_IN, Optional.empty());
             Pack pack = Pack.readMetaAndCreate(info, new PathPackResources.PathResourcesSupplier(root),
                     PackType.SERVER_DATA, new PackSelectionConfig(true, Pack.Position.TOP, false));

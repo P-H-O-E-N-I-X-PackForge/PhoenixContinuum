@@ -33,7 +33,7 @@ import java.util.Map;
  * <pre>{@code
  * PdimWorldgen.of(id).noise("minecraft:overworld", "minecraft:plains");
  * PdimWorldgen.of(id).flat("minecraft:plains", "minecraft:bedrock*1", "minecraft:stone*60", "minecraft:grass_block*1");
- * PdimWorldgen.of(id).generator("{\"type\":\"phoenixcore:discipline\", ...}").dimensionType("phoenixcore:discipline");
+ * PdimWorldgen.of(id).generator("{\"type\":\"phoenixconflux:discipline\", ...}").dimensionType("phoenixconflux:discipline");
  * }</pre>
  */
 public final class PdimWorldgen {

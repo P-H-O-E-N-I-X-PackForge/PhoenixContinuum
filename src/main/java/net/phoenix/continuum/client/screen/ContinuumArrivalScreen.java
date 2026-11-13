@@ -1,5 +1,7 @@
 package net.phoenix.continuum.client.screen;
 
+import net.phoenix.continuum.client.ContinuumText;
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -54,7 +56,7 @@ public class ContinuumArrivalScreen extends Screen {
     private boolean touchedDown;
 
     public ContinuumArrivalScreen(UUID missionId, @Nullable BlockPos pad) {
-        super(Component.literal("Arrival"));
+        super(ContinuumLang.tr("phoenix_continuum.continuum_arrival_screen.arrival"));
         this.missionId = missionId;
         this.pad = pad;
     }
@@ -312,7 +314,7 @@ public class ContinuumArrivalScreen extends Screen {
             graphics.drawString(font, String.format(Locale.ROOT, "ALT  %,d km", Math.round(altitudeKm)), 14, 40,
                     MapUi.TEXT);
         }
-        if (t < CARD_AT) graphics.drawCenteredString(font, "Esc to skip", width / 2, height - 12, 0xFF6a6488);
+        if (t < CARD_AT) graphics.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_arrival.esc_to_skip"), width / 2, height - 12, 0xFF6a6488);
     }
 
     private int cardW() {
