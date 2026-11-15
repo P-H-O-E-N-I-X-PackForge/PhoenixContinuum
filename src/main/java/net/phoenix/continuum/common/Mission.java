@@ -93,10 +93,8 @@ public final class Mission {
 
     public boolean rescuing;
 
-    /** Launched by a schedule that brings the cargo home by itself: the pad takes it in when it lands. */
     public boolean autoCollect;
 
-    /** The team was told the pad had no room (not saved: a restart may tell them again). */
     public boolean fullNoticeSent;
 
     public boolean stranded() {

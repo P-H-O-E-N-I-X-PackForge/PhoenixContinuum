@@ -7,7 +7,6 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.ArrayList;
 import java.util.List;
 
-/** What a Swarm Control screen shows: the targets, the chosen one's build, and the pad that builds it. */
 public record SwarmControlView(BlockPos control, ResourceLocation target, List<Candidate> candidates, String padName,
                                boolean padFound, boolean online, long energyStored, long launchEnergy, int collectors, int segments,
                                int rockets, int swarmInFlight, int shellInFlight, long powerNow, long powerDone,

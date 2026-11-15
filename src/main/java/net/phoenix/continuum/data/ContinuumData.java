@@ -56,7 +56,7 @@ public final class ContinuumData {
             if (!body.isCentral()) continue;
             ContinuumSystem owner = systems.get(body.system());
             if (owner == null) continue;
-            // the star's size is the system's: tuning it there (or here) must not leave the two disagreeing
+            
             if ((body.type() == ContinuumBody.Type.STAR || body.type() == ContinuumBody.Type.BLACK_HOLE) &&
                     Math.abs(body.radius() - owner.starRadius()) > 1.0e-4f) {
                 body = body.withRadius(owner.starRadius());

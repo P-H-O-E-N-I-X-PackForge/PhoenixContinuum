@@ -1,6 +1,5 @@
 package net.phoenix.continuum.integration.chronicles;
 
-/** The trigger ids Continuum fires for Phoenix Chronicles (see {@link ChroniclesBridge}). */
 public final class ContinuumTriggers {
 
     private ContinuumTriggers() {}

@@ -67,7 +67,6 @@ public class PdimWorldgenGameTests {
             helper.assertTrue(rock != null, "there should be a rocky planet to test with");
             rockId = rock.id();
 
-            // a rule from a file-format spec, for every planet
             var json = com.google.gson.JsonParser.parseString(
                     "{\"match\":{\"type\":\"planet\"},\"type\":\"flat\",\"biome\":\"minecraft:plains\"," +
                             "\"layers\":[\"minecraft:stone*10\"],\"plot_structure\":\"phoenix_continuum:landing\"}")
@@ -80,11 +79,9 @@ public class PdimWorldgenGameTests {
             helper.assertTrue(!viaRule.isVoid() && viaRule.plotStructure() != null, "the rule applies to a planet");
             accepts(helper, viaRule, "the rule's flat world");
 
-            // a spec of its own beats the rules
             PdimWorldgen.of(rock.id()).voidWorld();
             helper.assertTrue(PdimWorldgen.resolve(rock.id(), rock).isVoid(), "its own spec wins over a rule");
 
-            // auto: rocky worlds get terrain, and the generator is one the game can load
             PdimWorldgen.clearRules();
             PdimWorldgen.remove(rock.id());
             PdimWorldgen.of(rock.id()).auto();
@@ -190,7 +187,7 @@ public class PdimWorldgenGameTests {
         var level = net.phoenix.continuum.pdim.PdimRuntime.level(server, id);
         helper.assertTrue(level != null, "the dimension should be made");
         helper.assertTrue(level.rainLevel < 0.5f, "it starts dry");
-        // the overworld is clear, so only the dimension's own weather step can make this rain: the mixin has to be in
+        
         helper.runAfterDelay(160, () -> {
             try {
                 helper.assertTrue(level.rainLevel >= 0.99f, "a storm world should be raining by now, was " + level.rainLevel);

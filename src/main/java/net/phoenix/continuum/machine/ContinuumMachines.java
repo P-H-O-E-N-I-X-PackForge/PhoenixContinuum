@@ -23,7 +23,6 @@ public final class ContinuumMachines {
 
     private ContinuumMachines() {}
 
-    /** What keeps a Swarm Control Array online: a recipe like any other, so packs can edit it. */
     public static final GTRecipeTypeEntry SWARM_CONTROL_RECIPES = ContinuumGt.REGISTRATE
             .recipeType("swarm_control_uplink", GTRecipeTypes.MULTIBLOCK)
             .setMaxIOSize(0, 0, 1, 0)

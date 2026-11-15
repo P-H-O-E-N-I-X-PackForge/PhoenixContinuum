@@ -1227,7 +1227,6 @@ public class ContinuumMapScreen extends Screen {
         return total;
     }
 
-    /** The pods that go to this body: Penrose ones for a black hole, swarm ones for a star. */
     private int countCollectors(net.phoenix.continuum.data.ContinuumBody body) {
         boolean penrose = net.phoenix.continuum.common.Swarms.isPenrose(body);
         if (ContinuumClientState.padUsesBuses(pad)) {
@@ -1623,7 +1622,7 @@ public class ContinuumMapScreen extends Screen {
         if (phase == Phase.NONE) return;
 
         phaseTime += dt;
-        // a slow machine must not stretch a half second move into seconds: after a real second and a half it is done
+        
         long realNow = Util.getMillis();
         if (phaseStarted == 0L || phaseTime <= dt) phaseStarted = realNow;
         if (realNow - phaseStarted > 1500L) phaseTime = Math.max(phaseTime, phase == Phase.OUT ? OUT_SECONDS : IN_SECONDS);
@@ -1631,7 +1630,7 @@ public class ContinuumMapScreen extends Screen {
 
         float eased = t * t * (3.0f - 2.0f * t);
         if (phase == Phase.OUT) {
-            // ease in: the zoom is seen for most of it, the dark only closes at the end
+            
             fade = t * t;
             if (t >= 1.0f) {
                 long switchStart = Util.getMillis();
@@ -1645,8 +1644,7 @@ public class ContinuumMapScreen extends Screen {
                 fade = 1.0f;
             }
         } else {
-            
-            // a short hold while the bakes burst, then ease out so the new view opens up gently
+
             float hold = BURST_SECONDS * 0.25f;
             float shown = Math.min(1.0f, Math.max(0.0f, (phaseTime - hold) / (IN_SECONDS - hold)));
             fade = (1.0f - shown) * (1.0f - shown);
@@ -1658,7 +1656,6 @@ public class ContinuumMapScreen extends Screen {
         }
     }
 
-    /** Where a camera was looking: its focus, angles and zoom. */
     private static float[] remember(MapCamera cam) {
         return new float[] { cam.targetFocus.x, cam.targetFocus.y, cam.targetFocus.z, cam.targetYaw, cam.targetPitch,
                 cam.targetDistance };
@@ -1681,7 +1678,7 @@ public class ContinuumMapScreen extends Screen {
         system = sys;
         body = null;
         if (zoomDirection < 0 && savedSystem != null && sys.id().equals(savedSystemFor)) {
-            // backing out of a body: the system is as it was left
+            
             restore(systemCam, savedSystem);
             systemCam.snapDistance(savedSystem[5] * 0.5f);
             systemCam.targetDistance = Math.max(systemCam.minDistance, Math.min(systemCam.maxDistance,
@@ -1712,7 +1709,7 @@ public class ContinuumMapScreen extends Screen {
         system = null;
         body = null;
         if (savedGalaxy != null) {
-            // backing out of a system: the galaxy is as it was before going in
+            
             restore(galaxyCam, savedGalaxy);
             galaxyCam.snapDistance(savedGalaxy[5] * 0.55f);
             galaxyCam.targetDistance = Math.max(galaxyCam.minDistance, Math.min(galaxyCam.maxDistance,

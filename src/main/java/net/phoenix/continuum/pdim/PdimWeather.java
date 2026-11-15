@@ -10,22 +10,17 @@ import net.phoenix.continuum.api.PdimWorldgen;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * The weather of a personal dimension whose spec has its own: always clear, always raining, always storming, or a cycle
- * of its own. Called in place of the game's weather step (see the mixin); anything else keeps the overworld's weather.
- */
 public final class PdimWeather {
 
     private PdimWeather() {}
 
-    /** How the weather of a dimension is decided. */
     public enum Mode {
-        /** As the overworld's. */
+        
         NORMAL,
         CLEAR,
         RAIN,
         STORM,
-        /** Its own spells of clear and rain, set by {@link PdimWorldgen.Spec#weatherCycle}. */
+        
         CYCLE;
 
         public static Mode of(String text) {
@@ -39,7 +34,6 @@ public final class PdimWeather {
         }
     }
 
-    /** The spells of a {@link Mode#CYCLE}: lengths in ticks, and the share of rainy spells that are thunderstorms. */
     public record Cycle(int clearMin, int clearMax, int rainMin, int rainMax, float stormChance) {
 
         public static final Cycle DEFAULT = new Cycle(12000, 168000, 12000, 24000, 0.3f);
@@ -54,7 +48,6 @@ public final class PdimWeather {
 
     private static final Map<ResourceKey<Level>, State> STATES = new HashMap<>();
 
-    /** @return true when this dimension has weather of its own and the game's step is not to run. */
     public static boolean advance(ServerLevel level) {
         if (!level.dimensionType().hasSkyLight()) return false;
         PdimWorldgen.Spec spec = PdimRules.specOf(level);
@@ -116,7 +109,6 @@ public final class PdimWeather {
         return max <= min ? Math.max(1, min) : min + level.random.nextInt(max - min + 1);
     }
 
-    /** Forget the running cycle of a dimension (it starts again from clear). */
     public static void reset(ResourceKey<Level> dimension) {
         STATES.remove(dimension);
     }

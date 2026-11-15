@@ -6,7 +6,6 @@ import net.phoenixvine.chronicles.QuestAPI;
 
 import org.jetbrains.annotations.Nullable;
 
-/** The part of the bridge that uses Chronicles classes: only loaded when Chronicles is installed. */
 final class ChroniclesBridgeImpl {
 
     private ChroniclesBridgeImpl() {}

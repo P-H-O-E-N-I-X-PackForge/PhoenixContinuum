@@ -16,10 +16,6 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Locale;
 
-/**
- * A Swarm Receiver: what it holds, what your swarms and shells are making, and a live graph of both over the last
- * minute (it asks for a fresh reading every second).
- */
 public class ContinuumPowerScreen extends Screen {
 
     private static final int W = 360;
@@ -153,7 +149,6 @@ public class ContinuumPowerScreen extends Screen {
         for (Renderable renderable : this.renderables) renderable.render(g, mouseX, mouseY, partialTick);
     }
 
-    /** The team's output (bars) and what this receiver holds (line), over the last minute. */
     private void graph(GuiGraphics g, int x, int y, int w, int h) {
         g.fill(x, y, x + w, y + h, MapUi.PANEL_SOLID);
         g.renderOutline(x, y, w, h, MapUi.BUTTON_LINE);

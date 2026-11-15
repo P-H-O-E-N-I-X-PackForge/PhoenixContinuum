@@ -17,10 +17,6 @@ import net.phoenix.continuum.network.C2SSwarmControlPacket;
 
 import java.util.Locale;
 
-/**
- * Swarm Control: the target star or black hole, drawn with the swarm or shell round it as built, with laser
- * beams from its emitters for each part of the way there, and the controls to send more.
- */
 public class ContinuumSwarmControlScreen extends Screen {
 
     private static final int PANEL_W = 196;
@@ -104,7 +100,7 @@ public class ContinuumSwarmControlScreen extends Screen {
         if (!sectionChosen && current != null) blackHoles = current.penrose();
         else if (current != null && current.penrose() != blackHoles && section().stream()
                 .noneMatch(c -> c.body().equals(view.target()))) {
-            // the target moved to the other section (another screen changed it): follow it
+            
             blackHoles = current.penrose();
         }
         int stars = (int) view.candidates().stream().filter(c -> !c.penrose()).count();
@@ -145,7 +141,6 @@ public class ContinuumSwarmControlScreen extends Screen {
         g.fill(0, 0, width, height, MapUi.SCREEN_BG);
     }
 
-    /** Completion of what is built, 0 to 1. */
     private float progress(SwarmControlView.Candidate c) {
         if (c == null) return 0.0f;
         if (c.shell() > 0) return Math.min(1.0f, c.shell() / (float) Math.max(1, c.shellMax()));
@@ -166,7 +161,7 @@ public class ContinuumSwarmControlScreen extends Screen {
         renderY = (height - renderSize) / 2;
         if (!framed && current != null) {
             framed = true;
-            // far enough out to see the whole swarm or shell
+            
             preview.frame(current.swarm() > 0 || current.shell() > 0 ? 9.0f : 4.6f);
         }
         preview.drawTarget(g, central, system, current == null ? 0 : current.swarm(),
@@ -261,10 +256,6 @@ public class ContinuumSwarmControlScreen extends Screen {
         return y + 22;
     }
 
-    /**
-     * Emitter nodes round the picture; a node lights as its share of the build is done, and the next one flickers
-     * while parts are in flight. Each lit node fires a beam into the star.
-     */
     private void drawBeams(GuiGraphics g, int color) {
         int flying = view.swarmInFlight() + view.shellInFlight();
         int lit = Math.round(shownProgress * NODES);

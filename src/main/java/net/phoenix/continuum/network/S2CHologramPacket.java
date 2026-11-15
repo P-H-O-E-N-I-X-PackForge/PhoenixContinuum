@@ -9,7 +9,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-/** What a Swarm Control hologram should show: whether it is on, what it is looking at, and how built it is. */
 public class S2CHologramPacket implements CustomPacketPayload {
 
     public static final Type<S2CHologramPacket> TYPE = new Type<>(

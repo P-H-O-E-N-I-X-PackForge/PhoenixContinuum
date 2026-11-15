@@ -20,32 +20,24 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Every Swarm Control (the plain block or the GregTech multiblock) that is loaded, and the hologram each one shows.
- * The state is sent to players near it when it changes and now and then after, so one that walks up sees it.
- */
 public final class SwarmHolograms {
 
     private SwarmHolograms() {}
 
     public interface Source {
 
-        /** Whether it is online: powered, and for the multiblock, formed and running its recipe. */
         boolean active();
 
         @Nullable UUID owner();
 
-        /** How far (x, z) the middle of the hologram is from the block: a multiblock's middle is not its controller. */
         default int[] offset() {
             return new int[] { 0, 0 };
         }
 
-        /** A control shows a hologram of a star or black hole; a receiver shows its uplink to the sky. */
         default int kind() {
             return S2CHologramPacket.State.CONTROL;
         }
 
-        /** For a receiver: how full it is, 0 to 100, which sets how bright the uplink is. */
         default int fill() {
             return 0;
         }
@@ -117,7 +109,6 @@ public final class SwarmHolograms {
         }
     }
 
-    /** Once a second. */
     public static void tick(MinecraftServer server) {
         boolean resend = ++tick % 5 == 0;
         for (Map.Entry<Key, Source> entry : SOURCES.entrySet()) {

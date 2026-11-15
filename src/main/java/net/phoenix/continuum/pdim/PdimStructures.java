@@ -8,16 +8,10 @@ import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.phoenix.continuum.PhoenixContinuum;
 
-/** Puts a structure template at a plot, for specs that start a personal dimension with a base. */
 final class PdimStructures {
 
     private PdimStructures() {}
 
-    /**
-     * Place {@code template} so its floor is at {@code ground} and its middle on the plot.
-     *
-     * @return false if the template does not exist
-     */
     static boolean place(ServerLevel level, ResourceLocation template, BlockPos ground) {
         var found = level.getStructureManager().get(template);
         if (found.isEmpty()) {

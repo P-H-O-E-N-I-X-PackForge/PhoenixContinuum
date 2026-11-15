@@ -94,7 +94,6 @@ public class SwarmReceiverBlockEntity extends BlockEntity implements ContinuumSw
 
     private long receivedAt = Long.MIN_VALUE / 2;
 
-    /** The uplink shows while the swarms have been feeding it in the last few seconds. */
     @Override
     public boolean active() {
         return isActive() && owner != null && level != null && level.getGameTime() - receivedAt < 60L;

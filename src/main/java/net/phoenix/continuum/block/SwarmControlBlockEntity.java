@@ -17,7 +17,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-/** The plain Swarm Control: it stays online while it is fed Forge Energy, and shows its hologram while online. */
 public class SwarmControlBlockEntity extends BlockEntity implements SwarmHolograms.Source {
 
     private static final int SECONDS_OF_BUFFER = 30;

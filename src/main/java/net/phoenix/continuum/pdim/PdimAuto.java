@@ -4,11 +4,6 @@ import net.phoenix.continuum.api.PdimWorldgen;
 import net.phoenix.continuum.client.render.PlanetParams;
 import net.phoenix.continuum.data.ContinuumBody;
 
-/**
- * Worldgen worked out from a body's own data, so a world looks like what the map shows with nothing to script: a body
- * with no ground (gas giant, star, black hole) stays void; a rocky one gets terrain in a biome that follows its
- * distance from its star, its ice and its oceans.
- */
 public final class PdimAuto {
 
     private PdimAuto() {}
@@ -30,7 +25,7 @@ public final class PdimAuto {
         else if (ocean > 0.45f) biome = "minecraft:ocean";
         else if (au > 1.7f) biome = "minecraft:taiga";
         else biome = "minecraft:plains";
-        // a moon with no air is bare rock
+        
         if (body.type() == ContinuumBody.Type.MOON && (p == null || p.atmoDensity() < 0.05f)) {
             biome = "minecraft:stony_peaks";
         }

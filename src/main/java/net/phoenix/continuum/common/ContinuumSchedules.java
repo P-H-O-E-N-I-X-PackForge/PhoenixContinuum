@@ -28,11 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Every pad's schedules. They are kept here, keyed by the pad, so a Greg launch complex and a basic pad need no
- * storage of their own. A schedule only runs while its pad is loaded: a run missed while it was not is skipped, not
- * stacked up.
- */
 public final class ContinuumSchedules extends SavedData {
 
     private static final String ID = "phoenix_continuum_schedules";
@@ -65,7 +60,6 @@ public final class ContinuumSchedules extends SavedData {
         return schedules.get(id);
     }
 
-    /** @return why it could not be added, or null once it has been */
     public @Nullable String add(Schedule schedule) {
         var cfg = ContinuumConfigs.INSTANCE;
         if (atPad(schedule.padDimension, schedule.padPos).size() >= cfg.maxSchedulesPerPad) {
@@ -167,7 +161,7 @@ public final class ContinuumSchedules extends SavedData {
                 Schedule schedule = Schedule.load((CompoundTag) t);
                 data.schedules.put(schedule.id, schedule);
             } catch (RuntimeException e) {
-                // a schedule that cannot be read is dropped, the others stay
+                
             }
         }
         return data;

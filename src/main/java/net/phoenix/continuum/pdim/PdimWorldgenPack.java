@@ -22,17 +22,11 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-/**
- * Turns the registered {@link PdimWorldgen} specs into dimension files, in a small data pack Continuum owns and
- * rewrites on every start. The game reads dimensions when it loads data packs, so this has to happen while the list of
- * packs is being built: specs added later wait for a restart.
- */
 public final class PdimWorldgenPack {
 
     public static final String ID = "continuum_pdim_worldgen";
     private static final int DATA_PACK_FORMAT = 48;
 
-    /** Called by scripts: lets startup scripts register their specs. Set by the KubeJS integration when it is loaded. */
     public static volatile Consumer<Void> scriptHook = null;
 
     private PdimWorldgenPack() {}

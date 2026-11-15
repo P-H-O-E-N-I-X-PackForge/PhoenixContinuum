@@ -9,11 +9,6 @@ import com.gregtechceu.gtceu.api.registry.GTRegistries;
 
 import java.util.HashSet;
 
-/**
- * GregTech's ore veins, bedrock fluids and bedrock ores belong to dimensions by a filter on each definition. This adds
- * a personal dimension to the filter of every definition that lists the dimension it is meant to be like, so the
- * veins generate there as they do in that dimension. Touches GregTech's classes: only call with GregTech loaded.
- */
 final class PdimGt {
 
     private PdimGt() {}

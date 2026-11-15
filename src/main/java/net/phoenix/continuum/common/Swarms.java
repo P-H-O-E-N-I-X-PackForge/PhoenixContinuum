@@ -50,7 +50,6 @@ public final class Swarms {
         return payloadName(shell, count, false);
     }
 
-    /** What is carried, named for the body it goes to: a black hole gets Penrose items, a star the Dyson ones. */
     public static String payloadName(boolean shell, int count, boolean penrose) {
         String plural = count == 1 ? "" : "s";
         if (penrose) {

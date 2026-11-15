@@ -11,7 +11,6 @@ import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
 
-/** Shows the lines the server sent for one of our blocks. */
 final class ContinuumTooltip implements IBlockComponentProvider {
 
     @Override

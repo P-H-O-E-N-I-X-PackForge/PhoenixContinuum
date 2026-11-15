@@ -8,16 +8,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
 
-/**
- * How long chunks take to generate, kept per kind of work and per dimension so that a personal dimension and, say, a
- * Conflux one can be compared: {@code /continuumadmin worldgentimes} prints it, {@code reset} starts again.
- * <ul>
- * <li><b>noise</b>: the terrain pass of a noise generator, from asking for it to its being done (so it includes waiting
- * for a worker); keyed by the noise settings it uses;</li>
- * <li><b>decoration</b>: trees, ores (GregTech's veins included), lakes and the rest of the features of a chunk, keyed
- * by the dimension. This is where most of the time goes for a world with a lot of ore.</li>
- * </ul>
- */
 public final class WorldgenTimes {
 
     private static final class Stat {
@@ -44,7 +34,6 @@ public final class WorldgenTimes {
         since = System.currentTimeMillis();
     }
 
-    /** Lines for the chat: the slowest kinds first. */
     public static List<String> report() {
         List<Map.Entry<String, Stat>> entries = new ArrayList<>(STATS.entrySet());
         entries.sort((a, b) -> Long.compare(b.getValue().nanos.sum(), a.getValue().nanos.sum()));

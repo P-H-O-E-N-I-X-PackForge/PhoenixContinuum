@@ -1,15 +1,5 @@
 package net.phoenix.continuum.client.render;
 
-/**
- * The tables the black hole shader looks up instead of working them out for every pixel, built once:
- * <ul>
- * <li>the orbit table: for a ray that passes the hole at impact parameter rho (the pixel's distance from the middle, in
- * shadow radii) it holds u = 1/r and du/dphi at every angle phi round the orbit, so "where is this ray when it is phi
- * round" is one lookup instead of a few dozen integration steps;</li>
- * <li>the disk noise: the turbulence of the accretion disk on a polar grid. The disk turns at a different rate at every
- * radius, which only shifts this picture sideways by an amount that depends on r, so the noise itself never changes.</li>
- * </ul>
- */
 final class HoleBake {
 
     public static final float RS = 0.3849f;
@@ -25,7 +15,6 @@ final class HoleBake {
 
     private HoleBake() {}
 
-    /** Two floats (u, du/dphi) per texel, row after row; row j is the impact parameter RHO_MAX * ((j + 0.5) / H)^2. */
     static float[] orbit() {
         float[] out = new float[ORBIT_W * ORBIT_H * 2];
         final int sub = 8;
@@ -37,9 +26,9 @@ final class HoleBake {
             double rho = Math.max(RHO_MAX * y * y, 0.01);
             double u = 0.0;
             double v = 1.0 / rho;
-            int state = 0; // 0 flying, 1 fell in, 2 escaped
+            int state = 0; 
             for (int i = 0; i < ORBIT_W; i++) {
-                // integrate to the middle of the cell, which is where this texel is sampled, record, then on to the next
+                
                 for (int half = 0; half < 2; half++) {
                     if (half == 1) {
                         int o = (j * ORBIT_W + i) * 2;
@@ -72,8 +61,6 @@ final class HoleBake {
         }
         return out;
     }
-
-    // -- the disk noise, the same functions the shader used -------------------------------------------------------
 
     private static float fract(float x) {
         return x - (float) Math.floor(x);
@@ -121,7 +108,6 @@ final class HoleBake {
         return v / total * 0.9375f;
     }
 
-    /** RGB bytes per texel: coarse clumps, filaments and fine grain, on a polar grid (x round the disk, y the radius). */
     static byte[] diskNoise() {
         byte[] out = new byte[NOISE_W * NOISE_H * 4];
         float twoPi = (float) (2.0 * Math.PI);

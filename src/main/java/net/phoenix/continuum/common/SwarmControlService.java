@@ -20,12 +20,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/** What a Swarm Control block lets a player do, checked on the server. */
 public final class SwarmControlService {
 
     private SwarmControlService() {}
 
-    /** The nearest launch pad within reach of the control block, or null. */
     public static @Nullable BlockPos findPad(Level level, BlockPos control) {
         int reach = ContinuumConfigs.INSTANCE.swarmControlPadRange;
         BlockPos best = null;
@@ -43,7 +41,6 @@ public final class SwarmControlService {
         return best;
     }
 
-    /** The star or black hole a control block looks at: the one chosen, else the first surveyed one. */
     public static @Nullable ResourceLocation targetOf(MinecraftServer server, Level level, BlockPos control,
                                                       UUID team) {
         ContinuumTeamData data = ContinuumTeamData.get(server);
@@ -134,7 +131,6 @@ public final class SwarmControlService {
         SwarmControlTargets.get(player.server).set(player.level(), control, target);
     }
 
-    /** @return why the build could not be sent, or null once it has been */
     public static @Nullable String build(ServerPlayer player, BlockPos control, boolean shell) {
         Level level = player.level();
         if (!SwarmHolograms.isActive(level, control)) return "The control block is offline.";

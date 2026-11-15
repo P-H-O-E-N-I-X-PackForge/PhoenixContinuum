@@ -22,7 +22,7 @@ public final class ContinuumGt {
     public static final GTRegistrate REGISTRATE = GTRegistrate.create(PhoenixContinuum.MOD_ID);
 
     static {
-        // names the datagen cannot get from a registered object: the Jade config entry and the recipe viewer categories
+        
         REGISTRATE.addRawLang("config.jade.plugin_phoenix_continuum.info", "Continuum Info");
         REGISTRATE.addRawLang("emi.category.phoenix_continuum.continuum_bodies", "Continuum Bodies");
         REGISTRATE.addRawLang("emi.category.phoenix_continuum.continuum_refit", "Continuum Refit");

@@ -15,54 +15,25 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-/**
- * Continuum's space shaders for other mods: stars, black holes, swarms and shells, planets, and the light beams the
- * Swarm Control hologram is made of. Client side only, called while rendering (for a hologram or a machine, at the
- * level render stage {@code AFTER_PARTICLES} with the event's model-view and projection matrices).
- *
- * <p>
- * World positions are relative to the camera, the way the level render stage works with them: pass
- * {@code blockPos - camera.getPosition()}. Radii are in blocks. Always call {@link #ready()} first: the shaders are
- * not there until the resources have loaded.
- *
- * <pre>{@code
- * Matrix4f view = event.getModelViewMatrix();
- * Matrix4f projection = event.getProjectionMatrix();
- * ContinuumRender.beginWorldObject(view, projection, centre); // blocks in front now hide black holes
- * ContinuumRender.drawBlackHole(system, view, projection, centre, 0.5f);
- * ContinuumRender.endWorldObject();
- * }</pre>
- */
 public final class ContinuumRender {
 
     private ContinuumRender() {}
 
-    /** Whether the Continuum shaders are loaded and can draw. */
     public static boolean ready() {
         return ContinuumShaders.ready();
     }
 
-    /** The quality the player has chosen for the Continuum views. */
     public static PlanetRenderer.Quality quality() {
         return ContinuumVisuals.quality();
     }
 
-    /**
-     * Tells black holes how deep the thing being drawn is, so blocks in front of it hide it (they are drawn aside and
-     * laid over the picture, and would otherwise show through everything). Pair with {@link #endWorldObject()}.
-     */
     public static void beginWorldObject(Matrix4f view, Matrix4f projection, Vector3f cameraRelativeCentre) {
         beginWorldObject(view, projection, cameraRelativeCentre, false);
     }
 
-    /**
-     * As above. With {@code writeDepth} the glow, disk and cloud pictures also write their depth where they are lit,
-     * so water, glass and other translucent blocks drawn after them that lie behind do not show over them. Use it when
-     * the object is drawn before the translucent blocks (after block entities).
-     */
     public static void beginWorldObject(Matrix4f view, Matrix4f projection, Vector3f cameraRelativeCentre,
                                         boolean writeDepth) {
-        // a render type that has just been drawn leaves the depth test off: the sphere passes rely on it being on
+        
         com.mojang.blaze3d.systems.RenderSystem.enableDepthTest();
         com.mojang.blaze3d.systems.RenderSystem.depthFunc(515);
         com.mojang.blaze3d.systems.RenderSystem.depthMask(true);
@@ -77,22 +48,16 @@ public final class ContinuumRender {
         com.mojang.blaze3d.systems.RenderSystem.enableCull();
     }
 
-    /** A star as {@code system} describes it (its type, colour and style), or a plain star of {@code rgb} without one. */
     public static void drawStar(@Nullable ContinuumSystem system, int rgb, Matrix4f view, Matrix4f projection,
                                 Vector3f worldPos, float radius) {
         SceneRenderer.drawSystemStar(system, rgb, view, projection, worldPos, radius, quality(), false);
     }
 
-    /** A black hole with its accretion disk and lensing, in the style {@code system} gives it. */
     public static void drawBlackHole(@Nullable ContinuumSystem system, Matrix4f view, Matrix4f projection,
                                      Vector3f worldPos, float radius) {
         SceneRenderer.drawHole(system, view, projection, worldPos, radius, quality(), false);
     }
 
-    /**
-     * A black hole whose accretion disk is tinted: {@code hotRgb} for the inner edge and {@code coolRgb} for the outer
-     * (0xRRGGBB, or -1 to keep the default for either).
-     */
     public static void drawBlackHole(int hotRgb, int coolRgb, Matrix4f view, Matrix4f projection, Vector3f worldPos,
                                      float radius) {
         SceneRenderer.drawHoleStyled(
@@ -100,11 +65,6 @@ public final class ContinuumRender {
                 projection, worldPos, radius, quality(), false);
     }
 
-    /**
-     * A black hole in a style you give: disk colours (0xRRGGBB, or -1 for the default), {@code diskSize} and
-     * {@code diskIntensity} (1 is the usual), and {@code feeding} 0 to 1: a quiet disk to a furious one that reaches
-     * further and flares.
-     */
     public static void drawBlackHole(int hotRgb, int coolRgb, float diskSize, float diskIntensity, float feeding,
                                      Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius) {
         SceneRenderer.drawHoleStyled(net.phoenix.continuum.data.ContinuumSystem.HoleStyle.DEFAULT
@@ -112,28 +72,21 @@ public final class ContinuumRender {
                 projection, worldPos, radius, quality(), false);
     }
 
-    /** A young star still gathering itself: a hot core in a disk of gas with gaps where it is clearing a path. */
     public static void drawProtostar(int rgb, Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius) {
         SceneRenderer.drawProtostar(rgb, view, projection, worldPos, radius, quality(), false,
                 new float[] { 3.4f, 5.1f, 7.3f, 0.0f });
     }
 
-    /** A cloud of glowing gas, an expanding shell of it lit from within. */
     public static void drawGasCloud(int rgb, Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius) {
         SceneRenderer.drawPlanetaryNebula(rgb, view, projection, worldPos, radius, quality(), false);
     }
 
-    /**
-     * A Dyson swarm or shell round a star, or a Penrose swarm or sphere round a black hole, partly built:
-     * {@code completion} is 0 (nothing) to 1 (finished). {@code central} is the system's star or black hole body.
-     */
     public static void drawMegastructure(ContinuumBody central, int rgb, Matrix4f view, Matrix4f projection,
                                          Vector3f worldPos, float radius, boolean shell, float completion) {
         SceneRenderer.drawSwarmCompletion(central, rgb, view, projection, worldPos, radius, quality(), false, shell,
                 completion);
     }
 
-    /** A planet or moon from its parameters, lit from {@code sunWorld}. */
     public static void drawPlanet(PlanetParams params, Matrix4f view, Matrix4f projection, Vector3f worldPos,
                                   float radius, Vector3f sunWorld, float spinDegrees, float cloudSpinDegrees,
                                   boolean atmosphere) {
@@ -141,17 +94,12 @@ public final class ContinuumRender {
                 quality(), atmosphere);
     }
 
-    /**
-     * A glowing beam from {@code a} to {@code b} (camera-relative): a soft halo, a body and a white core. Draw into
-     * {@code RenderType.lightning()}; {@code pose} is an identity matrix at the level render stage.
-     */
     public static void drawBeam(VertexConsumer out, Matrix4f pose, Vector3f a, Vector3f b, float width, int rgb,
                                 float strength) {
         HologramRenderer.glow(out, pose, a, b, width, new float[] { ((rgb >> 16) & 0xFF) / 255.0f,
                 ((rgb >> 8) & 0xFF) / 255.0f, (rgb & 0xFF) / 255.0f }, strength);
     }
 
-    /** A bright dash at {@code t} (0 to 1) along a beam, for light that seems to travel down it. */
     public static void drawBeamPulse(VertexConsumer out, Matrix4f pose, Vector3f a, Vector3f b, float t, float length,
                                      float width, float strength) {
         HologramRenderer.pulse(out, pose, a, b, t, length, width, strength);
@@ -164,7 +112,6 @@ public final class ContinuumRender {
         return (r << 16) | (g << 8) | b;
     }
 
-    /** What a {@link Preview} can show. */
     public enum Body {
         GAS_CLOUD,
         PROTOSTAR,
@@ -174,29 +121,19 @@ public final class ContinuumRender {
 
     private static @Nullable Preview shared;
 
-    /** A preview of your own, with its own render target, for when more than one picture is needed at once. */
     public static Preview newPreview() {
         return new Preview();
     }
 
-    /**
-     * A preview that is cheap to draw, for pictures that are small on screen or many at once: a render target of
-     * {@code pixels} on a side and the lowest quality.
-     */
     public static Preview newCheapPreview(int pixels) {
         return new Preview(Math.max(64, Math.min(512, pixels)), true);
     }
 
-    /** One preview for everyone to share: it keeps a single render target, so screens need not manage their own. */
     public static synchronized Preview preview() {
         if (shared == null) shared = new Preview();
         return shared;
     }
 
-    /**
-     * A body drawn with the real shaders into a square of a GUI screen, turning slowly, that the player can drag to
-     * rotate and scroll to zoom. Call {@link #draw} every frame from a screen or widget.
-     */
     public static final class Preview {
 
         private final int pixels;
@@ -205,9 +142,9 @@ public final class ContinuumRender {
         private com.mojang.blaze3d.pipeline.@Nullable RenderTarget target;
         private float yaw = 20.0f;
         private float pitch = 14.0f;
-        /** The body turned about its up axis by this many degrees (0 for the shared preview, which spins its backdrop instead). */
+        
         private float viewYaw = 0.0f;
-        /** How many times farther the camera is than usual (1 for the shared preview): a smaller body costs less to draw. */
+        
         private float zoomOut = 1.0f;
         private float distance = 4.6f;
         private long last = net.minecraft.Util.getMillis();
@@ -221,7 +158,6 @@ public final class ContinuumRender {
             this.lowQuality = lowQuality;
         }
 
-        /** Frees the render target; the preview makes a new one if it is drawn again. */
         public void release() {
             if (target != null) {
                 target.destroyBuffers();
@@ -244,28 +180,22 @@ public final class ContinuumRender {
             distance = 4.6f;
         }
 
-        /**
-         * @param size01 how big the body is, 0 (small) to 1 (large)
-         * @return false when it could not be drawn (the shaders are not loaded): draw something else
-         */
         public boolean draw(net.minecraft.client.gui.GuiGraphics g, Body body, int rgb, float size01, int x, int y,
                             int size) {
             return draw(g, body, rgb, size01, x, y, size, true);
         }
 
-        /** As above; {@code backdrop} false draws the body alone on plain dark space, with no stars or galaxies. */
         public boolean draw(net.minecraft.client.gui.GuiGraphics g, Body body, int rgb, float size01, int x, int y,
                             int size, boolean backdrop) {
             return draw(g, body, rgb, size01, x, y, size, backdrop, -1);
         }
 
-        /** Draws the body into this preview's own render target (made when first needed); false if it could not be. */
         private boolean renderScene(Body body, int rgb, float size01, boolean backdrop, int holeTint) {
             if (target == null) {
                 target = new com.mojang.blaze3d.pipeline.TextureTarget(pixels, pixels, true,
                         net.minecraft.client.Minecraft.ON_OSX);
             }
-            // the screen this is drawn in may have a scissor on (a page clips to its area); the offscreen picture must not
+            
             boolean scissored = org.lwjgl.opengl.GL11.glIsEnabled(org.lwjgl.opengl.GL11.GL_SCISSOR_TEST);
             int[] box = new int[4];
             if (scissored) {
@@ -279,7 +209,7 @@ public final class ContinuumRender {
                         .rotateX((float) Math.toRadians(pitch)).rotateY((float) Math.toRadians(viewYaw));
                 Vector3f at = new Vector3f();
                 float radius = 0.6f + 0.9f * Math.max(0.0f, Math.min(1.0f, size01));
-                // clouds and protostars carry their glow far out from the core: scale them to fit the frame
+                
                 if (body == Body.GAS_CLOUD || body == Body.PROTOSTAR) radius *= 0.067f;
                 var quality = lowQuality ? net.phoenix.continuum.client.render.PlanetRenderer.Quality.LOW : quality();
                 switch (body) {
@@ -307,21 +237,11 @@ public final class ContinuumRender {
             return true;
         }
 
-        /**
-         * For something that draws the picture itself (a screen in the world, say): renders the body, seen from the angles
-         * given (degrees; 0 and 0 looks at it from the front and slightly above), into this preview's render target and
-         * returns the id of its colour texture, or -1 if it could not be drawn. It does not spin by itself. Make your own
-         * preview with {@link ContinuumRender#newPreview()} if the shared one may be in use.
-         */
         public int renderTexture(Body body, int rgb, float size01, boolean backdrop, int holeTint, float yawDeg,
                                  float pitchDeg) {
             return renderTexture(body, rgb, size01, backdrop, holeTint, yawDeg, pitchDeg, 1.0f);
         }
 
-        /**
-         * As above, with the camera {@code zoomOut} times farther away (1 or more). The shaders cost in proportion to
-         * the pixels the body covers, so a body that fills a third of the width costs about a ninth of one that fills it.
-         */
         public int renderTexture(Body body, int rgb, float size01, boolean backdrop, int holeTint, float yawDeg,
                                  float pitchDeg, float zoomOut) {
             if (!ContinuumShaders.ready()) return -1;
@@ -333,7 +253,6 @@ public final class ContinuumRender {
             return target != null ? target.getColorTextureId() : -1;
         }
 
-        /** As above; {@code holeTint} (0xRRGGBB, or -1) colours a black hole's disk. */
         public boolean draw(net.minecraft.client.gui.GuiGraphics g, Body body, int rgb, float size01, int x, int y,
                             int size, boolean backdrop, int holeTint) {
             if (!ContinuumShaders.ready()) return false;

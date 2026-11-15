@@ -10,7 +10,6 @@ import net.commoble.infiniverse.api.InfiniverseAPI;
 
 import java.util.function.Supplier;
 
-/** The only place Infiniverse's classes are touched, so the game runs without it. */
 final class InfiniverseBridge {
 
     private InfiniverseBridge() {}

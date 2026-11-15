@@ -22,11 +22,6 @@ import net.phoenix.continuum.network.S2CSwarmControlPacket;
 
 import org.jetbrains.annotations.Nullable;
 
-/**
- * The place swarms and shells are managed from: pick a star or black hole, watch it being built round, and send the
- * pods and segments from a launch pad nearby. It must be fed power to stay online, and while it is it projects a
- * hologram of its target above itself. (With GregTech the Swarm Control Array does the same.)
- */
 public class SwarmControlBlock extends Block implements EntityBlock {
 
     public SwarmControlBlock(Properties properties) {

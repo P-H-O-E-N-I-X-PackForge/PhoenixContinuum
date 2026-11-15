@@ -9,7 +9,6 @@ import net.minecraft.world.item.TooltipFlag;
 
 import java.util.List;
 
-/** A piece of a black hole's Penrose sphere: what a shell segment is to a star's Dyson shell. */
 public class ContinuumPenroseSegmentItem extends Item {
 
     public ContinuumPenroseSegmentItem(Properties properties) {

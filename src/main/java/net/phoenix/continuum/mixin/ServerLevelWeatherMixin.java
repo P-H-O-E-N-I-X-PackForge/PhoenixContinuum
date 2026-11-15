@@ -8,10 +8,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
- * A level other than the overworld takes its weather from the overworld's world data, so it cannot be made different.
- * A personal dimension whose spec has weather of its own runs its own cycle here instead of the vanilla one.
- */
 @Mixin(value = ServerLevel.class, remap = false)
 public abstract class ServerLevelWeatherMixin {
 

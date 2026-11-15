@@ -6,7 +6,6 @@ import net.phoenix.continuum.PhoenixContinuum;
 import net.phoenix.continuum.api.ContinuumEvents;
 import net.phoenix.continuum.data.DiscoveryStage;
 
-/** Continuum's own events, passed on to Chronicles as triggers. */
 @EventBusSubscriber(modid = PhoenixContinuum.MOD_ID)
 public final class ContinuumChroniclesEvents {
 

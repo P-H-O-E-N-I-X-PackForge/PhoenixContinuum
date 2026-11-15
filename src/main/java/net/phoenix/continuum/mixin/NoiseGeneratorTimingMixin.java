@@ -15,7 +15,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.concurrent.CompletableFuture;
 
-/** Times the terrain pass of every noise generator, per noise settings: see {@link WorldgenTimes}. */
 @Mixin(value = NoiseBasedChunkGenerator.class, remap = false)
 public abstract class NoiseGeneratorTimingMixin {
 

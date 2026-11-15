@@ -10,10 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * A launch a pad makes by itself: one at a set time, or one that repeats, as many times as it is allowed to. It is
- * about a pad, not a player; the pad's owner is who it launches as.
- */
 public final class Schedule {
 
     public final UUID id;
@@ -27,15 +23,12 @@ public final class Schedule {
     public Mission.Type type = Mission.Type.SURVEY;
     public int probes;
 
-    /** How many rockets a run sends (extraction, deployment and rescue runs only). */
     public int count = 1;
     public String expedition = "";
     public List<String> crew = new ArrayList<>();
 
-    /** Milliseconds between runs; 0 is a single run. */
     public long intervalMillis;
 
-    /** How many runs it makes before it stops; 0 is no limit. */
     public int cap;
     public int runs;
     public boolean autoCollect;
@@ -44,7 +37,6 @@ public final class Schedule {
     public long nextFire;
     public long retryAt;
 
-    /** Why the last attempt could not launch: the team is told once per reason. */
     public String lastFailure = "";
 
     public Schedule(UUID id, UUID team, UUID owner, String ownerName, String padDimension, long padPos,

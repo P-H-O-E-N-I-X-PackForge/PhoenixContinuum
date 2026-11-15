@@ -9,7 +9,6 @@ import net.minecraft.world.item.TooltipFlag;
 
 import java.util.List;
 
-/** The pod a black hole's Penrose swarm is grown from: what a swarm collector pod is to a star. */
 public class ContinuumPenroseCollectorItem extends Item {
 
     public ContinuumPenroseCollectorItem(Properties properties) {

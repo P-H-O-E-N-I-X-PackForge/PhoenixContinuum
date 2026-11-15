@@ -11,7 +11,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** Times the feature pass (trees, ores, lakes) of every chunk, per dimension: see {@link WorldgenTimes}. */
 @Mixin(value = ChunkGenerator.class, remap = false)
 public abstract class ChunkGeneratorTimingMixin {
 

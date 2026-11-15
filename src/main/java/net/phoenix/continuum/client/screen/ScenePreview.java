@@ -51,7 +51,6 @@ public final class ScenePreview {
         return dt;
     }
 
-    /** Pull the camera out (or in) to this far, to see all of what is being shown. */
     public void frame(float newDistance) {
         distance = Math.max(2.2f, Math.min(24.0f, newDistance));
     }
@@ -117,7 +116,6 @@ public final class ScenePreview {
         finish(g, drawn);
     }
 
-    /** A star or black hole with the swarm or shell round it at the levels given, turning slowly. */
     public void drawTarget(GuiGraphics g, net.phoenix.continuum.data.ContinuumBody central, ContinuumSystem system,
                            int swarmLevel, int shellLevel, int x, int y, int size) {
         begin(x, y, size);

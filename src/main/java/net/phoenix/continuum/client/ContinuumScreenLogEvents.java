@@ -7,7 +7,6 @@ import net.neoforged.neoforge.client.event.RenderFrameEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.phoenix.continuum.PhoenixContinuum;
 
-/** Feeds {@link ContinuumScreenLog}: screens opening and closing, and every game frame. */
 @EventBusSubscriber(modid = PhoenixContinuum.MOD_ID, value = Dist.CLIENT)
 public final class ContinuumScreenLogEvents {
 
@@ -26,7 +25,6 @@ public final class ContinuumScreenLogEvents {
         }
     }
 
-    /** The other Continuum screens: a frame each (the map reports its own, with more). */
     @SubscribeEvent
     public static void onRender(ScreenEvent.Render.Pre event) {
         if (!ContinuumScreenLog.enabled() || !ContinuumScreenLog.isContinuum(event.getScreen())) return;

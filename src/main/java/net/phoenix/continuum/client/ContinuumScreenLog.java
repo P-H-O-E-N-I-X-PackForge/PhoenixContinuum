@@ -9,18 +9,6 @@ import net.phoenix.continuum.PhoenixContinuum;
 import java.util.ArrayDeque;
 import java.util.Locale;
 
-/**
- * A log of what Continuum's screens do, for finding out why a transition sometimes flickers and shows the world behind
- * it. Off by default; turn it on with {@code /continuum screenlog on} (or start the game with
- * {@code -Dcontinuum.screenlog=true}) and the log, {@code latest.log}, lines starting {@code [screens]}, has:
- * <ul>
- * <li>every screen opened or closed, from what to what, and who asked (the first calls from this mod and its
- * neighbours): a Continuum screen replaced by nothing is the world showing;</li>
- * <li>the map's transitions (zoom out, the switch, zoom in) and when its scene picture is made again;</li>
- * <li>an <b>anomaly</b> line whenever a frame was drawn that could show the world, or went missing, followed by the
- * last frames the screen drew, so the cause is next to the symptom.</li>
- * </ul>
- */
 @OnlyIn(Dist.CLIENT)
 public final class ContinuumScreenLog {
 
@@ -56,13 +44,11 @@ public final class ContinuumScreenLog {
         return screen != null && screen.getClass().getName().startsWith("net.phoenix.continuum.");
     }
 
-    /** One line, when logging is on. */
     public static void event(String format, Object... args) {
         if (!enabled) return;
         PhoenixContinuum.LOGGER.info("[screens] #{} {}", frameNumber, String.format(Locale.ROOT, format, args));
     }
 
-    /** What a screen drew this frame (kept, not printed, until an anomaly asks for the recent ones). */
     public static void frame(Screen screen, String detail) {
         if (!enabled) return;
         frameNumber++;
@@ -75,11 +61,10 @@ public final class ContinuumScreenLog {
             if (FRAMES.size() >= RING) FRAMES.removeFirst();
             FRAMES.addLast(line);
         }
-        // a frame that came a long time after the last one: the world, or a different screen, was drawn in between
+        
         if (gap > 120L && gap < 5000L) anomaly("frame gap of " + gap + " ms (a frame, or more, was drawn without this screen)");
     }
 
-    /** Something that could show the world or a blank frame: say what, then the frames just before it. */
     public static void anomaly(String why) {
         if (!enabled) return;
         long now = System.currentTimeMillis();
@@ -95,7 +80,6 @@ public final class ContinuumScreenLog {
         }
     }
 
-    /** A screen was opened (or none: the world) in place of another. */
     public static void opening(Screen from, Screen to) {
         if (!enabled) return;
         boolean fromOurs = isContinuum(from);
@@ -112,7 +96,6 @@ public final class ContinuumScreenLog {
         }
     }
 
-    /** Every game frame: a frame with no screen just after leaving a Continuum one is the flicker. */
     public static void gameFrame() {
         if (!enabled || leftAt == 0L) return;
         long since = System.currentTimeMillis() - leftAt;
@@ -131,7 +114,6 @@ public final class ContinuumScreenLog {
         return s == null ? "(none)" : s.getClass().getSimpleName();
     }
 
-    /** The first few callers from this mod or its neighbours, so the one that asked for the change is named. */
     private static String who() {
         StringBuilder sb = new StringBuilder(" <- ");
         int shown = 0;

@@ -14,7 +14,7 @@ public final class NebulaBake {
 
     private static final int WIDTH = 2048;
     private static final int HEIGHT = 1024;
-    /** Rows baked a frame: small, so the first time a nebula is baked it is spread over many frames instead of a few heavy ones. */
+    
     private static final int STRIP = 64;
 
     private record Key(float p0, float p1, float p2, float s0, float s1, float s2, int octaves) {}
@@ -54,11 +54,6 @@ public final class NebulaBake {
         return pending.target;
     }
 
-    /**
-     * Making a render target clears it, which binds the window's framebuffer and sets the viewport to the new target's size,
-     * and sets its texture up on the active unit. This runs in the middle of a scene's frame, so without putting all of that
-     * back the rest of the frame is drawn to the window at 2048 x 1024 (and the bake then "restores" that wrong state).
-     */
     private static TextureTarget create() {
         int fbo = GL11.glGetInteger(36006);
         int[] viewport = new int[4];
