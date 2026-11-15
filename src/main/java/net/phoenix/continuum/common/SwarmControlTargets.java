@@ -14,7 +14,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-/** Which star or black hole each Swarm Control block is looking at. Kept here so any block can use it. */
 public final class SwarmControlTargets extends SavedData {
 
     private static final String ID = "phoenix_continuum_swarm_control";
@@ -28,7 +27,6 @@ public final class SwarmControlTargets extends SavedData {
         return scales.getOrDefault(key(level, pos), 1.0f);
     }
 
-    /** One step bigger (+1) or smaller (-1) among the sizes. */
     public float step(Level level, BlockPos pos, int by) {
         float now = scale(level, pos);
         int index = 2;

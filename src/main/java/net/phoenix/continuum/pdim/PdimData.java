@@ -49,14 +49,12 @@ public class PdimData extends SavedData {
         return entries.getOrDefault(player, Map.of()).get(body);
     }
 
-    /** For a dimension with no plots: true the first time (the structure is put down once). */
     public boolean markStructurePlaced(ResourceLocation body) {
         boolean first = structuresPlaced.add(body);
         if (first) setDirty();
         return first;
     }
 
-    /** Who made the plot with this number in a body's dimension, or null if nobody has. */
     public @Nullable UUID ownerOfPlot(ResourceLocation body, int plot) {
         for (var owner : entries.entrySet()) {
             Entry entry = owner.getValue().get(body);

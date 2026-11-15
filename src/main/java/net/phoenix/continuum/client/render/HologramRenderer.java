@@ -23,18 +23,6 @@ import net.phoenix.continuum.network.S2CHologramPacket;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-/**
- * The in-world displays of Swarm Control and the Swarm Receiver.
- *
- * <p>
- * The control's hologram is built piece by piece as it comes online: a pillar of light rises from the block, a
- * gyroscope of rings spins up, emitters light round the ring one after another and fire pulsing beams into the
- * middle, the middle swells into the star or black hole, and then the swarm or shell round it forms up to how built it
- * really is. When the control loses power or is broken it comes apart again, quickly.
- *
- * <p>
- * The receiver's uplink is a column of light into the sky with pulses running up it, brighter the fuller the receiver.
- */
 @Mod.EventBusSubscriber(modid = PhoenixContinuum.MOD_ID, value = Dist.CLIENT)
 public final class HologramRenderer {
 
@@ -64,7 +52,7 @@ public final class HologramRenderer {
         if (mc.level == null || !ContinuumShaders.ready()) return;
 
         Vec3 camera = event.getCamera().getPosition();
-        // 1.20.1: the pose stack already carries the camera turn
+        
         Matrix4f view = new Matrix4f(event.getPoseStack().last().pose());
         Matrix4f projection = event.getProjectionMatrix();
         Matrix4f pose = view;
@@ -82,7 +70,7 @@ public final class HologramRenderer {
             double cz = state.pos().getZ() + 0.5 + state.offsetZ() - camera.z;
             if (cx * cx + cy * cy + cz * cz > RANGE * RANGE) continue;
             float flicker = state.active() ? 1.0f : 0.55f + 0.45f * (float) Math.sin(seconds * 40.0f);
-            // once it is all there and nothing is happening the light settles and breathes; a change flares it
+            
             float calm = 0.17f + 0.05f * (float) Math.sin(seconds * 1.3f);
             flicker *= Mth.lerp(holo.settle, 1.0f, calm + (1.0f - calm) * holo.surge);
 
@@ -110,7 +98,7 @@ public final class HologramRenderer {
 
             if (shown && star > 0.001f) {
                 Vector3f at = new Vector3f((float) cx, (float) cy, (float) cz);
-                // blocks between the player and the hologram hide it: tell the black hole how deep the middle is
+                
                 org.joml.Vector4f clip = new org.joml.Vector4f(at, 1.0f).mul(view).mul(projection);
                 SceneRenderer.setWorldDepth(clip.w > 0.0f ? clip.z / clip.w : Float.NaN);
                 float radius = STAR_RADIUS * s * star;
@@ -135,8 +123,6 @@ public final class HologramRenderer {
         }
     }
 
-    // ------------------------------------------------------------------------------------------------ the control
-
     private static float[] holo(int tint, float mix) {
         float tr = ((tint >> 16) & 0xFF) / 255.0f;
         float tg = ((tint >> 8) & 0xFF) / 255.0f;
@@ -150,7 +136,6 @@ public final class HologramRenderer {
         Vector3f centre = new Vector3f((float) cx, (float) cy, (float) cz);
         float ringRadius = RING_RADIUS * scale;
 
-        // the projector: a pillar of light up from the block into the middle
         float pillar = ease(emit * 1.6f);
         if (pillar > 0.0f) {
             Vector3f base = new Vector3f((float) cx, (float) (cy - height + 1.02), (float) cz);
@@ -162,7 +147,6 @@ public final class HologramRenderer {
             }
         }
 
-        // a gyroscope: three turning rings that grow as it comes up
         float grow = ease(emit * 1.3f);
         for (int ring = 0; ring < 3; ring++) {
             float tilt = ring == 0 ? 0.0f : (ring == 1 ? 1.05f : -1.05f);
@@ -186,7 +170,6 @@ public final class HologramRenderer {
             }
         }
 
-        // emitters light round the ring one after another and fire into the middle
         float lit = emit * EMITTERS;
         for (int i = 0; i < EMITTERS; i++) {
             float on = Mth.clamp(lit - i, 0.0f, 1.0f);
@@ -195,7 +178,7 @@ public final class HologramRenderer {
             float bob = (float) Math.sin(angle * 2.0 + seconds) * 0.12f * scale;
             Vector3f node = new Vector3f((float) (cx + Math.cos(angle) * ringRadius), (float) cy + bob,
                     (float) (cz + Math.sin(angle) * ringRadius));
-            // the emitter: a bright diamond with a halo
+            
             float half = 0.14f * scale;
             glow(out, pose, new Vector3f(node).add(0.0f, -half, 0.0f), new Vector3f(node).add(0.0f, half, 0.0f),
                     0.09f * scale, c, 0.95f * on * flicker);
@@ -203,7 +186,6 @@ public final class HologramRenderer {
             glow(out, pose, new Vector3f(node).sub(side), new Vector3f(node).add(side), 0.07f * scale, c,
                     0.8f * on * flicker);
 
-            // the beam: halo, body and a hard core, with bright pulses running into the star
             float reach = on * (star < 0.01f ? 1.0f : 0.84f);
             Vector3f end = new Vector3f(node).lerp(centre, reach);
             float strength = (star < 0.01f ? 1.0f : 0.6f) * on * flicker;
@@ -214,7 +196,6 @@ public final class HologramRenderer {
             }
         }
 
-        // before the star swells there is only a bright point, growing where the beams meet
         if (star < 0.4f && emit > 0.4f) {
             float spark = ease((emit - 0.4f) * 1.7f) * (1.0f - star / 0.4f);
             glow(out, pose, new Vector3f(centre).add(0.0f, -0.4f * spark * scale, 0.0f),
@@ -224,9 +205,6 @@ public final class HologramRenderer {
         }
     }
 
-    // ------------------------------------------------------------------------------------------------ the receiver
-
-    /** A column of light into the sky from a receiver, with pulses running up it, brighter the fuller it is. */
     private static void uplink(VertexConsumer out, Matrix4f pose, double cx, double cy, double cz, float boot,
                                float seconds, float fill, float flicker) {
         float[] c = { 1.0f, 0.78f, 0.4f };
@@ -239,7 +217,7 @@ public final class HologramRenderer {
             float t = (seconds * (0.5f + 0.5f * power) + k / 6.0f) % 1.0f;
             pulse(out, pose, base, top, t, 0.06f, 0.18f, flicker);
         }
-        // rings that climb the column
+        
         for (int ring = 0; ring < 4; ring++) {
             float t = (seconds * 0.25f + ring * 0.25f) % 1.0f;
             float y = (float) cy + height * t;
@@ -255,12 +233,6 @@ public final class HologramRenderer {
         }
     }
 
-    // ------------------------------------------------------------------------------------------------ primitives
-
-    /**
-     * A beam: a wide faint halo, a body and a thin hot core, each fading smoothly to nothing across its width, so
-     * it reads as light and not as a stack of bars.
-     */
     public static void glow(VertexConsumer out, Matrix4f pose, Vector3f a, Vector3f b, float width, float[] c,
                             float strength) {
         ribbon(out, pose, a, b, width * 4.0f, c, 0.22f * strength);
@@ -268,7 +240,6 @@ public final class HologramRenderer {
         ribbon(out, pose, a, b, width * 0.6f, new float[] { 1.0f, 1.0f, 1.0f }, 1.0f * strength);
     }
 
-    /** A soft bright dash at t (0 to 1) along a to b: brightest in its middle, fading out all round. */
     public static void pulse(VertexConsumer out, Matrix4f pose, Vector3f a, Vector3f b, float t, float length,
                              float width, float strength) {
         float t0 = Mth.clamp(t, 0.0f, 1.0f);
@@ -289,7 +260,6 @@ public final class HologramRenderer {
         return side.normalize(width * 0.5f);
     }
 
-    /** A flat strip from a to b that turns to face the camera (at the origin): clear in the middle, fading at the edges. */
     public static void ribbon(VertexConsumer out, Matrix4f pose, Vector3f a, Vector3f b, float width, float[] c,
                               float alpha) {
         if (alpha <= 0.01f) return;
@@ -305,7 +275,6 @@ public final class HologramRenderer {
         quad(out, pose, a, a2, b2, b, mid, edge, edge, mid);
     }
 
-    /** A soft oval of light along a to b, brightest at its centre, fading out in every direction. */
     private static void blob(VertexConsumer out, Matrix4f pose, Vector3f p0, Vector3f p1, float width, float[] c,
                              float alpha) {
         Vector3f side = sideOf(p0, p1, width);
@@ -323,7 +292,6 @@ public final class HologramRenderer {
         quad(out, pose, m, rm, r1, p1, full, none, none, none);
     }
 
-    /** One quad, with a colour at each corner so the light fades smoothly across it, drawn from both sides. */
     private static void quad(VertexConsumer out, Matrix4f pose, Vector3f a, Vector3f b, Vector3f c, Vector3f d,
                              float[] ca, float[] cb, float[] cc, float[] cd) {
         vertex(out, pose, a, ca);

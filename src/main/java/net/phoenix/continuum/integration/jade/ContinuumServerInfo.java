@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-/** Reads what the server knows about our blocks, as lines of text for the tooltip. */
 final class ContinuumServerInfo implements IServerDataProvider<BlockAccessor> {
 
     static final String KEY = "ContinuumLines";

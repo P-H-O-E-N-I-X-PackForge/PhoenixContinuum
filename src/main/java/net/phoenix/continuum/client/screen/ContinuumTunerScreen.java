@@ -78,15 +78,12 @@ public final class ContinuumTunerScreen extends Screen {
     private static final int VALUE_W = LIST_W - 170;
     private static final int MAX_VALUE_LINES = 3;
 
-    // the screen is laid out for this much room; with a bigger gui scale (a smaller screen in gui units) it is drawn
-    // scaled down to fit, and the mouse is scaled to match
     private static final int MIN_W = LIST_W + 230;
     private static final int MIN_H = 430;
     private float uiScale = 1.0f;
     private int vw;
     private int vh;
 
-    /** Text fields that are sentences rather than ids: these open the roomy editor. */
     private static final java.util.Set<String> LONG_TEXT = java.util.Set.of("name", "description", "lore.detected",
             "lore.surveyed");
 
@@ -120,7 +117,7 @@ public final class ContinuumTunerScreen extends Screen {
     public ContinuumTunerScreen(Screen parent, ResourceLocation start) {
         super(ContinuumLang.tr("phoenix_continuum.continuum_tuner_screen.continuum_tuner"));
         this.parent = parent;
-        // every body of every system, stars and black holes included
+        
         bodies.addAll(ContinuumData.allBodies());
         bodies.sort(Comparator.comparing((ContinuumBody b) -> b.system().toString()).thenComparing(ContinuumBody::name));
         for (int i = 0; i < bodies.size(); i++) {
@@ -129,7 +126,6 @@ public final class ContinuumTunerScreen extends Screen {
         rebuildFields();
     }
 
-    /** Bodies made while this screen is open (or edited elsewhere) appear in its list as soon as they are synced. */
     private void listAgainIfChanged() {
         if (dataVersion == ContinuumData.version()) return;
         dataVersion = ContinuumData.version();
@@ -286,7 +282,7 @@ public final class ContinuumTunerScreen extends Screen {
             } catch (RuntimeException ignored) {}
         }
         if (field.path().equals("trip_seconds")) {
-            // bodies written in minutes show the same trip in seconds until it is edited
+            
             JsonElement minutes = ContinuumTuner.merged(body().id()).get("trip_minutes");
             if (minutes != null && minutes.isJsonPrimitive()) {
                 try {
@@ -364,7 +360,7 @@ public final class ContinuumTunerScreen extends Screen {
         }
         java.util.Map<String, JsonElement> sent = new java.util.LinkedHashMap<>(leaves);
         sent.forEach(this::send);
-        // the edits stay shown until the server's copy comes back with them (then the maps are painted again)
+        
         ContinuumTuner.pushed(body().id(), sent);
         status = "Pushed " + sent.size() + " edit(s).";
     }
@@ -388,7 +384,6 @@ public final class ContinuumTunerScreen extends Screen {
         return vh - 40;
     }
 
-    /** Splits text into lines that fit the width (breaking inside a long unbroken word if it has to). */
     private List<String> wrap(String text, int width) {
         List<String> out = new ArrayList<>();
         for (FormattedText line : font.getSplitter().splitLines(text, Math.max(8, width), Style.EMPTY)) {
@@ -398,7 +393,6 @@ public final class ContinuumTunerScreen extends Screen {
         return out;
     }
 
-    /** Like wrap, but at most maxLines lines; the last one ends in "..." when the text was cut. */
     private List<String> wrapCapped(String text, int width, int maxLines) {
         List<String> lines = wrap(text, width);
         if (lines.size() <= maxLines) return lines;
@@ -408,7 +402,6 @@ public final class ContinuumTunerScreen extends Screen {
         return cut;
     }
 
-    /** Rows grow to hold wrapped text: a long header, a long label, or a sentence-sized text value. */
     private int rowHeight(Field field) {
         if (field.kind() == Kind.BUTTON) return ROW;
         if (field.kind() == Kind.HEADER) return Math.max(ROW, wrap(field.label(), LIST_W - 8).size() * LINE + 5);
@@ -419,7 +412,6 @@ public final class ContinuumTunerScreen extends Screen {
         return Math.max(ROW, lines * LINE + 5);
     }
 
-    /** The first row to show at the top so that the end of the list still fills the space. */
     private int maxScroll() {
         int avail = listBottom() - top();
         int used = 0;
@@ -441,7 +433,6 @@ public final class ContinuumTunerScreen extends Screen {
         editor.setMaxLength(12);
         addRenderableWidget(editor);
     }
-
 
     @Override
     public void renderBackground(GuiGraphics g) {}
@@ -563,7 +554,7 @@ public final class ContinuumTunerScreen extends Screen {
         ContinuumSystem owner = body.isCentral() ? ContinuumData.system(body.system()) : null;
         if (owner != null && (body.type() == ContinuumBody.Type.STAR ||
                 body.type() == ContinuumBody.Type.BLACK_HOLE)) {
-            // a system's star or black hole is drawn as the system draws it
+            
             preview.drawSystem(g, owner, px, top(), 200);
             g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_system.drag_to_turn_scroll_to"), px, top() + 204, 0xFF7F8A99, false);
         } else if (body.type() != ContinuumBody.Type.BLACK_HOLE) {
@@ -628,7 +619,6 @@ public final class ContinuumTunerScreen extends Screen {
         set(pickerField, new JsonPrimitive(String.format(Locale.ROOT, "#%06x", rgb)));
     }
 
-    /** The same picker PhoenixWiki's theme editor has: a saturation/value square, a hue strip and a hex readout. */
     private void renderPicker(GuiGraphics g) {
         g.pose().pushPose();
         g.pose().translate(0f, 0f, 400f);
@@ -771,7 +761,7 @@ public final class ContinuumTunerScreen extends Screen {
                     bodyIndex++;
                     rebuildFields();
                 } else {
-                    // the name between the arrows opens the picker of every system and body
+                    
                     minecraft.setScreen(new ContinuumBodyPickerScreen(this, bodies, body().id(), this::selectBody,
                             id -> minecraft.setScreen(new ContinuumSystemScreen(this, id))));
                 }

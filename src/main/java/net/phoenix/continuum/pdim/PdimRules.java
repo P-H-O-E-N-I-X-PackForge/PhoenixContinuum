@@ -29,16 +29,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * What a {@link PdimWorldgen} spec says about the world's rules: whether mobs spawn, whether there is air, how far a
- * player may stray from their plot and whether other people's plots can be built on.
- */
 @Mod.EventBusSubscriber(modid = PhoenixContinuum.MOD_ID)
 public final class PdimRules {
 
     private PdimRules() {}
 
-    /** The plot area a protected plot covers when the spec sets no radius. */
     public static final int DEFAULT_PROTECT_RADIUS = 256;
 
     private record Cached(PdimWorldgen.Spec spec, long at) {}
@@ -46,13 +41,11 @@ public final class PdimRules {
     private static final Map<ResourceKey<Level>, Cached> CACHE = new HashMap<>();
     private static final long CACHE_TICKS = 60L;
 
-    /** Whether players have plots in this dimension: the config and the spec both allow it. */
     public static boolean plotsOn(PdimWorldgen.Spec spec) {
         return spec.plots() && (net.phoenix.continuum.config.ContinuumConfigs.INSTANCE == null ||
                 net.phoenix.continuum.config.ContinuumConfigs.INSTANCE.personalPlots);
     }
 
-    /** The spec of the personal dimension a level is, or null if it is not one. Up to three seconds old. */
     public static synchronized @Nullable PdimWorldgen.Spec specOf(Level level) {
         if (!(level instanceof ServerLevel)) return null;
         ResourceLocation body = PdimDimensions.bodyOf(level.dimension());
@@ -118,7 +111,6 @@ public final class PdimRules {
                 .equals(new ResourceLocation(gear));
     }
 
-    /** Whether the player may change things at this spot of a protected personal dimension. */
     public static boolean mayBuild(ServerPlayer player, BlockPos pos) {
         if (player.isCreative() && player.hasPermissions(2)) return true;
         ServerLevel level = player.serverLevel();

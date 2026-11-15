@@ -98,7 +98,6 @@ public record ContinuumBody(
         return transientInfo != null && params.style() == PlanetParams.STYLE_REMNANT;
     }
 
-    /** What the panels call this body: a visitor by its kind, a gas giant, or its plain type. */
     public String kindLabel() {
         if (transientInfo != null) {
             String kind = visitorKind();
@@ -108,7 +107,6 @@ public record ContinuumBody(
         return type.label();
     }
 
-    /** The same body at another size. */
     public ContinuumBody withRadius(float newRadius) {
         return new ContinuumBody(id, system, parent, type, name, description, orbitAu, periodDays, phase, newRadius,
                 tripMinutes, minTier, detectedResearch, surveyedResearch, params, yields, initialStage, loreDetected,

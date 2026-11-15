@@ -30,7 +30,6 @@ public final class SceneRenderer {
         begin(target, backdropYawDeg, true);
     }
 
-    /** {@code backdrop} false leaves plain dark space: no stars and no galaxies behind the object. */
     public static void begin(RenderTarget target, float backdropYawDeg, boolean backdrop) {
         previous = Minecraft.getInstance().getMainRenderTarget();
         current = target;
@@ -310,7 +309,7 @@ public final class SceneRenderer {
         boolean cube = net.phoenix.continuum.client.ContinuumVisuals.cube();
 
         float bodyScale = !cube ? radius : blackHole ? radius * 0.5f : radius * 0.82f;
-        // up close a sphere looks wider than the flat disc of its glow: bring it in so their edges meet
+        
         float away = view.transformPosition(new Vector3f(worldPos)).length();
         if (away > 1.0e-3f) bodyScale /= (float) Math.sqrt(1.0 + (bodyScale / away) * (bodyScale / away));
         
@@ -336,8 +335,7 @@ public final class SceneRenderer {
             star.safeGetUniform("PalMid").set(r * 1.25f, g * 1.25f, b * 1.25f);
             star.safeGetUniform("PalLow").set(r * 0.35f, g * 0.3f, b * 0.3f);
         }
-        // a black hole's sphere is nearer than the middle the hole's picture is laid over at, so if it wrote depth it would
-        // cut off the part of the disk that passes in front of the hole: in the world it only tests, the picture writes
+
         boolean holdDepth = blackHole && !Float.isNaN(worldDepth);
         if (holdDepth) RenderSystem.depthMask(false);
         if (cube) CubeMesh.draw(star, modelView, projection);
@@ -349,11 +347,6 @@ public final class SceneRenderer {
         return new float[] {((rgb >> 16) & 0xFF) / 255.0f, ((rgb >> 8) & 0xFF) / 255.0f, (rgb & 0xFF) / 255.0f};
     }
 
-    /**
-     * The black sphere under a hole's picture. The picture's own shadow is already opaque black, so in an offscreen scene
-     * (a preview or a screen) with no world depth the sphere adds nothing, and its depth only gets in the way of the disk
-     * that passes in front of the hole: leave it out there.
-     */
     private static void drawHoleSphere(Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
                                        PlanetRenderer.Quality quality) {
         if (current != null && Float.isNaN(worldDepth)) return;
@@ -403,7 +396,6 @@ public final class SceneRenderer {
         drawBlackHole(view, projection, worldPos, radius, system != null && system.isQuasar(), sky, style);
     }
 
-    /** A black hole in a style given directly (its disk colours, size and tilt), with no system behind it. */
     public static void drawHoleStyled(net.phoenix.continuum.data.ContinuumSystem.HoleStyle style, Matrix4f view,
                                       Matrix4f projection, Vector3f worldPos, float radius,
                                       PlanetRenderer.Quality quality, boolean sky) {
@@ -678,7 +670,6 @@ public final class SceneRenderer {
                 net.phoenix.continuum.client.ContinuumClientState.shellLevel(central.id()));
     }
 
-    /** The same, at levels given rather than the team's: the Swarm Control screen shows what it is told. */
     public static void drawSwarmShell(@Nullable net.phoenix.continuum.data.ContinuumBody central, int rgb,
                                       Matrix4f view, Matrix4f projection, Vector3f worldPos, float radius,
                                       PlanetRenderer.Quality quality, boolean sky, int swarmLevel, int shellLevel) {
@@ -692,7 +683,6 @@ public final class SceneRenderer {
         drawSwarmCompletion(central, rgb, view, projection, worldPos, radius, quality, sky, shell, completion);
     }
 
-    /** The swarm or shell at a completion given, 0 to 1 (the hologram builds it up piece by piece). */
     public static void drawSwarmCompletion(net.phoenix.continuum.data.ContinuumBody central, int rgb, Matrix4f view,
                                            Matrix4f projection, Vector3f worldPos, float radius,
                                            PlanetRenderer.Quality quality, boolean sky, boolean shell,
@@ -927,11 +917,6 @@ public final class SceneRenderer {
         }
     }
 
-    /**
-     * 1.20.1 workaround, as for USE_BAKED_BACKDROP: sampling a baked render target in the map leaves the world black after
-     * the map closes on some AMD iGPUs, and the puffs are exactly that. Off, they are drawn live (slower, but safe). Flip
-     * to true to retest.
-     */
     public static boolean USE_BAKED_PUFFS = true;
 
     private static final int PUFF_SIZE = 256;
@@ -945,12 +930,6 @@ public final class SceneRenderer {
     private static final java.util.Map<PuffKey, com.mojang.blaze3d.pipeline.TextureTarget> PUFFS =
             new java.util.LinkedHashMap<>(64, 0.75f, true);
 
-    /**
-     * A puff of a nebula is a fixed cloud (it only ever drifts a little), but it is several layers of warped noise at
-     * every pixel it covers, and a nebula is many large puffs laid over each other. So each puff is worked out once into
-     * a small picture, a few a frame so nothing stalls, and drawn from that: one texture read a pixel. A puff whose
-     * picture is not made yet is left out for a frame or two.
-     */
     private static void drawNebulas$timed(java.util.List<Nebula> nebulas, Matrix4f view, Matrix4f projection, float scale){
         ShaderInstance bake = ContinuumShaders.NEBULA;
         ShaderInstance tex = ContinuumShaders.NEBULA_TEX;
@@ -1043,7 +1022,6 @@ public final class SceneRenderer {
         }
     }
 
-    /** The nebulas drawn live, puff by puff: what is used if the baked-puff shader is not there. */
     private static void drawNebulasLive(java.util.List<Nebula> nebulas, Matrix4f view, Matrix4f projection, float scale) {
         ShaderInstance shader = ContinuumShaders.NEBULA;
         if (shader == null || nebulas.isEmpty()) return;
@@ -1289,7 +1267,7 @@ public final class SceneRenderer {
                                             net.phoenix.continuum.data.ContinuumSystem.HoleStyle style){
         ShaderInstance shader = ContinuumShaders.BLACKHOLE;
         if (shader == null) return;
-        // the faster shader reads its orbit and disk turbulence from tables, which are built in the background first
+        
         if (ContinuumShaders.BLACKHOLE_LUT != null && BlackHoleTables.ready()) {
             shader = ContinuumShaders.BLACKHOLE_LUT;
             shader.setSampler("OrbitLut", BlackHoleTables.orbit());
@@ -1378,19 +1356,10 @@ public final class SceneRenderer {
 
     private static float worldDepth = Float.NaN;
 
-    /**
-     * Black holes are drawn aside and laid over the picture, with no depth of their own. In the world, set the
-     * depth (normalised, -1 to 1) of the thing they are drawn for, and they are laid over at that depth, so blocks in
-     * front of it hide them. NaN (the default) is the map, with nothing to be behind.
-     */
     public static void setWorldDepth(float ndcDepth) {
         setWorldDepth(ndcDepth, false);
     }
 
-    /**
-     * As above, and with {@code write} the pictures also write that depth where they are lit, so things drawn after
-     * them (water, glass) that lie behind do not show over them. Off by default: only for objects drawn in the world.
-     */
     public static void setWorldDepth(float ndcDepth, boolean write) {
         worldDepth = ndcDepth;
         worldDepthWrite = write && !Float.isNaN(ndcDepth);
@@ -1412,13 +1381,13 @@ public final class SceneRenderer {
         ShaderInstance blit = depthAware && worldDepthWrite && ContinuumShaders.COMPOSITE != null ?
                 ContinuumShaders.COMPOSITE : Minecraft.getInstance().gameRenderer.blitShader;
         blit.setSampler("DiffuseSampler", low.getColorTextureId());
-        // an ortho from 1000 to 3000 puts a quad at z = -1000 * (depth + 2) at that normalised depth
+        
         float quadZ = depthAware ? -1000.0f * (Math.max(-1.0f, Math.min(1.0f, worldDepth)) + 2.0f) : -2000.0f;
         if (depthAware) {
             RenderSystem.enableDepthTest();
             RenderSystem.depthMask(worldDepthWrite);
         } else {
-            // a flat picture laid over the scene: whatever was drawn before (a sphere's depth) must not clip it
+            
             RenderSystem.disableDepthTest();
             RenderSystem.depthMask(false);
         }
@@ -1515,11 +1484,6 @@ public final class SceneRenderer {
 
     public static boolean BUILTIN_BACKDROP = true;
 
-    /**
-     * 1.20.1 workaround: sampling the baked nebula texture in the built-in backdrop leaves the world rendering black
-     * after the map screen closes (seen on an AMD Radeon iGPU). With this off the backdrop renders the nebula noise
-     * live in the shader instead. Flip to true to use the baked texture again (e.g. to retest after a driver update).
-     */
     public static boolean USE_BAKED_BACKDROP = true;
 
     private static void drawBuiltinBackdrop(ShaderInstance g, float width, float height, float yawDeg) {

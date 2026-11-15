@@ -126,7 +126,6 @@ public final class ContinuumEvents {
         }
     }
 
-    /** A player arrived in a personal dimension. {@code created} is true the first time they made it. */
     public static class PdimEntered extends Event {
 
         private final net.minecraft.server.level.ServerPlayer player;
@@ -156,7 +155,6 @@ public final class ContinuumEvents {
         }
     }
 
-    /** A player left a personal dimension through Continuum (not by dying or a command). */
     public static class PdimLeft extends Event {
 
         private final net.minecraft.server.level.ServerPlayer player;

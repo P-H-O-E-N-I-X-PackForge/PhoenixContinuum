@@ -33,12 +33,10 @@ public class TunerSyncGameTests {
             Map<String, com.google.gson.JsonElement> leaves = new LinkedHashMap<>(ContinuumTuner.leaves(id));
             ContinuumTuner.pushed(id, leaves);
 
-            // the server's copy arrives without the edit (it has not applied it yet): the edit stays on screen
             ContinuumData.acceptSync(before);
             helper.assertTrue(ContinuumTuner.isTuned(id), "the pushed edit stays until the server has it");
             helper.assertTrue(ContinuumData.body(id).params().seed() == 4242.0f, "and it is still shown");
 
-            // the next copy has it: the server's word counts now, and the local copy is dropped
             Map<net.minecraft.resources.ResourceLocation, String> bodies = new LinkedHashMap<>(before.bodies());
             JsonObject json = JsonParser.parseString(bodies.get(id)).getAsJsonObject();
             JsonObject surface = json.has("surface") ? json.getAsJsonObject("surface") : new JsonObject();

@@ -36,7 +36,6 @@ public class LaunchPadBlockEntity extends BlockEntity implements LaunchComplex {
 
     private static final int BUFFER_LAUNCHES = 8;
 
-    /** The first half is what launches spend (input), the second what comes home (output). */
     public static final int INPUT_SLOTS = 9;
     public static final int SLOTS = 18;
 
@@ -62,7 +61,6 @@ public class LaunchPadBlockEntity extends BlockEntity implements LaunchComplex {
         this.energyCap = LazyOptional.of(() -> energy);
     }
 
-    /** What hoppers and pipes see: stock goes in the input half, only the output half comes out. */
     private final class Outside implements IItemHandler {
 
         @Override
@@ -97,14 +95,12 @@ public class LaunchPadBlockEntity extends BlockEntity implements LaunchComplex {
         }
     }
 
-    /** Put by hand: whatever of the stack the input could take is taken out of it. */
     public void stock(ItemStack stack) {
         if (!ContinuumMissions.isStockItem(stack)) return;
         ItemStack left = insertInput(stack.copy());
         stack.shrink(stack.getCount() - left.getCount());
     }
 
-    /** The contents, for when the block is broken. */
     public List<ItemStack> contents() {
         List<ItemStack> all = new java.util.ArrayList<>();
         for (int i = 0; i < SLOTS; i++) {
@@ -213,7 +209,6 @@ public class LaunchPadBlockEntity extends BlockEntity implements LaunchComplex {
         return isActive();
     }
 
-    /** No buses: a launch by hand spends the player's stock. A schedule spends what the pad's buffer holds. */
     @Override
     public boolean hasBuses() {
         return false;

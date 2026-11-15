@@ -22,10 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * A pad's schedules: a new one for the mission the planner was set up with, and the ones the pad already has. A
- * schedule launches as the pad's owner, with no one there, from what the pad holds.
- */
 public class ContinuumScheduleScreen extends Screen {
 
     private static final int W = 332;

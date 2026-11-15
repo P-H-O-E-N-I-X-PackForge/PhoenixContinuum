@@ -8,11 +8,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * What each Swarm Control hologram near the player is doing. Each one has a boot value, 0 (off) to 1 (fully up),
- * that rises while it is online and falls, faster, when it is not: the renderer builds the hologram from it piece
- * by piece going up, and takes it apart again going down.
- */
 public final class HologramClient {
 
     private HologramClient() {}
@@ -26,10 +21,8 @@ public final class HologramClient {
         public S2CHologramPacket.State state;
         public float boot;
 
-        /** 0 while it is still coming up, rising to 1 once it has been all there for a while. */
         public float settle;
 
-        /** Flared to 1 by a change (something built, a new target) and dying away. */
         public float surge;
         public long lastSeen = Util.getMillis();
         private long lastStep = Util.getMillis();
@@ -72,7 +65,6 @@ public final class HologramClient {
         return HOLOS.values();
     }
 
-    /** Forget the ones that have finished falling apart. */
     public static void prune() {
         Iterator<Holo> it = HOLOS.values().iterator();
         while (it.hasNext()) {

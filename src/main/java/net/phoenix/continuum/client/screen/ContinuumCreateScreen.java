@@ -27,10 +27,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
-/**
- * Create a new system or body from the game (operators). The server writes it as an ordinary definition file in the
- * pack folder. A new body starts as a copy of an existing one (it inherits it) and only states what you chose here.
- */
 @OnlyIn(Dist.CLIENT)
 public final class ContinuumCreateScreen extends Screen {
 
@@ -61,8 +57,6 @@ public final class ContinuumCreateScreen extends Screen {
         }
     }
 
-    // ------------------------------------------------------------------ choices
-
     private ContinuumSystem currentSystem() {
         return systems.isEmpty() ? null : systems.get(Math.floorMod(systemIndex, systems.size()));
     }
@@ -75,7 +69,6 @@ public final class ContinuumCreateScreen extends Screen {
         return kindIndex == 3;
     }
 
-    /** Existing bodies of the chosen kind, the things a new one can start from. */
     private List<ContinuumBody> templates() {
         List<ContinuumBody> out = new ArrayList<>();
         for (ContinuumBody body : ContinuumData.allBodies()) {
@@ -111,8 +104,6 @@ public final class ContinuumCreateScreen extends Screen {
         List<ContinuumBody> list = planetsOfSystem();
         return list.isEmpty() ? null : list.get(Math.floorMod(parentIndex, list.size()));
     }
-
-    // ------------------------------------------------------------------ layout
 
     @Override
     protected void init() {
@@ -170,7 +161,6 @@ public final class ContinuumCreateScreen extends Screen {
                 template.name() + " (" + template.id().getPath() + ")"));
     }
 
-    /** A button's label can't wrap, so a long one is cut with "..." and the full text goes in its tooltip. */
     private void setLabel(Button button, String full) {
         int max = button.getWidth() - 8;
         boolean fits = font.width(full) <= max;
@@ -194,7 +184,6 @@ public final class ContinuumCreateScreen extends Screen {
         }
     }
 
-    /** The position in the galaxy furthest from every existing system, close to the middle. */
     static double[] freeSpot() {
         double bestX = 0;
         double bestZ = 0;
@@ -215,8 +204,6 @@ public final class ContinuumCreateScreen extends Screen {
         }
         return new double[] { bestX, 0.0, bestZ };
     }
-
-    // ------------------------------------------------------------------ create
 
     private ResourceLocation freshId(String display) {
         String slug = display.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "_").replaceAll("^_+|_+$", "");
@@ -291,9 +278,6 @@ public final class ContinuumCreateScreen extends Screen {
         minecraft.setScreen(parent);
     }
 
-    // ------------------------------------------------------------------ drawing
-
-
     @Override
     public void renderBackground(GuiGraphics g) {}
 
@@ -304,7 +288,7 @@ public final class ContinuumCreateScreen extends Screen {
         int x = (width - w) / 2;
         g.drawCenteredString(font, title, width / 2, 16, 0xFFFFFFFF);
         g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_create_screen.name"), x, 40, 0xFFAEBBCF, false);
-        // the notes at the bottom wrap to the screen, stacked upwards from the bottom edge
+        
         int maxW = Math.max(80, width - 32);
         int bottom = height - 12;
         if (!error.isEmpty()) {

@@ -14,10 +14,6 @@ import net.phoenix.continuum.network.S2CSwarmControlPacket;
 
 import java.util.UUID;
 
-/**
- * The GregTech Swarm Control Array. It is online while it is formed and running its recipe (power and coolant); then
- * it shows the same screen and hologram as the plain block.
- */
 public class SwarmControlMachine extends WorkableElectricMultiblockMachine implements SwarmHolograms.Source,
         IInteractedMachine {
 
@@ -35,7 +31,6 @@ public class SwarmControlMachine extends WorkableElectricMultiblockMachine imple
         return getOwnerUUID();
     }
 
-    /** The structure reaches back from the controller, so its middle is a block behind it. */
     @Override
     public int[] offset() {
         var back = getFrontFacing().getOpposite();

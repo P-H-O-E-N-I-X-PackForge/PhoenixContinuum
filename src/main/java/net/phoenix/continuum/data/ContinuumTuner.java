@@ -64,7 +64,6 @@ public final class ContinuumTuner {
     private static final Map<ResourceLocation, Map<String, JsonElement>> PENDING = new HashMap<>();
     private static final Map<ResourceLocation, Long> PENDING_SINCE = new HashMap<>();
 
-    /** These edits were sent to the server: they stay on screen until the server's own copy has them. */
     public static void pushed(ResourceLocation id, Map<String, JsonElement> leaves) {
         PENDING.put(id, new java.util.LinkedHashMap<>(leaves));
         PENDING_SINCE.put(id, System.currentTimeMillis());
@@ -91,10 +90,6 @@ public final class ContinuumTuner {
         return cursor;
     }
 
-    /**
-     * New data arrived from the server. A body whose pushed edits are now in it stops being tuned locally (the server's
-     * word is the one that counts); one that is still waiting keeps them on top, for a few seconds at most.
-     */
     public static void afterSync() {
         long now = System.currentTimeMillis();
         for (ResourceLocation id : new java.util.ArrayList<>(PENDING.keySet())) {

@@ -5,7 +5,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 
-/** A button in the Continuum map's own style (the one the mission planner uses), for screens that use widgets. */
 final class MapButton extends Button {
 
     private boolean selected;

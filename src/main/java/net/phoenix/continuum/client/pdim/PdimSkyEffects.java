@@ -47,8 +47,7 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
     @Override
     public boolean renderSky(ClientLevel level, int ticks, float partialTick, PoseStack poseStack, Camera camera,
                              Matrix4f projectionMatrix, boolean isFoggy, Runnable setupFog) {
-        // the sky screen draws the whole sky itself, opaque, over the world: drawing it here as well is a second full
-        // screen of the same thing, hidden
+
         if (net.minecraft.client.Minecraft.getInstance().screen instanceof
                 net.phoenix.continuum.client.screen.ContinuumSkyScreen) {
             return true;
@@ -163,8 +162,6 @@ public class PdimSkyEffects extends DimensionSpecialEffects {
         var baked = net.phoenix.continuum.client.render.NebulaBake.get(primaryRgb, secondaryRgb,
                 ContinuumVisuals.backdropOctaves());
 
-        // the baked nebula should be there a few frames after the sky first draws; if it never is, the sky is worked out
-        // per pixel every frame, which is several times as costly, so say so once
         if (baked == null) {
             if (++unbakedFrames == 180) {
                 net.phoenix.continuum.PhoenixContinuum.LOGGER.warn(

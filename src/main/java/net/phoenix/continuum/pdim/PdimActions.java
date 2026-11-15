@@ -61,7 +61,7 @@ public final class PdimActions {
                     new BlockPos(0, PdimDimensions.PLATFORM_Y, 0);
         }
         BlockPos origin = arrivalPoint(target, spec, plot);
-        // with plots every player gets the structure at their plot; without, it is put down once for the whole dimension
+        
         if (spec.plotStructure() != null && (created || !plots) &&
                 (plots || PdimData.get(server).markStructurePlaced(bodyId))) {
             PdimStructures.place(target, spec.plotStructure(), origin.above());
@@ -114,10 +114,6 @@ public final class PdimActions {
         return removed;
     }
 
-    /**
-     * Where to put the player at a plot: the pad for a void world (it is built here), otherwise the ground or a fixed
-     * height, as the body's {@link net.phoenix.continuum.api.PdimWorldgen} spec says.
-     */
     private static BlockPos arrivalPoint(ServerLevel level, net.phoenix.continuum.api.PdimWorldgen.Spec spec,
                                          BlockPos plot) {
         switch (spec.arrival()) {
@@ -129,7 +125,7 @@ public final class PdimActions {
                 level.getChunk(plot);
                 int y = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                         plot.getX(), plot.getZ());
-                // nothing there to stand on (the world is void, or the column is empty): fall back to the pad
+                
                 if (y > level.getMinBuildHeight() + 1) return new BlockPos(plot.getX(), y - 1, plot.getZ());
             }
             default -> {}

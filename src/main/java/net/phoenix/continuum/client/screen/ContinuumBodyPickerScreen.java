@@ -26,14 +26,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 
-/**
- * Pick a body to tune: systems down the left, the chosen system's worlds (moons under their planet) on the right, and
- * a search box that looks across every system at once. Long names wrap onto extra lines and the row grows to fit.
- */
 @OnlyIn(Dist.CLIENT)
 public final class ContinuumBodyPickerScreen extends Screen {
 
-    /** Height of a one-line row; wrapped rows add LINE for every extra line. */
     private static final int ROW = 13;
     private static final int LINE = 10;
     private static final int SYSTEM_W = 190;
@@ -66,7 +61,7 @@ public final class ContinuumBodyPickerScreen extends Screen {
         systemOrder.sort(Comparator.comparing((ResourceLocation id) -> systemName(id).toLowerCase(Locale.ROOT))
                 .thenComparing(ResourceLocation::toString));
         for (List<ContinuumBody> list : bySystem.values()) {
-            // central body first, then each planet followed by its moons
+            
             list.sort(Comparator.comparing((ContinuumBody b) -> !b.isCentral()).thenComparing(ContinuumBody::orbitAu));
         }
         ContinuumBody currentBody = current == null ? null : ContinuumData.body(current);
@@ -96,13 +91,10 @@ public final class ContinuumBodyPickerScreen extends Screen {
     public void renderBackground(GuiGraphics g) {}
 
     private int top() {
-        // the search box ends at 36, and each column has a heading line above its rows
+        
         return 56;
     }
 
-    // ------------------------------------------------------------------ wrapping
-
-    /** Splits text into lines that fit the width (breaking inside a long unbroken word if it has to). */
     private List<String> wrap(String text, int width) {
         List<String> out = new ArrayList<>();
         for (FormattedText line : font.getSplitter().splitLines(text, Math.max(8, width), Style.EMPTY)) {
@@ -116,13 +108,12 @@ public final class ContinuumBodyPickerScreen extends Screen {
         return Math.max(ROW, lines * LINE + 3);
     }
 
-    /** The right-hand column that holds the body type (and the system's name while searching). */
     private static int detailWidth(int bodiesW) {
         return Math.min(140, Math.max(40, bodiesW / 3));
     }
 
     private static int nameWidth(int bodiesW, int indent) {
-        // 14 for the swatch, 6 of air before the detail column
+        
         return Math.max(40, bodiesW - detailWidth(bodiesW) - INDENT - 6 - indent);
     }
 
@@ -149,7 +140,6 @@ public final class ContinuumBodyPickerScreen extends Screen {
         return heightOf(Math.max(nameLines, detailLines));
     }
 
-    /** The first row to show at the top so that the end of the list still fills the space. */
     private static int maxScroll(int[] heights, int avail) {
         int used = 0;
         int first = heights.length;
@@ -167,9 +157,6 @@ public final class ContinuumBodyPickerScreen extends Screen {
         }
     }
 
-    // ------------------------------------------------------------------ rows
-
-    /** The bodies shown on the right: the chosen system's, or every match of the search across all systems. */
     private List<Object[]> bodyRows() {
         List<Object[]> out = new ArrayList<>();
         String query = search == null ? "" : search.getValue().trim().toLowerCase(Locale.ROOT);
@@ -177,7 +164,7 @@ public final class ContinuumBodyPickerScreen extends Screen {
             if (selectedSystem == null) return out;
             out.add(new Object[] { selectedSystem, 0 });
             List<ContinuumBody> list = bySystem.get(selectedSystem);
-            // a moon goes under its planet
+            
             List<ContinuumBody> planets = new ArrayList<>();
             for (ContinuumBody b : list) if (!b.isMoon()) planets.add(b);
             for (ContinuumBody planet : planets) {
@@ -215,13 +202,11 @@ public final class ContinuumBodyPickerScreen extends Screen {
         int top = top();
         int bodiesX = 16 + SYSTEM_W + 10;
 
-        // the hint at the bottom wraps too, and the lists stop above it
         List<String> hint = wrap("click a body to tune it   scroll: more   Esc: back", Math.max(80, width - 32));
         int hintY = height - 6 - hint.size() * LINE;
         int bottom = hintY - 6;
         int avail = bottom - top;
 
-        // systems
         g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_body_picker.systems", systemOrder.size()), 16, top - 11, 0xFFFFD080, false);
         int[] systemHeights = new int[systemOrder.size()];
         List<List<String>> systemLines = new ArrayList<>();
@@ -247,7 +232,6 @@ public final class ContinuumBodyPickerScreen extends Screen {
             hits.add(new Object[] { "system", id, 16, y, SYSTEM_W, h });
         }
 
-        // bodies
         List<Object[]> bodyRows = bodyRows();
         boolean searching = search != null && !search.getValue().trim().isEmpty();
         int bodiesW = width - bodiesX - 16;
@@ -270,7 +254,7 @@ public final class ContinuumBodyPickerScreen extends Screen {
             cursor += h;
             boolean hover = mx >= bodiesX && mx < bodiesX + bodiesW && my >= y && my < y + h;
             if (row[0] instanceof ResourceLocation systemId) {
-                // the system's own star (or black hole): tuned on the system screen
+                
                 if (hover) g.fill(bodiesX, y, bodiesX + bodiesW, y + h, 0x20FFFFFF);
                 ContinuumSystem system = ContinuumData.system(systemId);
                 int starColor = system == null ? 0xFFD9A0 : system.starColor();
@@ -313,7 +297,7 @@ public final class ContinuumBodyPickerScreen extends Screen {
                 bodyScroll = 0;
                 search.setValue("");
             } else if (h[0].equals("star")) {
-                // back first, so whatever the pick opens is what the player is left looking at
+                
                 minecraft.setScreen(parent);
                 onPickSystem.accept((ResourceLocation) h[1]);
             } else {

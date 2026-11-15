@@ -15,7 +15,6 @@ import static com.gregtechceu.gtceu.common.data.GTItems.*;
 import static com.gregtechceu.gtceu.common.data.GTMaterials.*;
 import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.ASSEMBLER_RECIPES;
 
-/** The Swarm Control Array: how it is built, and the recipe that keeps it online. */
 public final class SwarmControlRecipes {
 
     private SwarmControlRecipes() {}
@@ -34,7 +33,6 @@ public final class SwarmControlRecipes {
                 .duration(600).EUt(VA[IV])
                 .save(provider);
 
-        // the uplink: a minute of helium coolant and power keeps the hologram and the controls online
         ContinuumMachines.SWARM_CONTROL_RECIPES.recipeBuilder("swarm_control_uplink")
                 .inputFluids(Helium.getFluid(100))
                 .duration(1200).EUt(VA[EV])

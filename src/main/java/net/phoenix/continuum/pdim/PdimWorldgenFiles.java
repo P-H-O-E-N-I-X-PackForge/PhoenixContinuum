@@ -18,22 +18,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-/**
- * Specs written as files, for packs without a script: {@code config/phoenix_continuum/pdim_worldgen/*.json}. A file is
- * one spec, for one body or, with {@code match}, for every body that fits:
- *
- * <pre>{@code
- * { "body": "phoenix_continuum:luna", "type": "flat", "biome": "minecraft:stony_peaks",
- *   "layers": ["minecraft:bedrock", "minecraft:stone*60", "minecraft:gravel"] }
- *
- * { "match": { "type": "moon" }, "type": "auto" }
- * }</pre>
- *
- * {@code type} is void, flat, noise (with {@code settings} and a {@code biome}), overworld_like, auto or generator (with a
- * {@code generator} object). Also optional: {@code dimension_type}, {@code arrival} (surface, platform or fixed, with
- * {@code y}) and {@code plot_structure}; and the world's rules: {@code mobs}, {@code fall_damage}, {@code oxygen} (the
- * helmet item or #tag needed), {@code weather} (clear, rain, storm, normal, or a cycle object), {@code plots} (false for an ordinary shared dimension), {@code spawn} ([x, y, z]), {@code plot_radius}, {@code protect_plots} and {@code gt_ores} (a dimension id).
- */
 public final class PdimWorldgenFiles {
 
     private PdimWorldgenFiles() {}
@@ -74,7 +58,6 @@ public final class PdimWorldgenFiles {
         }
     }
 
-    /** One spec from its JSON. Public so scripts and tests can use the same format. */
     public static void apply(JsonObject json) {
         Consumer<PdimWorldgen.Spec> configure = spec -> configure(spec, json);
         if (json.has("body")) {

@@ -62,7 +62,6 @@ public class ScheduleGameTests {
         helper.assertTrue(schedule.cap == 1, "a schedule with no interval is a single run");
         helper.assertTrue(pad.count(s -> true) == 0, "the pad starts empty");
 
-        // nothing in the pad: it waits, stays armed, and remembers why
         ContinuumSchedules.tick(server);
         helper.assertTrue(schedule.runs == 0 && schedule.enabled, "a schedule without a rocket waits");
         helper.assertTrue(!schedule.lastFailure.isEmpty(), "it remembers why it waits");
@@ -71,7 +70,6 @@ public class ScheduleGameTests {
         ContinuumSchedules.tick(server);
         helper.assertTrue(schedule.lastFailure.equals(why) && schedule.runs == 0, "and waits again for the same reason");
 
-        // the pad is stocked and charged: the next try launches, with nobody there
         pad.stock(ContinuumRegistry.ROCKET.asStack());
         helper.assertTrue(pad.count(s -> s.getItem() == ContinuumRegistry.ROCKET.get()) == 1, "the rocket is in the pad");
         pad.chargeEnergy(pad.energyCapacity());
@@ -83,7 +81,6 @@ public class ScheduleGameTests {
         Mission flown = data.missions(team).stream().findFirst().orElse(null);
         helper.assertTrue(flown != null && flown.autoCollect, "the mission is out, marked to be taken in");
 
-        // it lands, and the pad takes the rocket in without anyone collecting it
         flown.startMillis -= flown.durationMillis + 1000L;
         ContinuumMissions.resolveDue(server);
         helper.assertTrue(data.missions(team).isEmpty(), "the pad should have taken the mission in");

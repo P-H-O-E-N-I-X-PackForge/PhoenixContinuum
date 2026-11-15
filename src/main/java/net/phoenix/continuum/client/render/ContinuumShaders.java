@@ -22,12 +22,12 @@ public final class ContinuumShaders {
     public static ShaderInstance GLOW;
     public static ShaderInstance BACKDROP;
     public static ShaderInstance BLACKHOLE;
-    /** The black hole with its orbit and disk turbulence looked up from tables (BlackHoleTables); BLACKHOLE is the fallback. */
+    
     public static ShaderInstance BLACKHOLE_LUT;
     public static ShaderInstance SKY;
     public static ShaderInstance RING;
     public static ShaderInstance NEBULA;
-    /** A nebula puff read from its baked picture. */
+    
     public static ShaderInstance NEBULA_TEX;
     public static ShaderInstance WOLFRAYET;
     public static ShaderInstance PULSAR;
@@ -77,7 +77,7 @@ public final class ContinuumShaders {
     private static void register(RegisterShadersEvent event, String name, VertexFormat format,
                                  Consumer<ShaderInstance> onLoad) {
         try {
-            // applying one of ours notes the game's blend-mode record first (see BlendModeGuard)
+            
             event.registerShader(new ShaderInstance(event.getResourceProvider(), name, format) {
 
                 @Override

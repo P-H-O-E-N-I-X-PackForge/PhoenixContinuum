@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/** What a player can do with a pad's schedules, checked on the server. */
 public final class ScheduleService {
 
     private ScheduleService() {}
@@ -120,7 +119,7 @@ public final class ScheduleService {
         if (schedule == null) return "That schedule is gone.";
         schedule.enabled = !schedule.enabled;
         if (schedule.enabled) {
-            // started again: a finished one starts over, and none of them fires for time that went by while off
+            
             if (schedule.finished() || schedule.intervalMillis <= 0) schedule.runs = 0;
             schedule.nextFire = Math.max(schedule.nextFire, System.currentTimeMillis());
             schedule.retryAt = 0;

@@ -17,7 +17,6 @@ public final class ContinuumMachines {
 
     public static MultiblockMachineDefinition SWARM_CONTROL;
 
-    /** What keeps a Swarm Control Array online: a recipe like any other, so packs can edit it. */
     public static GTRecipeType SWARM_CONTROL_RECIPES;
 
     public static void initRecipeTypes() {

@@ -6,7 +6,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.network.NetworkEvent;
 
-/** What a Swarm Control hologram should show: whether it is on, what it is looking at, and how built it is. */
 public class S2CHologramPacket {
 
     public record State(BlockPos pos, boolean active, ResourceLocation target, int swarm, int swarmMax, int shell,

@@ -14,25 +14,18 @@ import net.phoenix.continuum.api.PdimWorldgen;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * The weather of a personal dimension whose spec has its own: always clear, always raining, always storming, or a cycle
- * of its own. A level other than the overworld takes its weather from the overworld's world data, so on 1.20.1 (where
- * there is no mixin) this runs after the game's weather step each tick and puts the dimension's own values over it, and
- * tells the players in it when what the game just sent differs. Anything else keeps the overworld's weather.
- */
 @Mod.EventBusSubscriber(modid = PhoenixContinuum.MOD_ID)
 public final class PdimWeather {
 
     private PdimWeather() {}
 
-    /** How the weather of a dimension is decided. */
     public enum Mode {
-        /** As the overworld's. */
+        
         NORMAL,
         CLEAR,
         RAIN,
         STORM,
-        /** Its own spells of clear and rain, set by {@link PdimWorldgen.Spec#weatherCycle}. */
+        
         CYCLE;
 
         public static Mode of(String text) {
@@ -46,7 +39,6 @@ public final class PdimWeather {
         }
     }
 
-    /** The spells of a {@link Mode#CYCLE}: lengths in ticks, and the share of rainy spells that are thunderstorms. */
     public record Cycle(int clearMin, int clearMax, int rainMin, int rainMax, float stormChance) {
 
         public static final Cycle DEFAULT = new Cycle(12000, 168000, 12000, 24000, 0.3f);
@@ -71,7 +63,6 @@ public final class PdimWeather {
         advance(level);
     }
 
-    /** @return true when this dimension has weather of its own and was handled. */
     public static boolean advance(ServerLevel level) {
         if (!level.dimensionType().hasSkyLight()) return false;
         PdimWorldgen.Spec spec = PdimRules.specOf(level);
@@ -114,7 +105,6 @@ public final class PdimWeather {
             }
         }
 
-        // the first time, start from what the level has now
         if (state.sentRain < 0.0f) {
             state.rain = level.getRainLevel(1.0f);
             state.thunder = level.getThunderLevel(1.0f);
@@ -122,8 +112,6 @@ public final class PdimWeather {
         state.thunder = Mth.clamp(state.thunder + (storm ? 0.01f : -0.01f), 0.0f, 1.0f);
         state.rain = Mth.clamp(state.rain + (rain ? 0.01f : -0.01f), 0.0f, 1.0f);
 
-        // what the game's own step left (it follows the overworld) differs from ours: it has just been sent to the
-        // players, so send ours over it
         boolean rainDiffers = level.getRainLevel(1.0f) != state.rain || state.sentRain != state.rain;
         boolean thunderDiffers = level.getThunderLevel(1.0f) != state.thunder || state.sentThunder != state.thunder;
         level.setRainLevel(state.rain);
@@ -147,7 +135,6 @@ public final class PdimWeather {
         return max <= min ? Math.max(1, min) : min + level.random.nextInt(max - min + 1);
     }
 
-    /** Forget the running cycle of a dimension (it starts again from clear). */
     public static void reset(ResourceKey<Level> dimension) {
         STATES.remove(dimension);
     }

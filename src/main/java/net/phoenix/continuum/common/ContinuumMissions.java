@@ -53,7 +53,6 @@ public final class ContinuumMissions {
     private static final java.util.function.Predicate<ItemStack> IS_PENROSE_SEGMENT = s -> s
             .getItem() instanceof net.phoenix.continuum.item.ContinuumPenroseSegmentItem;
 
-    /** Anything a launch spends: what a pad accepts into its input. */
     public static boolean isStockItem(ItemStack stack) {
         return IS_ROCKET.test(stack) || IS_PROBE.test(stack) || IS_KIT.test(stack) || IS_COLLECTOR.test(stack) ||
                 IS_SEGMENT.test(stack) || IS_PENROSE_COLLECTOR.test(stack) || IS_PENROSE_SEGMENT.test(stack);
@@ -283,10 +282,6 @@ public final class ContinuumMissions {
                 destinationId, type, probes, expeditionName, validCrew(player, crewNames), false);
     }
 
-    /**
-     * A launch from a pad that is not where the player stands: they are at a Swarm Control block, which sends the
-     * build from a launch pad near it.
-     */
     public static @Nullable String launchFromControl(ServerPlayer player, BlockPos control, BlockPos pad,
                                                      ResourceLocation destinationId, Mission.Type type) {
         var level = player.level();
@@ -305,10 +300,6 @@ public final class ContinuumMissions {
                 destinationId, type, 0, "", List.of(), false);
     }
 
-    /**
-     * A launch with nobody at the pad: a schedule's. The pad's own stock pays for it, the pad's owner is the one who
-     * launched, and there is no range to be in.
-     */
     public static @Nullable String launchScheduled(MinecraftServer server, net.minecraft.world.level.Level level,
                                                    BlockPos pad, UUID team, UUID owner, String ownerName,
                                                    ResourceLocation destinationId, Mission.Type type, int probes,
@@ -786,12 +777,6 @@ public final class ContinuumMissions {
         }
     }
 
-    /**
-     * A scheduled mission is home: the pad takes the rocket and what it brought. What does not fit stays in the
-     * mission, to be tried again (and the team told once) or collected by hand.
-     *
-     * @return whether the mission was taken in completely
-     */
     private static boolean autoCollect(MinecraftServer server, ContinuumTeamData data, Mission mission) {
         LaunchComplex pad = launchComplexOf(server, mission);
         if (pad == null) return false;
@@ -1059,7 +1044,7 @@ public final class ContinuumMissions {
         }
 
         LaunchComplex pad = launchComplexOf(server, mission);
-        // the basic pad's buffer is for the schedules: a collection by hand still comes to the player
+        
         if (pad != null && !pad.hasBuses()) pad = null;
         ItemStack rocket = mission.rocket.copy();
         int items = 0;

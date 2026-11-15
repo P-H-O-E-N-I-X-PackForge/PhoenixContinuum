@@ -79,7 +79,6 @@ public final class ContinuumCommand {
         return 1;
     }
 
-    /** For when the screen has gone black: each tries one thing, and which of them brings the world back says what broke. */
     private static int rescue(String what) {
         Minecraft mc = Minecraft.getInstance();
         switch (what) {

@@ -169,7 +169,7 @@ final class MissionPlannerPanel {
         int stationMax = Stations.maxLevel(body);
         int shellLevel = ContinuumClientState.shellLevel(body.id());
         int shellMax = Swarms.shellMaxLevel(body);
-        // swarms and shells are managed from a Swarm Control block, not from here
+        
         boolean canStation = !swarm && stage == DiscoveryStage.SURVEYED && stationLevel < stationMax && shellLevel == 0;
         boolean canShell = false;
 

@@ -31,7 +31,6 @@ public final class PdimEvents {
         }
     }
 
-    /** Dimensions read from files at startup get their GregTech ores once the world is up. */
     @SubscribeEvent
     public static void onServerStarted(ServerStartedEvent event) {
         for (var spec : net.phoenix.continuum.api.PdimWorldgen.all()) {

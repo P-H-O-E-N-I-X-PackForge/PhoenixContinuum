@@ -11,11 +11,6 @@ import org.lwjgl.opengl.GL30;
 
 import java.nio.ByteBuffer;
 
-/**
- * Writes the OpenGL state to the log, to find what a screen leaves behind (a world that renders black after the map closes
- * is state left over: a wrong framebuffer, viewport, mask or texture). Turn it on with /continuum glstate on; each line
- * starts with [glstate], so two runs (say with and without a baked texture) can be compared.
- */
 public final class GlStateDump {
 
     private static boolean enabled;
@@ -29,20 +24,18 @@ public final class GlStateDump {
     public static void setEnabled(boolean on) {
         enabled = on;
         few = 0;
-        // a few world frames right away, to have a normal one to compare the black ones with
+        
         stageFrames = on ? 3 : 0;
     }
 
     private static int few;
 
-    /** Like dump, but only the first 15 calls since logging was turned on, for places that run every frame. */
     public static void dumpFew(String when) {
         if (!enabled || few >= 15) return;
         few++;
         dump(when);
     }
 
-    /** Logs the state now. */
     public static void dump(String when) {
         if (!enabled) return;
         Minecraft mc = Minecraft.getInstance();
@@ -112,11 +105,6 @@ public final class GlStateDump {
         return f.get(null);
     }
 
-    /**
-     * Compares the game's record of blend, depth, cull and colour mask with what the GPU really has. The game skips a state
-     * change it believes is already made, so a record that is wrong makes later drawing use the wrong state (an overlay that
-     * should darken overwrites instead).
-     */
     private static String stateCacheComparison() {
         try {
             StringBuilder out = new StringBuilder();
@@ -154,11 +142,6 @@ public final class GlStateDump {
         }
     }
 
-    /**
-     * The game keeps its own record of which texture is bound on each unit and skips a bind it thinks is already done, so
-     * if that record and the real binding disagree a draw samples the wrong texture (black). Reads the record by reflection
-     * (it is private) and lists the units where the two differ.
-     */
     private static String cacheComparison() {
         try {
             var texturesField = com.mojang.blaze3d.platform.GlStateManager.class.getDeclaredField("TEXTURES");
@@ -185,7 +168,6 @@ public final class GlStateDump {
     private static int pixelFrames;
     private static int stageFrames;
 
-    /** Where in the frame the world's colour first goes black: samples after the sky, the solid blocks and the whole level. */
     public static void sampleStage(String stage) {
         if (!enabled || stageFrames <= 0) return;
         Minecraft mc = Minecraft.getInstance();
@@ -207,8 +189,7 @@ public final class GlStateDump {
         var proj = RenderSystem.getProjectionMatrix();
         sb.append(" proj(m00=").append(proj.m00()).append(" m11=").append(proj.m11()).append(" m22=").append(proj.m22())
                 .append(" m32=").append(proj.m32()).append(")");
-        // what is really bound on units 0 to 2 and whether the game's own record agrees (a wrong texture under a
-        // darkening overlay would black the screen)
+
         int activeNow = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
         sb.append(" tex(");
         for (int unit = 0; unit < 3; unit++) {
@@ -233,12 +214,10 @@ public final class GlStateDump {
         net.phoenix.continuum.PhoenixContinuum.LOGGER.info("[glstate] {}", sb);
     }
 
-    /** Called once a frame, at the end of the level, to count the sampled frames down. */
     public static void endLevelFrame() {
         if (stageFrames > 0) stageFrames--;
     }
 
-    /** Asks for the next few frames to have their pixels sampled once the HUD has drawn (see samplePixels). */
     public static void samplePixelsForFrames(int frames) {
         if (enabled) {
             pixelFrames = frames;
@@ -246,10 +225,6 @@ public final class GlStateDump {
         }
     }
 
-    /**
-     * Reads a few pixels of the framebuffer being drawn (the world, before the final copy to the window) and the main
-     * target's texture settings, to tell "the world was drawn black" from "it was drawn but is shown black".
-     */
     public static void samplePixels() {
         if (!enabled || pixelFrames <= 0) return;
         pixelFrames--;
@@ -267,7 +242,7 @@ public final class GlStateDump {
             sb.append(" [").append(p[0]).append(',').append(p[1]).append("]=").append(px.get(0) & 255).append(',')
                     .append(px.get(1) & 255).append(',').append(px.get(2) & 255).append(',').append(px.get(3) & 255);
         }
-        // the main target's texture, read on a spare unit so nothing the game bound is disturbed
+        
         int active = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
         GL13.glActiveTexture(GL13.GL_TEXTURE0 + 12);
         int was = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
@@ -283,7 +258,6 @@ public final class GlStateDump {
         net.phoenix.continuum.PhoenixContinuum.LOGGER.info("[glstate] {}", sb);
     }
 
-    /** Logs the state at the start of each of the next few frames (before the game binds anything for them). */
     public static void dumpNextFrames(String when, int frames) {
         if (!enabled || frames <= 0) return;
         RenderSystem.recordRenderCall(() -> {
