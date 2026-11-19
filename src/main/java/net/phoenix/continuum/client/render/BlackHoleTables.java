@@ -3,6 +3,7 @@ package net.phoenix.continuum.client.render;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL30;
 
 import java.nio.ByteBuffer;
@@ -50,6 +51,18 @@ final class BlackHoleTables {
     private static void upload(Data data) {
         RenderSystem.activeTexture(UPLOAD_UNIT);
         GL11.glGetError();
+        // another renderer may have left a pixel-unpack buffer bound or a non-default pixel store; with a buffer bound the
+        // driver reads the pointer as an offset into it and faults
+        int unpackBuffer = GL11.glGetInteger(35055);
+        int alignment = GL11.glGetInteger(3317);
+        int rowLength = GL11.glGetInteger(3314);
+        int skipRows = GL11.glGetInteger(3315);
+        int skipPixels = GL11.glGetInteger(3316);
+        GL15.glBindBuffer(35052, 0);
+        GL11.glPixelStorei(3317, 1);
+        GL11.glPixelStorei(3314, 0);
+        GL11.glPixelStorei(3315, 0);
+        GL11.glPixelStorei(3316, 0);
         try {
             orbit = GL11.glGenTextures();
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, orbit);
@@ -75,6 +88,11 @@ final class BlackHoleTables {
                 failed = true;
             }
         } finally {
+            GL15.glBindBuffer(35052, unpackBuffer);
+            GL11.glPixelStorei(3317, alignment);
+            GL11.glPixelStorei(3314, rowLength);
+            GL11.glPixelStorei(3315, skipRows);
+            GL11.glPixelStorei(3316, skipPixels);
             RenderSystem.activeTexture(33984);
         }
     }
