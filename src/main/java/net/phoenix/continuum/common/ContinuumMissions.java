@@ -362,6 +362,12 @@ public final class ContinuumMissions {
 
         DiscoveryStage stage = data.effectiveStage(server, team, destinationId);
         if (stage == DiscoveryStage.UNKNOWN) return "That signal has not been resolved yet.";
+        ServerPlayer gated = server.getPlayerList().getPlayer(ownerId);
+        if (gated != null) {
+            Component refused = ContinuumGates.missionDenial(gated, ContinuumGates.featureOf(type),
+                    destinationId.toString(), body.system().toString());
+            if (refused != null) return refused.getString();
+        }
         if (!net.phoenix.continuum.common.visibility.ContinuumVisibility.accessible(server, team, body)) {
             return body.name() + " cannot be reached yet.";
         }
