@@ -51,7 +51,18 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
-public class ContinuumMapScreen extends Screen {
+public class ContinuumMapScreen extends ContinuumFitScreen {
+
+    @Override
+    protected int minW() {
+        return 640;
+    }
+
+    @Override
+    protected int minH() {
+        return 340;
+    }
+
 
     private enum Level {
         GALAXY,
@@ -144,6 +155,7 @@ public class ContinuumMapScreen extends Screen {
 
     @Override
     protected void init() {
+        super.init();
         super.init();
 
         net.phoenix.continuum.network.ContinuumNetwork.sendToServer(new C2SRequestStatePacket());

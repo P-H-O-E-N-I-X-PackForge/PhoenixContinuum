@@ -16,7 +16,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Locale;
 
-public class ContinuumPowerScreen extends Screen {
+public class ContinuumPowerScreen extends ContinuumFitScreen {
 
     private static final int W = 360;
     private static final int GRAPH_H = 70;

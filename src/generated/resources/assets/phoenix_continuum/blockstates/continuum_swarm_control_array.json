@@ -1,55 +1,57 @@
 {
   "variants": {
-    "facing=east,upwards_facing=down": {
+    "facing=down,upwards_facing=east": {
+      "gtceu:z": 90,
+      "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
+      "x": 90
+    },
+    "facing=down,upwards_facing=north": {
+      "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
+      "x": 90
+    },
+    "facing=down,upwards_facing=south": {
       "gtceu:z": 180,
       "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
-      "y": 90
+      "x": 90
+    },
+    "facing=down,upwards_facing=west": {
+      "gtceu:z": 270,
+      "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
+      "x": 90
     },
     "facing=east,upwards_facing=east": {
-      "model": "phoenix_continuum:block/machine/continuum_swarm_control_array"
-    },
-    "facing=east,upwards_facing=north": {
       "gtceu:z": 270,
       "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
       "y": 90
     },
-    "facing=east,upwards_facing=south": {
-      "gtceu:z": 90,
+    "facing=east,upwards_facing=north": {
       "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
       "y": 90
     },
-    "facing=east,upwards_facing=up": {
+    "facing=east,upwards_facing=south": {
+      "gtceu:z": 180,
       "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
       "y": 90
     },
     "facing=east,upwards_facing=west": {
-      "model": "phoenix_continuum:block/machine/continuum_swarm_control_array"
-    },
-    "facing=north,upwards_facing=down": {
-      "gtceu:z": 180,
-      "model": "phoenix_continuum:block/machine/continuum_swarm_control_array"
+      "gtceu:z": 90,
+      "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
+      "y": 90
     },
     "facing=north,upwards_facing=east": {
-      "gtceu:z": 90,
+      "gtceu:z": 270,
       "model": "phoenix_continuum:block/machine/continuum_swarm_control_array"
     },
     "facing=north,upwards_facing=north": {
       "model": "phoenix_continuum:block/machine/continuum_swarm_control_array"
     },
     "facing=north,upwards_facing=south": {
-      "model": "phoenix_continuum:block/machine/continuum_swarm_control_array"
-    },
-    "facing=north,upwards_facing=up": {
+      "gtceu:z": 180,
       "model": "phoenix_continuum:block/machine/continuum_swarm_control_array"
     },
     "facing=north,upwards_facing=west": {
-      "gtceu:z": 270,
+      "gtceu:z": 90,
       "model": "phoenix_continuum:block/machine/continuum_swarm_control_array"
-    },
-    "facing=south,upwards_facing=down": {
-      "gtceu:z": 180,
-      "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
-      "y": 180
     },
     "facing=south,upwards_facing=east": {
       "gtceu:z": 270,
@@ -57,12 +59,11 @@
       "y": 180
     },
     "facing=south,upwards_facing=north": {
-      "model": "phoenix_continuum:block/machine/continuum_swarm_control_array"
+      "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
+      "y": 180
     },
     "facing=south,upwards_facing=south": {
-      "model": "phoenix_continuum:block/machine/continuum_swarm_control_array"
-    },
-    "facing=south,upwards_facing=up": {
+      "gtceu:z": 180,
       "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
       "y": 180
     },
@@ -71,30 +72,43 @@
       "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
       "y": 180
     },
-    "facing=west,upwards_facing=down": {
-      "gtceu:z": 180,
-      "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
-      "y": 270
-    },
-    "facing=west,upwards_facing=east": {
-      "model": "phoenix_continuum:block/machine/continuum_swarm_control_array"
-    },
-    "facing=west,upwards_facing=north": {
+    "facing=up,upwards_facing=east": {
       "gtceu:z": 90,
       "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
-      "y": 270
+      "x": 270
     },
-    "facing=west,upwards_facing=south": {
+    "facing=up,upwards_facing=north": {
+      "gtceu:z": 180,
+      "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
+      "x": 270
+    },
+    "facing=up,upwards_facing=south": {
+      "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
+      "x": 270
+    },
+    "facing=up,upwards_facing=west": {
+      "gtceu:z": 270,
+      "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
+      "x": 270
+    },
+    "facing=west,upwards_facing=east": {
       "gtceu:z": 270,
       "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
       "y": 270
     },
-    "facing=west,upwards_facing=up": {
+    "facing=west,upwards_facing=north": {
+      "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
+      "y": 270
+    },
+    "facing=west,upwards_facing=south": {
+      "gtceu:z": 180,
       "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
       "y": 270
     },
     "facing=west,upwards_facing=west": {
-      "model": "phoenix_continuum:block/machine/continuum_swarm_control_array"
+      "gtceu:z": 90,
+      "model": "phoenix_continuum:block/machine/continuum_swarm_control_array",
+      "y": 270
     }
   }
 }

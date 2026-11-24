@@ -28,7 +28,7 @@ import java.util.Locale;
 import java.util.Random;
 
 @OnlyIn(Dist.CLIENT)
-public final class ContinuumCreateScreen extends Screen {
+public final class ContinuumCreateScreen extends ContinuumFitScreen {
 
     private static final String[] KINDS = { "Planet", "Gas giant", "Moon", "Black hole" };
     private static final int LINE = 10;
@@ -107,6 +107,7 @@ public final class ContinuumCreateScreen extends Screen {
 
     @Override
     protected void init() {
+        super.init();
         int w = 260;
         int x = (width - w) / 2;
         int y = 40;

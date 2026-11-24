@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class ContinuumFleetScreen extends Screen {
+public class ContinuumFleetScreen extends ContinuumFitScreen {
 
     @Override
     public void renderBackground(GuiGraphics g) {}

@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class ContinuumScheduleScreen extends Screen {
+public class ContinuumScheduleScreen extends ContinuumFitScreen {
 
     private static final int W = 332;
     private static final int ROW = 30;
@@ -85,6 +85,7 @@ public class ContinuumScheduleScreen extends Screen {
 
     @Override
     protected void init() {
+        super.init();
         if (!requested) {
             requested = true;
             net.phoenix.continuum.network.ContinuumNetwork.sendToServer(C2SScheduleActionPacket.list(pad));

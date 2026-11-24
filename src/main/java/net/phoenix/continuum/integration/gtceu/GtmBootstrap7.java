@@ -67,7 +67,7 @@ public final class GtmBootstrap7 implements GtmBootstrap {
 
     private static BlockPattern controlPattern(MultiblockMachineDefinition definition) {
         var builder = FactoryBlockPattern.start(RelativeDirection.LEFT, RelativeDirection.UP,
-                RelativeDirection.BACK);
+                RelativeDirection.FRONT);
         for (String[] slice : SwarmControlShape.SLICES) builder = builder.aisle(slice);
 
         var casing = Predicates.blocks(GTBlocks.CASING_STEEL_SOLID.get());
@@ -88,7 +88,7 @@ public final class GtmBootstrap7 implements GtmBootstrap {
 
     private static BlockPattern swarmPattern(MultiblockMachineDefinition definition) {
         var builder = FactoryBlockPattern.start(RelativeDirection.LEFT, RelativeDirection.UP,
-                RelativeDirection.BACK);
+                RelativeDirection.FRONT);
         for (String[] slice : SwarmReceiverShape.SLICES) builder = builder.aisle(slice);
 
         var casing = Predicates.blocks(GTBlocks.CASING_STEEL_SOLID.get());
@@ -107,7 +107,7 @@ public final class GtmBootstrap7 implements GtmBootstrap {
 
     private static BlockPattern pattern(MultiblockMachineDefinition definition) {
         var builder = FactoryBlockPattern.start(RelativeDirection.LEFT, RelativeDirection.UP,
-                RelativeDirection.BACK);
+                RelativeDirection.FRONT);
         for (String[] slice : LaunchComplexShape.SLICES) builder = builder.aisle(slice);
 
         var casing = Predicates.blocks(GTBlocks.CASING_STEEL_SOLID.get());

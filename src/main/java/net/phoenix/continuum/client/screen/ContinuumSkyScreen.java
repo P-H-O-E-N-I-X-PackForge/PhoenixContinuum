@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Locale;
 
 @OnlyIn(Dist.CLIENT)
-public final class ContinuumSkyScreen extends Screen {
+public final class ContinuumSkyScreen extends ContinuumFitScreen {
 
     private static final int PANEL_W = 236;
     private static final float TICKS_PER_DAY = 24000.0f;

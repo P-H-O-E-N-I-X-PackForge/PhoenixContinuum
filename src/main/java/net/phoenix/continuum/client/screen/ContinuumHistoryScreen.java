@@ -18,7 +18,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ContinuumHistoryScreen extends Screen {
+public class ContinuumHistoryScreen extends ContinuumFitScreen {
 
     @Override
     public void renderBackground(GuiGraphics g) {}
@@ -50,6 +50,7 @@ public class ContinuumHistoryScreen extends Screen {
 
     @Override
     protected void init() {
+        super.init();
         super.init();
         net.phoenix.continuum.network.ContinuumNetwork.sendToServer(new C2SRequestHistoryPacket());
     }

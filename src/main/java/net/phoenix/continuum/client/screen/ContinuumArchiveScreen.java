@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ContinuumArchiveScreen extends Screen {
+public class ContinuumArchiveScreen extends ContinuumFitScreen {
 
     @Override
     public void renderBackground(GuiGraphics g) {}
