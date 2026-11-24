@@ -17,7 +17,7 @@ import net.phoenix.continuum.network.C2SSwarmControlPacket;
 
 import java.util.Locale;
 
-public class ContinuumSwarmControlScreen extends Screen {
+public class ContinuumSwarmControlScreen extends ContinuumFitScreen {
 
     private static final int PANEL_W = 196;
     private static final int NODES = 24;
@@ -95,6 +95,7 @@ public class ContinuumSwarmControlScreen extends Screen {
 
     @Override
     protected void init() {
+        super.init();
         int x = panelX();
         var current = view.current();
         if (!sectionChosen && current != null) blackHoles = current.penrose();
@@ -315,6 +316,7 @@ public class ContinuumSwarmControlScreen extends Screen {
 
     @Override
     public void removed() {
+        super.removed();
         preview.close();
     }
 

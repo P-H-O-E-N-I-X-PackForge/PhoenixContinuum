@@ -15,7 +15,7 @@ import net.phoenix.continuum.common.ContinuumMissions;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ContinuumExpeditionScreen extends Screen {
+public class ContinuumExpeditionScreen extends ContinuumFitScreen {
 
     private final Screen parent;
     private EditBox nameBox;
@@ -28,6 +28,7 @@ public class ContinuumExpeditionScreen extends Screen {
 
     @Override
     protected void init() {
+        super.init();
         var connection = Minecraft.getInstance().getConnection();
         String self = Minecraft.getInstance().player == null ? "" : Minecraft.getInstance().player.getGameProfile().getName();
         players.clear();

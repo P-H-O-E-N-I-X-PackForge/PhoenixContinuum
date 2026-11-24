@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 @OnlyIn(Dist.CLIENT)
-public final class ContinuumBodyPickerScreen extends Screen {
+public final class ContinuumBodyPickerScreen extends ContinuumFitScreen {
 
     private static final int ROW = 13;
     private static final int SYSTEM_W = 190;
@@ -76,6 +76,7 @@ public final class ContinuumBodyPickerScreen extends Screen {
 
     @Override
     protected void init() {
+        super.init();
         search = new EditBox(font, 16, 22, Math.min(width - 32, 360), 14, ContinuumLang.tr("phoenix_continuum.continuum_body_picker_screen.search"));
         search.setMaxLength(48);
         search.setHint(ContinuumLang.tr("phoenix_continuum.continuum_body_picker_screen.search_every_system_and_body"));

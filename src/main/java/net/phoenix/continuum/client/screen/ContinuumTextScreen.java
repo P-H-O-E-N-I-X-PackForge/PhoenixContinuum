@@ -15,7 +15,7 @@ import org.lwjgl.glfw.GLFW;
 import java.util.function.Consumer;
 
 @OnlyIn(Dist.CLIENT)
-public final class ContinuumTextScreen extends Screen {
+public final class ContinuumTextScreen extends ContinuumFitScreen {
 
     private static final int MAX_LENGTH = 4000;
 
@@ -35,6 +35,7 @@ public final class ContinuumTextScreen extends Screen {
 
     @Override
     protected void init() {
+        super.init();
         int boxW = Math.min(width - 40, 560);
         int boxH = Math.max(80, height - 120);
         int x = (width - boxW) / 2;
