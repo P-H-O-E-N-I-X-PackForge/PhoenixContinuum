@@ -10,17 +10,17 @@ public final class FlightProfiles {
 
     public enum Ascent {
 
-        PLANET(7.0f, new String[] { "Lift-off", "Max-Q", "Stage separation", "Orbit insertion" }, 0xfff0c0, 0xff9a40,
+        PLANET(7.0f, new String[] { ContinuumText.str("phoenix_continuum.flight_profiles.lift_off"), ContinuumText.str("phoenix_continuum.flight_profiles.max_q"), ContinuumText.str("phoenix_continuum.flight_profiles.stage_separation"), ContinuumText.str("phoenix_continuum.flight_profiles.orbit_insertion") }, 0xfff0c0, 0xff9a40,
                 10.0f,
                 13.0f, 0, 0.0f, false),
-        GAS_GIANT(8.5f, new String[] { "Lift-off", "Max-Q", "Stage separation", "Slingshot burn" }, 0xfff0c0, 0xff7030,
+        GAS_GIANT(8.5f, new String[] { ContinuumText.str("phoenix_continuum.flight_profiles.lift_off"), ContinuumText.str("phoenix_continuum.flight_profiles.max_q"), ContinuumText.str("phoenix_continuum.flight_profiles.stage_separation"), ContinuumText.str("phoenix_continuum.flight_profiles.slingshot_burn") }, 0xfff0c0, 0xff7030,
                 8.0f, 14.0f, 0, 0.0f, false),
-        MOON(6.0f, new String[] { "Lift-off", "Max-Q", "Stage separation", "Transfer burn" }, 0xd0ecff, 0x80b8ff, 18.0f,
+        MOON(6.0f, new String[] { ContinuumText.str("phoenix_continuum.flight_profiles.lift_off"), ContinuumText.str("phoenix_continuum.flight_profiles.max_q"), ContinuumText.str("phoenix_continuum.flight_profiles.stage_separation"), ContinuumText.str("phoenix_continuum.flight_profiles.transfer_burn") }, 0xd0ecff, 0x80b8ff, 18.0f,
                 12.0f, 0, 0.0f, false),
-        STAR(8.0f, new String[] { "Lift-off", "Max-Q", "Stage separation", "Sun-shield deploy" }, 0xffffe0, 0xffd060,
+        STAR(8.0f, new String[] { ContinuumText.str("phoenix_continuum.flight_profiles.lift_off"), ContinuumText.str("phoenix_continuum.flight_profiles.max_q"), ContinuumText.str("phoenix_continuum.flight_profiles.stage_separation"), ContinuumText.str("phoenix_continuum.flight_profiles.sun_shield_deploy") }, 0xffffe0, 0xffd060,
                 5.0f,
                 14.0f, 0xffc070, 0.18f, false),
-        BLACK_HOLE(9.0f, new String[] { "Lift-off", "Max-Q", "Stage separation", "Shield check" }, 0xd0e0ff, 0x6a50ff,
+        BLACK_HOLE(9.0f, new String[] { ContinuumText.str("phoenix_continuum.flight_profiles.lift_off"), ContinuumText.str("phoenix_continuum.flight_profiles.max_q"), ContinuumText.str("phoenix_continuum.flight_profiles.stage_separation"), ContinuumText.str("phoenix_continuum.flight_profiles.shield_check") }, 0xd0e0ff, 0x6a50ff,
                 22.0f, 16.0f, 0x100828, 0.35f, true);
 
         public final float seconds;
@@ -60,21 +60,21 @@ public final class FlightProfiles {
 
     public enum Landing {
 
-        ENTRY("DESCENT", "TOUCHDOWN", 1.0f, 0.3f, 0xc8a070, false, 0, 0.0f, false, Touch.HARD),
+        ENTRY(ContinuumText.str("phoenix_continuum.flight_profiles.descent"), ContinuumText.str("phoenix_continuum.flight_profiles.touchdown"), 1.0f, 0.3f, 0xc8a070, false, 0, 0.0f, false, Touch.HARD),
 
-        POWERED("POWERED DESCENT", "TOUCHDOWN", 0.0f, 1.0f, 0x9a9a9a, false, 0, 0.0f, false, Touch.DUST),
+        POWERED(ContinuumText.str("phoenix_continuum.flight_profiles.powered_descent"), ContinuumText.str("phoenix_continuum.flight_profiles.touchdown"), 0.0f, 1.0f, 0x9a9a9a, false, 0, 0.0f, false, Touch.DUST),
 
-        LUNAR("LOW-GRAVITY LANDING", "TOUCHDOWN", 0.0f, 0.8f, 0xb0b0b8, false, 0, 0.0f, false, Touch.DUST),
+        LUNAR(ContinuumText.str("phoenix_continuum.flight_profiles.low_gravity_landing"), ContinuumText.str("phoenix_continuum.flight_profiles.touchdown"), 0.0f, 0.8f, 0xb0b0b8, false, 0, 0.0f, false, Touch.DUST),
 
-        SPLASHDOWN("DESCENT", "SPLASHDOWN", 0.8f, 0.5f, 0xcfe8ff, true, 0, 0.0f, false, Touch.SPLASH),
+        SPLASHDOWN(ContinuumText.str("phoenix_continuum.flight_profiles.descent"), ContinuumText.str("phoenix_continuum.flight_profiles.splashdown"), 0.8f, 0.5f, 0xcfe8ff, true, 0, 0.0f, false, Touch.SPLASH),
 
-        ICE("DESCENT", "TOUCHDOWN", 0.8f, 0.5f, 0xeaf6ff, false, 0, 0.0f, false, Touch.ICE),
+        ICE(ContinuumText.str("phoenix_continuum.flight_profiles.descent"), ContinuumText.str("phoenix_continuum.flight_profiles.touchdown"), 0.8f, 0.5f, 0xeaf6ff, false, 0, 0.0f, false, Touch.ICE),
 
-        AEROCAPTURE("AEROBRAKING", "AEROCAPTURE COMPLETE", 1.2f, 0.0f, 0, false, 0x6090ff, 0.10f, false, Touch.NONE),
+        AEROCAPTURE(ContinuumText.str("phoenix_continuum.flight_profiles.aerobraking"), ContinuumText.str("phoenix_continuum.flight_profiles.aerocapture_complete"), 1.2f, 0.0f, 0, false, 0x6090ff, 0.10f, false, Touch.NONE),
 
-        SOLAR("SOLAR APPROACH", "ORBIT ACHIEVED", 0.0f, 0.0f, 0, false, 0xffb060, 0.18f, false, Touch.NONE),
+        SOLAR(ContinuumText.str("phoenix_continuum.flight_profiles.solar_approach"), ContinuumText.str("phoenix_continuum.flight_profiles.orbit_achieved"), 0.0f, 0.0f, 0, false, 0xffb060, 0.18f, false, Touch.NONE),
 
-        HORIZON("HORIZON APPROACH", "ORBIT ACHIEVED", 0.0f, 0.0f, 0, false, 0x100828, 0.30f, true, Touch.NONE);
+        HORIZON(ContinuumText.str("phoenix_continuum.flight_profiles.horizon_approach"), ContinuumText.str("phoenix_continuum.flight_profiles.orbit_achieved"), 0.0f, 0.0f, 0, false, 0x100828, 0.30f, true, Touch.NONE);
 
         public enum Touch {
             NONE,

@@ -63,7 +63,7 @@ public final class ContinuumSchedules extends SavedData {
     public @Nullable String add(Schedule schedule) {
         var cfg = ContinuumConfigs.INSTANCE;
         if (atPad(schedule.padDimension, schedule.padPos).size() >= cfg.maxSchedulesPerPad) {
-            return "This pad already holds " + cfg.maxSchedulesPerPad + " schedules.";
+            return ContinuumLang.enc("phoenix_continuum.continuum_schedules.pad_full", cfg.maxSchedulesPerPad);
         }
         schedule.intervalMillis = schedule.intervalMillis <= 0 ? 0 :
                 Math.max(cfg.minScheduleIntervalSeconds * 1000L, schedule.intervalMillis);
@@ -105,12 +105,12 @@ public final class ContinuumSchedules extends SavedData {
 
         ContinuumBody body = ContinuumData.body(schedule.destination);
         if (body == null) {
-            stop(server, schedule, "its destination no longer exists.");
+            stop(server, schedule, ContinuumLang.enc("phoenix_continuum.continuum_schedules.stop_destination"));
             return;
         }
         LaunchComplex complex = LaunchSites.at(level, pad);
         if (complex == null) {
-            stop(server, schedule, "its launch pad is gone.");
+            stop(server, schedule, ContinuumLang.enc("phoenix_continuum.continuum_schedules.stop_pad"));
             return;
         }
 

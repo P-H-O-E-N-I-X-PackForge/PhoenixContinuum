@@ -39,7 +39,7 @@ public final class ScheduleService {
             buf.writeBoolean(autoCollect);
             buf.writeBoolean(enabled);
             buf.writeLong(nextFire);
-            buf.writeUtf(failure, 256);
+            buf.writeUtf(failure, 1024);
             buf.writeUtf(expedition, 32);
             buf.writeVarInt(crew);
         }
@@ -48,16 +48,16 @@ public final class ScheduleService {
             return new View(buf.readUUID(), buf.readResourceLocation(),
                     Mission.Type.values()[Math.max(0, Math.min(buf.readByte(), Mission.Type.values().length - 1))],
                     buf.readVarInt(), buf.readVarInt(), buf.readVarLong(), buf.readVarInt(), buf.readVarInt(),
-                    buf.readBoolean(), buf.readBoolean(), buf.readLong(), buf.readUtf(256), buf.readUtf(32),
+                    buf.readBoolean(), buf.readBoolean(), buf.readLong(), buf.readUtf(1024), buf.readUtf(32),
                     buf.readVarInt());
         }
     }
 
     private static @Nullable String reach(ServerPlayer player, BlockPos pad) {
         Level level = player.level();
-        if (!level.isLoaded(pad) || LaunchSites.at(level, pad) == null) return "There is no launch pad there.";
+        if (!level.isLoaded(pad) || LaunchSites.at(level, pad) == null) return ContinuumLang.enc("phoenix_continuum.continuum_missions.no_pad");
         double range = ContinuumConfigs.INSTANCE.launchRangeBlocks;
-        if (player.distanceToSqr(Vec3.atCenterOf(pad)) > range * range) return "You are too far from the launch pad.";
+        if (player.distanceToSqr(Vec3.atCenterOf(pad)) > range * range) return ContinuumLang.enc("phoenix_continuum.continuum_missions.too_far_pad");
         return null;
     }
 
@@ -80,11 +80,11 @@ public final class ScheduleService {
         String problem = reach(player, pad);
         if (problem != null) return problem;
         ContinuumBody body = ContinuumData.body(destination);
-        if (body == null) return "That destination does not exist.";
+        if (body == null) return ContinuumLang.enc("phoenix_continuum.continuum_missions.no_destination");
         UUID team = ContinuumHost.teamOf(player.getUUID());
         var data = ContinuumTeamData.get(player.server);
         if (data.effectiveStage(player.server, team, destination) == DiscoveryStage.UNKNOWN) {
-            return "That signal has not been resolved yet.";
+            return ContinuumLang.enc("phoenix_continuum.continuum_missions.unresolved");
         }
         Schedule schedule = new Schedule(UUID.randomUUID(), team, player.getUUID(),
                 player.getGameProfile().getName(), ContinuumSchedules.dimensionOf(player.level()), pad.asLong(),
@@ -116,7 +116,7 @@ public final class ScheduleService {
         String problem = reach(player, pad);
         if (problem != null) return problem;
         Schedule schedule = own(player, pad, id);
-        if (schedule == null) return "That schedule is gone.";
+        if (schedule == null) return ContinuumLang.enc("phoenix_continuum.schedule_service.schedule_gone");
         schedule.enabled = !schedule.enabled;
         if (schedule.enabled) {
             
@@ -131,7 +131,7 @@ public final class ScheduleService {
     public static @Nullable String delete(ServerPlayer player, BlockPos pad, UUID id) {
         String problem = reach(player, pad);
         if (problem != null) return problem;
-        if (own(player, pad, id) == null) return "That schedule is gone.";
+        if (own(player, pad, id) == null) return ContinuumLang.enc("phoenix_continuum.schedule_service.schedule_gone");
         ContinuumSchedules.get(player.server).remove(id);
         return null;
     }

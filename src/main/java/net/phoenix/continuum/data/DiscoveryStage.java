@@ -11,8 +11,8 @@ public enum DiscoveryStage {
     SURVEYED;
 
     public String label() {
-        String name = name();
-        return name.charAt(0) + name.substring(1).toLowerCase(Locale.ROOT);
+        return net.phoenix.continuum.common.ContinuumLang.text("phoenix_continuum.discovery_stage." +
+                name().toLowerCase(Locale.ROOT));
     }
 
     public DiscoveryStage next() {

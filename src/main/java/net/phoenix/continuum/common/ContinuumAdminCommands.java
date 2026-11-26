@@ -69,8 +69,8 @@ final class ContinuumAdminCommands {
         UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         ContinuumTeamData.get(source.getServer()).setVisibilityOverride(team, id, visible);
         ContinuumServerEvents.onDataReloaded();
-        source.sendSuccess(() -> Component.literal(visible == null ? "Cleared the override on " + id :
-                (visible ? "Showing " : "Hiding ") + id + " for your team."), true);
+        source.sendSuccess(() -> visible == null ? ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.override_cleared", id) :
+                ContinuumLang.tr(visible ? "phoenix_continuum.continuum_admin_commands.override_showing" : "phoenix_continuum.continuum_admin_commands.override_hiding", id), true);
         return 1;
     }
 
@@ -121,9 +121,7 @@ final class ContinuumAdminCommands {
             return 0;
         }
         boolean done = net.phoenix.continuum.pdim.PdimRuntime.unload(source.getServer(), body);
-        source.sendSuccess(() -> Component.literal(done ? "Unloaded the dimension of " + body +
-                "; the next visit makes it again from its current spec (what was built stays)." :
-                body + " has no loaded dimension."), true);
+        source.sendSuccess(() -> ContinuumLang.tr(done ? "phoenix_continuum.continuum_admin_commands.unloaded" : "phoenix_continuum.continuum_admin_commands.not_loaded", body.toString()), true);
         return done ? 1 : 0;
     }
 
@@ -168,9 +166,8 @@ final class ContinuumAdminCommands {
             return 0;
         }
         int count = written;
-        source.sendSuccess(() -> Component.literal(count == 0 ? "Every body already has a personal dimension." :
-                "Wrote " + count + " personal dimension file(s) to " + root + ". Restart the server to enable them."),
-                false);
+        source.sendSuccess(() -> count == 0 ? ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.all_have_dimensions") :
+                ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.wrote_dimensions", count, root.toString()), false);
         return written;
     }
 
@@ -633,15 +630,14 @@ final class ContinuumAdminCommands {
         UUID team = team(source);
         boolean changed = grant ? net.phoenix.continuum.api.ContinuumAPI.grantResearch(team, node.toString()) :
                 net.phoenix.continuum.api.ContinuumAPI.revokeResearch(team, node.toString());
-        source.sendSuccess(() -> Component.literal(changed ? (grant ? "Unlocked " : "Removed ") + node :
-                "Nothing changed for " + node), false);
+        source.sendSuccess(() -> ContinuumLang.tr(changed ? (grant ? "phoenix_continuum.continuum_admin_commands.research_unlocked" : "phoenix_continuum.continuum_admin_commands.research_removed") : "phoenix_continuum.continuum_admin_commands.research_unchanged", node.toString()), false);
         return changed ? 1 : 0;
     }
 
     private static int listResearch(CommandSourceStack source) throws CommandSyntaxException {
         var nodes = net.phoenix.continuum.common.BuiltinResearch.get(source.getServer()).unlockedOf(team(source));
-        source.sendSuccess(() -> Component.literal(nodes.isEmpty() ? "No research unlocked." :
-                "Unlocked: " + nodes.stream().map(ResourceLocation::toString).collect(
+        source.sendSuccess(() -> nodes.isEmpty() ? ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.no_research") :
+                ContinuumLang.tr("phoenix_continuum.continuum_admin_commands.research_list", nodes.stream().map(ResourceLocation::toString).collect(
                         java.util.stream.Collectors.joining(", "))), false);
         return nodes.size();
     }
@@ -753,7 +749,7 @@ final class ContinuumAdminCommands {
                     s.ownerName + " at " + s.padDimension + " " + net.minecraft.core.BlockPos.of(s.padPos).toShortString() +
                     "  " + (s.intervalMillis <= 0 ? "single" : "every " + s.intervalMillis / 1000L + "s") + ", " +
                     s.runs + (s.cap > 0 ? "/" + s.cap : "") + " runs, " + (s.enabled ? "on" : "off") +
-                    (s.lastFailure.isEmpty() ? "" : ", waiting: " + s.lastFailure);
+                    (s.lastFailure.isEmpty() ? "" : ", waiting: " + ContinuumLang.plain(s.lastFailure));
             source.sendSuccess(() -> Component.literal(line), false);
         }
         return all.size();
@@ -872,8 +868,7 @@ final class ContinuumAdminCommands {
         data.setDirty();
         ContinuumServerEvents.engageTeam(source.getServer(), team);
         int changed = count;
-        source.sendSuccess(() -> Component.literal((damage ? "Damaged " : "Repaired ") + changed + " outpost(s)."),
-                false);
+        source.sendSuccess(() -> ContinuumLang.tr(damage ? "phoenix_continuum.continuum_admin_commands.outposts_damaged" : "phoenix_continuum.continuum_admin_commands.outposts_repaired", changed), false);
         return count;
     }
 

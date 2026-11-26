@@ -63,8 +63,9 @@ public final class LaunchWindows {
                 driftRate * days;                                       
         double alignment = Math.cos(relative);
         double factor = 1.0 + strength * (1.0 - (alignment + 1.0));         
-        String label = factor < 1.0 - 0.6 * strength ? "Prime" : factor < 1.0 - 0.15 * strength ? "Good" :
-                factor < 1.0 + 0.5 * strength ? "Fair" : "Poor";
+        String label = factor < 1.0 - 0.6 * strength ? ContinuumLang.text("phoenix_continuum.launch_windows.prime") :
+                factor < 1.0 - 0.15 * strength ? ContinuumLang.text("phoenix_continuum.launch_windows.good") :
+                factor < 1.0 + 0.5 * strength ? ContinuumLang.text("phoenix_continuum.launch_windows.fair") : ContinuumLang.text("phoenix_continuum.launch_windows.poor");
 
         double rate = driftRate;
         long changes = 0L;

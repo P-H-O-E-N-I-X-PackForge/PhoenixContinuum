@@ -30,8 +30,8 @@ import java.util.Random;
 @OnlyIn(Dist.CLIENT)
 public final class ContinuumCreateScreen extends ContinuumFitScreen {
 
-    private static final String[] KINDS = { "Planet", "Gas giant", "Moon", "Black hole" };
-    private static final String HINT = "A new body inherits the one you start from; edit it afterwards in the tuner.";
+    private static final String[] KINDS = { ContinuumText.str("phoenix_continuum.continuum_create_screen.planet"), ContinuumText.str("phoenix_continuum.continuum_create_screen.gas_giant"), ContinuumText.str("phoenix_continuum.continuum_create_screen.moon"), ContinuumText.str("phoenix_continuum.continuum_create_screen.black_hole") };
+    private static final String HINT = ContinuumText.str("phoenix_continuum.continuum_create_screen.a_new_body_inherits_the_one");
     private static final int LINE = 10;
 
     private final Screen parent;
@@ -156,18 +156,18 @@ public final class ContinuumCreateScreen extends ContinuumFitScreen {
 
     private void refreshLabels() {
         ContinuumSystem sys = currentSystem();
-        Component systemLabel = ContinuumLang.tr("phoenix_continuum.continuum_create_screen.system", (sys == null ? "none" : sys.name()));
+        Component systemLabel = ContinuumLang.tr("phoenix_continuum.continuum_create_screen.system", (sys == null ? ContinuumText.str("phoenix_continuum.continuum_create_screen.none") : sys.name()));
         systemButton.setMessage(systemLabel);
         systemButton.setTooltip(Tooltip.create(systemLabel));
         kindButton.setMessage(ContinuumLang.tr("phoenix_continuum.continuum_create_screen.kind", KINDS[kindIndex]));
         ContinuumBody orbit = orbited();
         parentButton.active = isMoon();
-        Component parentLabel = Component.literal(isMoon() ? ContinuumText.str("phoenix_continuum.continuum_create.orbits", (orbit == null ? "no planet in this system" :
+        Component parentLabel = Component.literal(isMoon() ? ContinuumText.str("phoenix_continuum.continuum_create.orbits", (orbit == null ? ContinuumText.str("phoenix_continuum.continuum_create_screen.no_planet") :
                 orbit.name())) : ContinuumText.str("phoenix_continuum.continuum_create.orbits_the_star"));
         parentButton.setMessage(parentLabel);
         parentButton.setTooltip(Tooltip.create(parentLabel));
         ContinuumBody template = template();
-        Component templateLabel = ContinuumLang.tr("phoenix_continuum.continuum_create_screen.start_from", (template == null ? "nothing" :
+        Component templateLabel = ContinuumLang.tr("phoenix_continuum.continuum_create_screen.start_from", (template == null ? ContinuumText.str("phoenix_continuum.continuum_create_screen.nothing") :
                 template.name() + " (" + template.id().getPath() + ")"));
         templateButton.setMessage(templateLabel);
         templateButton.setTooltip(Tooltip.create(templateLabel));
@@ -208,7 +208,7 @@ public final class ContinuumCreateScreen extends ContinuumFitScreen {
     private void submit() {
         String display = name.getValue().trim();
         if (display.isEmpty()) {
-            error = "Give it a name.";
+            error = ContinuumText.str("phoenix_continuum.continuum_create_screen.give_it_a_name");
             return;
         }
         ResourceLocation id = freshId(display);
@@ -217,13 +217,13 @@ public final class ContinuumCreateScreen extends ContinuumFitScreen {
 
         ContinuumSystem sys = currentSystem();
         if (sys == null) {
-            error = "There is no system to put it in.";
+            error = ContinuumText.str("phoenix_continuum.continuum_create_screen.there_is_no_system_to_put");
             return;
         }
         ContinuumBody template = template();
         ContinuumBody parentBody = isMoon() ? orbited() : null;
         if (isMoon() && parentBody == null) {
-            error = "A moon needs a planet to orbit in that system.";
+            error = ContinuumText.str("phoenix_continuum.continuum_create_screen.a_moon_needs_a_planet_to");
             return;
         }
         if (template != null) def.addProperty("inherits", template.id().toString());

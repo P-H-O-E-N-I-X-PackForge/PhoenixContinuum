@@ -24,7 +24,7 @@ public enum MissionEvent {
     public final String id;
     public final boolean bad;
     public final int weight;
-    public final String text;
+    private final String english;
 
     public final boolean anomaly;
 
@@ -36,8 +36,12 @@ public enum MissionEvent {
         this.id = id;
         this.bad = bad;
         this.weight = weight;
-        this.text = text;
+        this.english = text;
         this.anomaly = anomaly;
+    }
+
+    public String text() {
+        return ContinuumLang.text("phoenix_continuum.mission_event." + id);
     }
 
     public boolean appliesTo(Mission.Type type, int payload) {

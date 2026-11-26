@@ -20,13 +20,13 @@ public record SwarmReport(String title, String unit, long stored, long capacity,
     }
 
     public void write(FriendlyByteBuf buf) {
-        buf.writeUtf(title, 64);
+        buf.writeUtf(title, 256);
         buf.writeUtf(unit, 8);
         buf.writeVarLong(stored);
         buf.writeVarLong(capacity);
         buf.writeVarLong(maxOut);
         buf.writeVarLong(teamPerTick);
-        buf.writeUtf(note, 256);
+        buf.writeUtf(note, 1024);
         buf.writeVarInt(entries.size());
         for (Swarms.Entry entry : entries) {
             buf.writeResourceLocation(entry.body());
@@ -39,13 +39,13 @@ public record SwarmReport(String title, String unit, long stored, long capacity,
     }
 
     public static SwarmReport read(FriendlyByteBuf buf) {
-        String title = buf.readUtf(64);
+        String title = buf.readUtf(256);
         String unit = buf.readUtf(8);
         long stored = buf.readVarLong();
         long capacity = buf.readVarLong();
         long maxOut = buf.readVarLong();
         long teamPerTick = buf.readVarLong();
-        String note = buf.readUtf(256);
+        String note = buf.readUtf(1024);
         int count = buf.readVarInt();
         List<Swarms.Entry> entries = new ArrayList<>();
         for (int i = 0; i < count; i++) {

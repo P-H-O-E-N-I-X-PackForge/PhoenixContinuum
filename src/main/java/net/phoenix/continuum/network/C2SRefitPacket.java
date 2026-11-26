@@ -47,7 +47,7 @@ public class C2SRefitPacket implements CustomPacketPayload {
             if (player == null || !net.phoenix.continuum.common.ContinuumGates.check(player, net.phoenix.continuum.common.ContinuumGates.SWARMS)) return;
             if (player == null) return;
             String error = RocketRefit.apply(player, msg.action, msg.key);
-            if (error != null) player.displayClientMessage(Component.literal(error), true);
+            if (error != null) player.displayClientMessage(net.phoenix.continuum.common.ContinuumLang.component(error), true);
         });
     }
 }

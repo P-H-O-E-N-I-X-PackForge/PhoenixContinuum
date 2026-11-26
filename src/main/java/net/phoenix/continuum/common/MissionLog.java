@@ -49,13 +49,13 @@ public final class MissionLog {
             buf.writeLong(time);
             buf.writeByte(kind.ordinal());
             buf.writeResourceLocation(body);
-            buf.writeUtf(text, 300);
+            buf.writeUtf(text, 1024);
         }
 
         public static Entry read(FriendlyByteBuf buf) {
             long time = buf.readLong();
             int ordinal = Math.max(0, Math.min(buf.readByte(), Kind.values().length - 1));
-            return new Entry(time, Kind.values()[ordinal], buf.readResourceLocation(), buf.readUtf(300));
+            return new Entry(time, Kind.values()[ordinal], buf.readResourceLocation(), buf.readUtf(1024));
         }
     }
 }

@@ -9,7 +9,7 @@ import java.util.Locale;
 
 public final class PadTiers {
 
-    private static final String[] BASIC_NAMES = { "Basic", "Reinforced", "Advanced", "Superior", "Apex" };
+    private static final String[] BASIC_NAMES = { "basic", "reinforced", "advanced", "superior", "apex" };
 
     public static final int BASIC_MAX_TIER = BASIC_NAMES.length - 1;
 
@@ -41,7 +41,7 @@ public final class PadTiers {
     }
 
     public static String name(int tier) {
-        if (basic()) return BASIC_NAMES[Math.max(0, Math.min(tier, BASIC_MAX_TIER))];
+        if (basic()) return net.phoenix.continuum.common.ContinuumLang.text("phoenix_continuum.pad_tier." + BASIC_NAMES[Math.max(0, Math.min(tier, BASIC_MAX_TIER))]);
         return ContinuumGt.tierName(tier);
     }
 

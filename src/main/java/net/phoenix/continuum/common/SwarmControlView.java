@@ -35,7 +35,7 @@ public record SwarmControlView(BlockPos control, ResourceLocation target, List<C
             buf.writeVarInt(c.shell());
             buf.writeVarInt(c.shellMax());
         }
-        buf.writeUtf(padName, 64);
+        buf.writeUtf(padName, 256);
         buf.writeBoolean(padFound);
         buf.writeBoolean(online);
         buf.writeVarLong(energyStored);
@@ -48,7 +48,7 @@ public record SwarmControlView(BlockPos control, ResourceLocation target, List<C
         buf.writeVarLong(powerNow);
         buf.writeVarLong(powerDone);
         buf.writeUtf(unit, 8);
-        buf.writeUtf(note, 256);
+        buf.writeUtf(note, 1024);
         buf.writeFloat(scale);
     }
 
@@ -61,9 +61,9 @@ public record SwarmControlView(BlockPos control, ResourceLocation target, List<C
             candidates.add(new Candidate(buf.readResourceLocation(), buf.readUtf(64), buf.readBoolean(),
                     buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt()));
         }
-        return new SwarmControlView(control, target, candidates, buf.readUtf(64), buf.readBoolean(),
+        return new SwarmControlView(control, target, candidates, buf.readUtf(256), buf.readBoolean(),
                 buf.readBoolean(), buf.readVarLong(), buf.readVarLong(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
                 buf.readVarInt(), buf.readVarInt(), buf.readVarLong(), buf.readVarLong(), buf.readUtf(8),
-                buf.readUtf(256), buf.readFloat());
+                buf.readUtf(1024), buf.readFloat());
     }
 }

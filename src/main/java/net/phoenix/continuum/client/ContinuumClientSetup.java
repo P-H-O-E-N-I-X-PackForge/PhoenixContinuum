@@ -22,6 +22,7 @@ public final class ContinuumClientSetup {
     public static void init(IEventBus modBus) {
         modBus.addListener(ContinuumShaders::onRegisterShaders);
         modBus.addListener(ContinuumClientSetup::onClientSetup);
+        modBus.addListener(ContinuumKeys::register);
     }
 
     private static void onClientSetup(FMLClientSetupEvent event) {

@@ -43,16 +43,20 @@ public final class Mission {
 
         SHELL;
 
+        public String labelKey() {
+            return "phoenix_continuum.mission.type_" + name().toLowerCase(java.util.Locale.ROOT);
+        }
+
         public String label() {
             return switch (this) {
-                case SURVEY -> "Survey";
-                case EXTRACT -> "Extraction run";
-                case DEPLOY -> "Outpost deployment";
-                case HAUL -> "Outpost haul";
-                case REPAIR -> "Outpost repair run";
-                case RESCUE -> "Rescue run";
-                case STATION -> "Station construction";
-                case SHELL -> "Shell construction";
+                case SURVEY -> ContinuumLang.text("phoenix_continuum.mission.type_survey");
+                case EXTRACT -> ContinuumLang.text("phoenix_continuum.mission.type_extract");
+                case DEPLOY -> ContinuumLang.text("phoenix_continuum.mission.type_deploy");
+                case HAUL -> ContinuumLang.text("phoenix_continuum.mission.type_haul");
+                case REPAIR -> ContinuumLang.text("phoenix_continuum.mission.type_repair");
+                case RESCUE -> ContinuumLang.text("phoenix_continuum.mission.type_rescue");
+                case STATION -> ContinuumLang.text("phoenix_continuum.mission.type_station");
+                case SHELL -> ContinuumLang.text("phoenix_continuum.mission.type_shell");
             };
         }
     }

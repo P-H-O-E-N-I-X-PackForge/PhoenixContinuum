@@ -170,44 +170,44 @@ public final class ContinuumTunerScreen extends Screen {
         JsonObject json = ContinuumTuner.merged(body.id());
 
         if (body.type() == ContinuumBody.Type.BLACK_HOLE) {
-            fields.add(new Field("hole_tilt", "Disk tilt (map view)  0 edge-on, 1 face-on", Kind.NUMBER, 0, 1, 0.1, 0.075));
-            fields.add(new Field("sky_hole_inclination", "Disk inclination (sky), degrees", Kind.NUMBER, 0, 90, 5, 45.0));
-            fields.add(new Field("sky_hole_lean", "Disk lean (sky), degrees", Kind.NUMBER, -90, 90, 5, 15.0));
-            addHeader("A black hole's look and size belong to its system.");
+            fields.add(new Field("hole_tilt", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.disk_tilt_map_view_0_edge"), Kind.NUMBER, 0, 1, 0.1, 0.075));
+            fields.add(new Field("sky_hole_inclination", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.disk_inclination_sky_degrees"), Kind.NUMBER, 0, 90, 5, 45.0));
+            fields.add(new Field("sky_hole_lean", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.disk_lean_sky_degrees"), Kind.NUMBER, -90, 90, 5, 15.0));
+            addHeader(ContinuumText.str("phoenix_continuum.continuum_tuner_screen.a_black_hole_s_look_and"));
             addServerFields(json);
             return;
         }
         if (body.type() == ContinuumBody.Type.STAR && body.isCentral()) {
-            addHeader("This is the system's own star. Its kind, colour and size are the system's:");
+            addHeader(ContinuumText.str("phoenix_continuum.continuum_tuner_screen.this_is_the_system_s_own"));
             addServerFields(json);
             return;
         }
 
-        fields.add(new Field("radius", "Radius (Earth = 1)", Kind.NUMBER, 0.1, 200, 0.1, 1.0));
-        fields.add(new Field("gas_giant", "Gas giant", Kind.BOOL, 0, 1, 1, false));
-        fields.add(new Field("axial_tilt", "Axial tilt", Kind.NUMBER, -180, 180, 5, 0.0));
-        fields.add(new Field("spin_deg_per_sec", "Spin", Kind.NUMBER, -360, 360, 1, 4.0));
-        fields.add(new Field("cloud_spin_deg_per_sec", "Cloud spin", Kind.NUMBER, -360, 360, 1, 6.0));
-        fields.add(new Field("surface.seed", "Seed", Kind.NUMBER, 0, 999999, 1, 1.0));
-        fields.add(new Field("surface.scale", "Terrain scale", Kind.NUMBER, 0.1, 60, 0.25, 2.5));
-        fields.add(new Field("surface.bump", "Bumpiness", Kind.NUMBER, 0, 6, 0.1, 0.7));
-        fields.add(new Field("surface.ocean_level", "Ocean level", Kind.NUMBER, 0, 1, 0.05, 0.0));
-        fields.add(new Field("surface.polar_ice", "Polar ice", Kind.NUMBER, 0, 1, 0.05, 0.0));
-        fields.add(new Field("surface.cloud_cover", "Cloud cover", Kind.NUMBER, 0, 1, 0.05, 0.0));
-        fields.add(new Field("surface.low", "Low ground colour", Kind.COLOR, 0, 0, 0, "#444444"));
-        fields.add(new Field("surface.mid", "Mid ground colour", Kind.COLOR, 0, 0, 0, "#888888"));
-        fields.add(new Field("surface.high", "High ground colour", Kind.COLOR, 0, 0, 0, "#cccccc"));
-        fields.add(new Field("surface.ocean_deep", "Deep ocean colour", Kind.COLOR, 0, 0, 0, "#03123a"));
-        fields.add(new Field("surface.ocean_shallow", "Shallow ocean colour", Kind.COLOR, 0, 0, 0, "#1a6f8f"));
-        fields.add(new Field("atmosphere.color", "Atmosphere colour", Kind.COLOR, 0, 0, 0, "#6aa8ff"));
-        fields.add(new Field("atmosphere.density", "Atmosphere density", Kind.NUMBER, 0, 4, 0.05, 0.0));
+        fields.add(new Field("radius", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.radius_earth_1"), Kind.NUMBER, 0.1, 200, 0.1, 1.0));
+        fields.add(new Field("gas_giant", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.gas_giant"), Kind.BOOL, 0, 1, 1, false));
+        fields.add(new Field("axial_tilt", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.axial_tilt"), Kind.NUMBER, -180, 180, 5, 0.0));
+        fields.add(new Field("spin_deg_per_sec", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.spin"), Kind.NUMBER, -360, 360, 1, 4.0));
+        fields.add(new Field("cloud_spin_deg_per_sec", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.cloud_spin"), Kind.NUMBER, -360, 360, 1, 6.0));
+        fields.add(new Field("surface.seed", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.seed"), Kind.NUMBER, 0, 999999, 1, 1.0));
+        fields.add(new Field("surface.scale", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.terrain_scale"), Kind.NUMBER, 0.1, 60, 0.25, 2.5));
+        fields.add(new Field("surface.bump", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.bumpiness"), Kind.NUMBER, 0, 6, 0.1, 0.7));
+        fields.add(new Field("surface.ocean_level", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.ocean_level"), Kind.NUMBER, 0, 1, 0.05, 0.0));
+        fields.add(new Field("surface.polar_ice", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.polar_ice"), Kind.NUMBER, 0, 1, 0.05, 0.0));
+        fields.add(new Field("surface.cloud_cover", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.cloud_cover"), Kind.NUMBER, 0, 1, 0.05, 0.0));
+        fields.add(new Field("surface.low", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.low_ground_colour"), Kind.COLOR, 0, 0, 0, "#444444"));
+        fields.add(new Field("surface.mid", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.mid_ground_colour"), Kind.COLOR, 0, 0, 0, "#888888"));
+        fields.add(new Field("surface.high", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.high_ground_colour"), Kind.COLOR, 0, 0, 0, "#cccccc"));
+        fields.add(new Field("surface.ocean_deep", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.deep_ocean_colour"), Kind.COLOR, 0, 0, 0, "#03123a"));
+        fields.add(new Field("surface.ocean_shallow", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.shallow_ocean_colour"), Kind.COLOR, 0, 0, 0, "#1a6f8f"));
+        fields.add(new Field("atmosphere.color", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.atmosphere_colour"), Kind.COLOR, 0, 0, 0, "#6aa8ff"));
+        fields.add(new Field("atmosphere.density", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.atmosphere_density"), Kind.NUMBER, 0, 4, 0.05, 0.0));
         if (json.has("rings")) {
-            fields.add(new Field("rings.inner", "Ring inner radius", Kind.NUMBER, 1, 30, 0.1, 1.4));
-            fields.add(new Field("rings.outer", "Ring outer radius", Kind.NUMBER, 1, 60, 0.1, 2.4));
-            fields.add(new Field("rings.tilt", "Ring tilt", Kind.NUMBER, -90, 90, 5, 0.0));
-            fields.add(new Field("rings.opacity", "Ring opacity", Kind.NUMBER, 0, 1, 0.1, 0.85));
-            fields.add(new Field("rings.color", "Ring colour", Kind.COLOR, 0, 0, 0, "#d8c8a0"));
-            fields.add(new Field("rings.color2", "Ring colour 2", Kind.COLOR, 0, 0, 0, "#8a7a60"));
+            fields.add(new Field("rings.inner", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.ring_inner_radius"), Kind.NUMBER, 1, 30, 0.1, 1.4));
+            fields.add(new Field("rings.outer", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.ring_outer_radius"), Kind.NUMBER, 1, 60, 0.1, 2.4));
+            fields.add(new Field("rings.tilt", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.ring_tilt"), Kind.NUMBER, -90, 90, 5, 0.0));
+            fields.add(new Field("rings.opacity", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.ring_opacity"), Kind.NUMBER, 0, 1, 0.1, 0.85));
+            fields.add(new Field("rings.color", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.ring_colour"), Kind.COLOR, 0, 0, 0, "#d8c8a0"));
+            fields.add(new Field("rings.color2", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.ring_colour_2"), Kind.COLOR, 0, 0, 0, "#8a7a60"));
         }
         addServerFields(json);
     }
@@ -220,28 +220,28 @@ public final class ContinuumTunerScreen extends Screen {
     }
 
     private void addServerFields(JsonObject json) {
-        addHeader("Visual edits above are local. Push them to apply for everyone.");
-        fields.add(Field.button("push", "Push visual edits to the server"));
-        fields.add(Field.button("newbody", "New body in this system..."));
-        fields.add(Field.button("tunesystem", "Tune this system..."));
-        fields.add(Field.button("newsystem", "New system..."));
-        addHeader("Server (applies for everyone, saved in config/phoenix_continuum/tuning)");
-        fields.add(Field.server("name", "Name", Kind.TEXT, 0, 0, 0, ""));
-        fields.add(Field.server("description", "Description", Kind.TEXT, 0, 0, 0, ""));
-        fields.add(Field.server("lore.detected", "Lore (detected)", Kind.TEXT, 0, 0, 0, ""));
-        fields.add(Field.server("lore.surveyed", "Lore (surveyed)", Kind.TEXT, 0, 0, 0, ""));
-        fields.add(Field.server("trip_seconds", "Trip (seconds)", Kind.NUMBER, 1, 600000, 1, 600.0));
-        fields.add(Field.choice("initial_stage", "Starting stage", "unknown", "unknown", "detected", "surveyed"));
-        fields.add(Field.choice("gate.min_tier", "Rocket tier needed", "start", "start", "mid", "late", "endgame"));
-        fields.add(Field.server("orbit.radius_au", "Orbit radius (AU)", Kind.NUMBER, 0, 1000, 0.1, 1.0));
-        fields.add(Field.server("orbit.period_days", "Orbit period (days)", Kind.NUMBER, 1, 200000, 5, 100.0));
-        fields.add(Field.server("orbit.phase", "Orbit phase", Kind.NUMBER, 0, 1, 0.05, 0.0));
+        addHeader(ContinuumText.str("phoenix_continuum.continuum_tuner_screen.visual_edits_above_are_local_push"));
+        fields.add(Field.button("push", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.push_visual_edits_to_the_server")));
+        fields.add(Field.button("newbody", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.new_body_in_this_system")));
+        fields.add(Field.button("tunesystem", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.tune_this_system")));
+        fields.add(Field.button("newsystem", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.new_system")));
+        addHeader(ContinuumText.str("phoenix_continuum.continuum_tuner_screen.server_applies_for_everyone_saved_in"));
+        fields.add(Field.server("name", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.name"), Kind.TEXT, 0, 0, 0, ""));
+        fields.add(Field.server("description", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.description"), Kind.TEXT, 0, 0, 0, ""));
+        fields.add(Field.server("lore.detected", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.lore_detected"), Kind.TEXT, 0, 0, 0, ""));
+        fields.add(Field.server("lore.surveyed", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.lore_surveyed"), Kind.TEXT, 0, 0, 0, ""));
+        fields.add(Field.server("trip_seconds", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.trip_seconds"), Kind.NUMBER, 1, 600000, 1, 600.0));
+        fields.add(Field.choice("initial_stage", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.starting_stage"), "unknown", "unknown", "detected", "surveyed"));
+        fields.add(Field.choice("gate.min_tier", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.rocket_tier_needed"), "start", "start", "mid", "late", "endgame"));
+        fields.add(Field.server("orbit.radius_au", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.orbit_radius_au"), Kind.NUMBER, 0, 1000, 0.1, 1.0));
+        fields.add(Field.server("orbit.period_days", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.orbit_period_days"), Kind.NUMBER, 1, 200000, 5, 100.0));
+        fields.add(Field.server("orbit.phase", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.orbit_phase"), Kind.NUMBER, 0, 1, 0.05, 0.0));
         if (json.has("pdim_cost")) {
-            fields.add(Field.server("pdim_cost.item", "Personal dimension cost item", Kind.TEXT, 0, 0, 0,
+            fields.add(Field.server("pdim_cost.item", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.personal_dimension_cost_item"), Kind.TEXT, 0, 0, 0,
                     "minecraft:ender_pearl"));
-            fields.add(Field.server("pdim_cost.count", "Personal dimension cost count", Kind.NUMBER, 0, 4096, 1, 2.0));
+            fields.add(Field.server("pdim_cost.count", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.personal_dimension_cost_count"), Kind.NUMBER, 0, 4096, 1, 2.0));
         }
-        addHeader("Yields");
+        addHeader(ContinuumText.str("phoenix_continuum.continuum_tuner_screen.yields"));
         int count = json.has("yields") && json.get("yields").isJsonArray() ? json.getAsJsonArray("yields").size() : 0;
         for (int i = 0; i < count; i++) {
             fields.add(Field.server("yields." + i + ".item", "  #" + (i + 1) + " item", Kind.TEXT, 0, 0, 0,
@@ -251,8 +251,8 @@ public final class ContinuumTunerScreen extends Screen {
             fields.add(Field.server("yields." + i + ".chance", "  #" + (i + 1) + " chance", Kind.NUMBER, 0, 1, 0.1,
                     1.0));
         }
-        fields.add(Field.button("yield+", "Add a yield"));
-        if (count > 0) fields.add(Field.button("yield-", "Remove the last yield"));
+        fields.add(Field.button("yield+", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.add_a_yield")));
+        if (count > 0) fields.add(Field.button("yield-", ContinuumText.str("phoenix_continuum.continuum_tuner_screen.remove_the_last_yield")));
     }
 
     private JsonElement read(Field field) {
@@ -323,7 +323,7 @@ public final class ContinuumTunerScreen extends Screen {
         net.neoforged.neoforge.network.PacketDistributor.sendToServer(
                 new net.phoenix.continuum.network.C2STunePacket(body().id(), path,
                         value == null ? "" : value.toString()));
-        status = "Sent to the server.";
+        status = ContinuumText.str("phoenix_continuum.continuum_tuner_screen.sent_to_the_server");
     }
 
     private void sendServer(Field field, JsonElement value) {
@@ -362,14 +362,14 @@ public final class ContinuumTunerScreen extends Screen {
     private void pushVisual() {
         var leaves = ContinuumTuner.leaves(body().id());
         if (leaves.isEmpty()) {
-            status = "No visual edits to push.";
+            status = ContinuumText.str("phoenix_continuum.continuum_tuner_screen.no_visual_edits_to_push");
             return;
         }
         java.util.Map<String, JsonElement> sent = new java.util.LinkedHashMap<>(leaves);
         sent.forEach(this::send);
         
         ContinuumTuner.pushed(body().id(), sent);
-        status = "Pushed " + sent.size() + " edit(s).";
+        status = ContinuumText.str("phoenix_continuum.continuum_tuner_screen.pushed_n_edits", sent.size());
     }
 
     private void setNumber(Field field, double value) {
@@ -550,11 +550,11 @@ public final class ContinuumTunerScreen extends Screen {
             wrap(g, "Tune black holes in the system screen", px + 10, top() + 92, 180, 0xFF7F8A99, true);
         }
         int ay = top() + 218;
-        action(g, mx, my, px, ay, 200, "Export definition", "export");
-        action(g, mx, my, px, ay + 20, 200, "Reset local edits", "reset");
-        action(g, mx, my, px, ay + 40, 200, "Reset server edits", "resetServer");
-        action(g, mx, my, px, ay + 60, 200, "Sky view...", "sky");
-        action(g, mx, my, px, ay + 80, 200, "Close", "close");
+        action(g, mx, my, px, ay, 200, ContinuumText.str("phoenix_continuum.continuum_tuner_screen.export_definition"), "export");
+        action(g, mx, my, px, ay + 20, 200, ContinuumText.str("phoenix_continuum.continuum_tuner_screen.reset_local_edits"), "reset");
+        action(g, mx, my, px, ay + 40, 200, ContinuumText.str("phoenix_continuum.continuum_tuner_screen.reset_server_edits"), "resetServer");
+        action(g, mx, my, px, ay + 60, 200, ContinuumText.str("phoenix_continuum.continuum_tuner_screen.sky_view"), "sky");
+        action(g, mx, my, px, ay + 80, 200, ContinuumText.str("phoenix_continuum.continuum_tuner_screen.close"), "close");
         int noteEnd = wrap(g, "Visual edits: this client only until pushed. Gold rows go to the server and are saved as "
                 + "patches.", px, ay + 104, 200, 0xFF7F8A99, false);
         if (!status.isEmpty()) wrap(g, status, px, noteEnd + 6, 200, 0xFF66DDFF, false);
@@ -887,13 +887,13 @@ public final class ContinuumTunerScreen extends Screen {
                 ContinuumTuner.reset(body().id());
                 SurfaceMap.invalidate(body().id());
                 rebuildFields();
-                status = "Reset.";
+                status = ContinuumText.str("phoenix_continuum.continuum_tuner_screen.reset");
             }
             case "export" -> export();
             case "resetServer" -> {
                 net.neoforged.neoforge.network.PacketDistributor.sendToServer(
                         net.phoenix.continuum.network.C2STunePacket.reset(body().id()));
-                status = "Asked the server to remove its edits.";
+                status = ContinuumText.str("phoenix_continuum.continuum_tuner_screen.asked_the_server_to_remove_its");
             }
             default -> {}
         }
@@ -909,9 +909,9 @@ public final class ContinuumTunerScreen extends Screen {
             Files.createDirectories(file.getParent());
             Files.writeString(file, text);
             minecraft.keyboardHandler.setClipboard(text);
-            status = "Saved and copied: " + id.getPath() + ".json";
+            status = ContinuumText.str("phoenix_continuum.continuum_tuner_screen.saved_and_copied", id.getPath() + ".json");
         } catch (IOException e) {
-            status = "Could not write the file: " + e.getMessage();
+            status = ContinuumText.str("phoenix_continuum.continuum_tuner_screen.could_not_write", e.getMessage());
         }
     }
 

@@ -47,7 +47,7 @@ public class C2SInvestigatePacket implements CustomPacketPayload {
             if (player == null || !net.phoenix.continuum.common.ContinuumGates.check(player, net.phoenix.continuum.common.ContinuumGates.ANOMALIES)) return;
             if (player == null) return;
             String error = AnomalyActions.investigate(player, msg.body, msg.anomaly);
-            if (error != null) player.sendSystemMessage(Component.literal(error).withStyle(ChatFormatting.RED));
+            if (error != null) player.sendSystemMessage(net.phoenix.continuum.common.ContinuumLang.component(error).withStyle(ChatFormatting.RED));
         });
     }
 }

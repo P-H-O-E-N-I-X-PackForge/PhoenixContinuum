@@ -80,7 +80,7 @@ public final class RocketRefit {
                 .getItem() instanceof ContinuumRocketItem ?
                         InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
         ItemStack rocket = heldRocket(player);
-        if (rocket.isEmpty()) return "Hold a Continuum Rocket to refit it.";
+        if (rocket.isEmpty()) return ContinuumLang.enc("phoenix_continuum.rocket_refit.hold_rocket");
 
         ItemStack original = rocket;
         rocket = original.copy();
@@ -99,45 +99,44 @@ public final class RocketRefit {
             case TIER_UP -> {
                 int next = RocketStats.tier(rocket) + 1;
                 Item kit = refitKit(next);
-                if (kit == null) return "That hull cannot be refitted any further.";
+                if (kit == null) return ContinuumLang.enc("phoenix_continuum.rocket_refit.no_refit");
                 if (!player.getAbilities().instabuild && count(player, kit) <= 0) {
-                    return "You need a " + kit.getDescription().getString() + ".";
+                    return ContinuumLang.enc("phoenix_continuum.rocket_refit.need_item", kit.getDescription().getString());
                 }
                 take(player, kit);
                 RocketStats.setTier(rocket, next);
-                done(player, "Hull refitted to " + RocketStats.tierName(next) + ".");
+                done(player, ContinuumLang.tr("phoenix_continuum.rocket_refit.hull_refitted", RocketStats.tierName(next)));
             }
             case FIT -> {
                 Item module = module(key);
-                if (module == null) return "Unknown module.";
+                if (module == null) return ContinuumLang.enc("phoenix_continuum.rocket_refit.unknown_module");
                 int tier = RocketStats.tier(rocket);
                 int cap = RocketStats.upgradeCap(tier, key);
                 int current = RocketStats.level(rocket, key);
-                if (cap <= 0) return "This hull is too light to carry that module. Refit it to a higher tier.";
-                if (current >= cap) return "This hull cannot carry any more of that module at " +
-                        RocketStats.tierName(tier) + ".";
+                if (cap <= 0) return ContinuumLang.enc("phoenix_continuum.rocket_refit.too_light");
+                if (current >= cap) return ContinuumLang.enc("phoenix_continuum.rocket_refit.no_more_modules", RocketStats.tierName(tier));
                 if (!player.getAbilities().instabuild && count(player, module) <= 0) {
-                    return "You need a " + module.getDescription().getString() + ".";
+                    return ContinuumLang.enc("phoenix_continuum.rocket_refit.need_item", module.getDescription().getString());
                 }
                 take(player, module);
                 RocketStats.setLevel(rocket, key, current + 1);
-                done(player, module.getDescription().getString() + " fitted (level " + (current + 1) + ").");
+                done(player, ContinuumLang.tr("phoenix_continuum.rocket_refit.module_fitted", module.getDescription().getString(), current + 1));
             }
             case REPAIR -> {
                 float wear = RocketStats.wear(rocket);
-                if (wear <= 0.0f) return "The rocket is in perfect condition.";
+                if (wear <= 0.0f) return ContinuumLang.enc("phoenix_continuum.rocket_refit.perfect");
                 Item kit = ContinuumRegistry.REPAIR_KIT.get();
-                if (!player.getAbilities().instabuild && count(player, kit) <= 0) return "You need a repair kit.";
+                if (!player.getAbilities().instabuild && count(player, kit) <= 0) return ContinuumLang.enc("phoenix_continuum.rocket_refit.need_kit");
                 take(player, kit);
                 RocketStats.setWear(rocket, wear - (float) ContinuumConfigs.INSTANCE.repairKitWear);
-                done(player, "Rocket wear is now " + Math.round(RocketStats.wear(rocket) * 100.0f) + "%.");
+                done(player, ContinuumLang.tr("phoenix_continuum.rocket_refit.wear_now", Math.round(RocketStats.wear(rocket) * 100.0f)));
             }
         }
         return null;
     }
 
-    private static void done(ServerPlayer player, String message) {
+    private static void done(ServerPlayer player, Component message) {
         player.level().playSound(null, player.blockPosition(), SoundEvents.ANVIL_USE, SoundSource.PLAYERS, 0.6f, 1.4f);
-        player.displayClientMessage(Component.literal(message).withStyle(ChatFormatting.GREEN), true);
+        player.displayClientMessage(message.copy().withStyle(ChatFormatting.GREEN), true);
     }
 }

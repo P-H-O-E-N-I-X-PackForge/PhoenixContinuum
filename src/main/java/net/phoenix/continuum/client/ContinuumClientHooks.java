@@ -88,7 +88,7 @@ public final class ContinuumClientHooks {
     public static void outpostDamaged(ResourceLocation body) {
         ContinuumBody target = ContinuumData.body(body);
         String name = target != null ? target.name() : body.getPath();
-        String message = "The outpost on " + name + " is damaged. Fly a repair run.";
+        String message = ContinuumText.str("phoenix_continuum.continuum_client_hooks.outpost_damaged", name);
         ContinuumSounds.warning();
 
         Minecraft mc = Minecraft.getInstance();
@@ -104,8 +104,7 @@ public final class ContinuumClientHooks {
         if (body == null || body.lore(stage).isEmpty()) return;
 
         Minecraft mc = Minecraft.getInstance();
-        String message = "Archive updated: " + body.name() + " (" + stage.label().toLowerCase(java.util.Locale.ROOT) +
-                ")";
+        String message = ContinuumText.str("phoenix_continuum.continuum_client_hooks.archive_updated", body.name(), stage.label().toLowerCase(java.util.Locale.ROOT));
         ContinuumSounds.entry();
         if (mc.screen instanceof ContinuumMapScreen map) {
             map.flashMessage(message);
@@ -121,10 +120,11 @@ public final class ContinuumClientHooks {
             return;
         }
 
+        Component shown = net.phoenix.continuum.common.ContinuumLang.component(message);
         if (mc.screen instanceof ContinuumMapScreen map) {
-            map.flashMessage(message);
+            map.flashMessage(shown.getString());
         } else if (mc.player != null) {
-            mc.player.displayClientMessage(Component.literal(message).withStyle(ChatFormatting.RED), true);
+            mc.player.displayClientMessage(shown.copy().withStyle(ChatFormatting.RED), true);
         }
     }
 }

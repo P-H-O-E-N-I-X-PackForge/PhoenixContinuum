@@ -45,21 +45,21 @@ public class ContinuumRefitScreen extends Screen {
 
     private static String moduleName(String upgrade) {
         return switch (upgrade) {
-            case RocketStats.OVERDRIVE -> "Overdrive";
-            case RocketStats.REINFORCED_HULL -> "Reinforced hull";
-            case RocketStats.HULL_INTERLOCK -> "Hull interlock";
-            case RocketStats.STELLAR_SHIELD -> "Stellar shielding";
-            default -> "Singularity shielding";
+            case RocketStats.OVERDRIVE -> ContinuumText.str("phoenix_continuum.continuum_refit_screen.overdrive");
+            case RocketStats.REINFORCED_HULL -> ContinuumText.str("phoenix_continuum.continuum_refit_screen.reinforced_hull");
+            case RocketStats.HULL_INTERLOCK -> ContinuumText.str("phoenix_continuum.continuum_refit_screen.hull_interlock");
+            case RocketStats.STELLAR_SHIELD -> ContinuumText.str("phoenix_continuum.continuum_refit_screen.stellar_shielding");
+            default -> ContinuumText.str("phoenix_continuum.continuum_refit_screen.singularity_shielding");
         };
     }
 
     private static String moduleEffect(String upgrade) {
         return switch (upgrade) {
-            case RocketStats.OVERDRIVE -> "-10% trip time a level";
-            case RocketStats.REINFORCED_HULL -> "-25% wear a level";
-            case RocketStats.HULL_INTERLOCK -> "refuses to launch worn out";
-            case RocketStats.STELLAR_SHIELD -> "work at stars";
-            default -> "work at black holes";
+            case RocketStats.OVERDRIVE -> ContinuumText.label("phoenix_continuum.continuum_refit_screen.10_trip_time_a_level");
+            case RocketStats.REINFORCED_HULL -> ContinuumText.label("phoenix_continuum.continuum_refit_screen.25_wear_a_level");
+            case RocketStats.HULL_INTERLOCK -> ContinuumText.str("phoenix_continuum.continuum_refit_screen.refuses_to_launch_worn_out");
+            case RocketStats.STELLAR_SHIELD -> ContinuumText.str("phoenix_continuum.continuum_refit_screen.work_at_stars");
+            default -> ContinuumText.str("phoenix_continuum.continuum_refit_screen.work_at_black_holes");
         };
     }
 
@@ -89,7 +89,7 @@ public class ContinuumRefitScreen extends Screen {
             RocketSprite.draw(g, x + W / 2.0f, y + 110, 70, 0.35f);
             g.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_refit.hold_a_continuum_rocket_to"), x + W / 2, y + 128, MapUi.WARN);
             g.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_refit.sneak_and_use_the_rocket"), x + W / 2, y + 142, MapUi.DIM);
-            button(g, x + W / 2 - 60, y + H - 28, 120, "Close", true, "close", mx, my);
+            button(g, x + W / 2 - 60, y + H - 28, 120, ContinuumText.str("phoenix_continuum.continuum_refit_screen.close"), true, "close", mx, my);
             g.pose().popPose();
             return;
         }
@@ -97,7 +97,7 @@ public class ContinuumRefitScreen extends Screen {
         int tier = RocketStats.tier(rocket);
         float wear = RocketStats.wear(rocket);
         String hull = RocketStats.tierName(tier);
-        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_refit.hull", hull), x + W - 10 - font.width("Hull " + hull), y + 9, MapUi.GOOD);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_refit.hull", hull), x + W - 10 - font.width(ContinuumText.str("phoenix_continuum.continuum_refit.hull", hull)), y + 9, MapUi.GOOD);
 
         int top = y + 33;
         int bottom = y + H - 34;
@@ -116,9 +116,9 @@ public class ContinuumRefitScreen extends Screen {
         MapUi.bar(g, lx + 8, top + 91, lw - 16, 6, wear, MapUi.wearColor(wear));
 
         int ey = top + 104;
-        ey = effect(g, lx + 8, ey, "Trips", Math.round(RocketStats.tripReduction(rocket) * 100.0f));
-        ey = effect(g, lx + 8, ey, "Wear", Math.round((1.0f - RocketStats.wearFactor(rocket)) * 100.0f));
-        effect(g, lx + 8, ey, "Failure risk", Math.round((1.0f - RocketStats.failureFactor(rocket)) * 100.0f));
+        ey = effect(g, lx + 8, ey, ContinuumText.str("phoenix_continuum.continuum_refit_screen.trips"), Math.round(RocketStats.tripReduction(rocket) * 100.0f));
+        ey = effect(g, lx + 8, ey, ContinuumText.str("phoenix_continuum.continuum_refit_screen.wear"), Math.round((1.0f - RocketStats.wearFactor(rocket)) * 100.0f));
+        effect(g, lx + 8, ey, ContinuumText.str("phoenix_continuum.continuum_refit_screen.failure_risk"), Math.round((1.0f - RocketStats.failureFactor(rocket)) * 100.0f));
 
         int hy = top + lh - 46;
         g.fill(lx + 6, hy - 4, lx + lw - 6, hy - 3, MapUi.PANEL_LINE);
@@ -129,7 +129,7 @@ public class ContinuumRefitScreen extends Screen {
             int have = player.getAbilities().instabuild ? 99 : RocketRefit.count(player, kit);
             if (kit != null) g.renderItem(new ItemStack(kit), lx + 8, hy);
             g.drawString(font, hull + " -> " + RocketStats.tierName(tier + 1), lx + 28, hy + 4, MapUi.TEXT);
-            button(g, lx + 8, hy + 20, lw - 16, "Refit hull  (kits: " + have + ")", have > 0, "tier", mx, my);
+            button(g, lx + 8, hy + 20, lw - 16, ContinuumText.str("phoenix_continuum.continuum_refit_screen.refit_hull_kits", have), have > 0, "tier", mx, my);
         }
 
         int rx = lx + lw + 10;
@@ -160,7 +160,7 @@ public class ContinuumRefitScreen extends Screen {
                     g.renderOutline(pxi, ty + 3, 7, 7, MapUi.BUTTON_LINE);
                 }
             }
-            String label = cap == 0 ? "Needs hull" : level >= cap ? "Full" : "Fit  (" + have + ")";
+            String label = cap == 0 ? ContinuumText.str("phoenix_continuum.continuum_refit_screen.needs_hull") : level >= cap ? ContinuumText.str("phoenix_continuum.continuum_refit_screen.full") : ContinuumText.str("phoenix_continuum.continuum_refit_screen.fit_have", have);
             button(g, rx + rw - 82, ty + 4, 74, label, canFit, "fit:" + upgrade, mx, my);
             ty += 28;
         }
@@ -170,11 +170,10 @@ public class ContinuumRefitScreen extends Screen {
         Item repairKit = ContinuumRegistry.REPAIR_KIT.get();
         int kits = player.getAbilities().instabuild ? 99 : RocketRefit.count(player, repairKit);
         g.renderItem(new ItemStack(repairKit), rx + 8, ry);
-        g.drawString(font, "Repair  (-" + Math.round(ContinuumConfigs.INSTANCE.repairKitWear * 100.0) +
-                "% wear)", rx + 30, ry + 4, MapUi.TEXT);
-        button(g, rx + rw - 122, ry, 114, "Repair  (kits: " + kits + ")", wear > 0.0f && kits > 0, "repair", mx, my);
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_refit_screen.repair_wear", Math.round(ContinuumConfigs.INSTANCE.repairKitWear * 100.0)), rx + 30, ry + 4, MapUi.TEXT);
+        button(g, rx + rw - 122, ry, 114, ContinuumText.str("phoenix_continuum.continuum_refit_screen.repair_kits", kits), wear > 0.0f && kits > 0, "repair", mx, my);
 
-        button(g, x + W / 2 - 60, y + H - 28, 120, "Close", true, "close", mx, my);
+        button(g, x + W / 2 - 60, y + H - 28, 120, ContinuumText.str("phoenix_continuum.continuum_refit_screen.close"), true, "close", mx, my);
         g.pose().popPose();
     }
 

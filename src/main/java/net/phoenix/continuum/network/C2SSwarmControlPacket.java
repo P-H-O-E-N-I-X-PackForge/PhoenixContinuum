@@ -68,7 +68,7 @@ public class C2SSwarmControlPacket implements CustomPacketPayload {
                 case SMALLER -> SwarmControlService.resize(player, msg.control, -1);
                 case BUILD_SWARM, BUILD_SHELL -> {
                     String error = SwarmControlService.build(player, msg.control, msg.action == BUILD_SHELL);
-                    if (error != null) player.sendSystemMessage(Component.literal(error));
+                    if (error != null) player.sendSystemMessage(net.phoenix.continuum.common.ContinuumLang.component(error));
                     else ContinuumServerEvents.sendStateToTeam(player.server,
                             net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID()));
                 }

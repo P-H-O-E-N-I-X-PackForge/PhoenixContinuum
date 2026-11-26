@@ -85,7 +85,8 @@ public class C2SPdimPacket implements CustomPacketPayload {
 
             String error = switch (msg.action) {
                 case LEAVE -> PdimActions.leave(player);
-                case DELETE -> PdimActions.delete(player, msg.body) ? null : "You have no personal dimension there.";
+                case DELETE -> PdimActions.delete(player, msg.body) ? null :
+                        net.phoenix.continuum.common.ContinuumLang.enc("phoenix_continuum.pdim_actions.none_there");
                 case ADJUST -> PdimActions.adjust(player, msg.body, msg.gravity, msg.daySpeed, msg.lockedTime,
                         msg.orbitView, msg.fixedSky);
                 default -> {
@@ -98,7 +99,7 @@ public class C2SPdimPacket implements CustomPacketPayload {
                     yield made;
                 }
             };
-            if (error != null) player.displayClientMessage(Component.literal(error), true);
+            if (error != null) player.displayClientMessage(net.phoenix.continuum.common.ContinuumLang.component(error), true);
         });
     }
 }

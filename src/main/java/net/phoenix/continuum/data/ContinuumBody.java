@@ -54,10 +54,10 @@ public record ContinuumBody(
 
         public String label() {
             return switch (this) {
-                case PLANET -> "Planet";
-                case MOON -> "Moon";
-                case BLACK_HOLE -> "Black hole";
-                case STAR -> "Star";
+                case PLANET -> net.phoenix.continuum.common.ContinuumLang.text("phoenix_continuum.continuum_body.type_planet");
+                case MOON -> net.phoenix.continuum.common.ContinuumLang.text("phoenix_continuum.continuum_body.type_moon");
+                case BLACK_HOLE -> net.phoenix.continuum.common.ContinuumLang.text("phoenix_continuum.continuum_body.type_black_hole");
+                case STAR -> net.phoenix.continuum.common.ContinuumLang.text("phoenix_continuum.continuum_body.type_star");
             };
         }
     }
@@ -100,10 +100,10 @@ public record ContinuumBody(
 
     public String kindLabel() {
         if (transientInfo != null) {
-            String kind = visitorKind();
+            String kind = visitorLabel();
             return Character.toUpperCase(kind.charAt(0)) + kind.substring(1);
         }
-        if (type == Type.PLANET && params.gasGiant()) return "Gas giant";
+        if (type == Type.PLANET && params.gasGiant()) return net.phoenix.continuum.common.ContinuumLang.text("phoenix_continuum.continuum_body.gas_giant");
         return type.label();
     }
 
@@ -112,6 +112,12 @@ public record ContinuumBody(
                 tripMinutes, minTier, detectedResearch, surveyedResearch, params, yields, initialStage, loreDetected,
                 loreSurveyed, discipline, pdimCost, transientInfo, holeTilt, skyHoleInclination, skyHoleLean,
                 visibility, anomalies);
+    }
+
+    /** The visitor kind as it is shown to a player, in their language. */
+    public String visitorLabel() {
+        return net.phoenix.continuum.common.ContinuumLang.text("phoenix_continuum.continuum_body.visitor_" +
+                visitorKind().replace(' ', '_'));
     }
 
     public String visitorKind() {

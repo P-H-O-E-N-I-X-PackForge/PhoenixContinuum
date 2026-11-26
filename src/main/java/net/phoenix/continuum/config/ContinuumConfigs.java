@@ -101,6 +101,13 @@ public class ContinuumConfigs {
 
         @Configurable
         @Configurable.Comment({
+                "Draw the distant galaxies in the background of the Continuum map (this client only). Turn it off",
+                "for a plain star field behind everything. Default: true"
+        })
+        public boolean backdropGalaxies = true;
+
+        @Configurable
+        @Configurable.Comment({
                 "Scales every mission's real-time length. 1.0 = the trip times in the body definitions",
                 "(5 minutes for the nearest body up to 2 hours for the farthest). Lower it to test.",
                 "Default: 1.0"

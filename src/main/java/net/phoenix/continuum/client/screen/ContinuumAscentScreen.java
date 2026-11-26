@@ -210,7 +210,7 @@ public class ContinuumAscentScreen extends Screen {
         graphics.drawString(font, profile.stages[stage], 14, 40, MapUi.WARN);
 
         double altitudeKm = (distance - 1.0) * 1200.0;
-        graphics.drawString(font, String.format(Locale.ROOT, "ALT  %,d km", Math.round(altitudeKm)), 14, 56,
+        graphics.drawString(font, String.format(Locale.ROOT, ContinuumText.label("phoenix_continuum.continuum_ascent_screen.alt_d_km"), Math.round(altitudeKm)), 14, 56,
                 MapUi.TEXT);
         graphics.drawString(font, "T+ " + MapUi.duration((long) (t * profile.seconds * 1000.0f)), 14, 67, MapUi.TEXT);
 

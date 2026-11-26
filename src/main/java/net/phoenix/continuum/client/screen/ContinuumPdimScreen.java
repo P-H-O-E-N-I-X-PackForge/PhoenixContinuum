@@ -52,12 +52,12 @@ public class ContinuumPdimScreen extends Screen {
 
         float natural = PdimDimensions.naturalGravity(body);
         pendGravity = natural;
-        presets.add(new Preset("Natural", natural));
-        presets.add(new Preset("Moon", 0.16f));
-        presets.add(new Preset("Low", 0.5f));
-        presets.add(new Preset("Standard", 1.0f));
-        presets.add(new Preset("Heavy", 1.5f));
-        presets.add(new Preset("Crushing", 2.5f));
+        presets.add(new Preset(ContinuumText.str("phoenix_continuum.continuum_pdim_screen.natural"), natural));
+        presets.add(new Preset(ContinuumText.str("phoenix_continuum.continuum_pdim_screen.moon"), 0.16f));
+        presets.add(new Preset(ContinuumText.str("phoenix_continuum.continuum_pdim_screen.low"), 0.5f));
+        presets.add(new Preset(ContinuumText.str("phoenix_continuum.continuum_pdim_screen.standard"), 1.0f));
+        presets.add(new Preset(ContinuumText.str("phoenix_continuum.continuum_pdim_screen.heavy"), 1.5f));
+        presets.add(new Preset(ContinuumText.str("phoenix_continuum.continuum_pdim_screen.crushing"), 2.5f));
     }
 
     @Override
@@ -97,11 +97,11 @@ public class ContinuumPdimScreen extends Screen {
     private static String clock(float tick) {
         int t = Math.round(tick);
         return switch (t) {
-            case 0 -> "dawn";
-            case 6000 -> "noon";
-            case 12000 -> "dusk";
-            case 18000 -> "midnight";
-            default -> "tick " + t;
+            case 0 -> ContinuumText.str("phoenix_continuum.continuum_pdim_screen.clock_dawn");
+            case 6000 -> ContinuumText.str("phoenix_continuum.continuum_pdim_screen.clock_noon");
+            case 12000 -> ContinuumText.str("phoenix_continuum.continuum_pdim_screen.clock_dusk");
+            case 18000 -> ContinuumText.str("phoenix_continuum.continuum_pdim_screen.clock_midnight");
+            default -> ContinuumText.str("phoenix_continuum.continuum_pdim_screen.clock_tick", t);
         };
     }
 
@@ -127,9 +127,8 @@ public class ContinuumPdimScreen extends Screen {
         boolean exists = existing() != null;
         g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_pdim.personal_dimension", body.name()), x + 10, y + 9, MapUi.TITLE);
         int ty = y + 24;
-        ty = wrapped(g, "An empty void with an obsidian platform, under the sky of " + body.name() +
-                ". Falling out of the bottom puts you back at the top." +
-                (exists ? " Changes apply at once; the sky only changes what you see." : ""), x + 10, ty, W - 20,
+        ty = wrapped(g, ContinuumText.str("phoenix_continuum.continuum_pdim_screen.empty_void", body.name()) +
+                (exists ? ContinuumText.str("phoenix_continuum.continuum_pdim_screen.changes_apply_at_once_the_sky") : ""), x + 10, ty, W - 20,
                 MapUi.DIM) + 4;
 
         var cost = PdimClientState.cost(body.id());
@@ -138,7 +137,7 @@ public class ContinuumPdimScreen extends Screen {
         int have = cost == null ? 0 : PdimCosts.count(Minecraft.getInstance().player, cost);
         boolean canPay = !charged || creative || have >= cost.count();
 
-        ty = adjustRow(g, x, ty, String.format(Locale.ROOT, "Gravity  x%.2f", gravity()), "g", mx, my);
+        ty = adjustRow(g, x, ty, String.format(Locale.ROOT, ContinuumText.label("phoenix_continuum.continuum_pdim_screen.gravity_x_2f"), gravity()), "g", mx, my);
         int bw = (W - 20 - 10) / 3;
         for (int i = 0; i < presets.size(); i++) {
             Preset p = presets.get(i);
@@ -150,8 +149,8 @@ public class ContinuumPdimScreen extends Screen {
         ty += 44;
 
         float lockedNow = locked();
-        ty = adjustRow(g, x, ty, lockedNow >= 0 ? "Day  locked at " + clock(lockedNow) :
-                String.format(Locale.ROOT, "Day speed  x%.2f", speed()), "s", mx, my);
+        ty = adjustRow(g, x, ty, lockedNow >= 0 ? ContinuumText.str("phoenix_continuum.continuum_pdim_screen.day_locked_at", clock(lockedNow)) :
+                String.format(Locale.ROOT, ContinuumText.label("phoenix_continuum.continuum_pdim_screen.day_speed_x_2f"), speed()), "s", mx, my);
         int quarter = (W - 20 - 15) / 4;
         String[] names = {"dawn", "noon", "dusk", "midnight"};
         float[] ticks = {0.0f, 6000.0f, 12000.0f, 18000.0f};
@@ -160,32 +159,32 @@ public class ContinuumPdimScreen extends Screen {
                     lockedNow >= 0 && Math.round(lockedNow) == (int) ticks[i], mx, my);
         }
         ty += 21;
-        button(g, x + 10, ty, W - 20, lockedNow >= 0 ? "Let the sky clock run again" : "Sky clock running  (lock a time above)",
+        button(g, x + 10, ty, W - 20, lockedNow >= 0 ? ContinuumText.str("phoenix_continuum.continuum_pdim_screen.let_the_sky_clock_run_again") : ContinuumText.str("phoenix_continuum.continuum_pdim_screen.sky_clock_running_lock_a_time"),
                 "unlock", lockedNow >= 0, false, mx, my);
         ty += 23;
 
-        button(g, x + 10, ty, W - 20, orbit() ? "Sky: seen from orbit  (click for the surface)" :
-                "Sky: as if you stand on it  (click for orbit)", "sky", true, false, mx, my);
+        button(g, x + 10, ty, W - 20, orbit() ? ContinuumText.str("phoenix_continuum.continuum_pdim_screen.sky_seen_from_orbit_click_for") :
+                ContinuumText.str("phoenix_continuum.continuum_pdim_screen.sky_as_if_you_stand_on"), "sky", true, false, mx, my);
 
         ty += 22;
-        button(g, x + 10, ty, W - 20, orbit() ? "Orbiting worlds: not shown (the sky is the view from orbit)" :
-                fixed() ? "Orbiting worlds: always in the sky, fixed  (click: follow the day)" :
-                        "Orbiting worlds: follow the day  (click: always in the sky)", "fixed", !orbit(), fixed(), mx, my);
+        button(g, x + 10, ty, W - 20, orbit() ? ContinuumText.str("phoenix_continuum.continuum_pdim_screen.orbiting_worlds_not_shown_the_sky") :
+                fixed() ? ContinuumText.str("phoenix_continuum.continuum_pdim_screen.orbiting_worlds_always_in_the_sky") :
+                        ContinuumText.str("phoenix_continuum.continuum_pdim_screen.orbiting_worlds_follow_the_day_click"), "fixed", !orbit(), fixed(), mx, my);
 
         costLine(g, x + 10, y + H - 80, charged, cost, have, canPay);
-        button(g, x + 10, y + H - 66, W - 20, exists ? "Enter" : "Create and enter", exists ? "enter" : "create", canPay,
+        button(g, x + 10, y + H - 66, W - 20, exists ? ContinuumText.str("phoenix_continuum.continuum_pdim_screen.enter") : ContinuumText.str("phoenix_continuum.continuum_pdim_screen.create_and_enter"), exists ? "enter" : "create", canPay,
                 false, mx, my);
 
         boolean inside = PdimClientState.inside();
         int half = (W - 25) / 2;
         if (inside) {
-            button(g, x + 10, y + H - 44, half, "Leave this dimension", "leave", true, false, mx, my);
-            button(g, x + 15 + half, y + H - 44, half, "Close", "close", true, false, mx, my);
+            button(g, x + 10, y + H - 44, half, ContinuumText.str("phoenix_continuum.continuum_pdim_screen.leave_this_dimension"), "leave", true, false, mx, my);
+            button(g, x + 15 + half, y + H - 44, half, ContinuumText.str("phoenix_continuum.continuum_pdim_screen.close"), "close", true, false, mx, my);
         } else {
-            button(g, x + 10, y + H - 44, W - 20, "Close", "close", true, false, mx, my);
+            button(g, x + 10, y + H - 44, W - 20, ContinuumText.str("phoenix_continuum.continuum_pdim_screen.close"), "close", true, false, mx, my);
         }
         if (exists && !inside) {
-            button(g, x + 10, y + H - 22, W - 20, "Forget this dimension", "forget", true, false, mx, my);
+            button(g, x + 10, y + H - 22, W - 20, ContinuumText.str("phoenix_continuum.continuum_pdim_screen.forget_this_dimension"), "forget", true, false, mx, my);
         }
 
         g.pose().popPose();

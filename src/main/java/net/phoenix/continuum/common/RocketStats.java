@@ -128,7 +128,7 @@ public final class RocketStats {
     }
 
     public static String shieldName(String upgrade) {
-        return SINGULARITY_SHIELD.equals(upgrade) ? "Singularity Shielding Module" : "Stellar Shielding Module";
+        return ContinuumLang.text(SINGULARITY_SHIELD.equals(upgrade) ? "phoenix_continuum.rocket_stats.shield_singularity" : "phoenix_continuum.rocket_stats.shield_stellar");
     }
 
     public static boolean shieldedFor(ItemStack rocket, ContinuumBody body) {

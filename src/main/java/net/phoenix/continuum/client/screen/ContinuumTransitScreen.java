@@ -41,8 +41,8 @@ public class ContinuumTransitScreen extends Screen {
     private static final float END_DISTANCE = 3.9f;
 
     private static final float[] WAYPOINT_AT = { 0.12f, 0.38f, 0.66f, 0.90f };
-    private static final String[] WAYPOINT_TEXT = { "Clearing the home system", "Crossing the outer dark",
-            "Course correction burn", "Final approach" };
+    private static final String[] WAYPOINT_TEXT = { ContinuumText.str("phoenix_continuum.continuum_transit_screen.clearing_the_home_system"), ContinuumText.str("phoenix_continuum.continuum_transit_screen.crossing_the_outer_dark"),
+            ContinuumText.str("phoenix_continuum.continuum_transit_screen.course_correction_burn"), ContinuumText.str("phoenix_continuum.continuum_transit_screen.final_approach") };
 
     private final UUID missionId;
     private final @Nullable BlockPos pad;
@@ -220,41 +220,39 @@ public class ContinuumTransitScreen extends Screen {
         int statusColor;
         if (mission.state() == Mission.State.SUCCESS) {
             status = switch (mission.type()) {
-                case SURVEY -> "ARRIVED  -  survey complete";
-                case EXTRACT -> "ARRIVED  -  resources are ready to collect";
-                case DEPLOY -> "ARRIVED  -  the outpost is up and producing";
-                case HAUL -> "ARRIVED  -  the stockpile is ready to collect";
-                case REPAIR -> "ARRIVED  -  the outpost is repaired and producing again";
-                case RESCUE -> "ARRIVED  -  the stranded rocket is recovered";
-                case STATION -> "ARRIVED  -  the orbital station is built";
-                case SHELL -> "ARRIVED  -  another section of the shell is in place";
+                case SURVEY -> ContinuumText.str("phoenix_continuum.continuum_transit_screen.arrived_survey_complete");
+                case EXTRACT -> ContinuumText.str("phoenix_continuum.continuum_transit_screen.arrived_resources_are_ready_to_collect");
+                case DEPLOY -> ContinuumText.str("phoenix_continuum.continuum_transit_screen.arrived_the_outpost_is_up_and");
+                case HAUL -> ContinuumText.str("phoenix_continuum.continuum_transit_screen.arrived_the_stockpile_is_ready_to");
+                case REPAIR -> ContinuumText.str("phoenix_continuum.continuum_transit_screen.arrived_the_outpost_is_repaired_and");
+                case RESCUE -> ContinuumText.str("phoenix_continuum.continuum_transit_screen.arrived_the_stranded_rocket_is_recovered");
+                case STATION -> ContinuumText.str("phoenix_continuum.continuum_transit_screen.arrived_the_orbital_station_is_built");
+                case SHELL -> ContinuumText.str("phoenix_continuum.continuum_transit_screen.arrived_another_section_of_the_shell");
             };
             statusColor = MapUi.GOOD;
         } else if (mission.stranded()) {
-            status = mission.rescuing() ? "DISTRESS SIGNAL  -  a rescue run is on its way" :
-                    "DISTRESS SIGNAL  -  rocket stranded, the signal fades in " +
-                            net.phoenix.continuum.common.ContinuumMissions
-                                    .durationText(mission.distressUntil() - serverNow) +
-                            ". Send a rescue run with repair kits";
+            status = mission.rescuing() ? ContinuumText.str("phoenix_continuum.continuum_transit_screen.distress_signal_a_rescue_run_is") :
+                    ContinuumText.str("phoenix_continuum.continuum_transit_screen.distress_fades", net.phoenix.continuum.common.ContinuumMissions
+                                    .durationText(mission.distressUntil() - serverNow));
             statusColor = MapUi.WARN;
         } else if (mission.state() == Mission.State.FAILED) {
             status = switch (mission.type()) {
-                case SURVEY -> "MISSION FAILED  -  the rocket came back damaged";
-                case EXTRACT, DEPLOY -> "MISSION FAILED  -  the probes were lost and the rocket is damaged";
-                case HAUL -> "MISSION FAILED  -  the haul was lost and the rocket is damaged";
-                case REPAIR -> "MISSION FAILED  -  the repair kits were lost and the outpost is still broken";
-                case RESCUE -> "MISSION FAILED  -  the repair kits were lost; the stranded rocket still waits";
-                case STATION -> "MISSION FAILED  -  the station crew's probes were lost";
-                case SHELL -> "MISSION FAILED  -  the shell crew's probes were lost";
+                case SURVEY -> ContinuumText.str("phoenix_continuum.continuum_transit_screen.mission_failed_the_rocket_came_back");
+                case EXTRACT, DEPLOY -> ContinuumText.str("phoenix_continuum.continuum_transit_screen.mission_failed_the_probes_were_lost");
+                case HAUL -> ContinuumText.str("phoenix_continuum.continuum_transit_screen.mission_failed_the_haul_was_lost");
+                case REPAIR -> ContinuumText.str("phoenix_continuum.continuum_transit_screen.mission_failed_the_repair_kits_were");
+                case RESCUE -> ContinuumText.str("phoenix_continuum.continuum_transit_screen.mission_failed_the_repair_kits_were_2");
+                case STATION -> ContinuumText.str("phoenix_continuum.continuum_transit_screen.mission_failed_the_station_crew_s");
+                case SHELL -> ContinuumText.str("phoenix_continuum.continuum_transit_screen.mission_failed_the_shell_crew_s");
             };
             statusColor = MapUi.BAD;
         } else {
-            status = MapUi.duration(mission.endMillis() - serverNow) + " remaining";
+            status = ContinuumText.str("phoenix_continuum.continuum_transit_screen.remaining", MapUi.duration(mission.endMillis() - serverNow));
             statusColor = MapUi.TEXT;
         }
         graphics.drawCenteredString(font, status, width / 2, barY - 14, statusColor);
 
-        String wear = String.format(Locale.ROOT, "Rocket wear after this trip: %d%%",
+        String wear = String.format(Locale.ROOT, ContinuumText.label("phoenix_continuum.continuum_transit_screen.rocket_wear_after_this_trip_d"),
                 Math.round(mission.wearAfter() * 100.0f));
         graphics.drawCenteredString(font, wear, width / 2, barY + 12, MapUi.wearColor(mission.wearAfter()));
 

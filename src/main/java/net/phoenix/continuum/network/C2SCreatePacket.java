@@ -65,7 +65,7 @@ public class C2SCreatePacket implements CustomPacketPayload {
             }
             var result = msg.system ? ContentCreator.createSystem(player.server, msg.id, def) :
                     ContentCreator.createBody(player.server, msg.id, def);
-            player.sendSystemMessage(Component.literal(result.message()));
+            player.sendSystemMessage(net.phoenix.continuum.common.ContinuumLang.component(result.message()));
         });
     }
 }

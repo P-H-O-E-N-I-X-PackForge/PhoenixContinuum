@@ -23,6 +23,6 @@ final class ContinuumTooltip implements IBlockComponentProvider {
         var data = accessor.getServerData();
         if (!data.contains(ContinuumServerInfo.KEY)) return;
         ListTag lines = data.getList(ContinuumServerInfo.KEY, Tag.TAG_STRING);
-        for (Tag line : lines) tooltip.add(Component.literal(line.getAsString()));
+        for (Tag line : lines) tooltip.add(net.phoenix.continuum.common.ContinuumLang.component(line.getAsString()));
     }
 }

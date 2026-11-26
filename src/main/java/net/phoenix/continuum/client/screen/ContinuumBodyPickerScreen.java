@@ -31,7 +31,7 @@ public final class ContinuumBodyPickerScreen extends ContinuumFitScreen {
     private static final int ROW = 13;
     private static final int SYSTEM_W = 190;
     private static final int LINE = 10;
-    private static final String FOOTER = "click a body to tune it   scroll: more   Esc: back";
+    private static final String FOOTER = ContinuumText.str("phoenix_continuum.continuum_body_picker_screen.hint");
 
     private final Screen parent;
     private final Consumer<ResourceLocation> onPick;

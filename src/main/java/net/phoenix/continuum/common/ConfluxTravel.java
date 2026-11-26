@@ -35,20 +35,20 @@ public final class ConfluxTravel {
         MinecraftServer server = player.server;
         ContinuumBody body = ContinuumData.body(bodyId);
         String discipline = body == null ? null : disciplineOf(body);
-        if (discipline == null) return "That world is not a Conflux dimension.";
+        if (discipline == null) return ContinuumLang.enc("phoenix_continuum.conflux_travel.not_conflux");
 
         var team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         String chosen = net.phoenix.continuum.api.ContinuumHost.research(server.overworld()).getDiscipline(team);
-        if (chosen == null || !chosen.equalsIgnoreCase(discipline)) return "That is not your discipline's world.";
+        if (chosen == null || !chosen.equalsIgnoreCase(discipline)) return ContinuumLang.enc("phoenix_continuum.conflux_travel.not_yours");
 
         DiscoveryStage stage = ContinuumTeamData.get(server).effectiveStage(server, team, bodyId);
-        if (!stage.atLeast(DiscoveryStage.SURVEYED)) return "Survey " + body.name() + " before travelling there.";
+        if (!stage.atLeast(DiscoveryStage.SURVEYED)) return ContinuumLang.enc("phoenix_continuum.conflux_travel.survey_first", body.name());
 
         net.phoenix.continuum.api.ContinuumHost.Travel travel = net.phoenix.continuum.api.ContinuumHost.travel();
-        if (travel == null) return "Discipline worlds are not available here.";
+        if (travel == null) return ContinuumLang.enc("phoenix_continuum.conflux_travel.no_worlds");
         ResourceKey<Level> target = travel.dimensionOf(discipline);
-        if (target == null || server.getLevel(target) == null) return body.name() + " is not available in this world.";
-        if (player.level().dimension().equals(target)) return "You are already on " + body.name() + ".";
+        if (target == null || server.getLevel(target) == null) return ContinuumLang.enc("phoenix_continuum.conflux_travel.not_available", body.name());
+        if (player.level().dimension().equals(target)) return ContinuumLang.enc("phoenix_continuum.conflux_travel.already_on", body.name());
 
         if (!isConfluxDimension(player.level().dimension())) {
             CompoundTag back = new CompoundTag();
@@ -61,16 +61,16 @@ public final class ConfluxTravel {
             player.getPersistentData().put(RETURN_KEY, back);
         }
         return travel.visit(player, discipline) ? null :
-                body.name() + " is not available in this world.";
+                ContinuumLang.enc("phoenix_continuum.conflux_travel.not_available", body.name());
     }
 
     public static @Nullable String back(ServerPlayer player) {
         CompoundTag back = player.getPersistentData().getCompound(RETURN_KEY);
-        if (back.isEmpty()) return "You have nowhere to return to.";
+        if (back.isEmpty()) return ContinuumLang.enc("phoenix_continuum.conflux_travel.nowhere");
 
         ServerLevel level = player.server.getLevel(
                 ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(back.getString("Dimension"))));
-        if (level == null) return "The place you left from is gone.";
+        if (level == null) return ContinuumLang.enc("phoenix_continuum.conflux_travel.place_gone");
 
         player.fallDistance = 0.0f;
         player.teleportTo(level, back.getDouble("X"), back.getDouble("Y"), back.getDouble("Z"), back.getFloat("Yaw"),

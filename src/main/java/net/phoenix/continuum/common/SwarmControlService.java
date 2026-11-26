@@ -89,8 +89,7 @@ public final class SwarmControlService {
 
         BlockPos pad = findPad(level, control);
         LaunchComplex complex = pad == null ? null : LaunchSites.at(level, pad);
-        String padName = complex == null ? "" : (PadTiers.basic() ? "Launch Pad" : "Launch Complex") + " at " +
-                pad.toShortString();
+        String padName = complex == null ? "" : net.phoenix.continuum.common.ContinuumLang.enc(PadTiers.basic() ? "phoenix_continuum.swarm_control_service.pad_at" : "phoenix_continuum.swarm_control_service.complex_at", pad.toShortString());
         ContinuumMissions.PadStockView stock = pad == null ? null : ContinuumMissions.padStock(player, pad);
         boolean penroseTarget = Swarms.isPenrose(ContinuumData.body(target));
         long launchEnergy = complex == null ? 0 : Math.min(PadTiers.launchEnergy(complex.padTier()),
@@ -106,13 +105,12 @@ public final class SwarmControlService {
             powerDone = Math.round(Swarms.shellPower(body, Swarms.shellMaxLevel(body)));
         }
 
-        String note = candidates.isEmpty() ? "Survey a star or black hole first: only surveyed ones can be built round." :
-                pad == null ? "No launch pad within " + ContinuumConfigs.INSTANCE.swarmControlPadRange +
-                        " blocks. Build one near this block." : "";
+        String note = candidates.isEmpty() ? net.phoenix.continuum.common.ContinuumLang.enc("phoenix_continuum.swarm_control_service.note_survey") :
+                pad == null ? net.phoenix.continuum.common.ContinuumLang.enc("phoenix_continuum.swarm_control_service.note_no_pad", ContinuumConfigs.INSTANCE.swarmControlPadRange) : "";
         boolean online = SwarmHolograms.isActive(level, control);
         if (!online && !candidates.isEmpty()) {
-            note = "Offline: " + (PadTiers.basic() ? "it needs " + ContinuumConfigs.INSTANCE.swarmControlFePerTick +
-                    " FE/t." : "the array needs its recipe running.");
+            note = PadTiers.basic() ? net.phoenix.continuum.common.ContinuumLang.enc("phoenix_continuum.swarm_control_service.offline_fe", ContinuumConfigs.INSTANCE.swarmControlFePerTick) :
+                    net.phoenix.continuum.common.ContinuumLang.enc("phoenix_continuum.swarm_control_service.offline_recipe");
         }
         return new SwarmControlView(control, target, candidates, padName, complex != null, online,
                 complex == null ? 0 : complex.storedEnergy(), launchEnergy,
@@ -133,10 +131,10 @@ public final class SwarmControlService {
 
     public static @Nullable String build(ServerPlayer player, BlockPos control, boolean shell) {
         Level level = player.level();
-        if (!SwarmHolograms.isActive(level, control)) return "The control block is offline.";
+        if (!SwarmHolograms.isActive(level, control)) return ContinuumLang.enc("phoenix_continuum.swarm_control_service.offline");
         ResourceLocation target = view(player, control).target();
         BlockPos pad = findPad(level, control);
-        if (pad == null) return "There is no launch pad near this control block.";
+        if (pad == null) return ContinuumLang.enc("phoenix_continuum.continuum_missions.no_pad_near_control");
         return ContinuumMissions.launchFromControl(player, control, pad, target,
                 shell ? Mission.Type.SHELL : Mission.Type.STATION);
     }

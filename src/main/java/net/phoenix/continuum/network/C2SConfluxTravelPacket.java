@@ -46,7 +46,7 @@ public class C2SConfluxTravelPacket implements CustomPacketPayload {
             if (player == null || !net.phoenix.continuum.common.ContinuumGates.check(player, net.phoenix.continuum.common.ContinuumGates.TRAVEL)) return;
             if (player == null) return;
             String error = msg.back ? ConfluxTravel.back(player) : ConfluxTravel.travel(player, msg.body);
-            if (error != null) player.displayClientMessage(Component.literal(error), true);
+            if (error != null) player.displayClientMessage(net.phoenix.continuum.common.ContinuumLang.component(error), true);
         });
     }
 }

@@ -83,7 +83,7 @@ public final class ContinuumTransients extends SavedData {
             if (window != null && now >= window.end && !window.ended) {
                 windows.put(body.id(), new Window(window.start, window.end, window.nextEligible, true));
                 setDirty();
-                broadcast(server, body, body.name() + " has left the " + systemName(body) + " system.",
+                broadcast(server, body, ContinuumLang.tr("phoenix_continuum.continuum_transients.left_system", body.name(), systemName(body)),
                         ChatFormatting.GRAY);
                 continue;
             }
@@ -107,24 +107,24 @@ public final class ContinuumTransients extends SavedData {
     }
 
     private void announceArrival(MinecraftServer server, ContinuumBody body, long millis) {
-        String lead = switch (body.visitorKind()) {
-            case "rogue planet" -> "A rogue planet, " + body.name() + ", is drifting through " + systemName(body) + ".";
-            case "supernova remnant" -> "A supernova remnant, " + body.name() + ", is blooming in " + systemName(body) + ".";
-            default -> "A comet, " + body.name() + ", is passing through " + systemName(body) + ".";
+        Component lead = switch (body.visitorKind()) {
+            case "rogue planet" -> ContinuumLang.tr("phoenix_continuum.continuum_transients.arrive_rogue", body.name(), systemName(body));
+            case "supernova remnant" -> ContinuumLang.tr("phoenix_continuum.continuum_transients.arrive_remnant", body.name(), systemName(body));
+            default -> ContinuumLang.tr("phoenix_continuum.continuum_transients.arrive_comet", body.name(), systemName(body));
         };
-        broadcast(server, body, lead + " It will be gone in " + ContinuumMissions.durationText(millis) +
-                ": send an extraction run before it leaves.", ChatFormatting.GOLD);
+        broadcast(server, body, ContinuumLang.tr("phoenix_continuum.continuum_transients.arrive_tail", lead, ContinuumMissions.durationText(millis)),
+                ChatFormatting.GOLD);
     }
 
-    private static void broadcast(MinecraftServer server, ContinuumBody body, String text, ChatFormatting colour) {
+    private static void broadcast(MinecraftServer server, ContinuumBody body, Component text, ChatFormatting colour) {
         ContinuumTeamData teams = ContinuumTeamData.get(server);
         Set<UUID> logged = new HashSet<>();
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             UUID team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
 
             if (!teams.isEngaged(team)) continue;
-            player.sendSystemMessage(Component.literal(text).withStyle(colour));
-            if (logged.add(team)) teams.log(team, MissionLog.Kind.COMET, body.id(), text);
+            player.sendSystemMessage(text.copy().withStyle(colour));
+            if (logged.add(team)) teams.log(team, MissionLog.Kind.COMET, body.id(), ContinuumLang.fromComponent(text));
             ContinuumServerEvents.sendState(player);
         }
     }
