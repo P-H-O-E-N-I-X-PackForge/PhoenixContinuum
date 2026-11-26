@@ -138,7 +138,7 @@ public final class ContinuumSkyScreen extends ContinuumFitScreen {
                     drawn = true;
                 }
             } catch (RuntimeException e) {
-                message = "The sky could not be drawn: " + e.getMessage();
+                message = ContinuumText.str("phoenix_continuum.continuum_sky_screen.could_not_draw", e.getMessage());
             } finally {
                 SceneRenderer.end();
             }
@@ -169,7 +169,7 @@ public final class ContinuumSkyScreen extends ContinuumFitScreen {
         g.renderOutline(x - 4, y - 4, PANEL_W + 8, bottom - y + 8, 0xFF3A4452);
 
         g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_sky_screen.sky_view"), x, y, 0xFFFFFFFF, false);
-        button(g, mx, my, x + PANEL_W - 54, y - 2, 54, "Hide  H", "panel");
+        button(g, mx, my, x + PANEL_W - 54, y - 2, 54, ContinuumText.str("phoenix_continuum.continuum_sky_screen.hide_h"), "panel");
         y += 12;
         String title = "<  " + font.plainSubstrByWidth(body.name(), PANEL_W - 40) + "  >";
         g.drawString(font, title, x, y, 0xFFC8D4E8, false);
@@ -179,7 +179,7 @@ public final class ContinuumSkyScreen extends ContinuumFitScreen {
         g.drawString(font, font.plainSubstrByWidth(system == null ? "" : system.name(), PANEL_W), x, y, 0xFF7F8A99, false);
         y += 14;
 
-        g.drawString(font, String.format(Locale.ROOT, "Time of day  %02d:%02d", (int) (timeOfDay / 1000.0f * 1.0f + 6) % 24,
+        g.drawString(font, String.format(Locale.ROOT, ContinuumText.label("phoenix_continuum.continuum_sky_screen.time_of_day_02d_02d"), (int) (timeOfDay / 1000.0f * 1.0f + 6) % 24,
                 (int) ((timeOfDay % 1000.0f) / 1000.0f * 60.0f)), x, y, 0xFFAEBBCF, false);
         y += 12;
         int barW = PANEL_W;
@@ -190,18 +190,18 @@ public final class ContinuumSkyScreen extends ContinuumFitScreen {
         hit(x, y - 2, barW, 14, "timebar", null);
         y += 16;
 
-        button(g, mx, my, x, y, 76, "Speed: " + SPEED_LABELS[speed], "speed");
+        button(g, mx, my, x, y, 76, ContinuumText.str("phoenix_continuum.continuum_sky_screen.speed_is", SPEED_LABELS[speed]), "speed");
         button(g, mx, my, x + 82, y, 12, "-", "daydec");
         g.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_sky.day", day), x + 82 + 12 + 34, y + 3, 0xFFFFFFFF);
         button(g, mx, my, x + 82 + 12 + 68, y, 12, "+", "dayinc");
         y += 18;
 
-        button(g, mx, my, x, y, 114, orbit ? "From orbit" : "From the surface", "orbit");
-        button(g, mx, my, x + 120, y, 116, fixed ? "Fixed sky: on" : "Fixed sky: off", "fixed");
+        button(g, mx, my, x, y, 114, orbit ? ContinuumText.str("phoenix_continuum.continuum_sky_screen.from_orbit") : ContinuumText.str("phoenix_continuum.continuum_sky_screen.from_the_surface"), "orbit");
+        button(g, mx, my, x + 120, y, 116, fixed ? ContinuumText.str("phoenix_continuum.continuum_sky_screen.fixed_sky_on") : ContinuumText.str("phoenix_continuum.continuum_sky_screen.fixed_sky_off"), "fixed");
         y += 16;
-        button(g, mx, my, x, y, 114, showAll ? "Undiscovered: shown" : "Undiscovered: hidden", "showall");
+        button(g, mx, my, x, y, 114, showAll ? ContinuumText.str("phoenix_continuum.continuum_sky_screen.undiscovered_shown") : ContinuumText.str("phoenix_continuum.continuum_sky_screen.undiscovered_hidden"), "showall");
         var eclipse = eclipseTarget(body);
-        button(g, mx, my, x + 120, y, 116, eclipse == null ? "No eclipse soon" : "Next eclipse", "eclipse");
+        button(g, mx, my, x + 120, y, 116, eclipse == null ? ContinuumText.str("phoenix_continuum.continuum_sky_screen.no_eclipse_soon") : ContinuumText.str("phoenix_continuum.continuum_sky_screen.next_eclipse"), "eclipse");
         y += 18;
 
         g.fill(x, y, x + PANEL_W, y + 1, 0xFF404040);
@@ -213,7 +213,7 @@ public final class ContinuumSkyScreen extends ContinuumFitScreen {
             float sunAzimuth = (float) Math.toDegrees(Math.atan2(sample.sunDir().x, -sample.sunDir().z));
             if (sunAzimuth < 0.0f) sunAzimuth += 360.0f;
             if (sample.hasSun()) {
-                String sun = (system != null ? system.name() : "Star") + "  " + angles(sunElevation, sunAzimuth, 0.0f);
+                String sun = (system != null ? system.name() : ContinuumText.str("phoenix_continuum.continuum_sky_screen.star")) + "  " + angles(sunElevation, sunAzimuth, 0.0f);
                 g.drawString(font, font.plainSubstrByWidth(sun, PANEL_W), x, y, system == null ? 0xFFFFFFFF :
                         0xFF000000 | system.starColor(), false);
                 hit(x, y - 1, PANEL_W, 10, "look", new float[] { sunAzimuth, sunElevation });
@@ -223,7 +223,7 @@ public final class ContinuumSkyScreen extends ContinuumFitScreen {
                 y += 11;
             }
             for (var item : PdimSkyBodies.describe(view0, body, sample)) {
-                String line = (item.moon() ? "moon " : "") + item.body().name() + "  " +
+                String line = (item.moon() ? ContinuumText.str("phoenix_continuum.continuum_sky_screen.moon_prefix") : "") + item.body().name() + "  " +
                         angles(item.elevationDeg(), item.azimuthDeg(), item.apparentDeg());
                 g.drawString(font, font.plainSubstrByWidth(line, PANEL_W), x, y,
                         0xFF000000 | item.body().params().mid(), false);
@@ -232,7 +232,7 @@ public final class ContinuumSkyScreen extends ContinuumFitScreen {
                 if (y > bottom - 190) break;
             }
             if (sample.eclipse() > 0.01f) {
-                g.drawString(font, String.format(Locale.ROOT, "Eclipse: %d%% of the star covered",
+                g.drawString(font, String.format(Locale.ROOT, ContinuumText.label("phoenix_continuum.continuum_sky_screen.eclipse_d_of_the_star_covered"),
                         Math.round(sample.eclipse() * 100.0f)), x, y, 0xFFFFB040, false);
                 y += 11;
             }
@@ -243,25 +243,25 @@ public final class ContinuumSkyScreen extends ContinuumFitScreen {
         if (!message.isEmpty()) {
             g.drawString(font, font.plainSubstrByWidth(message, PANEL_W), x, bottom - 8, 0xFFFF6B6B, false);
         }
-        button(g, mx, my, x, bottom - 16, 60, "Close", "close");
+        button(g, mx, my, x, bottom - 16, 60, ContinuumText.str("phoenix_continuum.continuum_sky_screen.close"), "close");
         g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_sky.drag_look_scroll_zoom"), x + 66, bottom - 12, 0xFF7F8A99, false);
     }
 
     private void drawFoldedPanel(GuiGraphics g, int mx, int my, ContinuumBody body, PdimSkyView view0,
                                  PdimSkyModel.Sample sample) {
-        String text = body.name() + "   Day " + day;
+        String text = ContinuumText.str("phoenix_continuum.continuum_sky_screen.name_day", body.name(), day);
         int w = font.width(text) + 70;
         int x = width - w - 8;
         g.fill(x, 8, x + w, 24, 0xC00A0E14);
         g.renderOutline(x, 8, w, 16, 0xFF3A4452);
         g.drawString(font, text, x + 6, 12, 0xFFC8D4E8, false);
-        button(g, mx, my, x + w - 58, 9, 54, "Info  H", "panel");
+        button(g, mx, my, x + w - 58, 9, 54, ContinuumText.str("phoenix_continuum.continuum_sky_screen.info_h"), "panel");
         if (!message.isEmpty()) g.drawString(font, font.plainSubstrByWidth(message, width - 20), 10, height - 14, 0xFFFF6B6B, false);
     }
 
     private static String angles(float elevation, float azimuth, float apparent) {
-        String base = String.format(Locale.ROOT, "%+.0f°  az %.0f°", elevation, azimuth);
-        return apparent > 0.0f ? base + String.format(Locale.ROOT, "  %.1f° wide", apparent) : base;
+        String base = ContinuumText.str("phoenix_continuum.continuum_sky_screen.angles", elevation, azimuth);
+        return apparent > 0.0f ? base + ContinuumText.str("phoenix_continuum.continuum_sky_screen.wide", apparent) : base;
     }
 
     private void drawDiagram(GuiGraphics g, int x, int y, int w, int h, ContinuumBody viewer, ContinuumSystem system) {
@@ -370,7 +370,7 @@ public final class ContinuumSkyScreen extends ContinuumFitScreen {
         ContinuumBody body = body();
         var eclipse = eclipseTarget(body);
         if (eclipse == null) {
-            message = "No eclipse in the next 400 days.";
+            message = ContinuumText.str("phoenix_continuum.continuum_sky_screen.no_eclipse_in_the_next_400");
             return;
         }
         double target = gameTicks() / TICKS_PER_DAY + eclipse.inDays();
@@ -384,7 +384,7 @@ public final class ContinuumSkyScreen extends ContinuumFitScreen {
             yaw = (float) Math.toDegrees(Math.atan2(sample.sunDir().x, -sample.sunDir().z));
             pitch = (float) Math.toDegrees(Math.asin(Math.max(-1.0f, Math.min(1.0f, sample.sunDir().y))));
         }
-        message = (eclipse.total() ? "Total eclipse by " : "Eclipse by ") + eclipse.moon();
+        message = (eclipse.total() ? ContinuumText.str("phoenix_continuum.continuum_sky_screen.total_eclipse_by") : ContinuumText.str("phoenix_continuum.continuum_sky_screen.eclipse_by")) + eclipse.moon();
     }
 
     @Override

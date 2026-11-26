@@ -1,6 +1,5 @@
 package net.phoenix.continuum.integration.jade;
 
-import net.phoenix.continuum.client.ContinuumText;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -46,7 +45,9 @@ final class ContinuumServerInfo implements IServerDataProvider<BlockAccessor> {
     }
 
     private static String line(String label, String value) {
-        return "\u00a77" + label + ": \u00a7f" + value;
+        return net.phoenix.continuum.common.ContinuumLang.enc("phoenix_continuum.continuum_server_info.line",
+                net.phoenix.continuum.common.ContinuumLang.enc("phoenix_continuum.continuum_server_info.label_" + label),
+                value);
     }
 
     @Override
@@ -74,10 +75,10 @@ final class ContinuumServerInfo implements IServerDataProvider<BlockAccessor> {
 
     private static void pad(List<String> lines, Level level, BlockPos pos, LaunchComplex complex) {
         String unit = PadTiers.energyUnit();
-        lines.add(line("Status", complex.isFormed() ? ContinuumText.str("phoenix_continuum.continuum_server_info.ready") : ContinuumText.str("phoenix_continuum.continuum_server_info.not_formed")));
+        lines.add(line("status", complex.isFormed() ? net.phoenix.continuum.common.ContinuumLang.enc("phoenix_continuum.continuum_server_info.ready") : net.phoenix.continuum.common.ContinuumLang.enc("phoenix_continuum.continuum_server_info.not_formed")));
         if (!complex.isFormed()) return;
-        lines.add(line("Tier", PadTiers.name(complex.padTier())));
-        lines.add(line("Energy", String.format(Locale.ROOT, "%,d / %,d %s", complex.storedEnergy(),
+        lines.add(line("tier", PadTiers.name(complex.padTier())));
+        lines.add(line("energy", String.format(Locale.ROOT, "%,d / %,d %s", complex.storedEnergy(),
                 complex.energyCapacity(), unit)));
         int rockets = complex.count(s -> s.getItem() instanceof ContinuumRocketItem);
         int probes = complex.count(s -> s.getItem() instanceof ContinuumProbeItem);
@@ -86,14 +87,13 @@ final class ContinuumServerInfo implements IServerDataProvider<BlockAccessor> {
         int segments = complex.count(s -> s.getItem() instanceof ContinuumShellSegmentItem ||
                 s.getItem() instanceof net.phoenix.continuum.item.ContinuumPenroseSegmentItem);
         if (complex.hasBuses() || rockets + probes + pods + segments > 0) {
-            lines.add(line(complex.hasBuses() ? "In the buses" : "Stocked", rockets + " rockets, " + probes +
-                    " probes" + (pods + segments > 0 ? ", " + pods + " pods, " + segments + " segments" : "")));
+            lines.add(line(complex.hasBuses() ? "in_the_buses" : "stocked", net.phoenix.continuum.common.ContinuumLang.enc(pods + segments > 0 ? "phoenix_continuum.continuum_server_info.stock_full" : "phoenix_continuum.continuum_server_info.stock", rockets, probes, pods, segments)));
         }
         var schedules = ContinuumSchedules.get(level.getServer()).atPad(ContinuumSchedules.dimensionOf(level),
                 pos.asLong());
         if (!schedules.isEmpty()) {
             long active = schedules.stream().filter(s -> s.enabled).count();
-            lines.add(line("Schedules", schedules.size() + " (" + active + " running)"));
+            lines.add(line("schedules", net.phoenix.continuum.common.ContinuumLang.enc("phoenix_continuum.continuum_server_info.schedules_value", schedules.size(), active)));
         }
     }
 
@@ -102,34 +102,34 @@ final class ContinuumServerInfo implements IServerDataProvider<BlockAccessor> {
                 GregTech.loaded() ? net.phoenix.continuum.integration.gtceu.ContinuumGt.receiverAt(level, pos) : null;
         if (receiver == null) return;
         var report = receiver.report(level.getServer());
-        lines.add(line("Status", source.active() ? ContinuumText.str("phoenix_continuum.continuum_server_info.receiving") : ContinuumText.str("phoenix_continuum.continuum_server_info.idle")));
-        lines.add(line("Team swarms make", String.format(Locale.ROOT, "%,d %s/t", report.teamPerTick(),
+        lines.add(line("status", source.active() ? net.phoenix.continuum.common.ContinuumLang.enc("phoenix_continuum.continuum_server_info.receiving") : net.phoenix.continuum.common.ContinuumLang.enc("phoenix_continuum.continuum_server_info.idle")));
+        lines.add(line("team_swarms_make", String.format(Locale.ROOT, "%,d %s/t", report.teamPerTick(),
                 report.unit())));
         if (report.capacity() > 0) {
-            lines.add(line("Stored", String.format(Locale.ROOT, "%,d / %,d %s", report.stored(), report.capacity(),
+            lines.add(line("stored", String.format(Locale.ROOT, "%,d / %,d %s", report.stored(), report.capacity(),
                     report.unit())));
         }
         if (report.maxOut() > 0) {
-            lines.add(line("Passes on", String.format(Locale.ROOT, "up to %,d %s/t", report.maxOut(), report.unit())));
+            lines.add(line("passes_on", String.format(Locale.ROOT, "up to %,d %s/t", report.maxOut(), report.unit())));
         }
     }
 
     private static void control(List<String> lines, Level level, BlockPos pos, SwarmHolograms.Source source) {
-        lines.add(line("Status", source.active() ? ContinuumText.str("phoenix_continuum.continuum_server_info.online") : ContinuumText.str("phoenix_continuum.continuum_server_info.offline")));
+        lines.add(line("status", source.active() ? net.phoenix.continuum.common.ContinuumLang.enc("phoenix_continuum.continuum_server_info.online") : net.phoenix.continuum.common.ContinuumLang.enc("phoenix_continuum.continuum_server_info.offline")));
         UUID owner = source.owner();
         if (owner == null) return;
         UUID team = ContinuumHost.teamOf(owner);
         ResourceLocation target = SwarmControlService.targetOf(level.getServer(), level, pos, team);
         ContinuumBody body = target == null ? null : ContinuumData.body(target);
         if (body == null) {
-            lines.add(line("Target", ContinuumText.str("phoenix_continuum.continuum_server_info.none_surveyed_yet")));
+            lines.add(line("target", net.phoenix.continuum.common.ContinuumLang.enc("phoenix_continuum.continuum_server_info.none_surveyed_yet")));
             return;
         }
         var data = ContinuumTeamData.get(level.getServer());
-        lines.add(line("Target", body.name() + (Swarms.isPenrose(body) ? " (black hole)" : " (star)")));
-        lines.add(line("Swarm", data.stationLevel(team, target) + " / " + Swarms.maxLevel(body)));
-        lines.add(line("Shell", data.shellLevel(team, target) + " / " + Swarms.shellMaxLevel(body)));
-        lines.add(line("Hologram size", String.format(Locale.ROOT, "%.2gx",
+        lines.add(line("target", net.phoenix.continuum.common.ContinuumLang.enc(Swarms.isPenrose(body) ? "phoenix_continuum.continuum_server_info.target_hole" : "phoenix_continuum.continuum_server_info.target_star", body.name())));
+        lines.add(line("swarm", data.stationLevel(team, target) + " / " + Swarms.maxLevel(body)));
+        lines.add(line("shell", data.shellLevel(team, target) + " / " + Swarms.shellMaxLevel(body)));
+        lines.add(line("hologram_size", String.format(Locale.ROOT, "%.2gx",
                 SwarmControlTargets.get(level.getServer()).scale(level, pos))));
     }
 }

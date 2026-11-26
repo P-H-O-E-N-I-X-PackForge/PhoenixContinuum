@@ -187,7 +187,7 @@ public class ContinuumMapScreen extends ContinuumFitScreen {
             enterBody(target);
         }
         if (pad == null) {
-            flash("Open the map from a Launch Complex to send a rescue run.");
+            flash(ContinuumText.str("phoenix_continuum.continuum_map_screen.open_the_map_from_a_launch"));
             return;
         }
         var outpost = ContinuumClientState.outpost(target.id());
@@ -274,7 +274,7 @@ public class ContinuumMapScreen extends ContinuumFitScreen {
             blitScene(graphics);
         } else {
             graphics.fill(0, 0, width, height, 0xFF05060f);
-            String message = ContinuumShaders.ready() ? "Render target unavailable" : "Continuum shaders not loaded";
+            String message = ContinuumShaders.ready() ? ContinuumText.str("phoenix_continuum.continuum_map_screen.render_target_unavailable") : ContinuumText.str("phoenix_continuum.continuum_map_screen.continuum_shaders_not_loaded");
             graphics.drawCenteredString(font, message, width / 2, height / 2, 0xFFff6b6b);
         }
 
@@ -745,12 +745,12 @@ public class ContinuumMapScreen extends ContinuumFitScreen {
             DiscoveryStage stage = (DiscoveryStage) entry[2];
             float px = (float) entry[3];
             var outpostView = ContinuumClientState.outpost(b.id());
-            String tag = outpostView == null ? "" : outpostView.damaged() ? "  [outpost - DAMAGED]" :
-                    outpostView.upkeepPerCycle() > 0 && !outpostView.powered() ? "  [outpost - no power]" :
-                            "  [outpost]";
+            String tag = outpostView == null ? "" : outpostView.damaged() ? ContinuumText.str("phoenix_continuum.continuum_map_screen.outpost_damaged") :
+                    outpostView.upkeepPerCycle() > 0 && !outpostView.powered() ? ContinuumText.str("phoenix_continuum.continuum_map_screen.outpost_no_power") :
+                            ContinuumText.str("phoenix_continuum.continuum_map_screen.outpost");
             var cometWindow = b.transientInfo() == null ? null : ContinuumClientState.transientWindow(b.id());
             if (cometWindow != null) {
-                tag += "  [comet - leaves in " + MapUi.duration(cometWindow[1] - ContinuumClientState.now()) + "]";
+                tag += ContinuumText.str("phoenix_continuum.continuum_map_screen.comet_leaves_in", MapUi.duration(cometWindow[1] - ContinuumClientState.now()));
 
                 if (star != null) {
                     float dx = p[0] - star[0];
@@ -895,9 +895,9 @@ public class ContinuumMapScreen extends ContinuumFitScreen {
 
     private static String stageLabel(DiscoveryStage stage) {
         return switch (stage) {
-            case UNKNOWN -> "Unknown signal";
-            case DETECTED -> "Detected";
-            case SURVEYED -> "Surveyed";
+            case UNKNOWN -> ContinuumText.str("phoenix_continuum.continuum_map_screen.unknown_signal");
+            case DETECTED -> ContinuumText.str("phoenix_continuum.continuum_map_screen.stage_detected");
+            case SURVEYED -> ContinuumText.str("phoenix_continuum.continuum_map_screen.stage_surveyed");
         };
     }
 
@@ -935,7 +935,7 @@ public class ContinuumMapScreen extends ContinuumFitScreen {
         panel(graphics, x, y, w, h);
         graphics.drawString(font, stage == DiscoveryStage.UNKNOWN ? "???" : b.name(), x + 6, y + 6, TITLE);
         String sub = stage == DiscoveryStage.UNKNOWN ? stageLabel(stage) :
-                b.kindLabel() + "  -  " + stageLabel(stage);
+                ContinuumText.str("phoenix_continuum.continuum_map.kind_stage", b.kindLabel(), stageLabel(stage));
         graphics.drawString(font, sub, x + 6, y + 17, stageColor(stage));
         if (descLines > 0) wrapped(graphics, b.description(), x + 6, y + 30, w - 12, TEXT);
     }
@@ -993,7 +993,7 @@ public class ContinuumMapScreen extends ContinuumFitScreen {
                                                                                ContinuumBody.Anomaly anomaly, int width) {
         boolean done = ContinuumClientState.anomalyInvestigated(b.id(), anomaly.id());
         String text = anomaly.cost() != null && !done ?
-                anomaly.description() + " (costs " + anomaly.cost().count() + " x " + anomaly.cost().item().getPath() + ")" :
+                ContinuumText.str("phoenix_continuum.continuum_map_screen.anomaly_costs", anomaly.description(), anomaly.cost().count(), anomaly.cost().item().getPath()) :
                 anomaly.description();
         List<net.minecraft.util.FormattedCharSequence> lines = Minecraft.getInstance().font
                 .split(net.minecraft.network.chat.FormattedText.of(text), width);
@@ -1017,39 +1017,39 @@ public class ContinuumMapScreen extends ContinuumFitScreen {
         int ty = y + 8;
         graphics.drawString(font, b.name(), x + 7, ty, TITLE);
         ty += 11;
-        graphics.drawString(font, b.kindLabel() + "  -  " + stageLabel(stage), x + 7, ty, stageColor(stage));
+        graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_map.kind_stage", b.kindLabel(), stageLabel(stage)), x + 7, ty, stageColor(stage));
         ty += 14;
 
         if (stage == DiscoveryStage.SURVEYED) {
             ty = wrapped(graphics, b.description(), x + 7, ty, inner, TEXT) + 4;
-            ty = stat(graphics, "Orbit", b.isCentral() ? "-" : String.format("%.2f AU", b.orbitAu()), x + 7, ty);
-            ty = stat(graphics, "Period", b.isCentral() ? "-" : String.format("%.0f days", b.periodDays()), x + 7, ty);
-            ty = stat(graphics, "Radius", b.type() == ContinuumBody.Type.STAR ? "-" :
-                    String.format("%.2f (Earth = 1)", b.radius()), x + 7, ty);
-            ty = stat(graphics, "Atmosphere", b.params().atmoDensity() > 0 ? "yes" : "none", x + 7, ty);
-            ty = stat(graphics, "Axial tilt", String.format("%.0f deg", b.params().axialTiltDeg()), x + 7, ty);
+            ty = stat(graphics, ContinuumText.str("phoenix_continuum.continuum_map_screen.orbit"), b.isCentral() ? "-" : String.format("%.2f AU", b.orbitAu()), x + 7, ty);
+            ty = stat(graphics, ContinuumText.str("phoenix_continuum.continuum_map_screen.period"), b.isCentral() ? "-" : String.format("%.0f days", b.periodDays()), x + 7, ty);
+            ty = stat(graphics, ContinuumText.str("phoenix_continuum.continuum_map_screen.radius"), b.type() == ContinuumBody.Type.STAR ? "-" :
+                    ContinuumText.str("phoenix_continuum.continuum_map_screen.radius_earth", b.radius()), x + 7, ty);
+            ty = stat(graphics, ContinuumText.str("phoenix_continuum.continuum_map_screen.atmosphere"), b.params().atmoDensity() > 0 ? "yes" : "none", x + 7, ty);
+            ty = stat(graphics, ContinuumText.str("phoenix_continuum.continuum_map_screen.axial_tilt"), String.format("%.0f deg", b.params().axialTiltDeg()), x + 7, ty);
         } else {
-            ty = wrapped(graphics, "Unsurveyed. A scan return only: fly a mission here to resolve its surface and sky.",
+            ty = wrapped(graphics, ContinuumText.str("phoenix_continuum.continuum_map_screen.unsurveyed_a_scan_return_only_fly"),
                     x + 7, ty, inner, DIM) + 4;
-            ty = stat(graphics, "Orbit", b.isCentral() ? "-" : String.format("%.2f AU", b.orbitAu()), x + 7, ty);
-            ty = stat(graphics, "Radius", "??", x + 7, ty);
-            ty = stat(graphics, "Atmosphere", "??", x + 7, ty);
+            ty = stat(graphics, ContinuumText.str("phoenix_continuum.continuum_map_screen.orbit"), b.isCentral() ? "-" : String.format("%.2f AU", b.orbitAu()), x + 7, ty);
+            ty = stat(graphics, ContinuumText.str("phoenix_continuum.continuum_map_screen.radius"), "??", x + 7, ty);
+            ty = stat(graphics, ContinuumText.str("phoenix_continuum.continuum_map_screen.atmosphere"), "??", x + 7, ty);
         }
         if (!b.yields().isEmpty() && ContinuumClientState.stage(b.id()) != DiscoveryStage.UNKNOWN) {
             int mapped = ContinuumClientState.mappedDeposits(b.id());
-            ty = stat(graphics, "Deposits", mapped + " of " + b.yields().size() + " mapped", x + 7, ty);
+            ty = stat(graphics, ContinuumText.str("phoenix_continuum.continuum_map_screen.deposits"), mapped + " of " + b.yields().size() + " mapped", x + 7, ty);
         }
-        ty = stat(graphics, "Pad tier", ContinuumMissions.tierName(ContinuumMissions.requiredPadTier(b)) + " or better",
+        ty = stat(graphics, ContinuumText.str("phoenix_continuum.continuum_map_screen.pad_tier"), ContinuumMissions.tierName(ContinuumMissions.requiredPadTier(b)) + " or better",
                 x + 7, ty);
         var launchWindow = net.phoenix.continuum.common.LaunchWindows.of(b, ContinuumClientState.now());
         if (launchWindow.applies() && stage != DiscoveryStage.UNKNOWN) {
             int pct = Math.round((launchWindow.factor() - 1.0f) * 100.0f);
             graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_map.window"), x + 7, ty, DIM);
-            graphics.drawString(font, launchWindow.label() + (pct == 0 ? "" : String.format(Locale.ROOT, "  (%+d%%)", pct)),
+            graphics.drawString(font, launchWindow.label() + (pct == 0 ? "" : ContinuumText.str("phoenix_continuum.continuum_map_screen.window_percent", pct)),
                     x + 81, ty, launchWindow.openNow() ? MapUi.GOOD : launchWindow.factor() > 1.1f ? MapUi.BAD : TEXT);
             ty += 11;
             if (launchWindow.changesInMillis() > 0) {
-                ty = stat(graphics, launchWindow.openNow() ? "Closes in" : "Opens in",
+                ty = stat(graphics, launchWindow.openNow() ? ContinuumText.str("phoenix_continuum.continuum_map_screen.closes_in") : ContinuumText.str("phoenix_continuum.continuum_map_screen.opens_in"),
                         MapUi.duration(launchWindow.changesInMillis()), x + 7, ty);
             }
         }
@@ -1061,26 +1061,25 @@ public class ContinuumMapScreen extends ContinuumFitScreen {
                 if (names.length() > 0) names.append(", ");
                 names.append(ContinuumClientState.stage(moon.id()) == DiscoveryStage.UNKNOWN ? "???" : moon.name());
             }
-            ty = stat(graphics, "Moons", names.toString(), x + 7, ty);
+            ty = stat(graphics, ContinuumText.str("phoenix_continuum.continuum_map_screen.moons"), names.toString(), x + 7, ty);
         }
 
         var outpost = ContinuumClientState.outpost(b.id());
         if (outpost != null) {
-            ty = stat(graphics, "Outpost", outpost.probes() + " probe" + (outpost.probes() == 1 ? "" : "s"), x + 7, ty);
-            ty = stat(graphics, "Ready", outpost.readyAt(ContinuumClientState.now()) + " of " + outpost.maxReady() +
-                    " cycles", x + 7, ty);
+            ty = stat(graphics, ContinuumText.str("phoenix_continuum.continuum_map_screen.outpost_2"), ContinuumText.str(outpost.probes() == 1 ? "phoenix_continuum.continuum_map_screen.probes_one" : "phoenix_continuum.continuum_map_screen.probes_many", outpost.probes()), x + 7, ty);
+            ty = stat(graphics, ContinuumText.str("phoenix_continuum.continuum_map_screen.ready"), ContinuumText.str("phoenix_continuum.continuum_map_screen.cycles_ready", outpost.readyAt(ContinuumClientState.now()), outpost.maxReady()), x + 7, ty);
             if (outpost.damaged()) {
                 graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_map.status"), x + 7, ty, DIM);
                 graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_map.damaged"), x + 81, ty, MapUi.BAD);
                 ty += 11;
-                ty = stat(graphics, "Idle cycles", String.valueOf(outpost.brokenCycles()), x + 7, ty);
+                ty = stat(graphics, ContinuumText.str("phoenix_continuum.continuum_map_screen.idle_cycles"), String.valueOf(outpost.brokenCycles()), x + 7, ty);
             }
             if (outpost.upkeepPerCycle() > 0) {
                 graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_map.power"), x + 7, ty, DIM);
                 graphics.drawString(font, outpost.powered() ? "OK" : ContinuumText.str("phoenix_continuum.continuum_map.no_power"), x + 81, ty,
                         outpost.powered() ? MapUi.GOOD : MapUi.BAD);
                 ty += 11;
-                ty = stat(graphics, "Upkeep", String.format(Locale.ROOT, "%,d " + net.phoenix.continuum.machine.PadTiers.energyUnit() + " / cycle",
+                ty = stat(graphics, ContinuumText.str("phoenix_continuum.continuum_map_screen.upkeep"), String.format(Locale.ROOT, "%,d " + net.phoenix.continuum.machine.PadTiers.energyUnit() + " / cycle",
                                 outpost.upkeepPerCycle()),
                         x + 7, ty);
                 if (outpost.lostCycles() > 0) {
@@ -1092,23 +1091,23 @@ public class ContinuumMapScreen extends ContinuumFitScreen {
 
         var passingWindow = b.transientInfo() == null ? null : ContinuumClientState.transientWindow(b.id());
         if (passingWindow != null) {
-            ty = stat(graphics, "Passing", "leaves in " +
+            ty = stat(graphics, ContinuumText.str("phoenix_continuum.continuum_map_screen.passing"), "leaves in " +
                     MapUi.duration(passingWindow[1] - ContinuumClientState.now()), x + 7, ty);
         }
         int stationLevel = ContinuumClientState.stationLevel(b.id());
         if (stationLevel > 0) {
-            ty = stat(graphics, net.phoenix.continuum.common.Swarms.isPenrose(b) ? "Penrose swarm" :
-                            net.phoenix.continuum.common.Swarms.isSwarm(b) ? "Dyson swarm" : "Station",
-                    "Level " + stationLevel + " of " + net.phoenix.continuum.common.Stations.maxLevel(b), x + 7, ty);
+            ty = stat(graphics, net.phoenix.continuum.common.Swarms.isPenrose(b) ? ContinuumText.str("phoenix_continuum.continuum_map_screen.penrose_swarm") :
+                            net.phoenix.continuum.common.Swarms.isSwarm(b) ? ContinuumText.str("phoenix_continuum.continuum_map_screen.dyson_swarm") : ContinuumText.str("phoenix_continuum.continuum_map_screen.station"),
+                    ContinuumText.str("phoenix_continuum.continuum_map_screen.level_of", stationLevel, net.phoenix.continuum.common.Stations.maxLevel(b)), x + 7, ty);
             if (net.phoenix.continuum.common.Swarms.isSwarm(b)) {
-                ty = stat(graphics, "Output", swarmOutput(b, stationLevel, false), x + 7, ty);
+                ty = stat(graphics, ContinuumText.str("phoenix_continuum.continuum_map_screen.output"), swarmOutput(b, stationLevel, false), x + 7, ty);
             }
         }
         int shellLevel = ContinuumClientState.shellLevel(b.id());
         if (shellLevel > 0 && net.phoenix.continuum.common.Swarms.isSwarm(b)) {
             ty = stat(graphics, net.phoenix.continuum.common.Swarms.shellName(b),
-                    "Level " + shellLevel + " of " + net.phoenix.continuum.common.Swarms.shellMaxLevel(b), x + 7, ty);
-            ty = stat(graphics, "Output", swarmOutput(b, shellLevel, true), x + 7, ty);
+                    ContinuumText.str("phoenix_continuum.continuum_map_screen.level_of", shellLevel, net.phoenix.continuum.common.Swarms.shellMaxLevel(b)), x + 7, ty);
+            ty = stat(graphics, ContinuumText.str("phoenix_continuum.continuum_map_screen.output"), swarmOutput(b, shellLevel, true), x + 7, ty);
         }
 
         if (!anomalies.isEmpty()) {
@@ -1194,8 +1193,8 @@ public class ContinuumMapScreen extends ContinuumFitScreen {
                 net.phoenix.continuum.common.Swarms.swarmPower(b, level));
         String unit = net.phoenix.continuum.machine.PadTiers.energyUnit();
         if (shell && power <= 0) {
-            return "none yet (needs " + Math.round(
-                    net.phoenix.continuum.config.ContinuumConfigs.INSTANCE.shellMinCompletion * 100) + "% built)";
+            return ContinuumText.str("phoenix_continuum.continuum_map_screen.shell_none_yet", Math.round(
+                    net.phoenix.continuum.config.ContinuumConfigs.INSTANCE.shellMinCompletion * 100));
         }
         return String.format(Locale.ROOT, "%,d %s/t", power, unit);
     }
@@ -1485,15 +1484,15 @@ public class ContinuumMapScreen extends ContinuumFitScreen {
             String status;
             int color;
             if (mission.stranded()) {
-                status = mission.rescuing() ? "Stranded - rescue en route" :
-                        "STRANDED - click to rescue  " + net.phoenix.continuum.common.ContinuumMissions
-                                .durationText(mission.distressUntil() - now);
+                status = mission.rescuing() ? ContinuumText.str("phoenix_continuum.continuum_map_screen.stranded_rescue_en_route") :
+                        ContinuumText.str("phoenix_continuum.continuum_map_screen.stranded_click_to_rescue", net.phoenix.continuum.common.ContinuumMissions
+                                .durationText(mission.distressUntil() - now));
                 color = MapUi.WARN;
             } else if (mission.state() == Mission.State.SUCCESS) {
-                status = "Landed - collect";
+                status = ContinuumText.str("phoenix_continuum.continuum_map_screen.landed_collect");
                 color = MapUi.GOOD;
             } else if (mission.state() == Mission.State.FAILED) {
-                status = "Failed - collect";
+                status = ContinuumText.str("phoenix_continuum.continuum_map_screen.failed_collect");
                 color = MapUi.BAD;
             } else {
                 status = MapUi.duration(mission.endMillis() - now);
@@ -1501,13 +1500,13 @@ public class ContinuumMapScreen extends ContinuumFitScreen {
             }
             String label = switch (mission.type()) {
                 case SURVEY -> name;
-                case EXTRACT -> name + "  (extract x" + mission.probes() + ")";
-                case DEPLOY -> name + "  (outpost x" + mission.probes() + ")";
-                case HAUL -> name + "  (haul)";
-                case REPAIR -> name + "  (repair)";
-                case RESCUE -> name + "  (rescue)";
-                case STATION -> name + "  (station)";
-                case SHELL -> name + "  (shell)";
+                case EXTRACT -> ContinuumText.str("phoenix_continuum.continuum_map_screen.label_extract", name, mission.probes());
+                case DEPLOY -> ContinuumText.str("phoenix_continuum.continuum_map_screen.label_deploy", name, mission.probes());
+                case HAUL -> ContinuumText.str("phoenix_continuum.continuum_map_screen.label_haul", name);
+                case REPAIR -> ContinuumText.str("phoenix_continuum.continuum_map_screen.label_repair", name);
+                case RESCUE -> ContinuumText.str("phoenix_continuum.continuum_map_screen.label_rescue", name);
+                case STATION -> ContinuumText.str("phoenix_continuum.continuum_map_screen.label_station", name);
+                case SHELL -> ContinuumText.str("phoenix_continuum.continuum_map_screen.label_shell", name);
             };
 
             int statusW = font.width(status);
@@ -1535,7 +1534,7 @@ public class ContinuumMapScreen extends ContinuumFitScreen {
     private void drawChrome(GuiGraphics graphics) {
         graphics.renderOutline(1, 1, width - 2, height - 2, FRAME);
 
-        String crumb = "Galaxy";
+        String crumb = ContinuumText.str("phoenix_continuum.continuum_map.galaxy");
         if (system != null && level != Level.GALAXY) {
             crumb += "  >  " + system.name();
             if (body != null && level == Level.BODY) crumb += "  >  " + body.name();
@@ -1557,12 +1556,6 @@ public class ContinuumMapScreen extends ContinuumFitScreen {
                 graphics.pose().popPose();
             }
         }
-
-        String hint = "drag: rotate   scroll: zoom   click: open   right-click / Esc: back   [Q] quality: " +
-                quality().name().toLowerCase(Locale.ROOT) + "   [P] orbits: " + (orbitsPaused ? "held" : "moving") +
-                "   [C] style: " +
-                (ContinuumVisuals.cube() ? "cube" : "sphere") + (pad == null ? "   (view only)" : "");
-        graphics.drawCenteredString(font, hint, width / 2, height - 12, 0xFF6a6488);
 
         if (flashTime > 0.0f) {
             int alpha = (int) (Math.min(1.0f, flashTime) * 255.0f) << 24;
@@ -1724,7 +1717,7 @@ public class ContinuumMapScreen extends ContinuumFitScreen {
         if (level == Level.GALAXY) {
             ContinuumSystem sys = pick.system();
             if (ContinuumClientState.stage(sys.id()) == DiscoveryStage.UNKNOWN) {
-                flash("Unknown signal. More research is needed to resolve it.");
+                flash(ContinuumText.str("phoenix_continuum.continuum_map_screen.unknown_signal_more_research_is_needed"));
                 return;
             }
             savedGalaxy = remember(galaxyCam);
@@ -1733,7 +1726,7 @@ public class ContinuumMapScreen extends ContinuumFitScreen {
         } else if (pick.body() != null) {
             ContinuumBody target = pick.body();
             if (ContinuumClientState.stage(target.id()) == DiscoveryStage.UNKNOWN) {
-                flash("Unknown signal. Nothing to look at yet.");
+                flash(ContinuumText.str("phoenix_continuum.continuum_map_screen.unknown_signal_nothing_to_look_at"));
                 return;
             }
 
@@ -1810,13 +1803,22 @@ public class ContinuumMapScreen extends ContinuumFitScreen {
 
     private List<ChromeButton> chromeButtons() {
         List<Object[]> wanted = new ArrayList<>();
-        boolean inside = level != Level.GALAXY;
-        if (inside) wanted.add(new Object[] { "back", "< Back", 52 });
-        wanted.add(new Object[] { "archive", "Archive", 52 });
-        wanted.add(new Object[] { "fleet", "Fleet", 52 });
-        if (inside) wanted.add(new Object[] { "orbits", orbitsPaused ? "Orbits: held" : "Orbits: moving", 76 });
-        wanted.add(new Object[] { "theme", "Theme", 52 });
-        if (inside && ContinuumTunerScreen.allowed()) wanted.add(new Object[] { "tune", "Tune", 52 });
+        String k = "phoenix_continuum.continuum_map.";
+
+        // the first view has the screens; the system and the body have what is for looking at that system or body.
+        // The list is built from the right edge, so the first entry is the one furthest right.
+        if (level == Level.GALAXY) {
+            wanted.add(new Object[] { "archive", ContinuumText.str(k + "button_archive"), 52 });
+            wanted.add(new Object[] { "fleet", ContinuumText.str(k + "button_fleet"), 52 });
+            wanted.add(new Object[] { "theme", ContinuumText.str(k + "button_theme"), 52 });
+        } else {
+            wanted.add(new Object[] { "back", ContinuumText.str(k + "button_back"), 52 });
+            if (ContinuumTunerScreen.allowed()) {
+                wanted.add(new Object[] { "tune", ContinuumText.str(k + "button_tune"), 52 });
+            }
+            wanted.add(new Object[] { "orbits", ContinuumText.str(orbitsPaused ? k + "button_orbits_held" :
+                    k + "button_orbits_moving"), 76 });
+        }
 
         int gap = 6;
         int total = gap * (wanted.size() - 1);
@@ -1948,19 +1950,23 @@ public class ContinuumMapScreen extends ContinuumFitScreen {
             else if (phase == Phase.NONE) goBack();
             return true;
         }
-        if (keyCode == InputConstants.KEY_Q) {
+        if (net.phoenix.continuum.client.ContinuumKeys.pressed(
+                net.phoenix.continuum.client.ContinuumKeys.CYCLE_QUALITY, keyCode, scanCode)) {
             ContinuumVisuals.cycleQuality();
             return true;
         }
-        if (keyCode == InputConstants.KEY_C) {
+        if (net.phoenix.continuum.client.ContinuumKeys.pressed(
+                net.phoenix.continuum.client.ContinuumKeys.TOGGLE_STYLE, keyCode, scanCode)) {
             ContinuumVisuals.toggleCube();
             return true;
         }
-        if (keyCode == InputConstants.KEY_P) {
+        if (net.phoenix.continuum.client.ContinuumKeys.pressed(
+                net.phoenix.continuum.client.ContinuumKeys.TOGGLE_ORBITS, keyCode, scanCode)) {
             orbitsPaused = !orbitsPaused;
             return true;
         }
-        if (keyCode == InputConstants.KEY_H) {
+        if (net.phoenix.continuum.client.ContinuumKeys.pressed(
+                net.phoenix.continuum.client.ContinuumKeys.OPEN_HISTORY, keyCode, scanCode)) {
             Minecraft.getInstance().setScreen(new ContinuumHistoryScreen(this));
             return true;
         }

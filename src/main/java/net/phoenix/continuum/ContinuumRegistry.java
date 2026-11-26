@@ -115,25 +115,25 @@ public final class ContinuumRegistry {
 
     public static final ItemRef<ContinuumUpgradeItem> MODULE_OVERDRIVE = item("continuum_module_overdrive",
             () -> new ContinuumUpgradeItem(new Item.Properties(), RocketStats.OVERDRIVE, 5,
-                    "Each level: -10% trip time"));
+                    "phoenix_continuum.continuum_upgrade_item.effect_overdrive"));
 
     public static final ItemRef<ContinuumUpgradeItem> MODULE_HULL = item("continuum_module_hull",
             () -> new ContinuumUpgradeItem(new Item.Properties(), RocketStats.REINFORCED_HULL, 3,
-                    "Each level: -25% wear per trip"));
+                    "phoenix_continuum.continuum_upgrade_item.effect_hull"));
 
     public static final ItemRef<ContinuumUpgradeItem> MODULE_INTERLOCK = item("continuum_module_interlock",
             () -> new ContinuumUpgradeItem(new Item.Properties(), RocketStats.HULL_INTERLOCK, 1,
-                    "Refuses to launch when the rocket is too worn"));
+                    "phoenix_continuum.continuum_upgrade_item.effect_interlock"));
 
     public static final ItemRef<ContinuumUpgradeItem> MODULE_STELLAR_SHIELD = item(
             "continuum_module_stellar_shield",
             () -> new ContinuumUpgradeItem(new Item.Properties(), RocketStats.STELLAR_SHIELD, 1,
-                    "Lets the rocket extract from, and build outposts on, a star"));
+                    "phoenix_continuum.continuum_upgrade_item.effect_stellar"));
 
     public static final ItemRef<ContinuumUpgradeItem> MODULE_SINGULARITY_SHIELD = item(
             "continuum_module_singularity_shield",
             () -> new ContinuumUpgradeItem(new Item.Properties(), RocketStats.SINGULARITY_SHIELD, 1,
-                    "Lets the rocket extract from, and build outposts on, a black hole or quasar"));
+                    "phoenix_continuum.continuum_upgrade_item.effect_singularity"));
 
     public static final ItemRef<ContinuumRefitKitItem> REFIT_MK2 = item("continuum_hull_refit_mk2",
             () -> new ContinuumRefitKitItem(new Item.Properties(), 2));

@@ -25,14 +25,14 @@ public class S2CMissionLaunchedPacket {
         this.accepted = buf.readBoolean();
         this.destination = buf.readResourceLocation();
         this.pad = buf.readBlockPos();
-        this.message = buf.readUtf(256);
+        this.message = buf.readUtf(1024);
     }
 
     public void encode(FriendlyByteBuf buf) {
         buf.writeBoolean(accepted);
         buf.writeResourceLocation(destination);
         buf.writeBlockPos(pad);
-        buf.writeUtf(message, 256);
+        buf.writeUtf(message, 1024);
     }
 
     public static void handle(S2CMissionLaunchedPacket msg, java.util.function.Supplier<NetworkEvent.Context> ctx) {

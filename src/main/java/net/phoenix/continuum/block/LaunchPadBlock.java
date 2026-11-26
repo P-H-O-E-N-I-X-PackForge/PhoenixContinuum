@@ -73,9 +73,9 @@ public class LaunchPadBlock extends Block implements EntityBlock {
             if (PadTiers.basic() && level.getBlockEntity(pos) instanceof LaunchPadBlockEntity pad) {
                 pad.claim(player.getUUID());
                 if (player.isShiftKeyDown()) {
-                    serverPlayer.sendSystemMessage(Component.literal(String.format(Locale.ROOT,
-                            "Launch Pad: %s tier, %,d / %,d FE.", PadTiers.name(pad.padTier()), pad.storedEnergy(),
-                            pad.energyCapacity())).withStyle(ChatFormatting.AQUA));
+                    serverPlayer.sendSystemMessage(net.phoenix.continuum.common.ContinuumLang.tr("phoenix_continuum.launch_pad_block.pad_status",
+                            PadTiers.name(pad.padTier()), String.format(Locale.ROOT, "%,d", pad.storedEnergy()),
+                            String.format(Locale.ROOT, "%,d", pad.energyCapacity())).withStyle(ChatFormatting.AQUA));
                     return InteractionResult.CONSUME;
                 }
             }

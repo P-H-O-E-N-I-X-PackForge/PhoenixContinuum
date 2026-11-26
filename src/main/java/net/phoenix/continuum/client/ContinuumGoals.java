@@ -25,7 +25,7 @@ public final class ContinuumGoals {
     public static List<Component> lines() {
         List<Goal> goals = new ArrayList<>();
         for (ContinuumSystem system : ContinuumData.systems()) {
-            consider(goals, system.id(), "the " + system.name() + " system", ContinuumData.rawSystem(system.id()));
+            consider(goals, system.id(), ContinuumText.str("phoenix_continuum.continuum_goals.the_system", system.name()), ContinuumData.rawSystem(system.id()));
         }
         for (ContinuumBody body : ContinuumData.allBodies()) {
             consider(goals, body.id(), body.name(), ContinuumData.rawBody(body.id()));
@@ -46,7 +46,7 @@ public final class ContinuumGoals {
     private static void consider(List<Goal> goals, ResourceLocation id, String name, @Nullable JsonObject raw) {
         DiscoveryStage stage = ContinuumClientState.stage(id);
         if (stage == DiscoveryStage.UNKNOWN || stage == DiscoveryStage.SURVEYED) return;
-        goals.add(new Goal("Survey " + name, grantsOnSurvey(raw)));
+        goals.add(new Goal(ContinuumText.str("phoenix_continuum.continuum_goals.survey_name", name), grantsOnSurvey(raw)));
     }
 
     private static boolean grantsOnSurvey(@Nullable JsonObject raw) {

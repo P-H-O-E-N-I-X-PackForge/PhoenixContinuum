@@ -107,9 +107,9 @@ public class ContinuumSwarmControlScreen extends ContinuumFitScreen {
         int stars = (int) view.candidates().stream().filter(c -> !c.penrose()).count();
         int holes = view.candidates().size() - stars;
         int half = (PANEL_W - 22) / 2;
-        addRenderableWidget(MapButton.of(x + 8, 32, half, 16, "Stars (" + stars + ")", b -> pickSection(false))
+        addRenderableWidget(MapButton.of(x + 8, 32, half, 16, ContinuumText.str("phoenix_continuum.continuum_swarm_control_screen.stars", stars), b -> pickSection(false))
                 .selected(!blackHoles).enabled(stars > 0));
-        addRenderableWidget(MapButton.of(x + 14 + half, 32, half, 16, "Black holes (" + holes + ")",
+        addRenderableWidget(MapButton.of(x + 14 + half, 32, half, 16, ContinuumText.str("phoenix_continuum.continuum_swarm_control_screen.black_holes", holes),
                 b -> pickSection(true)).selected(blackHoles).enabled(holes > 0));
         addRenderableWidget(MapButton.of(x + 8, 52, 18, 16, "<", b -> cycle(-1)));
         addRenderableWidget(MapButton.of(x + PANEL_W - 26, 52, 18, 16, ">", b -> cycle(1)));
@@ -119,13 +119,13 @@ public class ContinuumSwarmControlScreen extends ContinuumFitScreen {
                 view.target())));
         addRenderableWidget(MapButton.of(x + PANEL_W - 30, height - 88, 22, 16, "+", b -> send(
                 C2SSwarmControlPacket.BIGGER, view.target())));
-        addRenderableWidget(MapButton.of(x + 8, height - 64, PANEL_W - 16, 18, "Send swarm pods",
+        addRenderableWidget(MapButton.of(x + 8, height - 64, PANEL_W - 16, 18, ContinuumText.str("phoenix_continuum.continuum_swarm_control_screen.send_swarm_pods"),
                 b -> send(C2SSwarmControlPacket.BUILD_SWARM, view.target()))
                 .enabled(ready && current.swarm() < current.swarmMax() && current.shell() == 0));
-        addRenderableWidget(MapButton.of(x + 8, height - 42, PANEL_W - 16, 18, "Send shell segments",
+        addRenderableWidget(MapButton.of(x + 8, height - 42, PANEL_W - 16, 18, ContinuumText.str("phoenix_continuum.continuum_swarm_control_screen.send_shell_segments"),
                 b -> send(C2SSwarmControlPacket.BUILD_SHELL, view.target()))
                 .enabled(ready && current.shell() < current.shellMax() && current.swarm() == 0));
-        addRenderableWidget(MapButton.of(x + 8, height - 20, PANEL_W - 16, 14, "Close", b -> onClose()));
+        addRenderableWidget(MapButton.of(x + 8, height - 20, PANEL_W - 16, 14, ContinuumText.str("phoenix_continuum.continuum_swarm_control_screen.close"), b -> onClose()));
     }
 
     @Override
@@ -175,11 +175,11 @@ public class ContinuumSwarmControlScreen extends ContinuumFitScreen {
         int x = panelX();
         MapUi.panel(g, x, 8, PANEL_W, height - 16);
         g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_swarm_control.swarm_control"), x + 8, 14, MapUi.TITLE);
-        String status = view.online() ? "ONLINE" : "OFFLINE";
+        String status = view.online() ? ContinuumText.str("phoenix_continuum.continuum_swarm_control_screen.online") : ContinuumText.str("phoenix_continuum.continuum_swarm_control_screen.offline");
         g.drawString(font, status, x + PANEL_W - 8 - font.width(status), 14, view.online() ? MapUi.GOOD : MapUi.BAD);
         if (current == null) {
             g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_swarm_control.no_target"), x + 8, 76, MapUi.DIM);
-            for (var line : font.split(Component.literal(view.note()), PANEL_W - 16)) {
+            for (var line : font.split(net.phoenix.continuum.common.ContinuumLang.component(view.note()), PANEL_W - 16)) {
                 g.drawString(font, line, x + 8, 90, MapUi.DIM, false);
             }
             for (var renderable : this.renderables) renderable.render(g, mouseX, mouseY, partialTick);
@@ -190,12 +190,12 @@ public class ContinuumSwarmControlScreen extends ContinuumFitScreen {
         g.drawCenteredString(font, current.penrose() ? ContinuumText.str("phoenix_continuum.continuum_swarm_control.black_hole_penrose_swarm") : ContinuumText.str("phoenix_continuum.continuum_swarm_control.star_dyson_swarm"),
                 x + PANEL_W / 2, 72, MapUi.DIM);
 
-        g.drawCenteredString(font, String.format(Locale.ROOT, "Hologram size %.2gx", view.scale()), x + PANEL_W / 2,
+        g.drawCenteredString(font, String.format(Locale.ROOT, ContinuumText.label("phoenix_continuum.continuum_swarm_control_screen.hologram_size_2gx"), view.scale()), x + PANEL_W / 2,
                 height - 84, MapUi.TEXT);
         int y = 88;
         y = stage(g, x + 8, y, current);
-        y = meter(g, x + 8, y, "Swarm", current.swarm(), current.swarmMax(), view.swarmInFlight(), MapUi.GOOD);
-        y = meter(g, x + 8, y, current.penrose() ? "Penrose sphere" : "Shell", current.shell(), current.shellMax(),
+        y = meter(g, x + 8, y, ContinuumText.str("phoenix_continuum.continuum_swarm_control_screen.swarm"), current.swarm(), current.swarmMax(), view.swarmInFlight(), MapUi.GOOD);
+        y = meter(g, x + 8, y, current.penrose() ? ContinuumText.str("phoenix_continuum.continuum_swarm_control_screen.penrose_sphere") : ContinuumText.str("phoenix_continuum.continuum_swarm_control_screen.shell"), current.shell(), current.shellMax(),
                 view.shellInFlight(), MapUi.WARN);
 
         g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_swarm_control.output_now"), x + 8, y + 2, MapUi.DIM);
@@ -211,15 +211,15 @@ public class ContinuumSwarmControlScreen extends ContinuumFitScreen {
         g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_swarm_control.launch_pad"), x + 8, y, MapUi.TITLE);
         y += 11;
         if (!view.padFound()) {
-            for (var line : font.split(Component.literal(view.note()), PANEL_W - 16)) {
+            for (var line : font.split(net.phoenix.continuum.common.ContinuumLang.component(view.note()), PANEL_W - 16)) {
                 g.drawString(font, line, x + 8, y, MapUi.WARN, false);
                 y += 10;
             }
         } else {
-            g.drawString(font, font.plainSubstrByWidth(view.padName(), PANEL_W - 16), x + 8, y, MapUi.TEXT);
+            g.drawString(font, font.plainSubstrByWidth(net.phoenix.continuum.common.ContinuumLang.plain(view.padName()), PANEL_W - 16), x + 8, y, MapUi.TEXT);
             y += 11;
             boolean enough = view.energyStored() >= view.launchEnergy();
-            g.drawString(font, String.format(Locale.ROOT, "Energy %,d / %,d %s", view.energyStored(),
+            g.drawString(font, String.format(Locale.ROOT, ContinuumText.label("phoenix_continuum.continuum_swarm_control_screen.energy_d_d_s"), view.energyStored(),
                     view.launchEnergy(), view.unit()), x + 8, y, enough ? MapUi.GOOD : MapUi.WARN);
             y += 11;
             g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_swarm_control.rockets_pods_segments", view.rockets(), view.collectors(), view.segments()), x + 8, y, MapUi.TEXT);
@@ -232,16 +232,16 @@ public class ContinuumSwarmControlScreen extends ContinuumFitScreen {
         int color = MapUi.TEXT;
         if (c.shell() > 0) {
             boolean finished = c.shell() >= c.shellMax();
-            text = finished ? "Stage: shell complete" : "Stage: building the shell";
+            text = finished ? ContinuumText.str("phoenix_continuum.continuum_swarm_control_screen.stage_shell_complete") : ContinuumText.str("phoenix_continuum.continuum_swarm_control_screen.stage_building_the_shell");
             color = finished ? MapUi.GOOD : MapUi.WARN;
         } else if (c.swarm() > 0) {
             boolean finished = c.swarm() >= c.swarmMax();
-            text = finished ? "Stage: swarm complete" : "Stage: building the swarm";
+            text = finished ? ContinuumText.str("phoenix_continuum.continuum_swarm_control_screen.stage_swarm_complete") : ContinuumText.str("phoenix_continuum.continuum_swarm_control_screen.stage_building_the_swarm");
             color = finished ? MapUi.GOOD : MapUi.WARN;
         } else if (view.swarmInFlight() + view.shellInFlight() > 0) {
-            text = "Stage: first parts on their way";
+            text = ContinuumText.str("phoenix_continuum.continuum_swarm_control_screen.stage_first_parts_on_their_way");
         } else {
-            text = "Stage: nothing built yet";
+            text = ContinuumText.str("phoenix_continuum.continuum_swarm_control_screen.stage_nothing_built_yet");
         }
         g.drawString(font, text, x, y, color);
         String percent = Math.round(progress(c) * 100.0f) + "%";
@@ -251,7 +251,7 @@ public class ContinuumSwarmControlScreen extends ContinuumFitScreen {
 
     private int meter(GuiGraphics g, int x, int y, String label, int built, int max, int flying, int color) {
         g.drawString(font, label, x, y, MapUi.DIM);
-        String count = built + " / " + max + (flying > 0 ? "  (+" + flying + " flying)" : "");
+        String count = built + " / " + max + (flying > 0 ? ContinuumText.str("phoenix_continuum.continuum_swarm_control_screen.flying", flying) : "");
         g.drawString(font, count, x + PANEL_W - 16 - font.width(count), y, MapUi.TEXT);
         MapUi.bar(g, x, y + 11, PANEL_W - 16, 4, built / (float) Math.max(1, max), color);
         return y + 22;

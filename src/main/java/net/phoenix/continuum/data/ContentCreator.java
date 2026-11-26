@@ -1,5 +1,6 @@
 package net.phoenix.continuum.data;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -52,39 +53,39 @@ public final class ContentCreator {
     }
 
     public static Result createSystem(MinecraftServer server, ResourceLocation id, JsonObject def) {
-        if (!safe(id)) return Result.fail("That id is not allowed.");
-        if (ContinuumData.system(id) != null) return Result.fail("A system " + id + " already exists.");
+        if (!safe(id)) return Result.fail(ContinuumLang.enc("phoenix_continuum.content_creator.id_not_allowed"));
+        if (ContinuumData.system(id) != null) return Result.fail(ContinuumLang.enc("phoenix_continuum.content_creator.system_exists", id));
         try {
             write(dataFile("systems", id), def);
         } catch (IOException e) {
-            return Result.fail("Could not write the file: " + e.getMessage());
+            return Result.fail(ContinuumLang.enc("phoenix_continuum.content_creator.write_failed", e.getMessage()));
         }
         ContinuumData.reloadNow(server);
-        return new Result(true, "Created the system " + id + ".");
+        return new Result(true, ContinuumLang.enc("phoenix_continuum.content_creator.created_system", id));
     }
 
     public static Result createBody(MinecraftServer server, ResourceLocation id, JsonObject def) {
-        if (!safe(id)) return Result.fail("That id is not allowed.");
-        if (ContinuumData.body(id) != null) return Result.fail("A body " + id + " already exists.");
+        if (!safe(id)) return Result.fail(ContinuumLang.enc("phoenix_continuum.content_creator.id_not_allowed"));
+        if (ContinuumData.body(id) != null) return Result.fail(ContinuumLang.enc("phoenix_continuum.content_creator.body_exists", id));
 
         JsonElement system = def.get("system");
         ResourceLocation systemId = system != null && system.isJsonPrimitive() ?
                 ResourceLocation.tryParse(system.getAsString()) : null;
         if (systemId == null || ContinuumData.system(systemId) == null) {
-            return Result.fail("Its system does not exist.");
+            return Result.fail(ContinuumLang.enc("phoenix_continuum.content_creator.no_system"));
         }
         JsonElement parent = def.get("parent");
         if (parent != null && parent.isJsonPrimitive()) {
             ResourceLocation parentId = ResourceLocation.tryParse(parent.getAsString());
             if (parentId == null || ContinuumData.body(parentId) == null) {
-                return Result.fail("The body it orbits does not exist.");
+                return Result.fail(ContinuumLang.enc("phoenix_continuum.content_creator.no_parent"));
             }
         }
 
         try {
             write(dataFile("bodies", id), def);
         } catch (IOException e) {
-            return Result.fail("Could not write the file: " + e.getMessage());
+            return Result.fail(ContinuumLang.enc("phoenix_continuum.content_creator.write_failed", e.getMessage()));
         }
 
         boolean needsRestart = false;
@@ -110,12 +111,11 @@ public final class ContentCreator {
             for (ContinuumReport.Issue issue : report.issues()) {
                 if (issue.toString().contains(id.toString())) why.append(' ').append(issue);
             }
-            return Result.fail("The body " + id + " was written but did not load." + (why.length() == 0 ?
-                    " If " + id.getNamespace() + " is a new namespace for the pack folder, restart the game once;" +
-                            " otherwise see /continuumadmin validate." : why.toString()));
+            return Result.fail(why.length() == 0 ?
+                    ContinuumLang.enc("phoenix_continuum.content_creator.not_loaded_hint", id, id.getNamespace()) :
+                    ContinuumLang.enc("phoenix_continuum.content_creator.not_loaded", id, why.toString()));
         }
-        return new Result(true, "Created the body " + id + "." +
-                (needsRestart ? " Its personal dimension appears after a restart." : ""));
+        return new Result(true, ContinuumLang.enc(needsRestart ? "phoenix_continuum.content_creator.created_body_restart" : "phoenix_continuum.content_creator.created_body", id));
     }
 
     private static void write(Path file, JsonObject json) throws IOException {

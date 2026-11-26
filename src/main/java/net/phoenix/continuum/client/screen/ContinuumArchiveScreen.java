@@ -118,13 +118,13 @@ public class ContinuumArchiveScreen extends ContinuumFitScreen {
 
         DiscoveryStage stage = ContinuumClientState.stage(selected.id());
         graphics.drawString(font, selected.name(), x + 8, top + 8, MapUi.TITLE);
-        graphics.drawString(font, selected.kindLabel() + "  -  " + stage.label(), x + 8, top + 20, MapUi.DIM);
+        graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_map.kind_stage", selected.kindLabel(), stage.label()), x + 8, top + 20, MapUi.DIM);
 
         int y = top + 38;
-        y = paragraph(graphics, "DETECTED", selected.loreDetected(), x + 8, y, w - 16, MapUi.WARN);
+        y = paragraph(graphics, ContinuumText.str("phoenix_continuum.continuum_archive_screen.detected"), selected.loreDetected(), x + 8, y, w - 16, MapUi.WARN);
         if (stage == DiscoveryStage.SURVEYED) {
             y += 8;
-            paragraph(graphics, "SURVEYED", selected.loreSurveyed(), x + 8, y, w - 16, MapUi.GOOD);
+            paragraph(graphics, ContinuumText.str("phoenix_continuum.continuum_archive_screen.surveyed"), selected.loreSurveyed(), x + 8, y, w - 16, MapUi.GOOD);
         } else {
             graphics.drawString(font, ContinuumText.str("phoenix_continuum.continuum_archive.survey_this_body_to_write"), x + 8, y + 10, MapUi.DIM);
         }

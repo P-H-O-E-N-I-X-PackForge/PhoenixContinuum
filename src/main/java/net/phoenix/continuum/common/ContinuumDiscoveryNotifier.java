@@ -81,8 +81,8 @@ public final class ContinuumDiscoveryNotifier {
         String first = survey ? surveyed.get(0).name() : !detected.isEmpty() ? detected.get(0).name() :
                 systems.get(0).name();
         int total = surveyed.size() + detected.size() + systems.size();
-        Component title = Component.literal(survey ? "§bSurvey complete" : "§eSignal detected");
-        Component subtitle = Component.literal("§f" + first + (total > 1 ? " §7(+" + (total - 1) + " more)" : ""));
+        Component title = ContinuumLang.tr(survey ? "phoenix_continuum.continuum_discovery_notifier.title_survey" : "phoenix_continuum.continuum_discovery_notifier.title_signal");
+        Component subtitle = total > 1 ? ContinuumLang.tr("phoenix_continuum.continuum_discovery_notifier.subtitle_more", first, total - 1) : ContinuumLang.tr("phoenix_continuum.continuum_discovery_notifier.subtitle", first);
 
         for (ServerPlayer p : players) {
             for (Component line : lines) p.sendSystemMessage(line);

@@ -26,18 +26,18 @@ public final class AnomalyActions {
 
     public static @Nullable String investigate(ServerPlayer player, ResourceLocation bodyId, String anomalyId) {
         ContinuumBody body = ContinuumData.body(bodyId);
-        if (body == null) return "That body does not exist.";
+        if (body == null) return ContinuumLang.enc("phoenix_continuum.anomaly_actions.no_body");
         ContinuumBody.Anomaly anomaly = null;
         for (ContinuumBody.Anomaly candidate : body.anomalies()) {
             if (candidate.id().equals(anomalyId)) anomaly = candidate;
         }
-        if (anomaly == null) return "There is nothing like that on " + body.name() + ".";
+        if (anomaly == null) return ContinuumLang.enc("phoenix_continuum.anomaly_actions.nothing_like_that", body.name());
 
         UUID team = ContinuumHost.teamOf(player.getUUID());
         ContinuumTeamData data = ContinuumTeamData.get(player.server);
         DiscoveryStage stage = data.effectiveStage(player.server, team, bodyId);
-        if (!stage.atLeast(anomaly.reveal())) return "Your team has not found that yet.";
-        if (data.anomalyInvestigated(team, bodyId, anomalyId)) return "Your team has already investigated " + anomaly.name() + ".";
+        if (!stage.atLeast(anomaly.reveal())) return ContinuumLang.enc("phoenix_continuum.anomaly_actions.not_found_yet");
+        if (data.anomalyInvestigated(team, bodyId, anomalyId)) return ContinuumLang.enc("phoenix_continuum.anomaly_actions.already_investigated", anomaly.name());
 
         var cost = anomaly.cost();
         if (cost != null && !player.isCreative()) {
@@ -47,7 +47,7 @@ public final class AnomalyActions {
                 if (stack.is(costItem)) have += stack.getCount();
             }
             if (costItem == Items.AIR || have < cost.count()) {
-                return "Investigating " + anomaly.name() + " takes " + cost.count() + " x " + cost.item() + " (you have " + have + ").";
+                return ContinuumLang.enc("phoenix_continuum.anomaly_actions.takes", anomaly.name(), cost.count(), cost.item(), have);
             }
             int left = cost.count();
             for (ItemStack stack : player.getInventory().items) {
@@ -59,7 +59,7 @@ public final class AnomalyActions {
             }
         }
 
-        if (!data.markAnomalyInvestigated(team, bodyId, anomalyId)) return "Your team has already investigated " + anomaly.name() + ".";
+        if (!data.markAnomalyInvestigated(team, bodyId, anomalyId)) return ContinuumLang.enc("phoenix_continuum.anomaly_actions.already_investigated", anomaly.name());
 
         StringBuilder found = new StringBuilder();
         for (ContinuumBody.Yield yield : anomaly.rewards()) {
@@ -81,13 +81,13 @@ public final class AnomalyActions {
             }
         }
 
-        String text = anomaly.message().isEmpty() ? anomaly.name() + " investigated." : anomaly.message();
+        Component text = anomaly.message().isEmpty() ? ContinuumLang.tr("phoenix_continuum.anomaly_actions.investigated", anomaly.name()) : Component.literal(anomaly.message());
         player.sendSystemMessage(Component.literal(anomaly.name() + ": ").withStyle(ChatFormatting.GOLD)
-                .append(Component.literal(text).withStyle(ChatFormatting.WHITE)));
+                .append(text.copy().withStyle(ChatFormatting.WHITE)));
         if (found.length() > 0) {
             player.sendSystemMessage(ContinuumLang.tr("phoenix_continuum.anomaly_actions.recovered", found).withStyle(ChatFormatting.GRAY));
         }
-        data.log(team, MissionLog.Kind.ANOMALY, bodyId, anomaly.name() + " investigated on " + body.name() + ".");
+        data.log(team, MissionLog.Kind.ANOMALY, bodyId, ContinuumLang.enc("phoenix_continuum.anomaly_actions.log_investigated", anomaly.name(), body.name()));
 
         ContinuumEvents.postAnomaly(player, team, bodyId, anomalyId);
         sendToTeam(player.server, team);

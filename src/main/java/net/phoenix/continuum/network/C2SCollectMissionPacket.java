@@ -34,7 +34,7 @@ public class C2SCollectMissionPacket {
 
             String error = ContinuumMissions.collect(player, msg.mission);
             if (error != null) {
-                player.sendSystemMessage(Component.literal(error).withStyle(ChatFormatting.RED));
+                player.sendSystemMessage(net.phoenix.continuum.common.ContinuumLang.component(error).withStyle(ChatFormatting.RED));
             }
         });
         ctx.get().setPacketHandled(true);

@@ -310,7 +310,7 @@ public class ContinuumArrivalScreen extends Screen {
 
         if (!hole) {
             double altitudeKm = (1.0 - Math.min(1.0, t / CARD_AT)) * 380.0 + 4.0;
-            graphics.drawString(font, String.format(Locale.ROOT, "ALT  %,d km", Math.round(altitudeKm)), 14, 40,
+            graphics.drawString(font, String.format(Locale.ROOT, ContinuumText.label("phoenix_continuum.continuum_arrival_screen.alt_d_km"), Math.round(altitudeKm)), 14, 40,
                     MapUi.TEXT);
         }
         if (t < CARD_AT) graphics.drawCenteredString(font, ContinuumText.str("phoenix_continuum.continuum_arrival.esc_to_skip"), width / 2, height - 12, 0xFF6a6488);
@@ -344,33 +344,33 @@ public class ContinuumArrivalScreen extends Screen {
         graphics.renderOutline(x, y, w, 154, a | (crash ? 0xff6b6b : 0x7a5cff));
 
         String name = destination != null ? destination.name() : mission.destination().getPath();
-        String title = crash ? "LANDING FAILED" : profile.success;
+        String title = crash ? ContinuumText.str("phoenix_continuum.continuum_arrival_screen.landing_failed") : profile.success;
         graphics.drawCenteredString(font, title, x + w / 2, y + 10, a | (crash ? 0xff6b6b : 0xE8D8FF));
         graphics.drawCenteredString(font, name + "  -  " + mission.type().label(), x + w / 2, y + 24, a | 0xB8B0D8);
 
         String result = switch (mission.type()) {
-            case SURVEY -> crash ? "The rocket came back damaged; nothing was learned." :
-                    "Survey complete. The surface data is on the map.";
-            case EXTRACT -> crash ? "The probes were lost and the rocket is damaged." :
-                    "The probes are back. Resources are ready to collect.";
-            case DEPLOY -> crash ? "The probes were lost and the rocket is damaged." :
-                    "The outpost is down and producing.";
-            case HAUL -> crash ? "The haul was lost and the rocket is damaged." :
-                    "The stockpile is loaded. Ready to collect.";
-            case REPAIR -> crash ? "The repair kits were lost and the outpost is still broken." :
-                    "The outpost is repaired and producing again.";
-            case RESCUE -> crash ? "The repair kits were lost and the stranded rocket still waits." :
-                    "The stranded rocket is recovered.";
-            case STATION -> crash ? "The station crew's probes were lost and the rocket is damaged." :
-                    "The orbital station is built.";
-            case SHELL -> crash ? "The shell crew's probes were lost and the rocket is damaged." :
-                    "Another section of the shell is in place.";
+            case SURVEY -> crash ? ContinuumText.str("phoenix_continuum.continuum_arrival_screen.the_rocket_came_back_damaged_nothing") :
+                    ContinuumText.str("phoenix_continuum.continuum_arrival_screen.survey_complete_the_surface_data_is");
+            case EXTRACT -> crash ? ContinuumText.str("phoenix_continuum.continuum_arrival_screen.the_probes_were_lost_and_the") :
+                    ContinuumText.str("phoenix_continuum.continuum_arrival_screen.the_probes_are_back_resources_are");
+            case DEPLOY -> crash ? ContinuumText.str("phoenix_continuum.continuum_arrival_screen.the_probes_were_lost_and_the") :
+                    ContinuumText.str("phoenix_continuum.continuum_arrival_screen.the_outpost_is_down_and_producing");
+            case HAUL -> crash ? ContinuumText.str("phoenix_continuum.continuum_arrival_screen.the_haul_was_lost_and_the") :
+                    ContinuumText.str("phoenix_continuum.continuum_arrival_screen.the_stockpile_is_loaded_ready_to");
+            case REPAIR -> crash ? ContinuumText.str("phoenix_continuum.continuum_arrival_screen.the_repair_kits_were_lost_and") :
+                    ContinuumText.str("phoenix_continuum.continuum_arrival_screen.the_outpost_is_repaired_and_producing");
+            case RESCUE -> crash ? ContinuumText.str("phoenix_continuum.continuum_arrival_screen.the_repair_kits_were_lost_and_2") :
+                    ContinuumText.str("phoenix_continuum.continuum_arrival_screen.the_stranded_rocket_is_recovered");
+            case STATION -> crash ? ContinuumText.str("phoenix_continuum.continuum_arrival_screen.the_station_crew_s_probes_were") :
+                    ContinuumText.str("phoenix_continuum.continuum_arrival_screen.the_orbital_station_is_built");
+            case SHELL -> crash ? ContinuumText.str("phoenix_continuum.continuum_arrival_screen.the_shell_crew_s_probes_were") :
+                    ContinuumText.str("phoenix_continuum.continuum_arrival_screen.another_section_of_the_shell_is");
         };
-        if (mission.stranded()) result = "The rocket is stranded. A distress signal is going out.";
+        if (mission.stranded()) result = ContinuumText.str("phoenix_continuum.continuum_arrival_screen.the_rocket_is_stranded_a_distress");
         graphics.drawCenteredString(font, result, x + w / 2, y + 48, a | (crash ? 0xffb0b0 : 0xB8B0D8));
 
         float wear = mission.wearAfter();
-        graphics.drawCenteredString(font, String.format(Locale.ROOT, "Rocket wear after this trip: %d%%",
+        graphics.drawCenteredString(font, String.format(Locale.ROOT, ContinuumText.label("phoenix_continuum.continuum_arrival_screen.rocket_wear_after_this_trip_d"),
                 Math.round(wear * 100.0f)), x + w / 2, y + 66, a | (MapUi.wearColor(wear) & 0xFFFFFF));
         MapUi.bar(graphics, x + 30, y + 80, w - 60, 6, wear, MapUi.wearColor(wear));
 
@@ -381,7 +381,7 @@ public class ContinuumArrivalScreen extends Screen {
             if (event == null) continue;
             int color = event.bad ? 0xFFffb070 : 0xFF7affd0;
             for (net.minecraft.util.FormattedCharSequence line : font.split(
-                    net.minecraft.network.chat.FormattedText.of(event.text), w - 24)) {
+                    net.minecraft.network.chat.FormattedText.of(event.text()), w - 24)) {
                 graphics.drawCenteredString(font, line, x + w / 2, ey, (a & 0xFF000000) | (color & 0xFFFFFF));
                 ey += 10;
             }
@@ -389,9 +389,9 @@ public class ContinuumArrivalScreen extends Screen {
 
         int bw = (w - 36) / 2;
         boolean hasHaul = !crash && (mission.type() == Mission.Type.EXTRACT || mission.type() == Mission.Type.HAUL);
-        button(graphics, x + 12, collectY(), bw, mouseX, mouseY, hasHaul ? "Collect rocket + haul" : "Collect rocket",
+        button(graphics, x + 12, collectY(), bw, mouseX, mouseY, hasHaul ? ContinuumText.str("phoenix_continuum.continuum_arrival_screen.collect_rocket_haul") : ContinuumText.str("phoenix_continuum.continuum_arrival_screen.collect_rocket"),
                 true);
-        button(graphics, x + 24 + bw, collectY(), bw, mouseX, mouseY, "Back to map", false);
+        button(graphics, x + 24 + bw, collectY(), bw, mouseX, mouseY, ContinuumText.str("phoenix_continuum.continuum_arrival_screen.back_to_map"), false);
     }
 
     private void button(GuiGraphics graphics, int x, int y, int w, int mouseX, int mouseY, String label,

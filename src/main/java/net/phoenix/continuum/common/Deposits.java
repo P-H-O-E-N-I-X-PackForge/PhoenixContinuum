@@ -27,10 +27,10 @@ public final class Deposits {
     }
 
     public static String label(float richness) {
-        if (richness >= JACKPOT - 0.01f) return "jackpot";
-        if (richness >= RICH - 0.01f) return "rich";
-        if (richness >= NORMAL - 0.01f) return "average";
-        return "poor";
+        if (richness >= JACKPOT - 0.01f) return ContinuumLang.text("phoenix_continuum.deposits.jackpot");
+        if (richness >= RICH - 0.01f) return ContinuumLang.text("phoenix_continuum.deposits.rich");
+        if (richness >= NORMAL - 0.01f) return ContinuumLang.text("phoenix_continuum.deposits.average");
+        return ContinuumLang.text("phoenix_continuum.deposits.poor");
     }
 
     public static String percent(float richness) {

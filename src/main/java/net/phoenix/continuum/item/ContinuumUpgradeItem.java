@@ -48,10 +48,9 @@ public class ContinuumUpgradeItem extends Item {
         int cap = Math.min(maxLevel, RocketStats.upgradeCap(tier, upgrade));
         if (current >= cap) {
             if (!level.isClientSide) {
-                String why = cap < maxLevel ? "This " + RocketStats.tierName(tier) +
-                        " hull cannot carry more of that. Refit it to a higher tier (sneak + use the rocket)." :
-                        "That upgrade is already at its highest level.";
-                player.displayClientMessage(Component.literal(why).withStyle(ChatFormatting.YELLOW), true);
+                Component why = cap < maxLevel ? ContinuumLang.tr("phoenix_continuum.continuum_upgrade_item.hull_cannot_carry", RocketStats.tierName(tier)) :
+                        ContinuumLang.tr("phoenix_continuum.continuum_upgrade_item.at_highest");
+                player.displayClientMessage(why.copy().withStyle(ChatFormatting.YELLOW), true);
             }
             return InteractionResultHolder.fail(module);
         }
@@ -69,7 +68,7 @@ public class ContinuumUpgradeItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, @org.jetbrains.annotations.Nullable Level level, List<Component> tooltip,
                                 TooltipFlag flag) {
-        tooltip.add(Component.literal(effect).withStyle(ChatFormatting.AQUA));
+        tooltip.add(ContinuumLang.tr(effect).withStyle(ChatFormatting.AQUA));
         tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_upgrade_item.up_to_level", maxLevel).withStyle(ChatFormatting.GRAY));
         tooltip.add(ContinuumLang.tr("phoenix_continuum.continuum_repair_kit_item.hold_a_rocket_in_your").withStyle(ChatFormatting.DARK_GRAY));
     }

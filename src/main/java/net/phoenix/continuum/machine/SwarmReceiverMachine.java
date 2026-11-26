@@ -57,10 +57,8 @@ public class SwarmReceiverMachine extends MultiblockControllerMachine implements
     public net.phoenix.continuum.common.SwarmReport report(net.minecraft.server.MinecraftServer server) {
         UUID owner = getOwnerUUID();
         UUID team = ContinuumHost.teamOf(owner != null ? owner : new UUID(0L, 0L));
-        String note = "Fills its output hatches from the capacitor" +
-                (net.phoenix.continuum.integration.tesla.TeslaLink.loaded() ?
-                        ", after the Tesla Network storage, which comes first." : ".");
-        return net.phoenix.continuum.common.SwarmReport.build(server, team, "Swarm Receiver Array", stored(),
+        String note = net.phoenix.continuum.common.ContinuumLang.enc(net.phoenix.continuum.integration.tesla.TeslaLink.loaded() ? "phoenix_continuum.swarm_receiver_machine.note_tesla" : "phoenix_continuum.swarm_receiver_machine.note");
+        return net.phoenix.continuum.common.SwarmReport.build(server, team, net.phoenix.continuum.common.ContinuumLang.enc("phoenix_continuum.swarm_receiver_machine.title"), stored(),
                 capacity(), 0, note);
     }
 

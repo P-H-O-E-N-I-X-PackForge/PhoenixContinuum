@@ -143,7 +143,7 @@ final class MissionPlannerPanel {
         int ready = outpost == null ? 0 : outpost.readyAt(now);
         boolean producible = !body.yields().isEmpty();
 
-        String loaded = ContinuumClientState.padUsesBuses(padPos) ? "in the item input buses" : "in your inventory";
+        String loaded = ContinuumClientState.padUsesBuses(padPos) ? ContinuumText.str("phoenix_continuum.mission_planner_panel.loaded_buses") : ContinuumText.str("phoenix_continuum.mission_planner_panel.loaded_inventory");
         int mapped = ContinuumClientState.mappedDeposits(body.id());
         int deposits = body.yields().size();
         boolean deepSurvey = stage == DiscoveryStage.SURVEYED;
@@ -186,8 +186,8 @@ final class MissionPlannerPanel {
         int stationProbes = specialStation ? Swarms.payloadPerLevel(body, shellMode) : Stations.probesPerLevel(body);
         int stationOwned = specialStation ? (shellMode ? segmentsOwned : collectorsOwned) : probesOwned;
         boolean penrose = Swarms.isPenrose(body);
-        String stationLabel = specialStation ? (shellMode ? (penrose ? "Penrose segments" : "Shell segments") :
-                (penrose ? "Penrose collectors" : "Swarm collectors")) : "Probes";
+        String stationLabel = specialStation ? (shellMode ? (penrose ? ContinuumText.str("phoenix_continuum.mission_planner_panel.penrose_segments") : ContinuumText.str("phoenix_continuum.mission_planner_panel.shell_segments")) :
+                (penrose ? ContinuumText.str("phoenix_continuum.mission_planner_panel.penrose_collectors") : ContinuumText.str("phoenix_continuum.mission_planner_panel.swarm_collectors"))) : ContinuumText.str("phoenix_continuum.mission_planner_panel.probes");
         int strandedCount = 0;
         for (var m : ContinuumClientState.missions()) {
             if (m.stranded() && !m.rescuing() && m.destination().equals(body.id())) strandedCount++;
@@ -230,30 +230,29 @@ final class MissionPlannerPanel {
         g.drawString(font, ContinuumText.str("phoenix_continuum.mission_planner_panel.plan_mission", body.name()), x + 10, y + 9, MapUi.TITLE);
         expeditionRect = button(g, font, x + W - 118, y + 6, 108, 14,
                 font.plainSubstrByWidth(net.phoenix.continuum.client.ExpeditionDraft.isSet() ?
-                        net.phoenix.continuum.client.ExpeditionDraft.summary() : "Name and crew", 98),
+                        net.phoenix.continuum.client.ExpeditionDraft.summary() : ContinuumText.str("phoenix_continuum.mission_planner_panel.name_and_crew"), 98),
                 true, net.phoenix.continuum.client.ExpeditionDraft.isSet(), mx, my);
 
         modeRects[Mission.Type.SURVEY.ordinal()] = button(g, font, x + 10, y + 24, 150, 16,
-                deepSurvey ? "Deep survey (" + mapped + "/" + deposits + ")" : "Survey", canSurvey,
+                deepSurvey ? ContinuumText.str("phoenix_continuum.mission_planner_panel.deep_survey", mapped, deposits) : ContinuumText.str("phoenix_continuum.mission_planner_panel.survey"), canSurvey,
                 mode == Mission.Type.SURVEY, mx, my);
-        modeRects[Mission.Type.EXTRACT.ordinal()] = button(g, font, x + 170, y + 24, 152, 16, "Extract resources",
+        modeRects[Mission.Type.EXTRACT.ordinal()] = button(g, font, x + 170, y + 24, 152, 16, ContinuumText.str("phoenix_continuum.mission_planner_panel.extract_resources"),
                 canExtract, mode == Mission.Type.EXTRACT, mx, my);
-        modeRects[Mission.Type.DEPLOY.ordinal()] = button(g, font, x + 10, y + 44, 150, 16, "Deploy outpost",
+        modeRects[Mission.Type.DEPLOY.ordinal()] = button(g, font, x + 10, y + 44, 150, 16, ContinuumText.str("phoenix_continuum.mission_planner_panel.deploy_outpost"),
                 canDeploy, mode == Mission.Type.DEPLOY, mx, my);
         modeRects[Mission.Type.HAUL.ordinal()] = button(g, font, x + 170, y + 44, 152, 16,
-                "Haul output" + (ready > 0 ? " (" + ready + ")" : ""), canHaul, mode == Mission.Type.HAUL, mx, my);
+                (ready > 0 ? ContinuumText.str("phoenix_continuum.mission_planner_panel.haul_output_ready", ready) : ContinuumText.str("phoenix_continuum.mission_planner_panel.haul_output")), canHaul, mode == Mission.Type.HAUL, mx, my);
         modeRects[Mission.Type.REPAIR.ordinal()] = button(g, font, x + 10, y + 64, 312, 16,
-                damaged ? "Repair outpost  (DAMAGED)" : "Repair outpost", canRepair, mode == Mission.Type.REPAIR, mx,
+                damaged ? ContinuumText.str("phoenix_continuum.mission_planner_panel.repair_outpost_damaged") : ContinuumText.str("phoenix_continuum.mission_planner_panel.repair_outpost"), canRepair, mode == Mission.Type.REPAIR, mx,
                 my);
         modeRects[Mission.Type.RESCUE.ordinal()] = button(g, font, x + 10, y + 84, 312, 16,
-                canRescue ? "Rescue stranded rocket  (DISTRESS)" : "Rescue stranded rocket", canRescue,
+                canRescue ? ContinuumText.str("phoenix_continuum.mission_planner_panel.rescue_stranded_rocket_distress") : ContinuumText.str("phoenix_continuum.mission_planner_panel.rescue_stranded_rocket"), canRescue,
                 mode == Mission.Type.RESCUE, mx, my);
 
         int stationW = 312;
         modeRects[Mission.Type.STATION.ordinal()] = button(g, font, x + 10, y + 104, stationW, 16,
-                swarm ? "Swarms and shells: use a Swarm Control block" :
-                        stationLevel > 0 ? "Upgrade orbital station  (level " + stationLevel + " of " + stationMax +
-                                ")" : "Build orbital station",
+                swarm ? ContinuumText.str("phoenix_continuum.mission_planner_panel.swarms_and_shells_use_a_swarm") :
+                        stationLevel > 0 ? ContinuumText.str("phoenix_continuum.mission_planner_panel.upgrade_station", stationLevel, stationMax) : ContinuumText.str("phoenix_continuum.mission_planner_panel.build_orbital_station"),
                 canStation, mode == Mission.Type.STATION, mx, my);
         modeRects[Mission.Type.SHELL.ordinal()] = null;
 
@@ -268,25 +267,21 @@ final class MissionPlannerPanel {
             minusRect = button(g, font, x + 92, ty, 16, 14, "-", probes > 1, false, mx, my);
             g.drawCenteredString(font, String.valueOf(probes), x + 124, ty + 3, MapUi.TITLE);
             plusRect = button(g, font, x + 140, ty, 16, 14, "+", probes < maxProbes, false, mx, my);
-            g.drawString(font, "(" + probesOwned + " " + loaded + ")", x + 166, ty + 3, MapUi.DIM);
+            g.drawString(font, ContinuumText.str("phoenix_continuum.mission_planner_panel.owned_loaded", probesOwned, loaded), x + 166, ty + 3, MapUi.DIM);
         } else {
             String note = switch (mode) {
                 case SURVEY -> deepSurvey ?
-                        "Maps one more deposit's richness, and may turn up an anomaly. No payload." :
-                        "Resolves this body's surface and sky, maps a deposit, and may turn up an anomaly.";
-                case HAUL -> "Brings home everything the outpost has stockpiled.";
-                case REPAIR -> "Delivers " + kitsNeeded + " repair kit" + (kitsNeeded == 1 ? "" : "s") +
-                        " and gets the broken outpost producing again.";
-                case STATION -> "Level " + (stationLevel + 1) + ": " + (swarm ?
-                        Swarms.kindName(body) + ", " + Swarms.describe(body, stationLevel + 1) +
-                                ". Makes power from its first level, but tops out low." :
-                        Stations.describe(stationLevel + 1));
-                case SHELL -> Swarms.shellName(body) + " level " + (shellLevel + 1) + " of " + shellMax + ": " +
-                        Swarms.describeShell(body, shellLevel + 1) + ". Costs more, makes far more when finished, " +
-                        "but shades your outposts here, and it replaces a swarm.";
-                case RESCUE -> "Flies a second rocket out with " + rescueKits + " repair kit" +
-                        (rescueKits == 1 ? "" : "s") + " and brings the stranded one home. It must arrive before " +
-                        "the distress signal fades.";
+                        ContinuumText.str("phoenix_continuum.mission_planner_panel.maps_one_more_deposit_s_richness") :
+                        ContinuumText.str("phoenix_continuum.mission_planner_panel.resolves_this_body_s_surface_and");
+                case HAUL -> ContinuumText.str("phoenix_continuum.mission_planner_panel.note_haul");
+                case REPAIR -> ContinuumText.str(kitsNeeded == 1 ? "phoenix_continuum.mission_planner_panel.note_repair_one" : "phoenix_continuum.mission_planner_panel.note_repair_many", kitsNeeded);
+                case STATION -> swarm ?
+                        ContinuumText.str("phoenix_continuum.mission_planner_panel.note_swarm_level", stationLevel + 1, Swarms.kindName(body),
+                                Swarms.describe(body, stationLevel + 1)) :
+                        ContinuumText.str("phoenix_continuum.mission_planner_panel.note_station_level", stationLevel + 1, Stations.describe(stationLevel + 1));
+                case SHELL -> ContinuumText.str("phoenix_continuum.mission_planner_panel.note_shell", Swarms.shellName(body), shellLevel + 1, shellMax,
+                        Swarms.describeShell(body, shellLevel + 1));
+                case RESCUE -> ContinuumText.str(rescueKits == 1 ? "phoenix_continuum.mission_planner_panel.note_rescue_one" : "phoenix_continuum.mission_planner_panel.note_rescue_many", rescueKits);
                 default -> "";
             };
             noteEnd = wrapped(g, font, note, x + 10, ty + 3, MapUi.DIM);
@@ -300,7 +295,7 @@ final class MissionPlannerPanel {
             rocketMinusRect = button(g, font, x + 92, ty, 16, 14, "-", rockets > 1, false, mx, my);
             g.drawCenteredString(font, String.valueOf(rockets), x + 124, ty + 3, MapUi.TITLE);
             rocketPlusRect = button(g, font, x + 140, ty, 16, 14, "+", rockets < maxRockets, false, mx, my);
-            g.drawString(font, "(" + rocketsOwned + " " + loaded + ")", x + 166, ty + 3, MapUi.DIM);
+            g.drawString(font, ContinuumText.str("phoenix_continuum.mission_planner_panel.owned_loaded", rocketsOwned, loaded), x + 166, ty + 3, MapUi.DIM);
             ty += 20;
         }
 
@@ -322,7 +317,7 @@ final class MissionPlannerPanel {
                 RocketStats.tier(rocket) < hullNeeded;
 
         if (!hasRocket) {
-            ty = wrapped(g, font, "No rocket " + loaded + ".", x + 10, ty, 0xFFff9a9a) + 2;
+            ty = wrapped(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.no_rocket", loaded), x + 10, ty, 0xFFff9a9a) + 2;
         } else {
             float wear = RocketStats.wear(rocket);
             float cost = RocketStats.wearCost(body, rocket) * Stations.wearFactor(stationLevel) * affWear *
@@ -331,59 +326,57 @@ final class MissionPlannerPanel {
                     net.phoenix.continuum.common.ContinuumMissions.CREW_RISK_REDUCTION *
                             net.phoenix.continuum.client.ExpeditionDraft.crewCount());
 
-            ty = row(g, font, "Trip time", MapUi.duration(tripMs) + (stationLevel > 0 ? "  (station)" : "") +
-                    (launchWindow.applies() ? "  (" + launchWindow.label().toLowerCase(Locale.ROOT) + " window)" : ""), x + 10,
+            ty = row(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.trip_time"), MapUi.duration(tripMs) + (stationLevel > 0 ? ContinuumText.str("phoenix_continuum.mission_planner_panel.station") : "") +
+                    (launchWindow.applies() ? ContinuumText.str("phoenix_continuum.mission_planner_panel.window", launchWindow.label().toLowerCase(Locale.ROOT)) : ""), x + 10,
                     ty, MapUi.TEXT);
-            ty = row(g, font, "Rocket wear",
+            ty = row(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.rocket_wear"),
                     Math.round(wear * 100) + "% -> " + Math.round(Math.min(1.0f, wear + cost) * 100) + "%", x + 10, ty,
                     MapUi.wearColor(wear + cost));
-            ty = row(g, font, "Failure risk", Math.round(risk * 100) + "%", x + 10, ty,
+            ty = row(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.failure_risk"), Math.round(risk * 100) + "%", x + 10, ty,
                     risk < 0.05f ? MapUi.GOOD : risk < 0.3f ? MapUi.WARN : MapUi.BAD);
             if (risk > 0.0f && mode != Mission.Type.SURVEY) {
-                String loss = mode == Mission.Type.HAUL ? "A failed haul loses the whole stockpile." :
+                String loss = mode == Mission.Type.HAUL ? ContinuumText.str("phoenix_continuum.mission_planner_panel.a_failed_haul_loses_the_whole") :
                         mode == Mission.Type.REPAIR || mode == Mission.Type.RESCUE ?
-                                "A failed run loses the repair kits." :
-                                "A failed run loses the probes.";
+                                ContinuumText.str("phoenix_continuum.mission_planner_panel.a_failed_run_loses_the_repair") :
+                                ContinuumText.str("phoenix_continuum.mission_planner_panel.a_failed_run_loses_the_probes");
                 ty = wrapped(g, font, loss, x + 10, ty, 0xFFff9a9a) + 1;
             }
             if (mode == Mission.Type.EXTRACT || mode == Mission.Type.DEPLOY || mode == Mission.Type.HAUL) {
                 if (cfg.distressChance > 0.0) {
-                    ty = wrapped(g, font, "A failure can strand the rocket (" + Math.round(cfg.distressChance * 100) +
-                            "%): it then needs a rescue run within " + cfg.distressWindowMinutes + " min.", x + 10, ty,
+                    ty = wrapped(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.failure_strand", Math.round(cfg.distressChance * 100),
+                            cfg.distressWindowMinutes), x + 10, ty,
                             MapUi.WARN) + 1;
                 }
             }
             if (passing != null) {
                 long left = passing[1] - ContinuumClientState.now();
-                ty = row(g, font, "Leaves in",
-                        MapUi.duration(left) + (tripMs > left ? "  (gone before you arrive)" : ""),
+                ty = row(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.leaves_in"),
+                        MapUi.duration(left) + (tripMs > left ? ContinuumText.str("phoenix_continuum.mission_planner_panel.gone_before_you_arrive") : ""),
                         x + 10, ty, tripMs > left ? MapUi.BAD : MapUi.WARN);
             }
-            ty = row(g, font, "Rocket hull", RocketStats.tierName(RocketStats.tier(rocket)) +
-                    (hullNeeded > 1 && cfg.rocketTierGating ? "  (needs " + RocketStats.tierName(hullNeeded) + ")" :
+            ty = row(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.rocket_hull"), RocketStats.tierName(RocketStats.tier(rocket)) +
+                    (hullNeeded > 1 && cfg.rocketTierGating ? ContinuumText.str("phoenix_continuum.mission_planner_panel.hull_needs", RocketStats.tierName(hullNeeded)) :
                             ""),
                     x + 10, ty, needsHull ? MapUi.BAD : MapUi.TEXT);
             if (needsHull) {
-                ty = wrapped(g, font, "This hull is too light for " + body.name() +
-                        ". Refit it: sneak + use the rocket.", x + 10, ty, 0xFFff9a9a) + 1;
+                ty = wrapped(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.hull_too_light", body.name()), x + 10, ty, 0xFFff9a9a) + 1;
             }
             if (needsShield) {
-                ty = wrapped(g, font, "Needs a " + RocketStats.shieldName(shield) +
-                        " fitted to the rocket to work this close.", x + 10, ty, 0xFFff9a9a) + 1;
+                ty = wrapped(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.needs_shield", RocketStats.shieldName(shield)), x + 10, ty, 0xFFff9a9a) + 1;
             } else if (shield != null && mode != Mission.Type.SURVEY) {
-                ty = wrapped(g, font, RocketStats.shieldName(shield) + " fitted.", x + 10, ty, MapUi.GOOD) + 1;
+                ty = wrapped(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.shield_fitted", RocketStats.shieldName(shield)), x + 10, ty, MapUi.GOOD) + 1;
             }
             if (refused) {
-                ty = wrapped(g, font, "Hull interlock engaged: repair the rocket first.", x + 10, ty, 0xFFff9a9a) + 1;
+                ty = wrapped(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.hull_interlock_engaged_repair_the_rocket"), x + 10, ty, 0xFFff9a9a) + 1;
             }
         }
 
         ty += 3;
         if (affinity != null) {
             StringBuilder effects = new StringBuilder();
-            if (affTrip != 1.0f) effects.append("trips ").append(percent(affTrip)).append("  ");
-            if (affWear != 1.0f) effects.append("wear ").append(percent(affWear)).append("  ");
-            if (affYield != 1.0f) effects.append("yield ").append(percent(affYield));
+            if (affTrip != 1.0f) effects.append(ContinuumText.str("phoenix_continuum.mission_planner_panel.effect_trips")).append(" ").append(percent(affTrip)).append("  ");
+            if (affWear != 1.0f) effects.append(ContinuumText.str("phoenix_continuum.mission_planner_panel.effect_wear")).append(" ").append(percent(affWear)).append("  ");
+            if (affYield != 1.0f) effects.append(ContinuumText.str("phoenix_continuum.mission_planner_panel.effect_yield")).append(" ").append(percent(affYield));
             ty = wrapped(g, font, affinity.label() + "  (" + effects.toString().trim() + ")", x + 10, ty,
                     MapUi.GOOD) + 2;
         }
@@ -391,54 +384,52 @@ final class MissionPlannerPanel {
                 mode == Mission.Type.HAUL ? affYield * Stations.yieldFactor(stationLevel) : 1.0f;
         switch (mode) {
             case EXTRACT -> ty = yields(g, font, body, x + 10, ty, probes,
-                    "Expected from " + probes + " probe" + (probes == 1 ? "" : "s") + ":");
+                    ContinuumText.str(probes == 1 ? "phoenix_continuum.mission_planner_panel.expected_from_one" : "phoenix_continuum.mission_planner_panel.expected_from_many", probes));
             case DEPLOY -> {
-                ty = row(g, font, "Outpost after", (existingProbes + probes) + " of " + cfg.maxProbesPerOutpost +
-                        " probes", x + 10, ty, MapUi.TEXT);
-                ty = row(g, font, "Cycle length", String.format(Locale.ROOT, "%.1f min", cfg.outpostCycleMinutes),
+                ty = row(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.outpost_after"), ContinuumText.str("phoenix_continuum.mission_planner_panel.probes_of", existingProbes + probes, cfg.maxProbesPerOutpost), x + 10, ty, MapUi.TEXT);
+                ty = row(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.cycle_length"), ContinuumText.str("phoenix_continuum.mission_planner_panel.minutes_fmt", cfg.outpostCycleMinutes),
                         x + 10, ty, MapUi.TEXT);
                 long upkeep = OutpostPower.upkeepPerCycle(existingProbes + probes);
                 if (upkeep > 0) {
-                    ty = row(g, font, "Upkeep", String.format(Locale.ROOT, "%,d " + net.phoenix.continuum.machine.PadTiers.energyUnit() +
-                    " / cycle (" + (net.phoenix.continuum.machine.PadTiers.basic() ? "Launch Pad" : "Launch Complex") +
-                    ")", upkeep),
+                    ty = row(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.upkeep"), ContinuumText.str("phoenix_continuum.mission_planner_panel.upkeep_per_cycle", upkeep, net.phoenix.continuum.machine.PadTiers.energyUnit(),
+                            net.phoenix.continuum.machine.PadTiers.basic() ?
+                                    ContinuumText.str("phoenix_continuum.mission_planner_panel.launch_pad") :
+                                    ContinuumText.str("phoenix_continuum.mission_planner_panel.launch_complex")),
                             x + 10, ty, MapUi.WARN);
                 }
-                ty = yields(g, font, body, x + 10, ty, 1, "Each probe, each cycle:");
+                ty = yields(g, font, body, x + 10, ty, 1, ContinuumText.str("phoenix_continuum.mission_planner_panel.each_probe_each_cycle"));
             }
             case HAUL -> {
-                ty = row(g, font, "Outpost", existingProbes + " probes, " + ready + " of " +
-                        (outpost == null ? 0 : outpost.maxReady()) + " cycles ready", x + 10, ty, MapUi.TEXT);
+                ty = row(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.outpost"), ContinuumText.str("phoenix_continuum.mission_planner_panel.outpost_status", existingProbes, ready, outpost == null ? 0 : outpost.maxReady()), x + 10, ty, MapUi.TEXT);
                 if (outpost != null && outpost.lostCycles() > 0) {
-                    ty = row(g, font, "Lost to power", outpost.lostCycles() + " cycles", x + 10, ty, MapUi.BAD);
+                    ty = row(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.lost_to_power"), ContinuumText.str("phoenix_continuum.mission_planner_panel.cycles", outpost.lostCycles()), x + 10, ty, MapUi.BAD);
                 }
-                ty = yields(g, font, body, x + 10, ty, existingProbes * ready, "Expected haul:");
+                ty = yields(g, font, body, x + 10, ty, existingProbes * ready, ContinuumText.str("phoenix_continuum.mission_planner_panel.expected_haul"));
             }
             case REPAIR -> {
-                ty = row(g, font, "Repair kits", kitsNeeded + "  (" + kitsOwned + " " + loaded + ")", x + 10, ty,
+                ty = row(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.repair_kits"), ContinuumText.str("phoenix_continuum.mission_planner_panel.count_owned", kitsNeeded, kitsOwned, loaded), x + 10, ty,
                         kitsOwned >= kitsNeeded ? MapUi.TEXT : MapUi.BAD);
                 if (outpost != null) {
-                    ty = row(g, font, "Idle cycles", String.valueOf(outpost.brokenCycles()), x + 10, ty, MapUi.WARN);
+                    ty = row(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.idle_cycles"), String.valueOf(outpost.brokenCycles()), x + 10, ty, MapUi.WARN);
                 }
             }
-            case STATION, SHELL -> ty = row(g, font, stationLabel, stationProbes + "  (" + stationOwned + " " + loaded +
-                    ")", x + 10, ty, stationOwned >= stationProbes ? MapUi.TEXT : MapUi.BAD);
+            case STATION, SHELL -> ty = row(g, font, stationLabel, ContinuumText.str("phoenix_continuum.mission_planner_panel.count_owned", stationProbes, stationOwned, loaded), x + 10, ty, stationOwned >= stationProbes ? MapUi.TEXT : MapUi.BAD);
             case RESCUE -> {
-                ty = row(g, font, "Repair kits", rescueKits + "  (" + kitsOwned + " " + loaded + ")", x + 10, ty,
+                ty = row(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.repair_kits"), ContinuumText.str("phoenix_continuum.mission_planner_panel.count_owned", rescueKits, kitsOwned, loaded), x + 10, ty,
                         kitsOwned >= rescueKits ? MapUi.TEXT : MapUi.BAD);
                 if (stranded != null) {
                     long left = stranded.distressUntil() - now;
                     boolean inTime = hasRocket && tripMs <= left;
-                    ty = row(g, font, "Signal fades in",
+                    ty = row(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.signal_fades_in"),
                             net.phoenix.continuum.common.ContinuumMissions.durationText(left) +
-                                    (inTime || !hasRocket ? "" : "  (too late)"),
+                                    (inTime || !hasRocket ? "" : ContinuumText.str("phoenix_continuum.mission_planner_panel.too_late")),
                             x + 10, ty, inTime || !hasRocket ? MapUi.TEXT : MapUi.BAD);
                 }
             }
             default -> {}
         }
         if (damaged && mode != Mission.Type.REPAIR) {
-            wrapped(g, font, "This outpost is damaged and is not producing.", x + 10, ty + 2, MapUi.WARN);
+            wrapped(g, font, ContinuumText.str("phoenix_continuum.mission_planner_panel.this_outpost_is_damaged_and_is"), x + 10, ty + 2, MapUi.WARN);
         }
 
         int sending = convoy ? rockets : 1;
@@ -454,29 +445,29 @@ final class MissionPlannerPanel {
         boolean launchable = hasRocket && !refused && !needsShield && !needsHull && cometOk && enoughProbes &&
                 enoughKits && inTime &&
                 available(mode, canSurvey, canExtract, canDeploy, canHaul, canRepair, canRescue, canStation, canShell);
-        launchRect = button(g, font, x + 10, y + H - 26, 100, 18, "Launch", launchable, false, mx, my);
-        scheduleRect = button(g, font, x + 116, y + H - 26, 100, 18, "Schedule", true, false, mx, my);
-        cancelRect = button(g, font, x + 222, y + H - 26, 100, 18, "Cancel", true, false, mx, my);
+        launchRect = button(g, font, x + 10, y + H - 26, 100, 18, ContinuumText.str("phoenix_continuum.mission_planner_panel.launch"), launchable, false, mx, my);
+        scheduleRect = button(g, font, x + 116, y + H - 26, 100, 18, ContinuumText.str("phoenix_continuum.mission_planner_panel.schedule"), true, false, mx, my);
+        cancelRect = button(g, font, x + 222, y + H - 26, 100, 18, ContinuumText.str("phoenix_continuum.mission_planner_panel.cancel"), true, false, mx, my);
 
         record Mode(Mission.Type type, int bx, int by, int bw, boolean enabled, String reason) {}
         Mode[] modes = {
                 new Mode(Mission.Type.SURVEY, x + 10, y + 24, 150, canSurvey, stage == DiscoveryStage.UNKNOWN ?
-                        "Detect this signal first (research)." : "Fully surveyed: every deposit here is mapped."),
+                        ContinuumText.str("phoenix_continuum.mission_planner_panel.detect_this_signal_first_research") : ContinuumText.str("phoenix_continuum.mission_planner_panel.fully_surveyed_every_deposit_here_is")),
                 new Mode(Mission.Type.EXTRACT, x + 170, y + 24, 152, canExtract, stage != DiscoveryStage.SURVEYED ?
-                        "Survey this body first." : "There is nothing to extract here."),
+                        ContinuumText.str("phoenix_continuum.mission_planner_panel.survey_this_body_first") : ContinuumText.str("phoenix_continuum.mission_planner_panel.there_is_nothing_to_extract_here")),
                 new Mode(Mission.Type.DEPLOY, x + 10, y + 44, 150, canDeploy, stage != DiscoveryStage.SURVEYED ?
-                        "Survey this body first." : !producible ? "Nothing can be built here." :
-                                "This outpost is already full."),
+                        ContinuumText.str("phoenix_continuum.mission_planner_panel.survey_this_body_first") : !producible ? ContinuumText.str("phoenix_continuum.mission_planner_panel.nothing_can_be_built_here") :
+                                ContinuumText.str("phoenix_continuum.mission_planner_panel.this_outpost_is_already_full")),
                 new Mode(Mission.Type.HAUL, x + 170, y + 44, 152, canHaul, outpost == null ?
-                        "No outpost here yet. Deploy one first." : "Nothing is ready to haul yet."),
+                        ContinuumText.str("phoenix_continuum.mission_planner_panel.no_outpost_here_yet_deploy_one") : ContinuumText.str("phoenix_continuum.mission_planner_panel.nothing_is_ready_to_haul_yet")),
                 new Mode(Mission.Type.REPAIR, x + 10, y + 64, 312, canRepair, outpost == null ?
-                        "No outpost here yet." : "This outpost is not damaged."),
+                        ContinuumText.str("phoenix_continuum.mission_planner_panel.no_outpost_here_yet") : ContinuumText.str("phoenix_continuum.mission_planner_panel.this_outpost_is_not_damaged")),
                 new Mode(Mission.Type.RESCUE, x + 10, y + 84, 312, canRescue,
-                        "No distress signal here. A failed run can strand a rocket."),
+                        ContinuumText.str("phoenix_continuum.mission_planner_panel.no_distress_signal_here_a_failed")),
                 new Mode(Mission.Type.STATION, x + 10, y + 104, stationW, canStation,
-                        swarm ? "Build swarms and shells from a Swarm Control block near a launch pad." :
-                                stage != DiscoveryStage.SURVEYED ? "Survey this body first." :
-                                        "The station here is fully built."),
+                        swarm ? ContinuumText.str("phoenix_continuum.mission_planner_panel.build_swarms_and_shells_from_a") :
+                                stage != DiscoveryStage.SURVEYED ? ContinuumText.str("phoenix_continuum.mission_planner_panel.survey_this_body_first") :
+                                        ContinuumText.str("phoenix_continuum.mission_planner_panel.the_station_here_is_fully_built")),
                 new Mode(Mission.Type.SHELL, x + 168, y + 104, 154, canShell, ""),
         };
         for (Mode m : modes) {
@@ -520,11 +511,11 @@ final class MissionPlannerPanel {
             float scale = (richness > 0.0f ? richness : 1.0f) * yieldFactor;
             String range = Math.round(yield.min() * rolls * scale) + "-" + Math.round(yield.max() * rolls * scale);
             String chance = yield.chance() < 0.999f ?
-                    String.format(Locale.ROOT, "  (%d%% per roll)", Math.round(yield.chance() * 100)) : "";
+                    String.format(Locale.ROOT, ContinuumText.label("phoenix_continuum.mission_planner_panel.d_per_roll"), Math.round(yield.chance() * 100)) : "";
             String left = "  " + itemName(yield.item()) + "  x" + range + chance;
             g.drawString(font, left, x, y, MapUi.TEXT);
 
-            String tag = richness > 0.0f ? Deposits.label(richness) + " " + Deposits.percent(richness) : "unmapped";
+            String tag = richness > 0.0f ? Deposits.label(richness) + " " + Deposits.percent(richness) : ContinuumText.str("phoenix_continuum.mission_planner_panel.unmapped");
             int tagColor = richness <= 0.0f ? MapUi.DIM : richness >= Deposits.RICH - 0.01f ? MapUi.GOOD :
                     richness < Deposits.NORMAL ? MapUi.WARN : MapUi.TEXT;
             int tagX = x + W - 28 - font.width(tag);

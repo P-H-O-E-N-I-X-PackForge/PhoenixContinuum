@@ -27,9 +27,9 @@ public class ContinuumHistoryScreen extends ContinuumFitScreen {
 
     private enum Filter {
 
-        ALL("All"),
-        LANDINGS("Landings"),
-        PROBLEMS("Problems");
+        ALL(ContinuumText.str("phoenix_continuum.continuum_history_screen.all")),
+        LANDINGS(ContinuumText.str("phoenix_continuum.continuum_history_screen.landings")),
+        PROBLEMS(ContinuumText.str("phoenix_continuum.continuum_history_screen.problems"));
 
         final String label;
 
@@ -82,16 +82,16 @@ public class ContinuumHistoryScreen extends ContinuumFitScreen {
 
     private static String tag(MissionLog.Kind kind) {
         return switch (kind) {
-            case LAUNCH -> "LAUNCH";
-            case LANDED -> "LANDED";
-            case FAILED -> "FAILED";
-            case STRANDED -> "STRANDED";
-            case RESCUED -> "RESCUED";
-            case LOST -> "LOST";
-            case COLLECTED -> "COLLECTED";
-            case STATION -> "STATION";
-            case COMET -> "COMET";
-            case ANOMALY -> "ANOMALY";
+            case LAUNCH -> ContinuumText.str("phoenix_continuum.continuum_history_screen.tag_launch");
+            case LANDED -> ContinuumText.str("phoenix_continuum.continuum_history_screen.tag_landed");
+            case FAILED -> ContinuumText.str("phoenix_continuum.continuum_history_screen.tag_failed");
+            case STRANDED -> ContinuumText.str("phoenix_continuum.continuum_history_screen.tag_stranded");
+            case RESCUED -> ContinuumText.str("phoenix_continuum.continuum_history_screen.tag_rescued");
+            case LOST -> ContinuumText.str("phoenix_continuum.continuum_history_screen.tag_lost");
+            case COLLECTED -> ContinuumText.str("phoenix_continuum.continuum_history_screen.tag_collected");
+            case STATION -> ContinuumText.str("phoenix_continuum.continuum_history_screen.tag_station");
+            case COMET -> ContinuumText.str("phoenix_continuum.continuum_history_screen.tag_comet");
+            case ANOMALY -> ContinuumText.str("phoenix_continuum.continuum_history_screen.tag_anomaly");
         };
     }
 
@@ -113,12 +113,12 @@ public class ContinuumHistoryScreen extends ContinuumFitScreen {
 
     private static String ago(long millis) {
         long seconds = Math.max(0L, millis / 1000L);
-        if (seconds < 90) return seconds + "s ago";
+        if (seconds < 90) return ContinuumText.str("phoenix_continuum.continuum_history_screen.seconds_ago", seconds);
         long minutes = seconds / 60;
-        if (minutes < 90) return minutes + "m ago";
+        if (minutes < 90) return ContinuumText.str("phoenix_continuum.continuum_history_screen.minutes_ago", minutes);
         long hours = minutes / 60;
-        if (hours < 48) return hours + "h ago";
-        return (hours / 24) + "d ago";
+        if (hours < 48) return ContinuumText.str("phoenix_continuum.continuum_history_screen.hours_ago", hours);
+        return ContinuumText.str("phoenix_continuum.continuum_history_screen.days_ago", hours / 24);
     }
 
     private int filterX(int index) {
@@ -173,13 +173,13 @@ public class ContinuumHistoryScreen extends ContinuumFitScreen {
             graphics.drawString(font, tag(entry.kind()), 18 + 58, y, color(entry.kind()));
             ContinuumBody body = ContinuumData.body(entry.body());
             int textX = 18 + 58 + 66;
-            String text = font.plainSubstrByWidth(entry.text(), Math.max(20, width - 24 - textX));
+            String text = font.plainSubstrByWidth(net.phoenix.continuum.common.ContinuumLang.plain(entry.text()), Math.max(20, width - 24 - textX));
             graphics.drawString(font, text, textX, y, MapUi.TEXT);
         }
         graphics.disableScissor();
 
-        if (hovered != null && font.width(hovered.text()) > width - 24 - (18 + 58 + 66)) {
-            graphics.renderTooltip(font, font.split(Component.literal(hovered.text()), Math.min(320, width - 40)),
+        if (hovered != null && font.width(net.phoenix.continuum.common.ContinuumLang.plain(hovered.text())) > width - 24 - (18 + 58 + 66)) {
+            graphics.renderTooltip(font, font.split(net.phoenix.continuum.common.ContinuumLang.component(hovered.text()), Math.min(320, width - 40)),
                     mouseX, mouseY);
         }
         super.render(graphics, mouseX, mouseY, partialTick);

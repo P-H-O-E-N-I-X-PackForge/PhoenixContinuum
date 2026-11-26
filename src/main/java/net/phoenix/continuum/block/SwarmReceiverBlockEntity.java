@@ -118,14 +118,13 @@ public class SwarmReceiverBlockEntity extends BlockEntity implements ContinuumSw
     @Override
     public net.phoenix.continuum.common.SwarmReport report(net.minecraft.server.MinecraftServer server) {
         UUID team = owner == null ? null : ContinuumHost.teamOf(owner);
-        String note = isActive() ? "Pass it on to machines that touch it, up to the rate shown. Several receivers share" +
-                " a swarm's power, and what nothing takes is lost." :
-                "GregTech is installed, so this block does nothing. Build a Swarm Receiver Array instead.";
+        String note = isActive() ? net.phoenix.continuum.common.ContinuumLang.enc("phoenix_continuum.swarm_receiver_block_entity.note_active") : net.phoenix.continuum.common.ContinuumLang.enc("phoenix_continuum.swarm_receiver_block_entity.note_inactive");
+        String title = net.phoenix.continuum.common.ContinuumLang.enc("phoenix_continuum.swarm_receiver_block_entity.title");
         if (team == null) {
-            return new net.phoenix.continuum.common.SwarmReport("Swarm Receiver", "FE", stored, capacityFE(), maxOut(), 0,
-                    "This receiver has no owner yet: place it yourself.", java.util.List.of());
+            return new net.phoenix.continuum.common.SwarmReport(title, "FE", stored, capacityFE(), maxOut(), 0,
+                    net.phoenix.continuum.common.ContinuumLang.enc("phoenix_continuum.swarm_receiver_block_entity.no_owner"), java.util.List.of());
         }
-        return net.phoenix.continuum.common.SwarmReport.build(server, team, "Swarm Receiver", stored, capacityFE(),
+        return net.phoenix.continuum.common.SwarmReport.build(server, team, title, stored, capacityFE(),
                 maxOut(), note);
     }
 

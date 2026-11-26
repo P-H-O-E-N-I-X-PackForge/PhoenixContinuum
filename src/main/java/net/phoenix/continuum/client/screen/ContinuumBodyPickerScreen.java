@@ -119,7 +119,7 @@ public final class ContinuumBodyPickerScreen extends ContinuumFitScreen {
     }
 
     private static String systemLabel(ResourceLocation id, int count) {
-        return systemName(id) + "  (" + count + ")";
+        return ContinuumText.str("phoenix_continuum.continuum_body_picker_screen.system_label", systemName(id), count);
     }
 
     private static String bodyLabel(ContinuumBody body) {
@@ -132,7 +132,7 @@ public final class ContinuumBodyPickerScreen extends ContinuumFitScreen {
 
     private int rowHeight(Object[] row, int bodiesW, boolean searching) {
         if (row[0] instanceof ResourceLocation systemId) {
-            return heightOf(wrap(systemName(systemId) + " (the star)", nameWidth(bodiesW, 0)).size());
+            return heightOf(wrap(ContinuumText.str("phoenix_continuum.continuum_body_picker_screen.the_star", systemName(systemId)), nameWidth(bodiesW, 0)).size());
         }
         ContinuumBody body = (ContinuumBody) row[0];
         int indent = (int) row[1] * INDENT;
@@ -203,7 +203,7 @@ public final class ContinuumBodyPickerScreen extends ContinuumFitScreen {
         int top = top();
         int bodiesX = 16 + SYSTEM_W + 10;
 
-        List<String> hint = wrap("click a body to tune it   scroll: more   Esc: back", Math.max(80, width - 32));
+        List<String> hint = wrap(ContinuumText.str("phoenix_continuum.continuum_body_picker_screen.hint"), Math.max(80, width - 32));
         int hintY = height - 6 - hint.size() * LINE;
         int bottom = hintY - 6;
         int avail = bottom - top;
@@ -236,7 +236,7 @@ public final class ContinuumBodyPickerScreen extends ContinuumFitScreen {
         List<Object[]> bodyRows = bodyRows();
         boolean searching = search != null && !search.getValue().trim().isEmpty();
         int bodiesW = width - bodiesX - 16;
-        String heading = searching ? "Matches (" + bodyRows.size() + ")" :
+        String heading = searching ? ContinuumText.str("phoenix_continuum.continuum_body_picker_screen.matches", bodyRows.size()) :
                 selectedSystem == null ? "" : systemName(selectedSystem);
         g.drawString(font, font.plainSubstrByWidth(heading, Math.max(40, bodiesW)), bodiesX, top - 11, 0xFFFFD080,
                 false);
@@ -260,7 +260,7 @@ public final class ContinuumBodyPickerScreen extends ContinuumFitScreen {
                 ContinuumSystem system = ContinuumData.system(systemId);
                 int starColor = system == null ? 0xFFD9A0 : system.starColor();
                 g.fill(bodiesX + 3, y + 3, bodiesX + 9, y + 9, 0xFF000000 | starColor);
-                drawLines(g, wrap(systemName(systemId) + " (the star)", nameWidth(bodiesW, 0)), bodiesX + INDENT,
+                drawLines(g, wrap(ContinuumText.str("phoenix_continuum.continuum_body_picker_screen.the_star", systemName(systemId)), nameWidth(bodiesW, 0)), bodiesX + INDENT,
                         y + 3, 0xFFFFE8B0);
                 g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_body_picker.system"), bodiesX + bodiesW - detailW, y + 3, 0xFF7F8A99, false);
                 hits.add(new Object[] { "star", systemId, bodiesX, y, bodiesW, h });

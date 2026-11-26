@@ -30,7 +30,7 @@ import java.util.Random;
 @OnlyIn(Dist.CLIENT)
 public final class ContinuumCreateScreen extends ContinuumFitScreen {
 
-    private static final String[] KINDS = { "Planet", "Gas giant", "Moon", "Black hole" };
+    private static final String[] KINDS = { ContinuumText.str("phoenix_continuum.continuum_create_screen.planet"), ContinuumText.str("phoenix_continuum.continuum_create_screen.gas_giant"), ContinuumText.str("phoenix_continuum.continuum_create_screen.moon"), ContinuumText.str("phoenix_continuum.continuum_create_screen.black_hole") };
     private static final int LINE = 10;
 
     private final Screen parent;
@@ -151,14 +151,14 @@ public final class ContinuumCreateScreen extends ContinuumFitScreen {
 
     private void refreshLabels() {
         ContinuumSystem sys = currentSystem();
-        setLabel(systemButton, "System: " + (sys == null ? "none" : sys.name()));
-        setLabel(kindButton, "Kind: " + KINDS[kindIndex]);
+        setLabel(systemButton, ContinuumText.str("phoenix_continuum.continuum_create_screen.system_is", sys == null ? ContinuumText.str("phoenix_continuum.continuum_create_screen.none") : sys.name()));
+        setLabel(kindButton, ContinuumText.str("phoenix_continuum.continuum_create_screen.kind_is", KINDS[kindIndex]));
         ContinuumBody orbit = orbited();
         parentButton.active = isMoon();
-        setLabel(parentButton, isMoon() ? "Orbits: " + (orbit == null ? "no planet in this system" :
-                orbit.name()) : "Orbits: the star");
+        setLabel(parentButton, isMoon() ? ContinuumText.str("phoenix_continuum.continuum_create_screen.orbits_is", orbit == null ? ContinuumText.str("phoenix_continuum.continuum_create_screen.no_planet") :
+                orbit.name()) : ContinuumText.str("phoenix_continuum.continuum_create_screen.orbits_the_star"));
         ContinuumBody template = template();
-        setLabel(templateButton, "Start from: " + (template == null ? "nothing" :
+        setLabel(templateButton, ContinuumText.str("phoenix_continuum.continuum_create_screen.start_from", template == null ? ContinuumText.str("phoenix_continuum.continuum_create_screen.nothing") :
                 template.name() + " (" + template.id().getPath() + ")"));
     }
 
@@ -220,7 +220,7 @@ public final class ContinuumCreateScreen extends ContinuumFitScreen {
     private void submit() {
         String display = name.getValue().trim();
         if (display.isEmpty()) {
-            error = "Give it a name.";
+            error = ContinuumText.str("phoenix_continuum.continuum_create_screen.give_it_a_name");
             return;
         }
         ResourceLocation id = freshId(display);
@@ -229,13 +229,13 @@ public final class ContinuumCreateScreen extends ContinuumFitScreen {
 
         ContinuumSystem sys = currentSystem();
         if (sys == null) {
-            error = "There is no system to put it in.";
+            error = ContinuumText.str("phoenix_continuum.continuum_create_screen.there_is_no_system_to_put");
             return;
         }
         ContinuumBody template = template();
         ContinuumBody parentBody = isMoon() ? orbited() : null;
         if (isMoon() && parentBody == null) {
-            error = "A moon needs a planet to orbit in that system.";
+            error = ContinuumText.str("phoenix_continuum.continuum_create_screen.a_moon_needs_a_planet_to");
             return;
         }
         if (template != null) def.addProperty("inherits", template.id().toString());
@@ -298,7 +298,7 @@ public final class ContinuumCreateScreen extends ContinuumFitScreen {
             drawCentered(g, errorLines, bottom, 0xFFFF6666);
             bottom -= 4;
         }
-        List<String> hint = wrap("A new body inherits the one you start from; edit it afterwards in the tuner.", maxW);
+        List<String> hint = wrap(ContinuumText.str("phoenix_continuum.continuum_create_screen.a_new_body_inherits_the_one"), maxW);
         bottom -= hint.size() * LINE;
         drawCentered(g, hint, bottom, 0xFF7F8A99);
         super.render(g, mx, my, partialTick);

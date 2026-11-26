@@ -163,7 +163,7 @@ public final class ContinuumSystemScreen extends Screen {
         draft.addProperty("star_kind", "star");
         draft.addProperty("initial_stage", "detected");
         original = new JsonObject();
-        draftId = freshId("New system");
+        draftId = freshId(ContinuumText.str("phoenix_continuum.continuum_system_screen.new_system"));
         status = "";
         rebuild();
     }
@@ -184,32 +184,32 @@ public final class ContinuumSystemScreen extends Screen {
         scroll = 0;
         editing = null;
         previewSystem = null;
-        rows.add(Row.header("Star"));
-        rows.add(Row.text("name", "Name", "System"));
-        rows.add(Row.text("description", "Description", ""));
-        rows.add(Row.choice("star_kind", "Kind", "star", STAR_KINDS));
-        rows.add(Row.color("star_color", "Colour", "#ffd9a0"));
-        rows.add(Row.number("star_radius", "Size", 0.3, 4.0, 0.05, 1.0));
-        rows.add(Row.choice("initial_stage", "Starting stage", "unknown", STAGES));
-        rows.add(Row.header("Position in the galaxy"));
+        rows.add(Row.header(ContinuumText.str("phoenix_continuum.continuum_system_screen.star")));
+        rows.add(Row.text("name", ContinuumText.str("phoenix_continuum.continuum_system_screen.name"), "System"));
+        rows.add(Row.text("description", ContinuumText.str("phoenix_continuum.continuum_system_screen.description"), ""));
+        rows.add(Row.choice("star_kind", ContinuumText.str("phoenix_continuum.continuum_system_screen.kind"), "star", STAR_KINDS));
+        rows.add(Row.color("star_color", ContinuumText.str("phoenix_continuum.continuum_system_screen.colour"), "#ffd9a0"));
+        rows.add(Row.number("star_radius", ContinuumText.str("phoenix_continuum.continuum_system_screen.size"), 0.3, 4.0, 0.05, 1.0));
+        rows.add(Row.choice("initial_stage", ContinuumText.str("phoenix_continuum.continuum_system_screen.starting_stage"), "unknown", STAGES));
+        rows.add(Row.header(ContinuumText.str("phoenix_continuum.continuum_system_screen.position_in_the_galaxy")));
         rows.add(Row.number("galaxy.0", "x", -80, 80, 0.5, 0));
         rows.add(Row.number("galaxy.1", "y (height)", -20, 20, 0.1, 0));
         rows.add(Row.number("galaxy.2", "z", -80, 80, 0.5, 0));
         String kind = kind();
         if (kind.equals("black_hole") || kind.equals("quasar") || kind.equals("binary_black_hole")) {
-            rows.add(Row.header("Accretion disk"));
-            rows.add(Row.number("hole.disk_size", "Disk size", 0.2, 4, 0.05, 1.0));
-            rows.add(Row.number("hole.disk_intensity", "Disk brightness", 0, 4, 0.05, 1.0));
-            rows.add(Row.number("hole.feeding", "Feeding", 0, 1, 0.02, 0.0));
-            rows.add(Row.number("hole.tilt", "Tilt (map view)", 0, 1, 0.025, 0.075));
-            rows.add(Row.color("hole.hot_color", "Hot colour", "#ffc060"));
-            rows.add(Row.color("hole.cool_color", "Cool colour", "#c04020"));
-            rows.add(Row.number("hole.sky_inclination", "Inclination (sky)", 0, 90, 1, 45));
-            rows.add(Row.number("hole.sky_lean", "Lean (sky)", -90, 90, 1, 15));
+            rows.add(Row.header(ContinuumText.str("phoenix_continuum.continuum_system_screen.accretion_disk")));
+            rows.add(Row.number("hole.disk_size", ContinuumText.str("phoenix_continuum.continuum_system_screen.disk_size"), 0.2, 4, 0.05, 1.0));
+            rows.add(Row.number("hole.disk_intensity", ContinuumText.str("phoenix_continuum.continuum_system_screen.disk_brightness"), 0, 4, 0.05, 1.0));
+            rows.add(Row.number("hole.feeding", ContinuumText.str("phoenix_continuum.continuum_system_screen.feeding"), 0, 1, 0.02, 0.0));
+            rows.add(Row.number("hole.tilt", ContinuumText.str("phoenix_continuum.continuum_system_screen.tilt_map_view"), 0, 1, 0.025, 0.075));
+            rows.add(Row.color("hole.hot_color", ContinuumText.str("phoenix_continuum.continuum_system_screen.hot_colour"), "#ffc060"));
+            rows.add(Row.color("hole.cool_color", ContinuumText.str("phoenix_continuum.continuum_system_screen.cool_colour"), "#c04020"));
+            rows.add(Row.number("hole.sky_inclination", ContinuumText.str("phoenix_continuum.continuum_system_screen.inclination_sky"), 0, 90, 1, 45));
+            rows.add(Row.number("hole.sky_lean", ContinuumText.str("phoenix_continuum.continuum_system_screen.lean_sky"), -90, 90, 1, 15));
             if (kind.equals("binary_black_hole")) {
-                rows.add(Row.number("hole.separation", "Separation", 2.2, 8, 0.1, 3.2));
-                rows.add(Row.number("hole.mass_ratio", "Mass ratio", 0.1, 1, 0.05, 0.6));
-                rows.add(Row.number("hole.period_seconds", "Orbit period (s)", 2, 120, 1, 24));
+                rows.add(Row.number("hole.separation", ContinuumText.str("phoenix_continuum.continuum_system_screen.separation"), 2.2, 8, 0.1, 3.2));
+                rows.add(Row.number("hole.mass_ratio", ContinuumText.str("phoenix_continuum.continuum_system_screen.mass_ratio"), 0.1, 1, 0.05, 0.6));
+                rows.add(Row.number("hole.period_seconds", ContinuumText.str("phoenix_continuum.continuum_system_screen.orbit_period_s"), 2, 120, 1, 24));
             }
         }
     }
@@ -309,7 +309,7 @@ public final class ContinuumSystemScreen extends Screen {
     private void apply() {
         if (creating) {
             ContinuumNetwork.sendToServer(new C2SCreatePacket(true, draftId, draft.toString()));
-            status = "Asked the server to create " + draftId.getPath() + ".";
+            status = ContinuumText.str("phoenix_continuum.continuum_system_screen.asked_to_create", draftId.getPath());
             return;
         }
         int sent = 0;
@@ -320,14 +320,14 @@ public final class ContinuumSystemScreen extends Screen {
             ContinuumNetwork.sendToServer(C2STunePacket.forSystem(draftId, key, now.toString()));
             sent++;
         }
-        status = sent == 0 ? "Nothing changed." : "Sent " + sent + " change(s) to the server.";
+        status = sent == 0 ? ContinuumText.str("phoenix_continuum.continuum_system_screen.nothing_changed") : ContinuumText.str("phoenix_continuum.continuum_system_screen.sent_changes", sent);
         if (sent > 0) original = draft.deepCopy();
     }
 
     private void resetServer() {
         if (creating) return;
         ContinuumNetwork.sendToServer(C2STunePacket.resetSystem(draftId));
-        status = "Asked the server to drop its edits of this system.";
+        status = ContinuumText.str("phoenix_continuum.continuum_system_screen.asked_the_server_to_drop_its");
     }
 
     @Override
@@ -439,20 +439,20 @@ public final class ContinuumSystemScreen extends Screen {
 
         int ay = top() + 220;
         if (creating) {
-            action(g, mx, my, px, ay, 200, "Create system", "apply");
-            action(g, mx, my, px, ay + 20, 200, "Free space for it", "place");
+            action(g, mx, my, px, ay, 200, ContinuumText.str("phoenix_continuum.continuum_system_screen.create_system"), "apply");
+            action(g, mx, my, px, ay + 20, 200, ContinuumText.str("phoenix_continuum.continuum_system_screen.free_space_for_it"), "place");
         } else {
-            action(g, mx, my, px, ay, 200, "Apply to the server", "apply");
-            action(g, mx, my, px, ay + 20, 200, "Undo my changes", "undo");
-            action(g, mx, my, px, ay + 40, 200, "Reset server edits", "resetServer");
+            action(g, mx, my, px, ay, 200, ContinuumText.str("phoenix_continuum.continuum_system_screen.apply_to_the_server"), "apply");
+            action(g, mx, my, px, ay + 20, 200, ContinuumText.str("phoenix_continuum.continuum_system_screen.undo_my_changes"), "undo");
+            action(g, mx, my, px, ay + 40, 200, ContinuumText.str("phoenix_continuum.continuum_system_screen.reset_server_edits"), "resetServer");
         }
-        action(g, mx, my, px, ay + 60, 200, creating ? "Tune an existing system" : "New system...", "mode");
+        action(g, mx, my, px, ay + 60, 200, creating ? ContinuumText.str("phoenix_continuum.continuum_system_screen.tune_an_existing_system") : ContinuumText.str("phoenix_continuum.continuum_system_screen.new_system_2"), "mode");
         int backY = ay + 80;
         if (!creating) {
-            action(g, mx, my, px, ay + 80, 200, "Sky view...", "sky");
+            action(g, mx, my, px, ay + 80, 200, ContinuumText.str("phoenix_continuum.continuum_system_screen.sky_view"), "sky");
             backY = ay + 100;
         }
-        action(g, mx, my, px, backY, 200, "Back", "close");
+        action(g, mx, my, px, backY, 200, ContinuumText.str("phoenix_continuum.continuum_system_screen.back"), "close");
         if (!status.isEmpty()) g.drawString(font, font.plainSubstrByWidth(status, 220), px, backY + 24, 0xFF66DDFF, false);
 
         super.render(g, mx, my, partialTick);
@@ -543,7 +543,7 @@ public final class ContinuumSystemScreen extends Screen {
             break;
         }
         if (from == null) {
-            status = "This system has no worlds to look from yet.";
+            status = ContinuumText.str("phoenix_continuum.continuum_system_screen.this_system_has_no_worlds_to");
             return;
         }
         minecraft.setScreen(new ContinuumSkyScreen(this, from, system));

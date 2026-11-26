@@ -1,5 +1,6 @@
 package net.phoenix.continuum.pdim;
 
+import net.phoenix.continuum.common.ContinuumLang;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -26,15 +27,15 @@ public final class PdimActions {
                                                  boolean orbitView) {
         MinecraftServer server = player.server;
         ContinuumBody body = ContinuumData.body(bodyId);
-        if (body == null) return "That body does not exist.";
+        if (body == null) return ContinuumLang.enc("phoenix_continuum.pdim_actions.no_body");
 
         ServerLevel target = PdimRuntime.level(server, bodyId);
-        if (target == null) return "There is no personal dimension for " + body.name() + " in this world.";
+        if (target == null) return ContinuumLang.enc("phoenix_continuum.pdim_actions.no_dimension_for", body.name());
 
         var team = net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID());
         DiscoveryStage stage = ContinuumTeamData.get(server).effectiveStage(server, team, bodyId);
         if (!stage.atLeast(DiscoveryStage.SURVEYED))
-            return "Survey " + body.name() + " before making a dimension of it.";
+            return ContinuumLang.enc("phoenix_continuum.pdim_actions.survey_first", body.name());
 
         PdimData data = PdimData.get(server);
 
@@ -83,7 +84,7 @@ public final class PdimActions {
 
     public static @Nullable String leave(ServerPlayer player) {
         MinecraftServer server = player.server;
-        if (!PdimDimensions.isPersonal(player.level().dimension())) return "You are not in a personal dimension.";
+        if (!PdimDimensions.isPersonal(player.level().dimension())) return ContinuumLang.enc("phoenix_continuum.pdim_actions.not_in_pdim");
 
         ResourceLocation leaving = PdimDimensions.bodyOf(player.level().dimension());
         PdimData data = PdimData.get(server);
@@ -157,7 +158,7 @@ public final class PdimActions {
                 e -> new PdimData.Entry(PdimDimensions.clampGravity(gravity), e.plot(),
                         PdimDimensions.clampDaySpeed(daySpeed), lockedTime < 0 ? -1.0f : lockedTime % 24000.0f,
                         orbitView, fixedSky));
-        if (changed == null) return "You have no personal dimension there.";
+        if (changed == null) return ContinuumLang.enc("phoenix_continuum.pdim_actions.none_there");
         sendState(player);
         return null;
     }

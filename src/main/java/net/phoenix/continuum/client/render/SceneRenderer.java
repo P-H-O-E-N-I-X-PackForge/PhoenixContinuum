@@ -1423,6 +1423,7 @@ public final class SceneRenderer {
     private static void drawBackdropGalaxies$timed(float width, float height, float yawDeg){
         ShaderInstance g = ContinuumShaders.GALAXY;
         if (g == null) return;
+        if (!net.phoenix.continuum.config.ContinuumConfigs.INSTANCE.backdropGalaxies) return;
         var quality = net.phoenix.continuum.client.ContinuumVisuals.quality();
         int count = switch (quality) {
             case LOW -> 2;

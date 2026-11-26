@@ -119,7 +119,7 @@ public class C2SScheduleActionPacket {
                 case DELETE -> ScheduleService.delete(player, msg.pad, msg.id);
                 default -> null;
             };
-            if (error != null) player.sendSystemMessage(Component.literal(error));
+            if (error != null) player.sendSystemMessage(net.phoenix.continuum.common.ContinuumLang.component(error));
             ContinuumNetwork.sendToPlayer(player,
                     new S2CSchedulesPacket(msg.pad, ScheduleService.views(player, msg.pad)));
         });

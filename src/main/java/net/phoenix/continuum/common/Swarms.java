@@ -24,11 +24,11 @@ public final class Swarms {
     }
 
     public static String kindName(ContinuumBody body) {
-        return isPenrose(body) ? "Penrose swarm" : isSwarm(body) ? "Dyson swarm" : "orbital station";
+        return ContinuumLang.text(isPenrose(body) ? "phoenix_continuum.swarms.kind_penrose" : isSwarm(body) ? "phoenix_continuum.swarms.kind_dyson" : "phoenix_continuum.swarms.kind_station");
     }
 
     public static String shellName(ContinuumBody body) {
-        return isPenrose(body) ? "Penrose sphere" : "Dyson shell";
+        return ContinuumLang.text(isPenrose(body) ? "phoenix_continuum.swarms.shell_penrose" : "phoenix_continuum.swarms.shell_dyson");
     }
 
     public static int shellMaxLevel(ContinuumBody body) {
@@ -51,11 +51,11 @@ public final class Swarms {
     }
 
     public static String payloadName(boolean shell, int count, boolean penrose) {
-        String plural = count == 1 ? "" : "s";
+        boolean one = count == 1;
         if (penrose) {
-            return shell ? count + " Penrose segment" + plural : count + " Penrose collector pod" + plural;
+            return shell ? ContinuumLang.text(one ? "phoenix_continuum.swarms.payload_penrose_segment_one" : "phoenix_continuum.swarms.payload_penrose_segment_many", count) : ContinuumLang.text(one ? "phoenix_continuum.swarms.payload_penrose_pod_one" : "phoenix_continuum.swarms.payload_penrose_pod_many", count);
         }
-        return shell ? count + " shell segment" + plural : count + " swarm collector pod" + plural;
+        return shell ? ContinuumLang.text(one ? "phoenix_continuum.swarms.payload_segment_one" : "phoenix_continuum.swarms.payload_segment_many", count) : ContinuumLang.text(one ? "phoenix_continuum.swarms.payload_pod_one" : "phoenix_continuum.swarms.payload_pod_many", count);
     }
 
     public static double shadow(ContinuumTeamData data, UUID team, ContinuumBody outpost) {
@@ -82,10 +82,10 @@ public final class Swarms {
         long power = Math.round(shellPower(body, level));
         String unit = net.phoenix.continuum.machine.PadTiers.energyUnit();
         if (power <= 0) {
-            return String.format(java.util.Locale.ROOT, "nothing yet, it needs %d%% built",
+            return ContinuumLang.text("phoenix_continuum.swarms.nothing_yet",
                     Math.round(ContinuumConfigs.INSTANCE.shellMinCompletion * 100));
         }
-        return String.format(java.util.Locale.ROOT, "%,d %s/t for your team, %d%% built", power, unit,
+        return ContinuumLang.text("phoenix_continuum.swarms.power_built", power, unit,
                 Math.round(completion * 100));
     }
 
@@ -99,7 +99,7 @@ public final class Swarms {
     }
 
     public static String describe(ContinuumBody star, int level) {
-        return String.format(java.util.Locale.ROOT, "%,d %s/t for your team", Math.round(
+        return ContinuumLang.text("phoenix_continuum.swarms.power_for_team", Math.round(
                 level * ContinuumConfigs.INSTANCE.swarmPowerPerLevel * luminosity(star) *
                         (isPenrose(star) ? ContinuumConfigs.INSTANCE.penrosePowerMultiplier : 1.0)),
                 net.phoenix.continuum.machine.PadTiers.energyUnit());

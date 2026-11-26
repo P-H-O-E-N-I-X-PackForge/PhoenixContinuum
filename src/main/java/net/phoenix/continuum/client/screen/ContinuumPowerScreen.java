@@ -29,7 +29,7 @@ public class ContinuumPowerScreen extends ContinuumFitScreen {
     private long lastSample;
 
     public ContinuumPowerScreen(SwarmReport report, BlockPos pos) {
-        super(Component.literal(report.title()));
+        super(net.phoenix.continuum.common.ContinuumLang.component(report.title()));
         this.report = report;
         this.pos = pos;
         sample();
@@ -90,9 +90,9 @@ public class ContinuumPowerScreen extends ContinuumFitScreen {
         int y = Math.max(8, (height - h) / 2);
         MapUi.panel(g, x, y, W, h);
 
-        g.drawString(font, report.title().toUpperCase(Locale.ROOT), x + 10, y + 9, MapUi.TITLE);
+        g.drawString(font, net.phoenix.continuum.common.ContinuumLang.plain(report.title()).toUpperCase(Locale.ROOT), x + 10, y + 9, MapUi.TITLE);
         boolean live = report.teamPerTick() > 0;
-        String status = live ? "RECEIVING" : "IDLE";
+        String status = live ? ContinuumText.str("phoenix_continuum.continuum_power_screen.receiving") : ContinuumText.str("phoenix_continuum.continuum_power_screen.idle");
         g.drawString(font, status, x + W - 10 - font.width(status), y + 9, live ? MapUi.GOOD : MapUi.WARN);
 
         g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_power.your_swarms_and_shells_make"), x + 10, y + 26, MapUi.DIM);
@@ -140,7 +140,7 @@ public class ContinuumPowerScreen extends ContinuumFitScreen {
         }
         if (!report.note().isEmpty()) {
             ty += 4;
-            for (var line : font.split(Component.literal(report.note()), W - 20)) {
+            for (var line : font.split(net.phoenix.continuum.common.ContinuumLang.component(report.note()), W - 20)) {
                 g.drawString(font, line, x + 10, ty, MapUi.DIM, false);
                 ty += 10;
             }

@@ -65,14 +65,14 @@ public class ContinuumFleetScreen extends ContinuumFitScreen {
         
         String prefix = mission.expedition().isEmpty() ? "" : "\"" + mission.expedition() + "\"  ";
         return prefix + switch (mission.type()) {
-            case SURVEY -> "Survey  -  " + name;
-            case EXTRACT -> "Extraction x" + mission.probes() + "  -  " + name;
-            case DEPLOY -> "Outpost x" + mission.probes() + "  -  " + name;
-            case HAUL -> "Haul  -  " + name;
-            case REPAIR -> "Repair  -  " + name;
-            case RESCUE -> "Rescue  -  " + name;
-            case STATION -> "Station  -  " + name;
-            case SHELL -> "Shell  -  " + name;
+            case SURVEY -> ContinuumText.str("phoenix_continuum.continuum_fleet_screen.label_survey", name);
+            case EXTRACT -> ContinuumText.str("phoenix_continuum.continuum_fleet_screen.label_extract", mission.probes(), name);
+            case DEPLOY -> ContinuumText.str("phoenix_continuum.continuum_fleet_screen.label_outpost", mission.probes(), name);
+            case HAUL -> ContinuumText.str("phoenix_continuum.continuum_fleet_screen.label_haul", name);
+            case REPAIR -> ContinuumText.str("phoenix_continuum.continuum_fleet_screen.label_repair", name);
+            case RESCUE -> ContinuumText.str("phoenix_continuum.continuum_fleet_screen.label_rescue", name);
+            case STATION -> ContinuumText.str("phoenix_continuum.continuum_fleet_screen.label_station", name);
+            case SHELL -> ContinuumText.str("phoenix_continuum.continuum_fleet_screen.label_shell", name);
         };
     }
 
@@ -151,14 +151,14 @@ public class ContinuumFleetScreen extends ContinuumFitScreen {
             String status;
             int color;
             if (mission.stranded()) {
-                status = mission.rescuing() ? "STRANDED - rescue en route" :
-                        "STRANDED - click to rescue  " + ContinuumMissions.durationText(mission.distressUntil() - now);
+                status = mission.rescuing() ? ContinuumText.str("phoenix_continuum.continuum_fleet_screen.stranded_rescue_en_route") :
+                        ContinuumText.str("phoenix_continuum.continuum_fleet_screen.stranded_click_to_rescue", ContinuumMissions.durationText(mission.distressUntil() - now));
                 color = MapUi.WARN;
             } else if (mission.state() == Mission.State.SUCCESS) {
-                status = "Landed - click to collect";
+                status = ContinuumText.str("phoenix_continuum.continuum_fleet_screen.landed_click_to_collect");
                 color = MapUi.GOOD;
             } else if (mission.state() == Mission.State.FAILED) {
-                status = "Failed - click to collect";
+                status = ContinuumText.str("phoenix_continuum.continuum_fleet_screen.failed_click_to_collect");
                 color = MapUi.BAD;
             } else {
                 status = MapUi.duration(mission.endMillis() - now);
@@ -169,7 +169,7 @@ public class ContinuumFleetScreen extends ContinuumFitScreen {
             MapUi.bar(graphics, x + 8, ry + 14, w - 130, 4, mission.progress(now),
                     mission.stranded() ? MapUi.WARN : mission.state() == Mission.State.FAILED ? MapUi.BAD :
                             mission.state().finished() ? MapUi.GOOD : MapUi.FRAME);
-            String wear = String.format(Locale.ROOT, "wear %d%%", Math.round(mission.wearAfter() * 100.0f));
+            String wear = ContinuumText.str("phoenix_continuum.continuum_fleet_screen.wear_after", Math.round(mission.wearAfter() * 100.0f));
             graphics.drawString(font, wear, x + w - 8 - font.width(wear), ry + 13,
                     MapUi.wearColor(mission.wearAfter()));
 
@@ -198,7 +198,7 @@ public class ContinuumFleetScreen extends ContinuumFitScreen {
                 .entries(stations, ContinuumClientState.shells());
         if (!built.isEmpty()) {
             long total = net.phoenix.continuum.common.Swarms.total(built);
-            String power = String.format(java.util.Locale.ROOT, "Swarms make %,d %s/t", total,
+            String power = String.format(java.util.Locale.ROOT, ContinuumText.label("phoenix_continuum.continuum_fleet_screen.swarms_make_d_s_t"), total,
                     net.phoenix.continuum.machine.PadTiers.energyUnit());
             graphics.drawString(font, power, x + 8, y, total > 0 ? MapUi.GOOD : MapUi.WARN);
             y += 14;
@@ -219,7 +219,7 @@ public class ContinuumFleetScreen extends ContinuumFitScreen {
             graphics.drawString(font, bodyName(entry.getKey()), x + 8, y, MapUi.TEXT);
             var stationBody = net.phoenix.continuum.data.ContinuumData.body(entry.getKey());
             int stationMax = stationBody == null ? Stations.MAX_LEVEL : Stations.maxLevel(stationBody);
-            String level = "Lv " + entry.getValue() + "/" + stationMax;
+            String level = ContinuumText.str("phoenix_continuum.continuum_fleet_screen.station_level", entry.getValue(), stationMax);
             graphics.drawString(font, level, x + w - 8 - font.width(level), y,
                     entry.getValue() >= stationMax ? MapUi.GOOD : MapUi.WARN);
             y += 12;

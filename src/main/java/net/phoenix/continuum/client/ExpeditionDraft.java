@@ -21,7 +21,7 @@ public final class ExpeditionDraft {
     }
 
     public static String summary() {
-        String label = name.isBlank() ? "Crew" : name;
+        String label = name.isBlank() ? ContinuumText.str("phoenix_continuum.expedition_draft.crew") : name;
         return crew.isEmpty() ? label : label + " +" + crew.size();
     }
 }

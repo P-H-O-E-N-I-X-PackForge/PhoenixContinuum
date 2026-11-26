@@ -31,9 +31,7 @@ public final class Stations {
     }
 
     public static String describe(int level) {
-        String text = "Trips there 10% faster, rocket wear 15% lower, hauls 15% richer";
-        if (level >= MAX_LEVEL) text += ", and a failed run can no longer strand the rocket";
-        return text + ". Also adds a mission slot.";
+        return ContinuumLang.text(level >= MAX_LEVEL ? "phoenix_continuum.stations.describe_max" : "phoenix_continuum.stations.describe");
     }
 
     private static int clamp(int level) {

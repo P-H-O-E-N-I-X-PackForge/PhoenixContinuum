@@ -44,33 +44,33 @@ public final class PdimCommands {
                         .executes(ctx -> enter(ctx.getSource(), ResourceLocationArgument.getId(ctx, "body"), null))))
                 .then(literal("gravity").then(argument("gravity", FloatArgumentType.floatArg(
                         PdimDimensions.MIN_GRAVITY, PdimDimensions.MAX_GRAVITY))
-                        .executes(ctx -> adjust(ctx.getSource(), "gravity x" + String.format(Locale.ROOT, "%.2f",
-                                FloatArgumentType.getFloat(ctx, "gravity")),
+                        .executes(ctx -> adjust(ctx.getSource(), ContinuumLang.enc("phoenix_continuum.pdim_commands.what_gravity", String.format(Locale.ROOT, "%.2f",
+                                FloatArgumentType.getFloat(ctx, "gravity"))),
                                 e -> new PdimData.Entry(PdimDimensions.clampGravity(
                                         FloatArgumentType.getFloat(ctx, "gravity")), e.plot(), e.daySpeed(),
                                         e.lockedTime(), e.orbitView(), e.fixedSky())))))
                 .then(literal("sky")
-                        .then(literal("surface").executes(ctx -> adjust(ctx.getSource(), "sky from the surface",
+                        .then(literal("surface").executes(ctx -> adjust(ctx.getSource(), ContinuumLang.enc("phoenix_continuum.pdim_commands.what_surface"),
                                 e -> new PdimData.Entry(e.gravity(), e.plot(), e.daySpeed(), e.lockedTime(), false, e.fixedSky()))))
-                        .then(literal("fixed").executes(ctx -> adjust(ctx.getSource(), "orbiting worlds fixed in the sky",
+                        .then(literal("fixed").executes(ctx -> adjust(ctx.getSource(), ContinuumLang.enc("phoenix_continuum.pdim_commands.what_fixed"),
                                 e -> new PdimData.Entry(e.gravity(), e.plot(), e.daySpeed(), e.lockedTime(), e.orbitView(), true))))
-                        .then(literal("cycle").executes(ctx -> adjust(ctx.getSource(), "orbiting worlds turning with the day",
+                        .then(literal("cycle").executes(ctx -> adjust(ctx.getSource(), ContinuumLang.enc("phoenix_continuum.pdim_commands.what_cycle"),
                                 e -> new PdimData.Entry(e.gravity(), e.plot(), e.daySpeed(), e.lockedTime(), e.orbitView(), false))))
-                        .then(literal("orbit").executes(ctx -> adjust(ctx.getSource(), "sky from orbit",
+                        .then(literal("orbit").executes(ctx -> adjust(ctx.getSource(), ContinuumLang.enc("phoenix_continuum.pdim_commands.what_orbit"),
                                 e -> new PdimData.Entry(e.gravity(), e.plot(), e.daySpeed(), e.lockedTime(), true, e.fixedSky())))))
                 .then(literal("day")
                         .then(literal("speed").then(argument("speed", FloatArgumentType.floatArg(
                                 PdimDimensions.MIN_DAY_SPEED, PdimDimensions.MAX_DAY_SPEED))
-                                .executes(ctx -> adjust(ctx.getSource(), "day speed x" + String.format(Locale.ROOT,
-                                        "%.2f", FloatArgumentType.getFloat(ctx, "speed")),
+                                .executes(ctx -> adjust(ctx.getSource(), ContinuumLang.enc("phoenix_continuum.pdim_commands.what_speed", String.format(Locale.ROOT,
+                                        "%.2f", FloatArgumentType.getFloat(ctx, "speed"))),
                                         e -> new PdimData.Entry(e.gravity(), e.plot(), PdimDimensions.clampDaySpeed(
                                                 FloatArgumentType.getFloat(ctx, "speed")), -1.0f, e.orbitView(), e.fixedSky())))))
                         .then(literal("lock").then(argument("tick", FloatArgumentType.floatArg(0.0f, 24000.0f))
-                                .executes(ctx -> adjust(ctx.getSource(), "time locked at tick " + (int) FloatArgumentType
-                                        .getFloat(ctx, "tick"),
+                                .executes(ctx -> adjust(ctx.getSource(), ContinuumLang.enc("phoenix_continuum.pdim_commands.what_lock", (int) FloatArgumentType
+                                        .getFloat(ctx, "tick")),
                                         e -> new PdimData.Entry(e.gravity(), e.plot(), e.daySpeed(),
                                                 FloatArgumentType.getFloat(ctx, "tick"), e.orbitView(), e.fixedSky())))))
-                        .then(literal("unlock").executes(ctx -> adjust(ctx.getSource(), "time running",
+                        .then(literal("unlock").executes(ctx -> adjust(ctx.getSource(), ContinuumLang.enc("phoenix_continuum.pdim_commands.what_running"),
                                 e -> new PdimData.Entry(e.gravity(), e.plot(), e.daySpeed(), -1.0f, e.orbitView(), e.fixedSky())))))
                 .then(literal("leave").executes(ctx -> leave(ctx.getSource())))
                 .then(literal("list").executes(ctx -> list(ctx.getSource())))
@@ -85,7 +85,7 @@ public final class PdimCommands {
         float g = gravity != null ? gravity : body != null ? PdimDimensions.naturalGravity(body) : 1.0f;
         String error = PdimActions.createAndEnter(player, id, g, false);
         if (error != null) {
-            source.sendFailure(Component.literal(error));
+            source.sendFailure(ContinuumLang.component(error));
             return 0;
         }
         return 1;
@@ -111,7 +111,7 @@ public final class PdimCommands {
     private static int leave(CommandSourceStack source) throws CommandSyntaxException {
         String error = PdimActions.leave(source.getPlayerOrException());
         if (error != null) {
-            source.sendFailure(Component.literal(error));
+            source.sendFailure(ContinuumLang.component(error));
             return 0;
         }
         return 1;

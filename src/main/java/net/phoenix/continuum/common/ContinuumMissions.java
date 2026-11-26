@@ -131,7 +131,7 @@ public final class ContinuumMissions {
 
         @Override
         public String place() {
-            return "in the launch complex's item input buses";
+            return ContinuumLang.enc("phoenix_continuum.continuum_missions.place_buses");
         }
     }
 
@@ -185,7 +185,7 @@ public final class ContinuumMissions {
 
         @Override
         public String place() {
-            return "in your inventory";
+            return ContinuumLang.enc("phoenix_continuum.continuum_missions.place_inventory");
         }
     }
 
@@ -234,7 +234,7 @@ public final class ContinuumMissions {
             ContinuumBody body = ContinuumData.body(destinationId);
             String where = body != null ? body.name() : destinationId.getPath();
             player.sendSystemMessage(
-                    ContinuumLang.tr("phoenix_continuum.continuum_missions.launched_of_rockets_to", launched, wanted, where, (error != null ? " (stopped: " + error + ")" : ".")).withStyle(
+                    ContinuumLang.tr("phoenix_continuum.continuum_missions.launched_of_rockets_to", launched, wanted, where, (error != null ? ContinuumLang.tr("phoenix_continuum.continuum_missions.stopped_suffix", error) : Component.literal("."))).withStyle(
                                     error != null ? ChatFormatting.GOLD : ChatFormatting.GREEN));
         }
         return null;
@@ -271,10 +271,10 @@ public final class ContinuumMissions {
                                           Mission.Type type, int probes, String expeditionName,
                                           List<String> crewNames) {
         var level = player.level();
-        if (!level.isLoaded(pad)) return "There is no launch pad there.";
+        if (!level.isLoaded(pad)) return ContinuumLang.enc("phoenix_continuum.continuum_missions.no_pad");
         double range = ContinuumConfigs.INSTANCE.launchRangeBlocks;
         if (player.distanceToSqr(Vec3.atCenterOf(pad)) > range * range) {
-            return "You are too far from the launch pad.";
+            return ContinuumLang.enc("phoenix_continuum.continuum_missions.too_far_pad");
         }
         return launchFrom(player.server, level, pad, net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID()),
                 player.getUUID(), player.getGameProfile().getName(), player.getRandom(),
@@ -287,12 +287,12 @@ public final class ContinuumMissions {
         var level = player.level();
         double range = ContinuumConfigs.INSTANCE.launchRangeBlocks;
         if (!level.isLoaded(control) || player.distanceToSqr(Vec3.atCenterOf(control)) > range * range) {
-            return "You are too far from the control block.";
+            return ContinuumLang.enc("phoenix_continuum.continuum_missions.too_far_control");
         }
         int reach = ContinuumConfigs.INSTANCE.swarmControlPadRange;
         if (!level.isLoaded(pad) || Math.abs(pad.getX() - control.getX()) > reach ||
                 Math.abs(pad.getY() - control.getY()) > reach || Math.abs(pad.getZ() - control.getZ()) > reach) {
-            return "There is no launch pad near this control block.";
+            return ContinuumLang.enc("phoenix_continuum.continuum_missions.no_pad_near_control");
         }
         return launchFrom(player.server, level, pad, net.phoenix.continuum.api.ContinuumHost.teamOf(player.getUUID()),
                 player.getUUID(), player.getGameProfile().getName(), player.getRandom(),
@@ -317,69 +317,66 @@ public final class ContinuumMissions {
                                                ResourceLocation destinationId, Mission.Type type, int probes,
                                                String expeditionName, List<String> crew, boolean autoCollect) {
         var cfg = ContinuumConfigs.INSTANCE;
-        if (!level.isLoaded(pad)) return "There is no launch pad there.";
+        if (!level.isLoaded(pad)) return ContinuumLang.enc("phoenix_continuum.continuum_missions.no_pad");
 
         ContinuumBody body = ContinuumData.body(destinationId);
-        if (body == null) return "That destination does not exist.";
+        if (body == null) return ContinuumLang.enc("phoenix_continuum.continuum_missions.no_destination");
 
         long[] passing = null;
         if (body.transientInfo() != null) {
-            if (type != Mission.Type.EXTRACT) return "Only extraction runs can catch a passing " + body.visitorKind() + ".";
+            if (type != Mission.Type.EXTRACT) return ContinuumLang.enc("phoenix_continuum.continuum_missions.only_extract_passing", body.visitorLabel());
             passing = ContinuumTransients.get(server).window(destinationId, System.currentTimeMillis());
-            if (passing == null) return body.name() + " has passed beyond reach.";
+            if (passing == null) return ContinuumLang.enc("phoenix_continuum.continuum_missions.passed_beyond", body.name());
         }
 
         LaunchComplex complex = LaunchSites.at(level, pad);
         long launchEnergy = 0;
         if (complex != null) {
-            if (!complex.isFormed()) return "The launch complex is not fully built.";
+            if (!complex.isFormed()) return ContinuumLang.enc("phoenix_continuum.continuum_missions.not_built");
 
             int padTier = complex.padTier();
             int needed = requiredPadTier(body);
             if (padTier < needed) {
-                return "This pad is tier " + tierName(padTier) + " but " + body.name() + " needs tier " +
-                        tierName(needed) + " or better. " + (PadTiers.basic() ?
-                                "Build the pad on a better foundation block." : "Fit a stronger energy hatch.");
+                return ContinuumLang.enc(PadTiers.basic() ? "phoenix_continuum.continuum_missions.pad_tier_low_basic" : "phoenix_continuum.continuum_missions.pad_tier_low_hatch", tierName(padTier), body.name(), tierName(needed));
             }
 
             launchEnergy = PadTiers.launchEnergy(padTier);
 
             launchEnergy = Math.min(launchEnergy, complex.energyCapacity() * 9 / 10);
             if (complex.storedEnergy() < launchEnergy) {
-                return "The pad needs " + launchEnergy + " " + PadTiers.energyUnit() + " stored " +
-                        (PadTiers.basic() ? "" : "in its energy hatches ") + "to launch (it has " +
-                        complex.storedEnergy() + ").";
+                return ContinuumLang.enc(PadTiers.basic() ? "phoenix_continuum.continuum_missions.pad_energy_basic" : "phoenix_continuum.continuum_missions.pad_energy_hatches", launchEnergy, PadTiers.energyUnit(),
+                        complex.storedEnergy());
             }
         } else if (level.getBlockState(pad).getBlock() instanceof LaunchPadBlock) {
             if (cfg.requireMultiblockPad && !PadTiers.basic()) {
-                return "Missions launch from a Continuum Launch Complex. Build one.";
+                return ContinuumLang.enc("phoenix_continuum.continuum_missions.complex_required");
             }
         } else {
-            return "There is no launch pad there.";
+            return ContinuumLang.enc("phoenix_continuum.continuum_missions.no_pad");
         }
 
         ContinuumTeamData data = ContinuumTeamData.get(server);
 
         DiscoveryStage stage = data.effectiveStage(server, team, destinationId);
-        if (stage == DiscoveryStage.UNKNOWN) return "That signal has not been resolved yet.";
+        if (stage == DiscoveryStage.UNKNOWN) return ContinuumLang.enc("phoenix_continuum.continuum_missions.unresolved");
         ServerPlayer gated = server.getPlayerList().getPlayer(ownerId);
         if (gated != null) {
             Component refused = ContinuumGates.missionDenial(gated, ContinuumGates.featureOf(type),
                     destinationId.toString(), body.system().toString());
-            if (refused != null) return refused.getString();
+            if (refused != null) return ContinuumLang.fromComponent(refused);
         }
         if (!net.phoenix.continuum.common.visibility.ContinuumVisibility.accessible(server, team, body)) {
-            return body.name() + " cannot be reached yet.";
+            return ContinuumLang.enc("phoenix_continuum.continuum_missions.cannot_reach", body.name());
         }
 
         if (data.missions(team).size() >= cfg.maxMissionsPerTeam + data.stationCount(team)) {
-            return "Your team has too many missions out. Collect some first (each orbital station adds a slot).";
+            return ContinuumLang.enc("phoenix_continuum.continuum_missions.too_many");
         }
         int stationLevel = data.stationLevel(team, destinationId);
         Affinities.Factors affinity = Affinities.of(server, team, body);
 
         Stock stock = stockOf.apply(complex);
-        if (stock == null) return "There is no launch pad there.";
+        if (stock == null) return ContinuumLang.enc("phoenix_continuum.continuum_missions.no_pad");
 
         long now = System.currentTimeMillis();
         int carried = 0;
@@ -389,15 +386,15 @@ public final class ContinuumMissions {
         Mission stranded = null;
         switch (type) {
             case SHELL -> {
-                if (!Swarms.isSwarm(body)) return "A shell can only be built round a star or a black hole.";
-                if (stage != DiscoveryStage.SURVEYED) return "Shells can only be built at a surveyed body.";
+                if (!Swarms.isSwarm(body)) return ContinuumLang.enc("phoenix_continuum.continuum_missions.shell_needs_star");
+                if (stage != DiscoveryStage.SURVEYED) return ContinuumLang.enc("phoenix_continuum.continuum_missions.shell_needs_survey");
                 if (data.shellLevel(team, destinationId) >= Swarms.shellMaxLevel(body)) {
-                    return "The " + Swarms.shellName(body) + " at " + body.name() + " is finished.";
+                    return ContinuumLang.enc("phoenix_continuum.continuum_missions.shell_finished", Swarms.shellName(body), body.name());
                 }
                 for (Mission other : data.missions(team)) {
                     if (other.type == Mission.Type.SHELL && other.destination.equals(destinationId) &&
                             !other.state.finished()) {
-                        return "A shell crew is already on its way to " + body.name() + ".";
+                        return ContinuumLang.enc("phoenix_continuum.continuum_missions.shell_crew_en_route", body.name());
                     }
                 }
                 carried = Swarms.payloadPerLevel(body, true);
@@ -407,17 +404,16 @@ public final class ContinuumMissions {
             }
             case STATION -> {
                 if (Swarms.isSwarm(body) && data.shellLevel(team, destinationId) > 0) {
-                    return "A swarm cannot be built inside a shell. The " + Swarms.shellName(body) + " is in the way.";
+                    return ContinuumLang.enc("phoenix_continuum.continuum_missions.swarm_in_shell", Swarms.shellName(body));
                 }
-                if (stage != DiscoveryStage.SURVEYED) return "Stations can only be built at a surveyed body.";
+                if (stage != DiscoveryStage.SURVEYED) return ContinuumLang.enc("phoenix_continuum.continuum_missions.station_needs_survey");
                 if (stationLevel >= Stations.maxLevel(body)) {
-                    return "The " + (Swarms.isSwarm(body) ? "swarm" : "station") + " at " + body.name() +
-                            " is fully built.";
+                    return ContinuumLang.enc(Swarms.isSwarm(body) ? "phoenix_continuum.continuum_missions.swarm_full" : "phoenix_continuum.continuum_missions.station_full", body.name());
                 }
                 for (Mission other : data.missions(team)) {
                     if (other.type == Mission.Type.STATION && other.destination.equals(destinationId) &&
                             !other.state.finished()) {
-                        return "A station crew is already on its way to " + body.name() + ".";
+                        return ContinuumLang.enc("phoenix_continuum.continuum_missions.station_crew_en_route", body.name());
                     }
                 }
                 if (Swarms.isSwarm(body)) {
@@ -432,25 +428,24 @@ public final class ContinuumMissions {
             }
             case RESCUE -> {
                 stranded = strandedAt(data, team, destinationId);
-                if (stranded == null) return "There is no distress signal at " + body.name() + ".";
-                if (stranded.rescuing) return "A rescue is already on its way to " + body.name() + ".";
+                if (stranded == null) return ContinuumLang.enc("phoenix_continuum.continuum_missions.no_distress", body.name());
+                if (stranded.rescuing) return ContinuumLang.enc("phoenix_continuum.continuum_missions.rescue_en_route", body.name());
                 kitsCarried = Math.max(1, cfg.rescueKits);
                 if (stock.kits() < kitsCarried) {
-                    return "A rescue run needs " + kitsCarried + " repair kit" + (kitsCarried == 1 ? "" : "s") + " " +
-                            stock.place() + ".";
+                    return ContinuumLang.enc(kitsCarried == 1 ? "phoenix_continuum.continuum_missions.rescue_kits_one" : "phoenix_continuum.continuum_missions.rescue_kits_many", kitsCarried, stock.place());
                 }
             }
             case EXTRACT -> {
                 if (stage != DiscoveryStage.SURVEYED) {
-                    return "Extraction needs a surveyed body. Fly a survey there first.";
+                    return ContinuumLang.enc("phoenix_continuum.continuum_missions.extract_needs_survey");
                 }
-                if (body.yields().isEmpty()) return "There is nothing to extract there.";
+                if (body.yields().isEmpty()) return ContinuumLang.enc("phoenix_continuum.continuum_missions.nothing_extract");
                 carried = Math.max(1, Math.min(probes, cfg.maxProbesPerMission));
                 if (stock.probes() < carried) return notEnoughProbes(carried, stock);
             }
             case DEPLOY -> {
-                if (stage != DiscoveryStage.SURVEYED) return "Outposts can only be built on a surveyed body.";
-                if (body.yields().isEmpty()) return "Nothing can be built there.";
+                if (stage != DiscoveryStage.SURVEYED) return ContinuumLang.enc("phoenix_continuum.continuum_missions.outpost_needs_survey");
+                if (body.yields().isEmpty()) return ContinuumLang.enc("phoenix_continuum.continuum_missions.nothing_build");
                 Outpost existing = data.outpost(team, destinationId);
                 int room = cfg.maxProbesPerOutpost - (existing == null ? 0 : existing.probes());
 
@@ -460,78 +455,74 @@ public final class ContinuumMissions {
                         room -= other.probes;
                     }
                 }
-                if (room <= 0) return "That outpost is already full.";
+                if (room <= 0) return ContinuumLang.enc("phoenix_continuum.continuum_missions.outpost_full");
                 carried = Math.max(1, Math.min(Math.min(probes, room), cfg.maxProbesPerMission));
                 if (stock.probes() < carried) return notEnoughProbes(carried, stock);
             }
             case HAUL -> {
                 outpost = data.outpost(team, destinationId);
-                if (outpost == null) return "Your team has no outpost there.";
+                if (outpost == null) return ContinuumLang.enc("phoenix_continuum.continuum_missions.no_outpost");
                 outpost.settle(now, RocketStats.outpostCycleMillis(), RocketStats.outpostMaxReady(),
                         OutpostPower.payerFor(server, team));
-                if (outpost.readyCycles() <= 0) return "Nothing is ready to haul yet.";
+                if (outpost.readyCycles() <= 0) return ContinuumLang.enc("phoenix_continuum.continuum_missions.nothing_haul");
             }
             case REPAIR -> {
                 outpost = data.outpost(team, destinationId);
-                if (outpost == null) return "Your team has no outpost there.";
+                if (outpost == null) return ContinuumLang.enc("phoenix_continuum.continuum_missions.no_outpost");
                 outpost.settle(now, RocketStats.outpostCycleMillis(), RocketStats.outpostMaxReady(),
                         OutpostPower.payerFor(server, team));
-                if (!outpost.damaged()) return "That outpost is not damaged.";
+                if (!outpost.damaged()) return ContinuumLang.enc("phoenix_continuum.continuum_missions.not_damaged");
                 kitsCarried = Math.max(1, cfg.outpostRepairKits);
                 if (stock.kits() < kitsCarried) {
-                    return "You need " + kitsCarried + " repair kit" + (kitsCarried == 1 ? "" : "s") + " " +
-                            stock.place() + " to repair an outpost.";
+                    return ContinuumLang.enc(kitsCarried == 1 ? "phoenix_continuum.continuum_missions.repair_kits_one" : "phoenix_continuum.continuum_missions.repair_kits_many", kitsCarried, stock.place());
                 }
             }
             case SURVEY -> {
 
                 if (stage == DiscoveryStage.SURVEYED &&
                         (body.yields().isEmpty() || data.depth(team, destinationId) >= body.yields().size())) {
-                    return body.name() + " is fully surveyed: every deposit is mapped.";
+                    return ContinuumLang.enc("phoenix_continuum.continuum_missions.fully_surveyed", body.name());
                 }
             }
         }
 
         ItemStack rocket = stock.peekRocket();
-        if (rocket.isEmpty()) return "You need a rocket " + stock.place() + ".";
+        if (rocket.isEmpty()) return ContinuumLang.enc("phoenix_continuum.continuum_missions.need_rocket", stock.place());
 
         if (type != Mission.Type.SURVEY && cfg.rocketTierGating &&
                 RocketStats.tier(rocket) < RocketStats.requiredTier(body)) {
-            return body.name() + " needs a " + RocketStats.tierName(RocketStats.requiredTier(body)) +
-                    " hull, but this rocket is " + RocketStats.tierName(RocketStats.tier(rocket)) +
-                    ". Refit it (sneak + use the rocket).";
+            return ContinuumLang.enc("phoenix_continuum.continuum_missions.hull_too_low", body.name(), RocketStats.tierName(RocketStats.requiredTier(body)),
+                    RocketStats.tierName(RocketStats.tier(rocket)));
         }
         String shield = RocketStats.requiredShield(body);
         if (shield != null && type != Mission.Type.SURVEY && RocketStats.level(rocket, shield) <= 0) {
-            return "The rocket cannot work that close to " + body.name() + ". Fit a " + RocketStats.shieldName(shield) +
-                    " (use it with the rocket in your other hand).";
+            return ContinuumLang.enc("phoenix_continuum.continuum_missions.needs_shield", body.name(), RocketStats.shieldName(shield));
         }
         if (RocketStats.interlockRefuses(rocket)) {
-            return "Hull interlock engaged: the rocket is too worn to launch. Repair it first.";
+            return ContinuumLang.enc("phoenix_continuum.continuum_missions.interlock");
         }
         if (passing != null) {
             long arrives = now + Math.round(RocketStats.tripMillis(body, rocket) * Stations.tripFactor(stationLevel) *
                     affinity.trip());
             if (arrives > passing[1]) {
-                return body.name() + " will be gone before you arrive (it leaves in " +
-                        durationText(passing[1] - now) + ").";
+                return ContinuumLang.enc("phoenix_continuum.continuum_missions.gone_before_arrive", body.name(), durationText(passing[1] - now));
             }
         }
         if (stranded != null) {
             long fades = stranded.distressUntil - now;
             if (Math.round(RocketStats.tripMillis(body, rocket) * Stations.tripFactor(stationLevel) * affinity.trip()) >
                     fades) {
-                return "The distress signal will fade before a rescue could arrive (it has " +
-                        net.phoenix.continuum.common.ContinuumMissions.durationText(fades) + " left).";
+                return ContinuumLang.enc("phoenix_continuum.continuum_missions.signal_fades_first",
+                        net.phoenix.continuum.common.ContinuumMissions.durationText(fades));
             }
         }
 
         if (complex != null && !complex.drainEnergy(launchEnergy)) {
-            return "The pad lost power before it could launch.";
+            return ContinuumLang.enc("phoenix_continuum.continuum_missions.lost_power");
         }
 
         ItemStack flown = stock.takeRocket();
-        if (flown.isEmpty()) return "The rocket was taken before the launch could start.";
+        if (flown.isEmpty()) return ContinuumLang.enc("phoenix_continuum.continuum_missions.rocket_taken");
         if (carried > 0) {
             if (special != null) stock.take(special, carried);
             else stock.takeProbes(carried);
@@ -596,11 +587,12 @@ public final class ContinuumMissions {
         net.phoenix.continuum.api.ContinuumEvents.postMission(
                 net.phoenix.continuum.api.ContinuumEvents.MissionChanged.Kind.LAUNCHED, mission);
         data.log(team, MissionLog.Kind.LAUNCH, destinationId,
-                (mission.expedition.isEmpty() ? type.label() : "Expedition " + mission.expeditionTag() + " (" +
-                        type.label().toLowerCase(java.util.Locale.ROOT) + ")") +
-                        " launched to " + body.name() + " (" + durationText(trip) + " flight" +
-                        (window.applies() ? ", " + window.label().toLowerCase(java.util.Locale.ROOT) + " window" : "") + ")" +
-                        (stranded != null ? ", to rescue the stranded rocket" : "") + ".");
+                ContinuumLang.enc("phoenix_continuum.continuum_missions.log_launched",
+                        mission.expedition.isEmpty() ? ContinuumLang.enc(type.labelKey()) :
+                                ContinuumLang.enc("phoenix_continuum.continuum_missions.log_expedition_head", mission.expeditionTag(), ContinuumLang.enc(type.labelKey())),
+                        body.name(), durationText(trip),
+                        window.applies() ? ContinuumLang.enc("phoenix_continuum.continuum_missions.log_window", window.label().toLowerCase(java.util.Locale.ROOT)) : "",
+                        stranded != null ? ContinuumLang.enc("phoenix_continuum.continuum_missions.log_rescue_tail") : ""));
         if (stranded != null) {
             stranded.rescuing = true;
             data.setDirty();
@@ -617,18 +609,18 @@ public final class ContinuumMissions {
     }
 
     private static String notEnoughPayload(int needed, boolean shell, boolean penrose, Stock stock) {
-        return "You need " + Swarms.payloadName(shell, needed, penrose) + " " + stock.place() + ".";
+        return ContinuumLang.enc("phoenix_continuum.continuum_missions.need_payload", Swarms.payloadName(shell, needed, penrose), stock.place());
     }
 
     private static String lostPayload(Mission mission) {
         ContinuumBody body = ContinuumData.body(mission.destination);
         if (mission.type == Mission.Type.SHELL) return Swarms.payloadName(true, mission.probes, Swarms.isPenrose(body));
         if (Swarms.isSwarm(body)) return Swarms.payloadName(false, mission.probes, Swarms.isPenrose(body));
-        return mission.probes + " probe" + (mission.probes == 1 ? "" : "s");
+        return ContinuumLang.text(mission.probes == 1 ? "phoenix_continuum.continuum_missions.probes_one" : "phoenix_continuum.continuum_missions.probes_many", mission.probes);
     }
 
     private static String notEnoughProbes(int needed, Stock stock) {
-        return "You need " + needed + " extraction probe" + (needed == 1 ? "" : "s") + " " + stock.place() + ".";
+        return ContinuumLang.enc(needed == 1 ? "phoenix_continuum.continuum_missions.need_probes_one" : "phoenix_continuum.continuum_missions.need_probes_many", needed, stock.place());
     }
 
     public static ItemStack findRocket(ServerPlayer player) {
@@ -809,8 +801,8 @@ public final class ContinuumMissions {
             data.removeMission(mission.team, mission.id);
             ContinuumBody from = ContinuumData.body(mission.destination);
             data.log(mission.team, MissionLog.Kind.COLLECTED, mission.destination,
-                    "The pad took in the rocket from " + (from != null ? from.name() : mission.destination.getPath()) +
-                            (items > 0 ? " and " + items + " resources." : "."));
+                    ContinuumLang.enc(items > 0 ? "phoenix_continuum.continuum_missions.pad_took_in_items" : "phoenix_continuum.continuum_missions.pad_took_in",
+                            from != null ? from.name() : mission.destination.getPath(), items));
             return true;
         }
         if (changed) data.setDirty();
@@ -863,7 +855,7 @@ public final class ContinuumMissions {
     private static void land(MinecraftServer server, ContinuumTeamData data, Mission mission) {
         ContinuumBody destination = ContinuumData.body(mission.destination);
         String name = destination != null ? destination.name() : mission.destination.getPath();
-        String probesText = mission.probes + " probe" + (mission.probes == 1 ? "" : "s");
+        Component probesText = ContinuumLang.tr(mission.probes == 1 ? "phoenix_continuum.continuum_missions.probes_text_one" : "phoenix_continuum.continuum_missions.probes_text_many", mission.probes);
 
         mission.events.removeIf(id -> {
             MissionEvent e = MissionEvent.byId(id);
@@ -881,7 +873,7 @@ public final class ContinuumMissions {
                     net.phoenix.continuum.api.ContinuumEvents.MissionChanged.Kind.SUCCEEDED, mission);
             RocketStats.setWear(mission.rocket, wear);
 
-            String message = switch (mission.type) {
+            Component message = switch (mission.type) {
                 case SURVEY -> {
                     if (destination != null) {
                         boolean first = !data.storedStage(mission.team, destination.id())
@@ -890,20 +882,19 @@ public final class ContinuumMissions {
                         if (echo) revealExtra(data, mission.team, destination);
                         surveyFindings(data, mission, destination);
                     }
-                    yield "Mission to " + name + " landed: survey complete.";
+                    yield ContinuumLang.tr("phoenix_continuum.continuum_missions.landed_survey", name);
                 }
-                case EXTRACT -> "Extraction run to " + name + " landed: resources are waiting for collection.";
+                case EXTRACT -> ContinuumLang.tr("phoenix_continuum.continuum_missions.landed_extract", name);
                 case DEPLOY -> {
                     int deployed = Math.max(1, mission.probes - (micro ? 1 : 0));
                     data.deployProbes(mission.team, mission.destination, deployed, System.currentTimeMillis());
-                    yield "Outpost on " + name + " established with " + deployed + " probe" +
-                            (deployed == 1 ? "" : "s") + ". It is producing now.";
+                    yield ContinuumLang.tr(deployed == 1 ? "phoenix_continuum.continuum_missions.landed_deploy_one" : "phoenix_continuum.continuum_missions.landed_deploy_many", name, deployed);
                 }
-                case HAUL -> "Haul from " + name + " landed: the stockpile is waiting for collection.";
+                case HAUL -> ContinuumLang.tr("phoenix_continuum.continuum_missions.landed_haul", name);
                 case REPAIR -> {
                     Outpost repaired = data.outpost(mission.team, mission.destination);
                     if (repaired != null) repaired.repair(System.currentTimeMillis());
-                    yield "Repair run to " + name + " landed: the outpost is producing again.";
+                    yield ContinuumLang.tr("phoenix_continuum.continuum_missions.landed_repair", name);
                 }
                 case SHELL -> {
                     int shellBuilt = data.shellLevel(mission.team, mission.destination) + 1;
@@ -911,23 +902,20 @@ public final class ContinuumMissions {
                     data.setShellLevel(mission.team, mission.destination, shellBuilt);
                     ContinuumBody shellBody = ContinuumData.body(mission.destination);
                     int shown = Math.min(shellBuilt, Swarms.shellMaxLevel(shellBody));
-                    yield (shellBody != null && Swarms.isPenrose(shellBody) ? "Penrose sphere" : "Dyson shell") +
-                            " at " + name + " is now level " + shown + ": " +
-                            Swarms.describeShell(shellBody, shown) + "." +
-                            (tookApart ? " The swarm that was here was taken apart for it." : "");
+                    yield ContinuumLang.tr(tookApart ? "phoenix_continuum.continuum_missions.landed_shell_apart" : "phoenix_continuum.continuum_missions.landed_shell", Swarms.shellName(shellBody), name, shown,
+                            Swarms.describeShell(shellBody, shown));
                 }
                 case STATION -> {
                     int built = data.stationLevel(mission.team, mission.destination) + 1;
                     data.setStationLevel(mission.team, mission.destination, built);
                     ContinuumBody station = ContinuumData.body(mission.destination);
                     if (Swarms.isSwarm(station)) {
-                        yield Swarms.kindName(station).substring(0, 1).toUpperCase(java.util.Locale.ROOT) +
-                                Swarms.kindName(station).substring(1) + " at " + name + " is now level " +
-                                Math.min(built, Stations.maxLevel(station)) + ": " + Swarms.describe(station,
-                                        Math.min(built, Stations.maxLevel(station))) + ".";
+                        yield ContinuumLang.tr("phoenix_continuum.continuum_missions.landed_swarm", Swarms.kindName(station).substring(0, 1).toUpperCase(java.util.Locale.ROOT) +
+                                Swarms.kindName(station).substring(1), name,
+                                Math.min(built, Stations.maxLevel(station)), Swarms.describe(station,
+                                        Math.min(built, Stations.maxLevel(station))));
                     }
-                    yield "Orbital station at " + name + " is now level " + Math.min(built, Stations.MAX_LEVEL) +
-                            ". " + Stations.describe(built);
+                    yield ContinuumLang.tr("phoenix_continuum.continuum_missions.landed_station", name, Math.min(built, Stations.MAX_LEVEL), Stations.describe(built));
                 }
                 case RESCUE -> {
 
@@ -937,8 +925,7 @@ public final class ContinuumMissions {
                         saved.distressUntil = 0;
                         saved.rescuing = false;
                     }
-                    yield "Rescue run to " + name + " landed: the stranded rocket is recovered and waiting for " +
-                            "collection.";
+                    yield ContinuumLang.tr("phoenix_continuum.continuum_missions.landed_rescue", name);
                 }
             };
             notifyLogged(server, data, mission.team,
@@ -946,21 +933,22 @@ public final class ContinuumMissions {
                             MissionLog.Kind.STATION :
                             mission.type == Mission.Type.RESCUE ? MissionLog.Kind.RESCUED : MissionLog.Kind.LANDED,
                     mission.destination,
-                    Component.literal((mission.expedition.isEmpty() ? "" : "Expedition " + mission.expeditionTag() +
-                            ": ") + message + eventText(mission)).withStyle(ChatFormatting.GREEN));
+                    (mission.expedition.isEmpty() ? message.copy().append(eventText(mission)) :
+                            ContinuumLang.tr("phoenix_continuum.continuum_missions.landed_expedition", mission.expeditionTag(), message, eventText(mission)))
+                            .withStyle(ChatFormatting.GREEN));
         } else {
             mission.state = Mission.State.FAILED;
             net.phoenix.continuum.api.ContinuumEvents.postMission(
                     net.phoenix.continuum.api.ContinuumEvents.MissionChanged.Kind.FAILED, mission);
             RocketStats.setWear(mission.rocket, wear + RocketStats.FAILURE_WEAR);
 
-            String lost = switch (mission.type) {
-                case SURVEY -> "";
-                case EXTRACT, DEPLOY -> " The " + probesText + " were lost.";
-                case STATION, SHELL -> " The " + lostPayload(mission) + " were lost.";
-                case HAUL -> " The haul was lost.";
-                case REPAIR -> " The repair kits were lost and the outpost is still broken.";
-                case RESCUE -> " The repair kits were lost and the stranded rocket is still waiting.";
+            Component lost = switch (mission.type) {
+                case SURVEY -> Component.empty();
+                case EXTRACT, DEPLOY -> ContinuumLang.tr("phoenix_continuum.continuum_missions.lost_probes", probesText);
+                case STATION, SHELL -> ContinuumLang.tr("phoenix_continuum.continuum_missions.lost_payload", lostPayload(mission));
+                case HAUL -> ContinuumLang.tr("phoenix_continuum.continuum_missions.lost_haul");
+                case REPAIR -> ContinuumLang.tr("phoenix_continuum.continuum_missions.lost_repair");
+                case RESCUE -> ContinuumLang.tr("phoenix_continuum.continuum_missions.lost_rescue");
             };
 
             if (mission.type == Mission.Type.RESCUE) {
@@ -1000,13 +988,13 @@ public final class ContinuumMissions {
         if (nearest != null) data.raise(team, nearest.id(), DiscoveryStage.DETECTED);
     }
 
-    private static String eventText(Mission mission) {
-        StringBuilder text = new StringBuilder();
+    private static net.minecraft.network.chat.MutableComponent eventText(Mission mission) {
+        net.minecraft.network.chat.MutableComponent text = Component.empty();
         for (String id : mission.events) {
             MissionEvent event = MissionEvent.byId(id);
-            if (event != null) text.append(' ').append(event.text);
+            if (event != null) text.append(" ").append(ContinuumLang.tr("phoenix_continuum.mission_event." + event.id));
         }
-        return text.toString();
+        return text;
     }
 
     private static void surveyFindings(ContinuumTeamData data, Mission mission, ContinuumBody destination) {
@@ -1042,11 +1030,10 @@ public final class ContinuumMissions {
         ContinuumTeamData data = ContinuumTeamData.get(server);
 
         Mission mission = data.mission(team, missionId).orElse(null);
-        if (mission == null) return "That mission is gone.";
-        if (!mission.state.finished()) return "That mission is still under way.";
+        if (mission == null) return ContinuumLang.enc("phoenix_continuum.continuum_missions.mission_gone");
+        if (!mission.state.finished()) return ContinuumLang.enc("phoenix_continuum.continuum_missions.mission_underway");
         if (mission.stranded()) {
-            return "That rocket is stranded. Send a rescue run (repair kits) before the signal fades in " +
-                    durationText(mission.distressUntil - System.currentTimeMillis()) + ".";
+            return ContinuumLang.enc("phoenix_continuum.continuum_missions.rocket_stranded", durationText(mission.distressUntil - System.currentTimeMillis()));
         }
 
         LaunchComplex pad = launchComplexOf(server, mission);
@@ -1071,15 +1058,12 @@ public final class ContinuumMissions {
 
         ContinuumBody collectedFrom = ContinuumData.body(mission.destination);
         data.log(team, MissionLog.Kind.COLLECTED, mission.destination,
-                "Collected the rocket from " +
-                        (collectedFrom != null ? collectedFrom.name() : mission.destination.getPath()) +
-                        (items > 0 ? " and " + items + " resources" + (delivered > 0 ? " (" + delivered +
-                                " delivered to the output buses)" : "") : "") +
-                        ".");
+                ContinuumLang.enc("phoenix_continuum.continuum_missions.log_collected",
+                        collectedFrom != null ? collectedFrom.name() : mission.destination.getPath(),
+                        items > 0 ? ContinuumLang.enc(delivered > 0 ? "phoenix_continuum.continuum_missions.log_collected_items_delivered" : "phoenix_continuum.continuum_missions.log_collected_items", items, delivered) : ""));
         if (items > 0) {
-            String where = delivered >= items ? "all of it in the launch complex's output buses" :
-                    delivered > 0 ? delivered + " in the output buses, the rest in your inventory" :
-                            "in your inventory";
+            Component where = delivered >= items ? ContinuumLang.tr("phoenix_continuum.continuum_missions.where_all_buses") :
+                    delivered > 0 ? ContinuumLang.tr("phoenix_continuum.continuum_missions.where_some_buses", delivered) : ContinuumLang.tr("phoenix_continuum.continuum_missions.where_inventory");
             player.sendSystemMessage(
                     ContinuumLang.tr("phoenix_continuum.continuum_missions.collected_the_rocket_and_resources", items, where)
                             .withStyle(ChatFormatting.GREEN));
@@ -1100,7 +1084,7 @@ public final class ContinuumMissions {
 
     static void notifyLogged(MinecraftServer server, ContinuumTeamData data, UUID team, MissionLog.Kind kind,
                              ResourceLocation body, Component message) {
-        data.log(team, kind, body, message.getString());
+        data.log(team, kind, body, ContinuumLang.fromComponent(message));
         notifyTeam(server, team, message);
     }
 

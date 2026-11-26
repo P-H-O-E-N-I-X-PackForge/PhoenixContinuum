@@ -160,21 +160,21 @@ public class ContinuumObservatoryScreen extends Screen {
         int ty = y + 22;
         g.drawString(font, body.name(), tx, ty, MapUi.TITLE);
         ty += 11;
-        g.drawString(font, body.kindLabel() + "  -  " + (surveyed ? "surveyed" : "detected"), tx, ty,
+        g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_map.kind_stage", body.kindLabel(), net.phoenix.continuum.data.DiscoveryStage.valueOf(surveyed ? "SURVEYED" : "DETECTED").label()), tx, ty,
                 surveyed ? MapUi.GOOD : MapUi.WARN);
         ty += 14;
 
         g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_observatory.readings"), tx, ty, MapUi.TITLE);
         ty += 11;
         if (!surveyed) {
-            ty = wrapped(g, "Only a scan return so far. Survey it to resolve the instruments.", tx, ty, tw, MapUi.DIM);
+            ty = wrapped(g, ContinuumText.str("phoenix_continuum.continuum_observatory_screen.only_a_scan_return_so_far"), tx, ty, tw, MapUi.DIM);
         } else {
-            ty = line(g, "Gravity", ObservatoryReadings.gravity(body), tx, ty, tw);
+            ty = line(g, ContinuumText.str("phoenix_continuum.continuum_observatory_screen.gravity"), ObservatoryReadings.gravity(body), tx, ty, tw);
             String temperature = ObservatoryReadings.temperature(body, system);
-            if (temperature != null) ty = line(g, "Temp", temperature, tx, ty, tw);
+            if (temperature != null) ty = line(g, ContinuumText.str("phoenix_continuum.continuum_observatory_screen.temp"), temperature, tx, ty, tw);
             int airY = ty;
             String air = ObservatoryReadings.atmosphere(body);
-            ty = line(g, "Air", air, tx, ty, tw);
+            ty = line(g, ContinuumText.str("phoenix_continuum.continuum_observatory_screen.air"), air, tx, ty, tw);
             if (body.params().atmoDensity() > 0.0f) {
                 
                 int sx = tx + 56 + font.width(air) + 5;
@@ -207,11 +207,11 @@ public class ContinuumObservatoryScreen extends Screen {
                 g.drawString(font, ContinuumText.str("phoenix_continuum.continuum_observatory.no_moons_no_eclipses"), tx, ty, MapUi.DIM);
                 ty += 11;
             } else if (eclipse == null) {
-                ty = wrapped(g, "No eclipse in the next 800 days.", tx, ty, tw, MapUi.DIM);
+                ty = wrapped(g, ContinuumText.str("phoenix_continuum.continuum_observatory_screen.no_eclipse_in_the_next_800"), tx, ty, tw, MapUi.DIM);
             } else {
                 String how = eclipse.total() ? "total" : "annular or partial";
                 
-                ty = line(g, "Eclipse", String.format(Locale.ROOT, "%s, in %.1f days (about %s)", how, eclipse.inDays(),
+                ty = line(g, ContinuumText.str("phoenix_continuum.continuum_observatory_screen.eclipse"), String.format(Locale.ROOT, "%s, in %.1f days (about %s)", how, eclipse.inDays(),
                         MapUi.duration(Math.round(eclipse.inDays() * 1_200_000.0))), tx, ty, tw);
                 ty = wrapped(g, "by " + eclipse.moon(), tx, ty, tw, MapUi.DIM);
             }
